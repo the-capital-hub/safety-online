@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import NavigationBar from "@/components/NavigationBar.jsx";
 import HeroSection from "@/components/home/HeroSection.jsx";
 import ProductShowcase from "@/components/home/ProductShowcase.jsx";
 import TrustedCompanies from "@/components/home/TrustedCompanies.jsx";
@@ -14,7 +15,8 @@ export default function HomePage() {
 	const [selectedCategory, setSelectedCategory] = useState("All");
 
 	return (
-		<div className="min-h-screen bg-white hide-scrollbar">
+		<div className="min-h-[calc(100vh-68px)] bg-white hide-scrollbar">
+			<NavigationBar />
 			<HeroSection />
 			<ProductShowcase />
 			<TrustedCompanies />

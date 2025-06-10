@@ -16,7 +16,7 @@ export default function CartPage() {
 
 	if (items.length === 0) {
 		return (
-			<div className="min-h-screen bg-gray-50">
+			<div className="min-h-[calc(100vh-68px)] bg-gray-50">
 				<div className="container mx-auto px-4 py-16">
 					<div className="text-center">
 						<ShoppingCart className="h-24 w-24 mx-auto text-gray-300 mb-6" />
@@ -36,7 +36,7 @@ export default function CartPage() {
 	}
 
 	return (
-		<div className="min-h-screen bg-gray-50">
+		<div className="min-h-[calc(100vh-68px] bg-gray-50">
 			<div className="container mx-auto px-4 py-8">
 				{/* Header */}
 				<div className="flex items-center justify-between mb-8">
