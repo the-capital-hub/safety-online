@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 
 function RootLayoutClient({ children }) {
 	const pathname = usePathname();
-	const isHomePage = pathname === "/";
+	const showFooter = pathname === "/" || pathname === "/cart";
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 
 	const handleMenuToggle = () => {
@@ -29,8 +29,10 @@ function RootLayoutClient({ children }) {
 	return (
 		<>
 			<Header onMenuToggle={handleMenuToggle} isMenuOpen={isMenuOpen} />
-			<main className="min-h-[calc(100vh-68px)] hide-scrollbar">{children}</main>
-			{isHomePage && <Footer />}
+			<main className="min-h-[calc(100vh-68px)] hide-scrollbar">
+				{children}
+			</main>
+			{showFooter && <Footer />}
 		</>
 	);
 }

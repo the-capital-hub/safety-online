@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Menu, ShoppingCart, Heart, User, X } from "lucide-react";
 import Link from "next/link";
 import { useCartStore } from "@/lib/store";
-import Logo from "@/public/images/home/Logo.png";
+import Logo from "@/public/SafetyLogo.png";
 
 export default function Header({ onMenuToggle, isMenuOpen }) {
 	const { getTotalItems } = useCartStore();
@@ -15,7 +15,9 @@ export default function Header({ onMenuToggle, isMenuOpen }) {
 		<header className="bg-white shadow-sm sticky top-0 z-50">
 			<div className="px-4 lg:px-10">
 				{/* Top Bar */}
-				<div className="flex items-center justify-between py-4">
+				<div className="flex items-center justify-between py-3">
+					<div className="hidden lg:block"></div>
+
 					<div className="flex items-center space-x-2 md:space-x-4">
 						<Button
 							variant="ghost"
@@ -34,7 +36,7 @@ export default function Header({ onMenuToggle, isMenuOpen }) {
 							<Image
 								src={Logo}
 								alt="Logo"
-								className="h-auto w-20 lg:w-40 object-cover"
+								className="h-auto w-20 lg:w-24 object-cover"
 							/>
 						</Link>
 					</div>
