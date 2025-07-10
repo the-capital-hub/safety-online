@@ -293,7 +293,7 @@ const products = [
 	},
 	{
 		id: "PSP3",
-		name: "Orange Helmet & Reflective Jacket Combo",
+		name: "Orange Helmet & Reflective Jacket",
 		description:
 			"High-visibility safety combo with orange helmet and reflective jacket.",
 		longDescription:

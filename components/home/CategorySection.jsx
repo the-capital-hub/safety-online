@@ -37,7 +37,7 @@ export default function CategorySection({
 	const allProducts = [
 		{
 			id: 1,
-			title: "Road Safety",
+			name: "Road Safety",
 			description:
 				"Road safety refers to the measures and practices used to prevent road accidents and protect members of all road users.",
 			price: "₹ 5,000",
@@ -46,7 +46,7 @@ export default function CategorySection({
 		},
 		{
 			id: 2,
-			title: "Traffic Cone",
+			name: "Traffic Cone",
 			description:
 				"Road safety refers to the measures and practices used to prevent road accidents and protect members of all road users.",
 			price: "₹ 5,000",
@@ -55,7 +55,7 @@ export default function CategorySection({
 		},
 		{
 			id: 3,
-			title: "Industrial Safety",
+			name: "Industrial Safety",
 			description:
 				"Road safety refers to the measures and practices used to prevent road accidents and protect members of all road users.",
 			price: "₹ 5,000",
@@ -64,7 +64,7 @@ export default function CategorySection({
 		},
 		{
 			id: 4,
-			title: "Q-Manager",
+			name: "Q-Manager",
 			description:
 				"Road safety refers to the measures and practices used to prevent road accidents and protect members of all road users.",
 			price: "₹ 5,000",
@@ -73,7 +73,7 @@ export default function CategorySection({
 		},
 		{
 			id: 5,
-			title: "Road Barricade",
+			name: "Road Barricade",
 			description:
 				"Road safety refers to the measures and practices used to prevent road accidents and protect members of all road users.",
 			price: "₹ 5,000",
@@ -82,7 +82,7 @@ export default function CategorySection({
 		},
 		{
 			id: 6,
-			title: "Fire Extinguisher",
+			name: "Fire Extinguisher",
 			description:
 				"Road safety refers to the measures and practices used to prevent road accidents and protect members of all road users.",
 			price: "₹ 5,000",
@@ -106,7 +106,7 @@ export default function CategorySection({
 		if (searchTerm) {
 			filtered = filtered.filter(
 				(product) =>
-					product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+					product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
 					product.description
 						.toLowerCase()
 						.includes(searchTerm.toLowerCase()) ||
@@ -208,7 +208,7 @@ export default function CategorySection({
 				{/* Products Grid */}
 				<ProductGrid products={filteredProducts} viewMode={viewMode} />
 
-				{/* Load More */}
+				{/* Load More Button */}
 				<motion.div
 					initial={{ opacity: 0, y: 20 }}
 					whileInView={{ opacity: 1, y: 0 }}

@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ShoppingCart, Heart, Eye, ArrowRight } from "lucide-react";
 import { Product12 } from "@/public/images/home";
 
 export default function FeaturedProduct() {
@@ -34,20 +35,34 @@ export default function FeaturedProduct() {
 							/>
 						</div>
 						<div className="order-1 lg:order-2">
-							<h3 className="text-xl md:text-2xl font-bold mb-4">
+							<h3 className="text-xl md:text-2xl lg:text-4xl font-bold mb-4">
 								LADWA 4 Pcs 750mm Impact Resistant Road Traffic Safety Cones
 								with Reflective Strips Collar
 							</h3>
-							<p className="text-gray-600 mb-6 text-sm md:text-base">
+
+							<p className="text-gray-600 mb-6 text-sm md:text-base lg:text-lg">
 								This LADWA 4 Pcs 750mm Impact Resistant Road Traffic Safety
 								Cones with Reflective Strips Collar are durable and highly
 								visible traffic management tools designed to enhance safety in
 								various environments.
 							</p>
-							<p className="text-2xl md:text-3xl font-bold mb-6">₹ 5,000</p>
+
+							<p className="text-2xl md:text-3xl font-bold mb-1">₹ 5,000</p>
+
+							<div className="flex items-center mb-6">
+								<span className="text-gray-500 line-through mr-2">₹ 8000</span>
+								<span className="text-green-500">25% off</span>
+							</div>
+
 							<div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
-								<Button className="bg-black text-white">BUY NOW</Button>
-								<Button variant="outline">ADD TO CART</Button>
+								<Button className="bg-black text-white px-4 py-2 md:py-3 rounded-full w-full md:w-fit">
+									BUY NOW
+									<ArrowRight className="ml-2 h-4 w-4" />
+								</Button>
+								<Button className="bg-black text-white px-4 py-2 md:py-3 rounded-full w-full md:w-fit">
+									Add to Cart
+									<ShoppingCart className="ml-2 h-4 w-4" />
+								</Button>
 							</div>
 						</div>
 					</div>

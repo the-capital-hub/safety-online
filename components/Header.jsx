@@ -16,7 +16,21 @@ export default function Header({ onMenuToggle, isMenuOpen }) {
 			<div className="px-4 lg:px-10">
 				{/* Top Bar */}
 				<div className="flex items-center justify-between py-3">
-					<div className="hidden lg:block"></div>
+					{/* Desktop Menu */}
+					<div className="hidden lg:block">
+						<Button
+							variant="ghost"
+							size="icon"
+							// className="lg:hidden"
+							// onClick={onMenuToggle}
+						>
+							{isMenuOpen ? (
+								<X className="h-6 w-6" />
+							) : (
+								<Menu className="h-6 w-6" />
+							)}
+						</Button>
+					</div>
 
 					<div className="flex items-center space-x-2 md:space-x-4">
 						<Button

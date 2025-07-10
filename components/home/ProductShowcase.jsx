@@ -1,91 +1,16 @@
-// "use client";
-
-// import Image from "next/image";
-// import { motion } from "framer-motion";
-// import ProductCarousel from "@/components/home/ProductCarousel.jsx";
-// import ProductCard from "@/components/home/ProductCard1.jsx";
-// import {
-// 	Product1,
-// 	Product2,
-// 	Product4,
-// 	Product3,
-// 	Product16,
-// } from "@/public/images/home/index.js";
-
-// export default function ProductShowcase() {
-// 	const products = [
-// 		{
-// 			id: 1,
-// 			title: "SAFETY AND EFFICIENCY",
-// 			subtitle: "HAND-IN-HAND",
-// 			price: "₹ 5,000",
-// 			image: Product3.src,
-// 			colors: ["blue", "black", "red", "orange"],
-// 		},
-// 		{
-// 			id: 2,
-// 			title: "STOP SIGNALS",
-// 			subtitle: "HAND-IN-HAND",
-// 			price: "₹ 5,000",
-// 			image: Product4.src,
-// 			colors: ["blue", "black", "red", "orange"],
-// 		},
-// 		{
-// 			id: 3,
-// 			title: "INDUSTRIAL SAFETY",
-// 			subtitle: "PROTECTION FIRST",
-// 			price: "₹ 5,000",
-// 			image: Product1.src,
-// 			colors: ["blue", "black", "red", "orange"],
-// 		},
-// 	];
-
-// 	return (
-// 		<section className="py-8 md:py-12 bg-white h-[calc(100vh-136px)]">
-// 			<div className="h-full px-10 grid grid-cols-1 md:grid-cols-3 gap-8">
-// 				<motion.div
-// 					initial={{ opacity: 0, y: 20 }}
-// 					whileInView={{ opacity: 1, y: 0 }}
-// 					viewport={{ once: true }}
-// 				>
-// 					<h3 className="text-gray-300 text-md font-medium mb-4">
-// 						<span className="text-yellow-500">CHECK OUR PRODUCTS</span> SAFETY
-// 						FIRST
-// 					</h3>
-
-// 					<h2 className="text-2xl md:text-6xl font-bold">
-// 						UP TO <span className="text-yellow-500">50%</span>{" "}
-// 						<span className="text-black">OFF!</span>
-// 					</h2>
-// 					<p className="text-gray-600 mt-4 max-w-md text-sm md:text-base">
-// 						This refers to protective equipment like helmets, gloves, goggles,
-// 						boots, etc., used to prevent injury in hazardous environments.
-// 					</p>
-// 					<Image
-// 						src={Product16.src}
-// 						alt="Product 16"
-// 						width={400}
-// 						height={400}
-// 						className="w-full h-auto rounded max-h-[150px] object-contain mt-8"
-// 					/>
-// 				</motion.div>
-
-// 				<div className="col-span-2 flex flex-col md:flex-row gap-8">
-// 					{/* <ProductCarousel products={products} /> */}
-// 					<ProductCard product={products[0]} />
-// 					<ProductCard product={products[1]} />
-// 				</div>
-// 			</div>
-// 		</section>
-// 	);
-// }
-
 "use client";
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import ProductCarousel from "@/components/home/ProductCarousel.jsx";
-import ProductCard from "@/components/home/ProductCard1.jsx";
+import ProductCard from "@/components/products/ProductCard.jsx";
+import useEmblaCarousel from "embla-carousel-react";
+import { useDotButton } from "@/components/home/ProductShowcaseCarousel/carouselDotButtons.jsx";
+import { usePrevNextButtons } from "@/components/home/ProductShowcaseCarousel/carouselArrowButtons.jsx";
+import { DotButton } from "@/components/home/ProductShowcaseCarousel/carouselDotButtons.jsx";
+import {
+	PrevButton,
+	NextButton,
+} from "@/components/home/ProductShowcaseCarousel/carouselArrowButtons.jsx";
 import {
 	Product1,
 	Product2,
@@ -98,40 +23,69 @@ export default function ProductShowcase() {
 	const products = [
 		{
 			id: 1,
-			title: "SAFETY AND EFFICIENCY",
-			subtitle: "HAND-IN-HAND",
+			name: "SAFETY AND EFFICIENCY",
+			description:
+				"If you're talking about safety at a 'gate' safety gates block off staircases or rooms to prevent accidents.",
 			price: "₹ 5,000",
 			image: Product3.src,
 			colors: ["blue", "black", "red", "orange"],
 		},
 		{
 			id: 2,
-			title: "STOP SIGNALS",
-			subtitle: "HAND-IN-HAND",
+			name: "STOP SIGNALS",
+			description:
+				"Often used for childproofing homes or securing pets, safety gates block off staircases or rooms to prevent accidents.",
 			price: "₹ 5,000",
 			image: Product4.src,
 			colors: ["blue", "black", "red", "orange"],
 		},
 		{
 			id: 3,
-			title: "INDUSTRIAL SAFETY",
-			subtitle: "PROTECTION FIRST",
+			name: "INDUSTRIAL SAFETY",
+			description:
+				"Often used for childproofing homes or securing pets, safety gates block off staircases or rooms to prevent accidents.",
 			price: "₹ 5,000",
 			image: Product1.src,
 			colors: ["blue", "black", "red", "orange"],
 		},
+		{
+			id: 4,
+			name: "PREMIUM SAFETY",
+			description:
+				"Often used for childproofing homes or securing pets, safety gates block off staircases or rooms to prevent accidents.",
+			price: "₹ 7,500",
+			image: Product2.src,
+			colors: ["blue", "black", "red", "orange"],
+		},
 	];
+
+	const [emblaRef, emblaApi] = useEmblaCarousel({
+		slidesToScroll: 1,
+		containScroll: "trimSnaps",
+		breakpoints: {
+			"(min-width: 768px)": { slidesToScroll: 2 },
+		},
+	});
+
+	const { selectedIndex, scrollSnaps, onDotButtonClick } =
+		useDotButton(emblaApi);
+	const {
+		prevBtnDisabled,
+		nextBtnDisabled,
+		onPrevButtonClick,
+		onNextButtonClick,
+	} = usePrevNextButtons(emblaApi);
 
 	return (
 		<section className="py-6 sm:py-8 lg:py-12 bg-white min-h-[calc(100vh-136px)]">
 			<div className="h-full px-10 sm:px-6 lg:px-10">
-				<div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 h-full">
+				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 h-full">
 					{/* Left Column - Promotional Content */}
 					<motion.div
 						initial={{ opacity: 0, y: 20 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
-						className="lg:col-span-4 flex flex-col justify-between"
+						className="lg:col-span-1 flex flex-col justify-between"
 					>
 						{/* Header Content */}
 						<div>
@@ -160,36 +114,62 @@ export default function ProductShowcase() {
 									alt="Product 16"
 									width={400}
 									height={200}
-									className="w-full h-auto rounded-lg object-contain"
-									sizes="(max-width: 640px) 300px, (max-width: 1024px) 400px, 350px"
+									className="w-full h-auto max-h-[150px] rounded-lg object-contain"
+									sizes="(max-width: 640px) 300px, (max-width: 1024px) 400px, 250px"
 								/>
+							</div>
+						</div>
+
+						{/* Carousel Controls */}
+						<div className="mt-6 lg:mt-8 flex items-center justify-between">
+							<div className="flex items-center gap-2">
+								<PrevButton
+									onClick={onPrevButtonClick}
+									disabled={prevBtnDisabled}
+								/>
+								<NextButton
+									onClick={onNextButtonClick}
+									disabled={nextBtnDisabled}
+								/>
+							</div>
+							<div className="flex items-center gap-2">
+								{scrollSnaps.map((_, index) => (
+									<DotButton
+										key={index}
+										onClick={() => onDotButtonClick(index)}
+										className={`w-3 h-3 rounded-full transition-all duration-200 ${
+											index === selectedIndex
+												? "bg-black w-8"
+												: "bg-gray-300 hover:bg-gray-400"
+										}`}
+									/>
+								))}
 							</div>
 						</div>
 					</motion.div>
 
-					{/* Right Column - Product Cards */}
-					<div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
-						{/* First Product Card */}
-						<motion.div
-							initial={{ opacity: 0, y: 20 }}
-							whileInView={{ opacity: 1, y: 0 }}
-							viewport={{ once: true }}
-							transition={{ delay: 0.1 }}
-							className="h-80 sm:h-96 md:h-[450px] lg:h-[500px]"
-						>
-							<ProductCard product={products[0]} />
-						</motion.div>
-
-						{/* Second Product Card */}
-						<motion.div
-							initial={{ opacity: 0, y: 20 }}
-							whileInView={{ opacity: 1, y: 0 }}
-							viewport={{ once: true }}
-							transition={{ delay: 0.2 }}
-							className="h-80 sm:h-96 md:h-[450px] lg:h-[500px]"
-						>
-							<ProductCard product={products[1]} />
-						</motion.div>
+					{/* Right Column - Product Cards Carousel */}
+					<div className="lg:col-span-2">
+						<div className="overflow-hidden" ref={emblaRef}>
+							<div className="flex gap-4 sm:gap-6 lg:gap-8 ml-8">
+								{products.map((product, index) => (
+									<div
+										key={product.id}
+										className="flex-shrink-0 w-full md:w-1/2 h-auto"
+									>
+										<motion.div
+											initial={{ opacity: 0, y: 20 }}
+											whileInView={{ opacity: 1, y: 0 }}
+											viewport={{ once: true }}
+											transition={{ delay: index * 0.1 }}
+											className="max-w-[500px] h-full"
+										>
+											<ProductCard product={product} />
+										</motion.div>
+									</div>
+								))}
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
