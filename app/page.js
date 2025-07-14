@@ -1,36 +1,17 @@
 "use client";
 
-import { useState } from "react";
-import NavigationBar from "@/components/NavigationBar.jsx";
-import HeroSection from "@/components/home/HeroSection.jsx";
-import ProductShowcase from "@/components/home/ProductShowcase.jsx";
-import TrustedCompanies from "@/components/home/TrustedCompanies.jsx";
-import CategorySection from "@/components/home/CategorySection.jsx";
-import SupportSection from "@/components/home/SupportSection.jsx";
-import FeaturedSection from "@/components/home/FeaturedSection.jsx";
-import SearchSection from "@/components/home/SearchSection.jsx";
+import React, { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
-export default function HomePage() {
-	const [searchQuery, setSearchQuery] = useState("");
-	const [selectedCategory, setSelectedCategory] = useState("All");
+const Home = () => {
+	const router = useRouter();
 
-	return (
-		<div className="min-h-[calc(100vh-68px)] bg-white hide-scrollbar">
-			<NavigationBar />
-			<HeroSection />
-			<ProductShowcase />
-			<TrustedCompanies />
-			<CategorySection
-				searchQuery={searchQuery}
-				selectedCategory={selectedCategory}
-				setSelectedCategory={setSelectedCategory}
-			/>
-			<SupportSection />
-			<FeaturedSection />
-			<SearchSection
-				searchQuery={searchQuery}
-				setSearchQuery={setSearchQuery}
-			/>
-		</div>
-	);
-}
+	// On page mount redirect to /home
+	useEffect(() => {
+		router.push("/home");
+	});
+
+	return <div>Redirecting to home page</div>;
+};
+
+export default Home;
