@@ -65,15 +65,15 @@ const LoginPage = () => {
 	};
 
 	return (
-		<div className="max-w-7xl mx-auto h-[calc(100vh-62px)] grid grid-cols-2">
+		<div className="max-w-7xl mx-auto h-screen grid grid-cols-2 lg:px-10">
 			{/* Left side - Image and branding */}
 			<motion.div
-				className="hidden lg:block overflow-hidden p-8"
+				className="hidden lg:flex justify-center items-center overflow-hidden p-8"
 				initial={{ x: -100, opacity: 0 }}
 				animate={{ x: 0, opacity: 1 }}
 				transition={{ duration: 0.8, ease: "easeOut" }}
 			>
-				<div className="w-4/5 py-8 px-0 mx-auto bg-[#F3F3F3] rounded-2xl">
+				<div className="w-4/5 py-8 bg-[#F3F3F3] rounded-2xl">
 					{/* Branding text */}
 					<motion.div
 						className="w-full"
@@ -129,13 +129,6 @@ const LoginPage = () => {
 						initial="hidden"
 						animate="visible"
 					>
-						{/* <div className="inline-flex items-center space-x-2">
-							<div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-black rounded-md flex items-center justify-center">
-								<div className="w-4 h-4 bg-white rounded-sm" />
-							</div>
-							<span className="text-2xl font-bold text-gray-800">SAFETY</span>
-							<span className="text-sm text-gray-500 font-medium">ONLINE</span>
-						</div> */}
 						<Image
 							src={Logo.src}
 							alt="Logo"
@@ -151,7 +144,7 @@ const LoginPage = () => {
 						animate="visible"
 					>
 						<Card className="border-0 shadow-none">
-							<CardHeader className="space-y-1 pb-6">
+							<CardHeader className="space-y-1 p-0 mb-6 ">
 								<motion.div variants={itemVariants}>
 									<CardTitle className="text-2xl font-bold text-gray-800">
 										Sign In
@@ -172,7 +165,7 @@ const LoginPage = () => {
 								</motion.div>
 							</CardHeader>
 
-							<CardContent>
+							<CardContent className="p-0">
 								<div className="space-y-6">
 									<motion.div variants={itemVariants} className="space-y-2">
 										<Label
