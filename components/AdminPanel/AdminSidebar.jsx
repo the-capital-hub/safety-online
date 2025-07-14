@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -45,6 +46,7 @@ import {
 	Palette,
 	Cog,
 } from "lucide-react";
+import Logo from "@/public/SafetyLogo.png";
 
 const menuItems = [
 	{
@@ -129,14 +131,14 @@ export function AdminSidebar() {
 	return (
 		<Sidebar className="border-none bg-white">
 			<SidebarHeader className="p-4 bg-white">
-				<div className="flex items-center gap-2">
-					<div className="w-8 h-8 bg-black rounded flex items-center justify-center">
-						<span className="text-white font-bold text-sm">S</span>
-					</div>
-					<div>
-						<h2 className="font-bold text-lg">SAFETY</h2>
-						<p className="text-xs text-gray-500">ONLINE</p>
-					</div>
+				<div className="flex items-center justify-center">
+					<Link href="/admin/dashboard" className="flex items-center space-x-2">
+						<Image
+							src={Logo}
+							alt="Logo"
+							className="h-auto w-20 lg:w-24 object-cover"
+						/>
+					</Link>
 				</div>
 			</SidebarHeader>
 
