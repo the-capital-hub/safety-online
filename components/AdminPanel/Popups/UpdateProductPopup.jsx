@@ -89,13 +89,6 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 									Update products info, combinations and extras.
 								</DialogDescription>
 							</div>
-							<Button
-								variant="ghost"
-								size="icon"
-								onClick={() => onOpenChange(false)}
-							>
-								<X className="w-4 h-4" />
-							</Button>
 						</div>
 					</DialogHeader>
 

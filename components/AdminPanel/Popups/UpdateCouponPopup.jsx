@@ -63,13 +63,6 @@ export function UpdateCouponPopup({ open, onOpenChange, coupon }) {
 									Update your coupon and necessary information from here
 								</DialogDescription>
 							</div>
-							<Button
-								variant="ghost"
-								size="icon"
-								onClick={() => onOpenChange(false)}
-							>
-								<X className="w-4 h-4" />
-							</Button>
 						</div>
 					</DialogHeader>
 

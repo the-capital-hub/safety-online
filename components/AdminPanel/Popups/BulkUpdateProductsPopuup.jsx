@@ -53,13 +53,6 @@ export function BulkUpdateProductsPopup({ open, onOpenChange, selectedCount }) {
 									Apply changes to the selected Products from the list
 								</DialogDescription>
 							</div>
-							<Button
-								variant="ghost"
-								size="icon"
-								onClick={() => onOpenChange(false)}
-							>
-								<X className="w-4 h-4" />
-							</Button>
 						</div>
 					</DialogHeader>
 
