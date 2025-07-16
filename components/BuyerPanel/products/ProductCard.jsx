@@ -30,7 +30,7 @@ export default function ProductCard({ product, viewMode = "grid" }) {
 					<div className="flex flex-col sm:flex-row gap-6">
 						<div className="relative w-full sm:w-48 h-48 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
 							<img
-								src={product.image || "/placeholder.svg"}
+								src={product.image.src || "/placeholder.svg"}
 								alt={product.name}
 								className="w-full h-full object-contain p-4"
 							/>
@@ -74,7 +74,7 @@ export default function ProductCard({ product, viewMode = "grid" }) {
 					<div className="relative overflow-hidden">
 						<div className="relative h-64 bg-gray-100 rounded-xl overflow-hidden">
 							<img
-								src={product.image || "/placeholder.svg"}
+								src={product.image || product.name}
 								alt={product.name}
 								className="w-full h-full object-contain p-4"
 							/>

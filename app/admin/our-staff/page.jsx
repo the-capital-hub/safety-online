@@ -26,6 +26,7 @@ import {
 import { Search, Plus, Filter, RotateCcw, Edit, Trash2 } from "lucide-react";
 import { DeletePopup } from "@/components/AdminPanel/Popups/DeletePopup.jsx";
 import { AddStaffPopup } from "@/components/AdminPanel/Popups/AddStaffPopup.jsx";
+import { UpdateStaffPopup } from "@/components/AdminPanel/Popups/UpdateStaffPopup.jsx";
 
 const staff = [
 	{
@@ -145,13 +146,19 @@ export default function StaffPage() {
 	const [roleFilter, setRoleFilter] = useState("all");
 	const [deletePopup, setDeletePopup] = useState({ open: false, staff: null });
 	const [addPopup, setAddPopup] = useState(false);
+	const [updatePopup, setUpdatePopup] = useState({ open: false, staff: null });
 
 	const handleDelete = (staffMember) => {
 		setDeletePopup({ open: true, staff: staffMember });
 	};
 
+	const handleUpdate = (staffMember) => {
+		setUpdatePopup({ open: true, staff: staffMember });
+	};
+
 	const confirmDelete = () => {
 		console.log("Deleting staff:", deletePopup.staff?.name);
+		setDeletePopup({ open: false, staff: null });
 	};
 
 	const getRoleColor = (role) => {
@@ -171,6 +178,21 @@ export default function StaffPage() {
 
 	const getStatusColor = (status) => {
 		return status === "Active" ? "text-green-600" : "text-gray-500";
+	};
+
+	// Filter staff based on search query and role filter
+	const filteredStaff = staff.filter((member) => {
+		const matchesSearch =
+			member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+			member.email.toLowerCase().includes(searchQuery.toLowerCase());
+		const matchesRole =
+			roleFilter === "all" || member.role.toLowerCase() === roleFilter;
+		return matchesSearch && matchesRole;
+	});
+
+	const handleReset = () => {
+		setSearchQuery("");
+		setRoleFilter("all");
 	};
 
 	return (
@@ -216,7 +238,7 @@ export default function StaffPage() {
 									Filter
 								</Button>
 
-								<Button variant="outline">
+								<Button variant="outline" onClick={handleReset}>
 									<RotateCcw className="w-4 h-4 mr-2" />
 									Reset
 								</Button>
@@ -247,7 +269,7 @@ export default function StaffPage() {
 								</TableRow>
 							</TableHeader>
 							<TableBody>
-								{staff.map((member, index) => (
+								{filteredStaff.map((member, index) => (
 									<motion.tr
 										key={member.id}
 										initial={{ opacity: 0, y: 10 }}
@@ -292,7 +314,11 @@ export default function StaffPage() {
 										</TableCell>
 										<TableCell>
 											<div className="flex gap-2">
-												<Button size="icon" variant="outline">
+												<Button
+													size="icon"
+													variant="outline"
+													onClick={() => handleUpdate(member)}
+												>
 													<Edit className="w-4 h-4" />
 												</Button>
 												<Button
@@ -311,7 +337,9 @@ export default function StaffPage() {
 						</Table>
 
 						<div className="flex items-center justify-between mt-4">
-							<p className="text-sm text-gray-600">Showing 1-2 of 2</p>
+							<p className="text-sm text-gray-600">
+								Showing {filteredStaff.length} of {staff.length} staff members
+							</p>
 							<div className="flex gap-2">
 								<Button variant="outline" size="sm">
 									Previous
@@ -345,6 +373,12 @@ export default function StaffPage() {
 			/>
 
 			<AddStaffPopup open={addPopup} onOpenChange={setAddPopup} />
+
+			<UpdateStaffPopup
+				open={updatePopup.open}
+				onOpenChange={(open) => setUpdatePopup({ open, staff: null })}
+				staffData={updatePopup.staff}
+			/>
 		</>
 	);
 }

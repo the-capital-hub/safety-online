@@ -59,7 +59,7 @@ export function AddStaffPopup({ open, onOpenChange }) {
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+			<DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto hide-scrollbar">
 				<motion.div
 					initial={{ scale: 0.95, opacity: 0 }}
 					animate={{ scale: 1, opacity: 1 }}
@@ -75,13 +75,6 @@ export function AddStaffPopup({ open, onOpenChange }) {
 									Add your staff necessary information from here
 								</DialogDescription>
 							</div>
-							<Button
-								variant="ghost"
-								size="icon"
-								onClick={() => onOpenChange(false)}
-							>
-								<X className="w-4 h-4" />
-							</Button>
 						</div>
 					</DialogHeader>
 
