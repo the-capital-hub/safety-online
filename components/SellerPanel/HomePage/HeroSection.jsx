@@ -11,6 +11,7 @@ import {
 	Logo5,
 	Logo6,
 } from "@/public/images/seller-panel/home/hero";
+import "./HeroSection.css";
 
 export default function HeroSection() {
 	const [isVideoPlaying, setIsVideoPlaying] = useState(false);
@@ -18,8 +19,10 @@ export default function HeroSection() {
 	const logos = [Logo1, Logo2, Logo3, Logo4, Logo5, Logo6];
 
 	return (
-		<section className="bg-gray-900 text-white py-20">
-			<div className="px-10">
+		<section className="relative py-10 bg-[#424242]">
+			<div className="absolute inset-0 bg-black/40 -z-10" />
+			<div className="w-full h-full bg-gradient absolute bottom-0 left-0 z-10" />
+			<div className="px-10 relative z-20">
 				{/* Trust Badge */}
 				<div className="text-center mb-8">
 					<div className="inline-flex items-center bg-neutral-800 rounded-full px-4 py-2 text-sm">
@@ -47,10 +50,10 @@ export default function HeroSection() {
 						<button className="bg-amber-400 hover:bg-amber-500 text-black px-8 py-3 rounded-full font-medium text-lg transition-colors duration-200">
 							Register
 						</button>
-						<button className="bg-black border border-white/80 px-8 py-3 rounded-full font-medium text-lg transition-colors duration-200">
+						<button className="bg-black hover:opacity-80 text-white border border-white/80 px-8 py-3 rounded-full font-medium text-lg transition-colors duration-200">
 							Explore Buyer Marketplace
 						</button>
-						<button className="border border-white/80 px-8 py-3 rounded-full font-medium text-lg transition-colors duration-200">
+						<button className="hover:bg-neutral-800 hover:opacity-80 border border-white/80 px-8 py-3 rounded-full font-medium text-lg transition-colors duration-200">
 							Schedule Demo Call
 						</button>
 					</div>
@@ -70,7 +73,7 @@ export default function HeroSection() {
 						{!isVideoPlaying && (
 							<button
 								onClick={() => setIsVideoPlaying(true)}
-								className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 hover:bg-opacity-40 transition-all duration-200"
+								className="absolute inset-0 flex items-center justify-center bg-transparent bg-opacity-30 hover:bg-opacity-40 transition-all duration-200"
 							>
 								<div className="w-20 h-20 bg-amber-400 drop-shadow-2xl rounded-full flex items-center justify-center hover:scale-110 transition-transform duration-200">
 									<svg

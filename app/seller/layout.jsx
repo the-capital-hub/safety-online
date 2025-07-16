@@ -5,7 +5,7 @@ import LoadingSpinner from "@/components/SellerPanel/LoadingSpinner.jsx";
 
 export default function SellerLayout({ children }) {
 	return (
-		<div className="min-h-screen bg-white">
+		<div className="min-h-screen">
 			<Suspense fallback={<LoadingSpinner />}>
 				<SellerHeader />
 			</Suspense>
