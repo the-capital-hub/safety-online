@@ -5,13 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useProductStore } from "@/lib/store";
+import { useProductStore } from "@/store/productStore.js";
 
 export default function NavigationBar({ isMenuOpen, onMenuClose }) {
 	const [searchQuery, setSearchQuery] = useState("");
 	const router = useRouter();
-	const { setSearchQuery: setGlobalSearch, currentCategory } =
-		useProductStore();
+	const {
+		setSearchQuery: setGlobalSearch,
+		currentCategory,
+		setCurrentCategory,
+	} = useProductStore();
 
 	const categories = [
 		{ id: "all", label: "All Products" },
@@ -20,9 +23,14 @@ export default function NavigationBar({ isMenuOpen, onMenuClose }) {
 		{ id: "signage", label: "Retro Reflective Sign" },
 		{ id: "industrial-safety", label: "Industrial Safety/PPE" },
 		{ id: "queue-management", label: "Q-Please" },
+		{ id: "fire-safety", label: "Fire Safety" },
+		{ id: "first-aid", label: "First Aid" },
+		{ id: "water-safety", label: "Water Safety" },
+		{ id: "emergency-kit", label: "Emergency Kit" },
 	];
 
 	const handleCategoryClick = (categoryId) => {
+		setCurrentCategory(categoryId);
 		router.push(`/products?category=${categoryId}`);
 		if (onMenuClose) onMenuClose();
 	};
@@ -42,7 +50,7 @@ export default function NavigationBar({ isMenuOpen, onMenuClose }) {
 			} lg:block bg-white border-t shadow-sm`}
 		>
 			<div className="px-4 lg:px-10">
-				<div className="flex flex-col lg:flex-row lg:items-center lg:justify-between py-4 space-y-4 lg:space-y-0">
+				<div className="flex flex-col lg:flex-row lg:items-center lg:justify-between py-4 space-y-4 lg:space-y-0 overflow-x-auto hide-scrollbar">
 					<div className="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0 lg:space-x-8">
 						{categories.map((category) => (
 							<Button
@@ -52,7 +60,7 @@ export default function NavigationBar({ isMenuOpen, onMenuClose }) {
 									currentCategory === category.id
 										? "bg-black text-white"
 										: "hover:bg-gray-100"
-								}`}
+								} justify-start lg:justify-center`}
 								onClick={() => handleCategoryClick(category.id)}
 							>
 								{category.label}

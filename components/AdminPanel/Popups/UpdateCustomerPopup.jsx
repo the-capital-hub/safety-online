@@ -14,31 +14,48 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { X } from "lucide-react";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { useAdminCustomerStore } from "@/store/adminCustomerStore.js";
 
 export function UpdateCustomerPopup({ open, onOpenChange, customer }) {
+	const { updateCustomer, loading } = useAdminCustomerStore();
+
 	const [formData, setFormData] = useState({
-		name: "",
+		firstName: "",
+		lastName: "",
 		email: "",
-		phone: "",
+		mobile: "",
 		address: "",
+		status: "active",
 	});
 
 	useEffect(() => {
 		if (customer) {
 			setFormData({
-				name: customer.name || "",
+				firstName: customer.firstName || "",
+				lastName: customer.lastName || "",
 				email: customer.email || "",
-				phone: customer.phone || "",
-				address: "",
+				mobile: customer.mobile || "",
+				address: customer.address || "",
+				status: customer.status || "active",
 			});
 		}
 	}, [customer]);
 
-	const handleSubmit = (e) => {
+	const handleSubmit = async (e) => {
 		e.preventDefault();
-		console.log("Updating customer:", formData);
-		onOpenChange(false);
+		if (customer) {
+			const success = await updateCustomer(customer._id, formData);
+			if (success) {
+				onOpenChange(false);
+			}
+		}
 	};
 
 	return (
@@ -56,23 +73,40 @@ export function UpdateCustomerPopup({ open, onOpenChange, customer }) {
 									Update Customer
 								</DialogTitle>
 								<DialogDescription className="text-gray-600">
-									Update your Customer necessary information from here
+									Update customer information
 								</DialogDescription>
 							</div>
 						</div>
 					</DialogHeader>
 
 					<form onSubmit={handleSubmit} className="space-y-4 mt-4">
-						<div>
-							<Label htmlFor="name">Name</Label>
-							<Input
-								id="name"
-								value={formData.name}
-								onChange={(e) =>
-									setFormData({ ...formData, name: e.target.value })
-								}
-								className="mt-1"
-							/>
+						<div className="grid grid-cols-2 gap-4">
+							<div>
+								<Label htmlFor="firstName">First Name</Label>
+								<Input
+									id="firstName"
+									placeholder="First Name"
+									value={formData.firstName}
+									onChange={(e) =>
+										setFormData({ ...formData, firstName: e.target.value })
+									}
+									className="mt-1"
+									required
+								/>
+							</div>
+							<div>
+								<Label htmlFor="lastName">Last Name</Label>
+								<Input
+									id="lastName"
+									placeholder="Last Name"
+									value={formData.lastName}
+									onChange={(e) =>
+										setFormData({ ...formData, lastName: e.target.value })
+									}
+									className="mt-1"
+									required
+								/>
+							</div>
 						</div>
 
 						<div>
@@ -80,23 +114,27 @@ export function UpdateCustomerPopup({ open, onOpenChange, customer }) {
 							<Input
 								id="email"
 								type="email"
+								placeholder="customer@example.com"
 								value={formData.email}
 								onChange={(e) =>
 									setFormData({ ...formData, email: e.target.value })
 								}
 								className="mt-1"
+								required
 							/>
 						</div>
 
 						<div>
-							<Label htmlFor="phone">Phone Number</Label>
+							<Label htmlFor="mobile">Mobile</Label>
 							<Input
-								id="phone"
-								value={formData.phone}
+								id="mobile"
+								placeholder="Phone Number"
+								value={formData.mobile}
 								onChange={(e) =>
-									setFormData({ ...formData, phone: e.target.value })
+									setFormData({ ...formData, mobile: e.target.value })
 								}
 								className="mt-1"
+								required
 							/>
 						</div>
 
@@ -104,6 +142,7 @@ export function UpdateCustomerPopup({ open, onOpenChange, customer }) {
 							<Label htmlFor="address">Address</Label>
 							<Textarea
 								id="address"
+								placeholder="Customer Address"
 								value={formData.address}
 								onChange={(e) =>
 									setFormData({ ...formData, address: e.target.value })
@@ -113,20 +152,41 @@ export function UpdateCustomerPopup({ open, onOpenChange, customer }) {
 							/>
 						</div>
 
+						<div>
+							<Label htmlFor="status">Status</Label>
+							<Select
+								value={formData.status}
+								onValueChange={(value) =>
+									setFormData({ ...formData, status: value })
+								}
+							>
+								<SelectTrigger className="mt-1">
+									<SelectValue placeholder="Select status" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="active">Active</SelectItem>
+									<SelectItem value="inactive">Inactive</SelectItem>
+									<SelectItem value="suspended">Suspended</SelectItem>
+								</SelectContent>
+							</Select>
+						</div>
+
 						<DialogFooter className="flex gap-3 mt-6">
 							<Button
 								type="button"
 								variant="outline"
 								onClick={() => onOpenChange(false)}
 								className="flex-1"
+								disabled={loading}
 							>
 								Cancel
 							</Button>
 							<Button
 								type="submit"
 								className="flex-1 bg-orange-500 hover:bg-orange-600"
+								disabled={loading}
 							>
-								Update Customer
+								{loading ? "Updating..." : "Update Customer"}
 							</Button>
 						</DialogFooter>
 					</form>
