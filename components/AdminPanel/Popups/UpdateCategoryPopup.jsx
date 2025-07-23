@@ -15,14 +15,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Upload, X } from "lucide-react";
+import { useAdminCategoryStore } from "@/store/adminCategoryStore.js";
 
 export function UpdateCategoryPopup({ open, onOpenChange, category }) {
+	const { updateCategory } = useAdminCategoryStore();
+	const [isSubmitting, setIsSubmitting] = useState(false);
+
 	const [formData, setFormData] = useState({
 		name: "",
 		description: "",
-		icon: null,
+		icon: "",
 		published: true,
+		sortOrder: 0,
 	});
 
 	useEffect(() => {
@@ -30,23 +34,24 @@ export function UpdateCategoryPopup({ open, onOpenChange, category }) {
 			setFormData({
 				name: category.name || "",
 				description: category.description || "",
-				icon: null,
-				published: category.published || false,
+				icon: category.icon || "",
+				published: category.published !== undefined ? category.published : true,
+				sortOrder: category.sortOrder || 0,
 			});
 		}
 	}, [category]);
 
-	const handleSubmit = (e) => {
+	const handleSubmit = async (e) => {
 		e.preventDefault();
-		console.log("Updating category:", formData);
-		onOpenChange(false);
-	};
+		if (!category) return;
 
-	const handleFileUpload = (e) => {
-		const file = e.target.files[0];
-		if (file) {
-			setFormData({ ...formData, icon: file });
+		setIsSubmitting(true);
+
+		const success = await updateCategory(category._id, formData);
+		if (success) {
+			onOpenChange(false);
 		}
+		setIsSubmitting(false);
 	};
 
 	return (
@@ -58,31 +63,20 @@ export function UpdateCategoryPopup({ open, onOpenChange, category }) {
 					transition={{ duration: 0.2 }}
 				>
 					<DialogHeader>
-						<div className="flex items-center justify-between">
-							<div>
-								<DialogTitle className="text-lg font-semibold">
-									Update Category
-								</DialogTitle>
-								<DialogDescription className="text-gray-600">
-									Update your category and necessary information from here
-								</DialogDescription>
-							</div>
-							<Button
-								variant="ghost"
-								size="icon"
-								onClick={() => onOpenChange(false)}
-							>
-								<X className="w-4 h-4" />
-							</Button>
-						</div>
+						<DialogTitle className="text-lg font-semibold">
+							Update Category
+						</DialogTitle>
+						<DialogDescription className="text-gray-600">
+							Update your category and necessary information from here
+						</DialogDescription>
 					</DialogHeader>
 
 					<form onSubmit={handleSubmit} className="space-y-4 mt-4">
 						<div>
-							<Label htmlFor="name">Name</Label>
+							<Label htmlFor="name">Category Name *</Label>
 							<Input
 								id="name"
-								placeholder="Category Name"
+								placeholder="Enter category name"
 								value={formData.name}
 								onChange={(e) =>
 									setFormData({ ...formData, name: e.target.value })
@@ -93,47 +87,63 @@ export function UpdateCategoryPopup({ open, onOpenChange, category }) {
 						</div>
 
 						<div>
-							<Label htmlFor="description">Description</Label>
+							<Label htmlFor="description">Description *</Label>
 							<Textarea
 								id="description"
-								placeholder="Category Description"
+								placeholder="Enter category description"
 								value={formData.description}
 								onChange={(e) =>
 									setFormData({ ...formData, description: e.target.value })
 								}
 								className="mt-1"
 								rows={3}
+								required
 							/>
 						</div>
 
 						<div>
-							<Label>Icon</Label>
-							<div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center mt-1">
-								<Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-								<p className="text-sm text-gray-600 mb-2">
-									Drag your images here
-								</p>
-								<input
-									type="file"
-									accept="image/*"
-									onChange={handleFileUpload}
-									className="hidden"
-									id="category-icon-update"
-								/>
-								<label htmlFor="category-icon-update">
-									<Button
-										type="button"
-										variant="outline"
-										className="cursor-pointer bg-transparent"
-									>
-										Browse Files
-									</Button>
-								</label>
-							</div>
+							<Label htmlFor="icon">Icon URL</Label>
+							<Input
+								id="icon"
+								placeholder="https://example.com/icon.png"
+								value={formData.icon}
+								onChange={(e) =>
+									setFormData({ ...formData, icon: e.target.value })
+								}
+								className="mt-1"
+							/>
+							<p className="text-xs text-gray-500 mt-1">
+								Optional: URL to category icon image
+							</p>
+						</div>
+
+						<div>
+							<Label htmlFor="sortOrder">Sort Order</Label>
+							<Input
+								id="sortOrder"
+								type="number"
+								placeholder="0"
+								value={formData.sortOrder}
+								onChange={(e) =>
+									setFormData({
+										...formData,
+										sortOrder: Number.parseInt(e.target.value) || 0,
+									})
+								}
+								className="mt-1"
+							/>
+							<p className="text-xs text-gray-500 mt-1">
+								Lower numbers appear first
+							</p>
 						</div>
 
 						<div className="flex items-center justify-between">
-							<Label>Published</Label>
+							<div>
+								<Label>Publish Category</Label>
+								<p className="text-sm text-gray-500">
+									Make this category visible to customers
+								</p>
+							</div>
 							<Switch
 								checked={formData.published}
 								onCheckedChange={(checked) =>
@@ -153,9 +163,10 @@ export function UpdateCategoryPopup({ open, onOpenChange, category }) {
 							</Button>
 							<Button
 								type="submit"
+								disabled={isSubmitting}
 								className="flex-1 bg-orange-500 hover:bg-orange-600"
 							>
-								Update Category
+								{isSubmitting ? "Updating..." : "Update Category"}
 							</Button>
 						</DialogFooter>
 					</form>

@@ -10,6 +10,7 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { AlertTriangle } from "lucide-react";
 
 export function DeletePopup({ open, onOpenChange, itemName, onConfirm }) {
 	return (
@@ -21,13 +22,25 @@ export function DeletePopup({ open, onOpenChange, itemName, onConfirm }) {
 					transition={{ duration: 0.2 }}
 				>
 					<DialogHeader>
-						<DialogTitle className="text-lg font-semibold">
-							Are You Want to Delete {itemName}?
-						</DialogTitle>
-						<DialogDescription className="text-gray-600">
-							Do you really want to delete these records? You can't view this in
-							your list anymore if you delete!
-						</DialogDescription>
+						<div className="flex items-center gap-3 mb-2">
+							<div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+								<AlertTriangle className="w-6 h-6 text-red-600" />
+							</div>
+							<div>
+								<DialogTitle className="text-lg font-semibold">
+									Delete Product
+								</DialogTitle>
+								<DialogDescription className="text-gray-600">
+									Are you sure you want to delete "{itemName}"?
+								</DialogDescription>
+							</div>
+						</div>
+						<div className="bg-red-50 border border-red-200 rounded-lg p-3">
+							<p className="text-sm text-red-800">
+								This action cannot be undone. The product will be permanently
+								removed from your inventory.
+							</p>
+						</div>
 					</DialogHeader>
 					<DialogFooter className="flex gap-3 mt-6">
 						<Button
@@ -45,7 +58,7 @@ export function DeletePopup({ open, onOpenChange, itemName, onConfirm }) {
 							}}
 							className="flex-1"
 						>
-							Yes Delete
+							Delete Product
 						</Button>
 					</DialogFooter>
 				</motion.div>

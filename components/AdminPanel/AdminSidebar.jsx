@@ -70,6 +70,11 @@ const menuItems = [
 		href: "/admin/customers",
 	},
 	{
+		title: "Sellers",
+		icon: Users,
+		href: "/admin/sellers",
+	},
+	{
 		title: "Orders",
 		icon: ShoppingCart,
 		href: "/admin/orders",

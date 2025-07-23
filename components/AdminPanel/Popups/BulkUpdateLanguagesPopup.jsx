@@ -46,13 +46,6 @@ export function BulkUpdateLanguagesPopup({
 									Apply changes to the selected Languages from the list
 								</DialogDescription>
 							</div>
-							<Button
-								variant="ghost"
-								size="icon"
-								onClick={() => onOpenChange(false)}
-							>
-								<X className="w-4 h-4" />
-							</Button>
 						</div>
 					</DialogHeader>
 
