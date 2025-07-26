@@ -49,8 +49,9 @@ export default function ProductCard({ product, viewMode = "grid" }) {
 		// } else {
 		// 	toast.error("Failed to process buy now request");
 		// }
+
 		// Redirect to checkout with buy now parameters
-		router.push(`/checkout?buyNow=true&id=${product._id}&qty=1`);
+		router.push(`/checkout?buyNow=true&id=${product.id}&qty=1`);
 	};
 
 	if (viewMode === "list") {

@@ -53,7 +53,9 @@ export const useAdminProductStore = create((set, get) => ({
 				}
 			});
 
-			const response = await fetch(`/api/admin/product/getAllProducts?${params}`);
+			const response = await fetch(
+				`/api/admin/product/getAllProducts?${params}`
+			);
 			const data = await response.json();
 
 			if (data.success) {
@@ -73,14 +75,61 @@ export const useAdminProductStore = create((set, get) => ({
 		}
 	},
 
+	// Updated addProduct to handle base64 images correctly
 	addProduct: async (productData) => {
 		try {
+			// Create FormData for file uploads
+			const formData = new FormData();
+
+			// Add all text fields
+			formData.append("title", productData.title);
+			formData.append("description", productData.description);
+			formData.append(
+				"longDescription",
+				productData.longDescription || productData.description
+			);
+			formData.append("category", productData.category);
+			formData.append("price", productData.price.toString());
+			formData.append("salePrice", (productData.salePrice || 0).toString());
+			formData.append("stocks", productData.stocks.toString());
+			formData.append("discount", (productData.discount || 0).toString());
+			formData.append("type", productData.type);
+			formData.append("published", productData.published);
+
+			// Add features as JSON string
+			formData.append("features", JSON.stringify(productData.features || []));
+
+			// Handle base64 images - convert them to Blob objects
+			if (productData.images && productData.images.length > 0) {
+				productData.images.forEach((base64Image, index) => {
+					// Convert base64 to blob
+					const base64Data = base64Image.split(",")[1]; // Remove data:image/type;base64, prefix
+					const mimeType = base64Image
+						.split(",")[0]
+						.split(":")[1]
+						.split(";")[0]; // Extract MIME type
+
+					// Convert base64 to binary
+					const byteCharacters = atob(base64Data);
+					const byteNumbers = new Array(byteCharacters.length);
+					for (let i = 0; i < byteCharacters.length; i++) {
+						byteNumbers[i] = byteCharacters.charCodeAt(i);
+					}
+					const byteArray = new Uint8Array(byteNumbers);
+
+					// Create blob and append to FormData
+					const blob = new Blob([byteArray], { type: mimeType });
+					formData.append(
+						"images",
+						blob,
+						`image_${index}.${mimeType.split("/")[1]}`
+					);
+				});
+			}
+
 			const response = await fetch("/api/admin/product/addProduct", {
 				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify(productData),
+				body: formData, // Don't set Content-Type header - browser handles it for FormData
 			});
 
 			const data = await response.json();
@@ -94,6 +143,7 @@ export const useAdminProductStore = create((set, get) => ({
 				return false;
 			}
 		} catch (error) {
+			console.error("Add product error:", error);
 			toast.error("Failed to add product");
 			return false;
 		}
@@ -101,12 +151,62 @@ export const useAdminProductStore = create((set, get) => ({
 
 	updateProduct: async (productId, updateData) => {
 		try {
+			// Create FormData for file uploads (similar to addProduct)
+			const formData = new FormData();
+
+			// Add productId
+			formData.append("productId", productId);
+
+			// Add all text fields
+			formData.append("title", updateData.title);
+			formData.append("description", updateData.description);
+			formData.append(
+				"longDescription",
+				updateData.longDescription || updateData.description
+			);
+			formData.append("category", updateData.category);
+			formData.append("price", updateData.price.toString());
+			formData.append("salePrice", (updateData.salePrice || 0).toString());
+			formData.append("stocks", updateData.stocks.toString());
+			formData.append("discount", (updateData.discount || 0).toString());
+			formData.append("type", updateData.type);
+			formData.append("published", updateData.published);
+
+			// Add features as JSON string
+			formData.append("features", JSON.stringify(updateData.features || []));
+
+			// Handle images - convert base64 to blobs
+			if (updateData.images && updateData.images.length > 0) {
+				updateData.images.forEach((image, index) => {
+					// Check if it's a base64 string (new image) or URL (existing image)
+					if (typeof image === "string" && image.startsWith("data:")) {
+						// New base64 image - convert to blob
+						const base64Data = image.split(",")[1];
+						const mimeType = image.split(",")[0].split(":")[1].split(";")[0];
+
+						const byteCharacters = atob(base64Data);
+						const byteNumbers = new Array(byteCharacters.length);
+						for (let i = 0; i < byteCharacters.length; i++) {
+							byteNumbers[i] = byteCharacters.charCodeAt(i);
+						}
+						const byteArray = new Uint8Array(byteNumbers);
+
+						const blob = new Blob([byteArray], { type: mimeType });
+						formData.append(
+							"images",
+							blob,
+							`image_${index}.${mimeType.split("/")[1]}`
+						);
+					} else if (typeof image === "string" && image.startsWith("http")) {
+						// Existing image URL - append as text
+						formData.append("existingImages", image);
+					}
+				});
+			}
+
 			const response = await fetch("/api/admin/product/updateProduct", {
 				method: "PUT",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({ productId, ...updateData }),
+				body: formData, // Use FormData instead of JSON
 			});
 
 			const data = await response.json();
@@ -120,6 +220,7 @@ export const useAdminProductStore = create((set, get) => ({
 				return false;
 			}
 		} catch (error) {
+			console.error("Update product error:", error);
 			toast.error("Failed to update product");
 			return false;
 		}
