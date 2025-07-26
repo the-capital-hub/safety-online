@@ -17,7 +17,7 @@ export default function ProductCard({ product, viewMode = "grid" }) {
 	const { addToCart, buyNow } = useProductStore();
 
 	const handleViewProduct = () => {
-		router.push(`/products/${product.id}`);
+		router.push(`/products/${product._id}`);
 	};
 
 	const handleAddToCart = async (e) => {
@@ -43,12 +43,15 @@ export default function ProductCard({ product, viewMode = "grid" }) {
 	const handleBuyNow = async (e) => {
 		e.stopPropagation();
 
-		const redirectUrl = await buyNow(product.id, 1);
-		if (redirectUrl) {
-			router.push(redirectUrl);
-		} else {
-			toast.error("Failed to process buy now request");
-		}
+		// const redirectUrl = await buyNow(product.id, 1);
+		// if (redirectUrl) {
+		// 	router.push(redirectUrl);
+		// } else {
+		// 	toast.error("Failed to process buy now request");
+		// }
+
+		// Redirect to checkout with buy now parameters
+		router.push(`/checkout?buyNow=true&id=${product.id}&qty=1`);
 	};
 
 	if (viewMode === "list") {
