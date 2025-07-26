@@ -1,4 +1,4 @@
-import User from "@/models/User";
+import User from "@/model/User";
 import { dbConnect } from "@/lib/dbConnect";
 import { verifyToken } from "@/lib/auth";
 import bcrypt from "bcryptjs";

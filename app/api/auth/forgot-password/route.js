@@ -1,4 +1,4 @@
-import User from "@/models/User";
+import User from "@/model/User";
 import { dbConnect } from "@/lib/dbConnect";
 import { createToken } from "@/lib/auth";
 import nodemailer from "nodemailer";
