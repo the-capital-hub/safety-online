@@ -83,7 +83,7 @@ export async function PUT(request) {
 								.upload_stream(
 									{
 										resource_type: "image",
-										folder: "products",
+										folder: "safety_products_images",
 										quality: "auto",
 										format: "webp",
 									},
