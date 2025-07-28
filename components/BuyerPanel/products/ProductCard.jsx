@@ -17,7 +17,7 @@ export default function ProductCard({ product, viewMode = "grid" }) {
 	const { addToCart, buyNow } = useProductStore();
 
 	const handleViewProduct = () => {
-		router.push(`/products/${product._id}`);
+		router.push(`/products/${product.id}`);
 	};
 
 	const handleAddToCart = async (e) => {

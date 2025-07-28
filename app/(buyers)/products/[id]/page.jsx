@@ -1,17 +1,31 @@
 import { notFound } from "next/navigation";
 import ProductDetail from "@/components/BuyerPanel/products/ProductDetail.jsx";
-import productsData from "@/constants/products.js";
 
-// This would normally be a server component fetching from API
+// Server-side function to fetch product data
 async function getProduct(id) {
-	// Simulate API call
-	// await new Promise((resolve) => setTimeout(resolve, 1000));
+	try {
+		const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+		const response = await fetch(`${baseUrl}/api/products/${id}`, {
+			cache: "no-store",
+		});
 
-	return productsData.find((product) => product.id === id);
+		if (!response.ok) {
+			return null;
+		}
+
+		const data = await response.json();
+		return data.success ? data : null;
+	} catch (error) {
+		console.error("Error fetching product:", error);
+		return null;
+	}
 }
 
+// Generate metadata for the product page
 export async function generateMetadata({ params }) {
-	const product = await getProduct(params.id);
+	const { id } = await params; // Await params to ensure it's resolved
+	const data = await getProduct(id);
+	const product = data?.product;
 
 	if (!product) {
 		return {
@@ -23,15 +37,27 @@ export async function generateMetadata({ params }) {
 	return {
 		title: `${product.name} | Safety Equipment Store`,
 		description: product.description,
+		openGraph: {
+			title: product.name,
+			description: product.description,
+			images: product.images?.length > 0 ? [product.images[0]] : [],
+		},
 	};
 }
 
+// ProductPage component
 export default async function ProductPage({ params }) {
-	const product = await getProduct(params.id);
+	const { id } = await params; // Await params to ensure it's resolved
+	const data = await getProduct(id);
 
-	if (!product) {
+	if (!data || !data.product) {
 		notFound();
 	}
 
-	return <ProductDetail product={product} />;
+	return (
+		<ProductDetail
+			product={data.product}
+			relatedProducts={data.relatedProducts}
+		/>
+	);
 }
