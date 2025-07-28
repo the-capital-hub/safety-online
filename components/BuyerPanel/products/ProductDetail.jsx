@@ -26,127 +26,112 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCartStore, useProductStore } from "@/lib/store";
+import { useCartStore } from "@/store/cartStore";
+import { useProductStore } from "@/store/productStore.js";
 import ProductCard from "@/components/BuyerPanel/products/ProductCard.jsx";
+import { toast } from "sonner";
+import Image from "next/image";
 
-export default function ProductDetail({ product }) {
+export default function ProductDetail({ product, relatedProducts = [] }) {
 	const [selectedImage, setSelectedImage] = useState(0);
 	const [quantity, setQuantity] = useState(1);
 	const [selectedQuantityOffer, setSelectedQuantityOffer] = useState(null);
 	const router = useRouter();
-	const { addItem } = useCartStore();
-	const { products } = useProductStore();
+	const { addItemLocal } = useCartStore();
+	const { addToCart, buyNow } = useProductStore();
 
-	// Get related products
-	const relatedProducts =
-		product.relatedProducts
-			?.map((id) => products.find((p) => p.id === id))
-			.filter(Boolean) || [];
-
-	// Mock similar products for comparison
-	const similarProducts = [
-		{
-			id: "similar-1",
-			name: "Yellow Heavy Duty",
-			price: 5000,
-			originalPrice: 7000,
-			discount: 25,
-			rating: 4.5,
-			reviews: 420,
-			brand: "LADWA",
-			material: "PLASTIC",
-			colors: ["blue", "black", "red", "orange"],
-			image: "/placeholder.svg",
-		},
-		{
-			id: "similar-2",
-			name: "Reflective Jacket",
-			price: 5000,
-			originalPrice: 7000,
-			discount: 25,
-			rating: 4.7,
-			reviews: 250,
-			brand: "LADWA",
-			material: "PLASTIC",
-			colors: ["blue", "red", "black", "orange"],
-			image: "/placeholder.svg",
-		},
-		{
-			id: "similar-3",
-			name: "Barrier Ahead Cautionary",
-			price: 5000,
-			originalPrice: 7000,
-			discount: 25,
-			rating: 4.2,
-			reviews: 300,
-			brand: "LADWA",
-			material: "PLASTIC",
-			colors: ["blue", "red", "black", "orange"],
-			image: "/placeholder.svg",
-		},
-		{
-			id: "similar-4",
-			name: "Green Heavy Duty",
-			price: 5000,
-			originalPrice: 7000,
-			discount: 25,
-			rating: 4.8,
-			reviews: 150,
-			brand: "LADWA",
-			material: "PLASTIC",
-			colors: ["blue", "black", "red", "orange"],
-			image: "/placeholder.svg",
-		},
-	];
-
-	// Mock reviews data
+	// Mock reviews data - you can replace this with real reviews from the API
 	const reviews = [
 		{
 			id: 1,
 			name: "KL RAHUL KUMAR KARTHIK",
 			rating: 5,
-			comment:
-				"The LADWA 10 Pcs Yellow Heavy Duty Safety Helmets are designed to offer superior head protection for workers in outdoor and industrial environments. Each helmet is carefully crafted to meet ISI standards, ensuring high-quality safety for demanding work conditions. Whether you're working in construction.",
+			comment: `The ${product.name} offers superior protection and quality. Each item is carefully crafted to meet ISI standards, ensuring high-quality safety for demanding work conditions. Whether you're working in construction or industrial environments, this product delivers excellent value.`,
 		},
 		{
 			id: 2,
 			name: "VAIBHAV SHARMA",
 			rating: 5,
-			comment:
-				"The EcoShield 20 Pcs Biodegradable Trash Bags provide an environmentally friendly solution for waste disposal. Made from plant-based materials, these bags decompose quickly, reducing landfill impact. Ideal for home, office, and outdoor use, they ensure you can manage waste responsibly.",
+			comment: `Excellent quality ${product.name}. The build quality is outstanding and it provides great value for money. Highly recommended for professional use.`,
 		},
 		{
 			id: 3,
 			name: "ANITA GUPTA",
 			rating: 4,
-			comment:
-				"The Titan 5-in-1 Multi-Tool offers a versatile solution for various tasks, including cutting, screwing, and opening bottles. Compact and lightweight, this tool is perfect for adventurers and DIY enthusiasts. Its durable design ensures it withstands rigorous use in any situation.",
+			comment: `Good product overall. The ${product.name} meets expectations and the delivery was prompt. Would purchase again.`,
 		},
 		{
 			id: 4,
 			name: "RAJESH MEHTA",
 			rating: 4,
-			comment:
-				"The ComfortWave Ergonomic Office Chair is designed to promote good posture and reduce strain during long hours of sitting. Featuring adjustable height, lumbar support, and breathable fabric, this chair is suitable for home offices and corporate environments, ensuring maximum productivity and comfort.",
+			comment: `Quality product with good durability. The ${product.name} is well-designed and serves its purpose effectively.`,
 		},
 	];
 
 	const quantityOffers = [
-		{ qty: 2, price: 6000, discount: 25, label: "Qty 2" },
-		{ qty: 3, price: 4500, discount: 10, label: "Qty 3" },
-		{ qty: 1, price: 8000, discount: 15, label: "Qty 1" },
-		{ qty: 5, price: 3500, discount: 20, label: "Qty 5" },
+		{
+			qty: 2,
+			price: Math.round(product.price * 0.95),
+			discount: 5,
+			label: "Qty 2",
+		},
+		{
+			qty: 3,
+			price: Math.round(product.price * 0.9),
+			discount: 10,
+			label: "Qty 3",
+		},
+		{
+			qty: 5,
+			price: Math.round(product.price * 0.85),
+			discount: 15,
+			label: "Qty 5",
+		},
+		{
+			qty: 10,
+			price: Math.round(product.price * 0.8),
+			discount: 20,
+			label: "Qty 10",
+		},
 	];
 
-	const handleAddToCart = () => {
-		for (let i = 0; i < quantity; i++) {
-			addItem(product);
+	const handleAddToCart = async () => {
+		try {
+			// Add to local cart immediately for better UX
+			addItemLocal({
+				id: product.id,
+				name: product.name,
+				description: product.description,
+				price: product.price,
+				image: product.image,
+				inStock: product.inStock,
+				quantity: quantity,
+			});
+
+			// Also sync with server
+			const success = await addToCart(product.id, quantity);
+			if (success) {
+				toast.success(`Added ${quantity} item(s) to cart`);
+			} else {
+				toast.error("Failed to sync with server, but added to local cart");
+			}
+		} catch (error) {
+			toast.error("Failed to add to cart");
+		}
+	};
+
+	const handleBuyNow = async () => {
+		try {
+			// Redirect to checkout with buy now parameters
+			router.push(`/checkout?buyNow=true&id=${product.id}&qty=${quantity}`);
+		} catch (error) {
+			toast.error("Failed to process buy now request");
 		}
 	};
 
 	const handleQuantityChange = (change) => {
 		const newQuantity = quantity + change;
-		if (newQuantity >= 1) {
+		if (newQuantity >= 1 && newQuantity <= product.stocks) {
 			setQuantity(newQuantity);
 		}
 	};
@@ -170,15 +155,26 @@ export default function ProductDetail({ product }) {
 		));
 	};
 
-	const getColorClass = (color) => {
-		const colorMap = {
-			blue: "bg-blue-500",
-			black: "bg-black",
-			red: "bg-red-500",
-			orange: "bg-orange-500",
-		};
-		return colorMap[color] || "bg-gray-500";
-	};
+	if (!product) {
+		return (
+			<div className="min-h-screen bg-gray-50 flex items-center justify-center">
+				<div className="text-center">
+					<h1 className="text-2xl font-bold text-gray-900 mb-4">
+						Product Not Found
+					</h1>
+					<p className="text-gray-600 mb-8">
+						The requested product could not be found.
+					</p>
+					<Link href="/products">
+						<Button className="bg-black text-white hover:bg-gray-800">
+							<ArrowLeft className="h-4 w-4 mr-2" />
+							Back to Products
+						</Button>
+					</Link>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div className="min-h-screen bg-gray-50">
@@ -193,47 +189,52 @@ export default function ProductDetail({ product }) {
 							animate={{ opacity: 1, x: 0 }}
 							transition={{ duration: 0.5 }}
 						>
-							<div className="absolute top-4 left-4">
+							<div className="absolute top-4 left-4 z-10">
 								<Link
 									href="/products"
-									className="inline-flex items-center bg-black text-white py-2 px-4 rounded-full"
+									className="inline-flex items-center bg-black text-white py-2 px-4 rounded-full hover:bg-gray-800 transition-colors"
 								>
 									<ArrowLeft className="h-4 w-4 mr-2" />
 									Back
 								</Link>
 							</div>
 
-							<div className="relative w-[400px] mx-auto h-96 lg:h-[400px] ">
-								<img
+							<div className="relative w-full h-96 lg:h-[400px]">
+								<Image
 									src={
-										product.gallery?.[selectedImage] ||
+										product.images?.[selectedImage] ||
 										product.image ||
-										"/placeholder.svg" ||
-										"/placeholder.svg"
+										"/placeholder.svg?height=400&width=400&text=Product"
 									}
 									alt={product.name}
-									className="w-full h-full object-contain p-8"
+									fill
+									className="object-contain p-8"
+									priority
 								/>
 							</div>
 						</motion.div>
 
 						{/* Image Gallery */}
-						{product.gallery && product.gallery.length > 1 && (
-							<div className="flex space-x-4 justify-center">
-								{product.gallery.map((image, index) => (
+						{product.images && product.images.length > 1 && (
+							<div className="flex space-x-4 justify-center overflow-x-auto">
+								{product.images.map((image, index) => (
 									<button
 										key={index}
 										onClick={() => setSelectedImage(index)}
-										className={`relative w-20 h-20 border-2 rounded-lg overflow-hidden ${
+										className={`relative w-20 h-20 border-2 rounded-lg overflow-hidden flex-shrink-0 ${
 											selectedImage === index
 												? "border-black"
-												: "border-gray-200"
+												: "border-gray-200 hover:border-gray-400"
 										}`}
 									>
-										<img
-											src={image || "/placeholder.svg"}
+										<Image
+											src={
+												image ||
+												"/placeholder.svg?height=80&width=80&text=Image"
+											}
 											alt={`${product.name} view ${index + 1}`}
-											className="w-full h-full object-contain p-2"
+											fill
+											className="object-contain p-2"
 										/>
 									</button>
 								))}
@@ -257,19 +258,13 @@ export default function ProductDetail({ product }) {
 							</h1>
 
 							{/* Product rating */}
-							{/* <div className="flex items-center mb-2">
-								{renderStars(product.rating || 4)}
-								<span className="ml-2 text-gray-600">
-									({product.rating || 4} out of 5)
-								</span>
-							</div> */}
 							<div className="flex items-center mb-2">
 								<span className="flex items-center gap-2 bg-green-600 text-white px-2 py-1 rounded-lg">
 									{product.rating || 4.5}
 									<Star className="w-4 h-4 fill-white text-white" />
 								</span>
 								<span className="ml-2 text-gray-600 font-semibold">
-									(400 Reviews)
+									({reviews.length} Reviews)
 								</span>
 							</div>
 
@@ -278,23 +273,25 @@ export default function ProductDetail({ product }) {
 								₹ {product.price.toLocaleString()}
 							</p>
 
-							{/* discounted price and discount percentage */}
-							<div className="flex items-center mb-4">
-								<span className="text-gray-500 line-through mr-2">₹ 5000</span>
-								<span className="text-green-500">
-									{product.discountPercentage || 25}% off
-								</span>
-							</div>
+							{/* Discounted price and discount percentage */}
+							{product.originalPrice > product.price && (
+								<div className="flex items-center mb-4">
+									<span className="text-gray-500 line-through mr-2">
+										₹ {product.originalPrice.toLocaleString()}
+									</span>
+									<span className="text-green-500">
+										{product.discountPercentage}% off
+									</span>
+								</div>
+							)}
 						</div>
 
 						{/* Product Colors */}
 						<div className="w-fit flex space-x-2 p-3 bg-gray-200 rounded-lg">
-							{Array.from({ length: 5 }).map((_, i) => (
+							{colors.map((color, i) => (
 								<div
 									key={i}
-									className={`w-6 h-6 rounded-full border border-gray-200 cursor-pointer ${
-										colors[i] || "bg-gray-500"
-									}`}
+									className={`w-6 h-6 rounded-full border border-gray-200 cursor-pointer ${color}`}
 								/>
 							))}
 						</div>
@@ -317,20 +314,33 @@ export default function ProductDetail({ product }) {
 										variant="ghost"
 										size="icon"
 										onClick={() => handleQuantityChange(1)}
+										disabled={quantity >= product.stocks}
 									>
 										<Plus className="h-4 w-4" />
 									</Button>
 								</div>
+								<span className="text-sm text-gray-500">
+									({product.stocks} available)
+								</span>
 							</div>
 
 							<div className="flex flex-col sm:flex-row gap-4">
 								<Button
 									onClick={handleAddToCart}
+									disabled={!product.inStock}
 									className="flex-1 bg-black text-white hover:bg-gray-800"
 									size="lg"
 								>
 									<ShoppingCart className="h-5 w-5 mr-2" />
 									Add to Cart
+								</Button>
+								<Button
+									onClick={handleBuyNow}
+									disabled={!product.inStock}
+									className="flex-1 bg-green-600 text-white hover:bg-green-700"
+									size="lg"
+								>
+									Buy Now
 								</Button>
 								<Button variant="outline" size="lg">
 									<Heart className="h-5 w-5 mr-2" />
@@ -352,12 +362,13 @@ export default function ProductDetail({ product }) {
 							<span
 								className={product.inStock ? "text-green-600" : "text-red-600"}
 							>
-								{product.inStock ? "In Stock" : "Out of Stock"}
+								{product.status}
 							</span>
 						</div>
 					</motion.div>
 				</div>
 
+				{/* Delivery Details and Offers */}
 				<div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-10">
 					{/* Delivery Details Section */}
 					<motion.div
@@ -509,7 +520,7 @@ export default function ProductDetail({ product }) {
 														{offer.label}
 													</h4>
 													<p className="text-xl font-bold">
-														₹{offer.price}{" "}
+														₹{offer.price.toLocaleString()}{" "}
 														<span className="text-sm font-normal">/ pc</span>
 													</p>
 													<Badge
@@ -529,12 +540,12 @@ export default function ProductDetail({ product }) {
 				</div>
 
 				{/* Product Features */}
-				{product.features && (
+				{product.features && product.features.length > 0 && (
 					<motion.div
 						className="mb-10"
 						initial={{ opacity: 0, y: 20 }}
 						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.5, delay: 0.8 }}
+						transition={{ duration: 0.5, delay: 0.5 }}
 					>
 						<h2 className="text-2xl font-bold mb-8">Product Features</h2>
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -547,10 +558,14 @@ export default function ProductDetail({ product }) {
 								</Card>
 							))}
 						</div>
-						<Card className="bg-white rounded-xl p-6 shadow-sm">
-							<h2 className="text-2xl font-bold mb-4">Product Description</h2>
-							<p className="text-gray-600">{product.longDescription}</p>
-						</Card>
+						{product.longDescription && (
+							<Card className="bg-white rounded-xl p-6 shadow-sm">
+								<h2 className="text-2xl font-bold mb-4">Product Description</h2>
+								<p className="text-gray-600 leading-relaxed">
+									{product.longDescription}
+								</p>
+							</Card>
+						)}
 					</motion.div>
 				)}
 
@@ -559,7 +574,7 @@ export default function ProductDetail({ product }) {
 					className="mb-10"
 					initial={{ opacity: 0, y: 20 }}
 					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.5, delay: 0.5 }}
+					transition={{ duration: 0.5, delay: 0.6 }}
 				>
 					<Card>
 						<CardContent className="p-6">
@@ -571,8 +586,7 @@ export default function ProductDetail({ product }) {
 							</div>
 
 							<p className="text-gray-600 mb-6">
-								Ladwa Helmet Waterproof Outdoor Light for Garage, Parking,
-								Garden & Playground
+								{product.name} - Customer Reviews and Ratings
 							</p>
 
 							{/* Rating Summary */}
@@ -580,12 +594,13 @@ export default function ProductDetail({ product }) {
 								<div className="text-center">
 									<div className="flex items-center justify-center space-x-2 mb-2">
 										<span className="text-4xl font-bold text-green-600">
-											4.6
+											{product.rating || 4.5}
 										</span>
 										<Star className="w-8 h-8 fill-green-600 text-green-600" />
 									</div>
 									<p className="text-gray-600">
-										Average Rating based on 29 ratings and 29 reviews
+										Average Rating based on {reviews.length} ratings and{" "}
+										{reviews.length} reviews
 									</p>
 								</div>
 
@@ -645,7 +660,7 @@ export default function ProductDetail({ product }) {
 					<motion.div
 						initial={{ opacity: 0, y: 20 }}
 						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.5, delay: 0.9 }}
+						transition={{ duration: 0.5, delay: 0.7 }}
 						className="mb-10"
 					>
 						<h2 className="text-2xl font-bold mb-8">Related Products</h2>
@@ -657,138 +672,18 @@ export default function ProductDetail({ product }) {
 					</motion.div>
 				)}
 
-				{/* Similar Products To Compare */}
-				<motion.div
-					className="mb-10"
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.5, delay: 0.6 }}
-				>
-					<Card>
-						<CardContent className="p-6">
-							<h2 className="text-2xl font-bold mb-6">
-								Similar Products To Compare
-							</h2>
-
-							{/* Products Grid */}
-							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-								{similarProducts.map((product) => (
-									<div key={product.id} className="text-center">
-										<div className="bg-gray-100 rounded-lg p-4 mb-4 h-40 flex items-center justify-center">
-											<img
-												src={product.image || "/placeholder.svg"}
-												alt={product.name}
-												className="w-full h-full object-contain"
-											/>
-										</div>
-										<h3 className="font-semibold mb-2">{product.name}</h3>
-										<p className="text-sm text-gray-600 mb-3">
-											Road safety refers to the measures and practices used to
-											prevent road accidents and protect the lives of all road
-											users.
-										</p>
-										<div className="space-y-2">
-											<div className="flex items-center justify-center space-x-2">
-												<span className="text-xl font-bold">
-													₹ {product.price.toLocaleString()}
-												</span>
-											</div>
-											<div className="flex items-center justify-center space-x-2 text-sm">
-												<span className="text-gray-500 line-through">
-													₹ {product.originalPrice.toLocaleString()}
-												</span>
-												<span className="text-green-600">
-													{product.discount}% OFF
-												</span>
-											</div>
-											<div className="flex items-center justify-center space-x-2">
-												<Button variant="outline" size="icon">
-													<Heart className="h-4 w-4" />
-												</Button>
-												<Button variant="outline" size="icon">
-													<ShoppingCart className="h-4 w-4" />
-												</Button>
-											</div>
-											<Button className="w-full bg-black text-white hover:bg-gray-800 text-sm">
-												BUY NOW →
-											</Button>
-										</div>
-									</div>
-								))}
-							</div>
-
-							{/* Comparison Table */}
-							<div className="overflow-x-auto">
-								<table className="w-full border-collapse">
-									<tbody>
-										<tr className="border-b">
-											<td className="py-3 px-4 font-semibold">Rating</td>
-											{similarProducts.map((product) => (
-												<td key={product.id} className="py-3 px-4 text-center">
-													<div className="flex items-center justify-center space-x-1">
-														<span className="bg-green-600 text-white px-2 py-1 rounded text-sm font-semibold">
-															{product.rating}
-														</span>
-														<Star className="w-4 h-4 fill-green-600 text-green-600" />
-														<span className="text-sm text-gray-600">
-															({product.reviews} REVIEWS)
-														</span>
-													</div>
-												</td>
-											))}
-										</tr>
-										<tr className="border-b">
-											<td className="py-3 px-4 font-semibold">Brand</td>
-											{similarProducts.map((product) => (
-												<td key={product.id} className="py-3 px-4 text-center">
-													{product.brand}
-												</td>
-											))}
-										</tr>
-										<tr className="border-b">
-											<td className="py-3 px-4 font-semibold">Body material</td>
-											{similarProducts.map((product) => (
-												<td key={product.id} className="py-3 px-4 text-center">
-													{product.material}
-												</td>
-											))}
-										</tr>
-										<tr>
-											<td className="py-3 px-4 font-semibold">Color</td>
-											{similarProducts.map((product) => (
-												<td key={product.id} className="py-3 px-4">
-													<div className="flex justify-center space-x-1">
-														{product.colors.map((color, index) => (
-															<div
-																key={index}
-																className={`w-4 h-4 rounded-full border border-gray-300 ${getColorClass(
-																	color
-																)}`}
-															></div>
-														))}
-													</div>
-												</td>
-											))}
-										</tr>
-									</tbody>
-								</table>
-							</div>
-						</CardContent>
-					</Card>
-				</motion.div>
-
 				{/* Benefits and Warranty Section */}
 				<motion.div
 					className="mb-10"
 					initial={{ opacity: 0, y: 20 }}
 					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.5, delay: 0.7 }}
+					transition={{ duration: 0.5, delay: 0.8 }}
 				>
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-						{/* Ladwa Benefits */}
+						{/* Store Benefits */}
 						<Card>
 							<CardContent className="p-6">
-								<h2 className="text-xl font-bold mb-6">Ladwa Benefits</h2>
+								<h2 className="text-xl font-bold mb-6">Store Benefits</h2>
 								<div className="space-y-4">
 									<div className="flex items-center space-x-3 p-3 border border-green-200 rounded-lg">
 										<Receipt className="h-5 w-5 text-green-600" />
