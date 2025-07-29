@@ -1,3 +1,5 @@
+// app/api/products/route.js
+
 import { dbConnect } from "@/lib/dbConnect.js";
 import Product from "@/model/Product.js";
 

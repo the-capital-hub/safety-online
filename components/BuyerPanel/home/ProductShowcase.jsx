@@ -11,54 +11,9 @@ import {
 	PrevButton,
 	NextButton,
 } from "@/components/BuyerPanel/home/ProductShowcaseCarousel/carouselArrowButtons.jsx";
-import {
-	Product1,
-	Product2,
-	Product4,
-	Product3,
-	Product16,
-} from "@/public/images/home/index.js";
+import { Product16 } from "@/public/images/home/index.js";
 
-export default function ProductShowcase() {
-	const products = [
-		{
-			id: 1,
-			name: "SAFETY AND EFFICIENCY",
-			description:
-				"If you're talking about safety at a 'gate' safety gates block off staircases or rooms to prevent accidents.",
-			price: "₹ 5,000",
-			image: Product3.src,
-			colors: ["blue", "black", "red", "orange"],
-		},
-		{
-			id: 2,
-			name: "STOP SIGNALS",
-			description:
-				"Often used for childproofing homes or securing pets, safety gates block off staircases or rooms to prevent accidents.",
-			price: "₹ 5,000",
-			image: Product4.src,
-			colors: ["blue", "black", "red", "orange"],
-		},
-		{
-			id: 3,
-			name: "INDUSTRIAL SAFETY",
-			description:
-				"Often used for childproofing homes or securing pets, safety gates block off staircases or rooms to prevent accidents.",
-			price: "₹ 5,000",
-			image: Product1.src,
-			colors: ["blue", "black", "red", "orange"],
-		},
-		{
-			id: 4,
-			name: "PREMIUM SAFETY",
-			description:
-				"Often used for childproofing homes or securing pets, safety gates block off staircases or rooms to prevent accidents.",
-			price: "₹ 7,500",
-			image: Product2.src,
-			colors: ["blue", "black", "red", "orange"],
-		},
-	];
-
+export default function ProductShowcase({ products = [] }) {
 	const [emblaRef, emblaApi] = useEmblaCarousel({
 		slidesToScroll: 1,
 		containScroll: "trimSnaps",
@@ -69,12 +24,41 @@ export default function ProductShowcase() {
 
 	const { selectedIndex, scrollSnaps, onDotButtonClick } =
 		useDotButton(emblaApi);
+
 	const {
 		prevBtnDisabled,
 		nextBtnDisabled,
 		onPrevButtonClick,
 		onNextButtonClick,
 	} = usePrevNextButtons(emblaApi);
+
+	// Show loading state if no products
+	if (!products || products.length === 0) {
+		return (
+			<section className="py-6 sm:py-8 lg:py-12 bg-white min-h-[calc(100vh-136px)]">
+				<div className="h-full px-10 sm:px-6 lg:px-10">
+					<div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 h-full">
+						<div className="lg:col-span-1 flex flex-col justify-center">
+							<div className="animate-pulse">
+								<div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+								<div className="h-8 bg-gray-200 rounded w-full mb-4"></div>
+								<div className="h-4 bg-gray-200 rounded w-2/3"></div>
+							</div>
+						</div>
+						<div className="lg:col-span-2">
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+								{[1, 2, 3, 4].map((i) => (
+									<div key={i} className="animate-pulse">
+										<div className="bg-gray-200 rounded-lg h-64"></div>
+									</div>
+								))}
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+		);
+	}
 
 	return (
 		<section className="py-6 sm:py-8 lg:py-12 bg-white min-h-[calc(100vh-136px)]">

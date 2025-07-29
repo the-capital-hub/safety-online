@@ -202,7 +202,7 @@ export default function CheckoutPage() {
 		}
 
 		try {
-			const result = await processPayment("user123"); // Replace with actual user ID
+			const result = await processPayment("6879e05bd21ada0372379876");
 
 			if (result.success) {
 				toast.success("Payment successful!");

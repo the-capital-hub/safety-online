@@ -65,7 +65,7 @@ export default function ProductCard({ product, viewMode = "grid" }) {
 									product.images[0] ||
 									"/placeholder.svg?height=192&width=192&text=Product"
 								}
-								alt={product.name}
+								alt={product.title}
 								fill
 								className="object-contain p-4 group-hover:scale-105 transition-transform duration-300"
 								onClick={handleViewProduct}
@@ -85,7 +85,7 @@ export default function ProductCard({ product, viewMode = "grid" }) {
 						<div className="flex-1 space-y-4">
 							<div onClick={handleViewProduct}>
 								<h3 className="text-xl font-semibold hover:text-blue-600 transition-colors">
-									{product.name}
+									{product.title}
 								</h3>
 								<p className="text-gray-600 mt-2 line-clamp-2">
 									{product.description}
@@ -173,7 +173,7 @@ export default function ProductCard({ product, viewMode = "grid" }) {
 									product.image ||
 									"/placeholder.svg?height=256&width=256&text=Product"
 								}
-								alt={product.name}
+								alt={product.title}
 								fill
 								className="object-contain p-4 group-hover:scale-105 transition-transform duration-300"
 								onClick={handleViewProduct}
@@ -208,7 +208,7 @@ export default function ProductCard({ product, viewMode = "grid" }) {
 					<div className="p-6 flex-1 flex flex-col">
 						<div className="flex-1" onClick={handleViewProduct}>
 							<h3 className="font-semibold text-lg mb-2 line-clamp-2 hover:text-blue-600 transition-colors">
-								{product.name}
+								{product.title}
 							</h3>
 							<p className="text-gray-600 text-sm mb-3 line-clamp-2">
 								{product.description}
