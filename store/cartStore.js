@@ -92,7 +92,7 @@ export const useCartStore = create(
 				totals: {
 					subtotal: 0,
 					discount: 0,
-					deliveryFee: 15,
+					deliveryFee: 0,
 					total: 0,
 				},
 				lastSyncTime: null,

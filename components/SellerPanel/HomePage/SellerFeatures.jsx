@@ -48,7 +48,7 @@ export default function SellerFeatures() {
 	];
 
 	return (
-		<section className="py-10 bg-gray-50">
+		<section className="py-10 bg-gray-200">
 			<div className="px-10">
 				<div className="text-center mb-16">
 					<h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
@@ -68,14 +68,17 @@ export default function SellerFeatures() {
 							key={index}
 							className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300"
 						>
-							<div className="w-20 h-20 bg-orange-100 p-2 rounded-full flex items-center justify-center mb-6">
-								<img src={feature.icon.src} alt="" />
+							<div className="w-16 h-16 bg-orange-100 p-2 rounded-full flex items-center justify-center mb-4">
+								<img src={feature.icon.src} alt="Banner" className="" />
 							</div>
-							<h3 className="text-xl font-bold text-gray-900 mb-4">
+							<h3 className="text-xl font-bold text-gray-900 mb-2">
 								{feature.title}
 							</h3>
 							<p className="text-gray-600 mb-4">{feature.description}</p>
-							{feature.img && <img src={feature.img.src} />}
+
+							{feature.img && (
+								<img src={feature.img.src} className="w-auto mx-auto h-[300px]" />
+							)}
 						</div>
 					))}
 				</div>

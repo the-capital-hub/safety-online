@@ -17,12 +17,12 @@ import {
 	Product4,
 } from "@/public/images/seller-panel/home/storefront";
 
-import ProductCard from "@/components/BuyerPanel/products/ProductCard.jsx";
+import ProductCard from "@/components/SellerPanel/HomePage/ProductCard.jsx";
 
 const products = [
 	{
 		id: 1,
-		name: "Retro reflective Sign",
+		title: "Retro reflective Sign",
 		price: "₹5,000",
 		originalPrice: "₹7,500",
 		discount: "33% OFF",
@@ -32,7 +32,7 @@ const products = [
 	},
 	{
 		id: 2,
-		name: "Road Safety",
+		title: "Road Safety",
 		price: "₹5,000",
 		originalPrice: "₹7,500",
 		discount: "33% OFF",
@@ -42,7 +42,7 @@ const products = [
 	},
 	{
 		id: 3,
-		name: "Industrial Safety",
+		title: "Industrial Safety",
 		price: "₹5,000",
 		originalPrice: "₹7,500",
 		discount: "33% OFF",
@@ -52,7 +52,7 @@ const products = [
 	},
 	{
 		id: 4,
-		name: "Retro reflective Sign",
+		title: "Retro reflective Sign",
 		price: "₹5,000",
 		originalPrice: "₹7,500",
 		discount: "33% OFF",
@@ -65,7 +65,7 @@ const products = [
 const reviews = [
 	{
 		id: 1,
-		name: "Ethan Williams",
+		title: "Ethan Williams",
 		role: "Digital Marketing Specialist",
 		rating: 5,
 		comment:
@@ -74,7 +74,7 @@ const reviews = [
 	},
 	{
 		id: 2,
-		name: "Daniel Thompson",
+		title: "Daniel Thompson",
 		role: "Product Designer",
 		rating: 5,
 		comment:
@@ -83,7 +83,7 @@ const reviews = [
 	},
 	{
 		id: 3,
-		name: "Daniel Thompson",
+		title: "Daniel Thompson",
 		role: "Product Designer",
 		rating: 5,
 		comment:
@@ -126,7 +126,7 @@ export default function SellerStorefrontShowcase() {
 	};
 
 	return (
-		<section className="py-20 bg-white">
+		<section className="py-20 bg-gray-100">
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 				<motion.div
 					initial="hidden"
@@ -202,8 +202,8 @@ export default function SellerStorefrontShowcase() {
 								variants={cardVariants}
 								className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100"
 							>
-								<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-									<div>
+								<div className="flex flex-col gap-4">
+									<div className="space-y-3  border-b border-gray-200 pb-4">
 										<h4 className="text-xl font-bold text-gray-900 mb-4">
 											Certifications
 										</h4>
@@ -246,74 +246,6 @@ export default function SellerStorefrontShowcase() {
 								className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
 							>
 								{products.map((product) => (
-									// <motion.div
-									// 	key={product.id}
-									// 	variants={cardVariants}
-									// 	whileHover={{ y: -10, scale: 1.02 }}
-									// 	className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100"
-									// >
-									// 	<div className="text-center mb-4">
-									// 		<Image
-									// 			src={product.image || "/placeholder.svg"}
-									// 			alt={product.name}
-									// 			width={100}
-									// 			height={100}
-									// 			className="mx-auto rounded-lg"
-									// 		/>
-									// 	</div>
-
-									// 	<h4 className="font-bold text-gray-900 mb-2 text-center">
-									// 		{product.name}
-									// 	</h4>
-
-									// 	<div className="text-center mb-4">
-									// 		<div className="flex items-center justify-center gap-1 mb-2">
-									// 			{[...Array(5)].map((_, i) => (
-									// 				<Star
-									// 					key={i}
-									// 					className={`w-4 h-4 ${
-									// 						i < Math.floor(product.rating)
-									// 							? "text-yellow-400 fill-current"
-									// 							: "text-gray-300"
-									// 					}`}
-									// 				/>
-									// 			))}
-									// 		</div>
-
-									// 		<div className="flex items-center justify-center gap-2">
-									// 			<span className="text-lg font-bold text-green-600">
-									// 				{product.price}
-									// 			</span>
-									// 			<span className="text-sm text-gray-500 line-through">
-									// 				{product.originalPrice}
-									// 			</span>
-									// 		</div>
-									// 		<span className="text-xs text-orange-600 font-semibold">
-									// 			{product.discount}
-									// 		</span>
-									// 	</div>
-
-									// 	<div className="flex gap-2">
-									// 		<button className="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-full text-sm hover:bg-gray-200 transition-colors duration-300">
-									// 			♡
-									// 		</button>
-									// 		<button className="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-full text-sm hover:bg-gray-200 transition-colors duration-300">
-									// 			🔄
-									// 		</button>
-									// 		<motion.button
-									// 			whileHover={{ scale: 1.05 }}
-									// 			whileTap={{ scale: 0.95 }}
-									// 			className={`flex-1 py-2 px-4 rounded-full text-sm font-semibold transition-colors duration-300 ${
-									// 				product.inStock
-									// 					? "bg-black text-white hover:bg-gray-800"
-									// 					: "bg-gray-300 text-gray-500 cursor-not-allowed"
-									// 			}`}
-									// 			disabled={!product.inStock}
-									// 		>
-									// 			{product.inStock ? "Buy Now" : "Out of Stock"}
-									// 		</motion.button>
-									// 	</div>
-									// </motion.div>
 									<ProductCard key={product.id} product={product} />
 								))}
 							</motion.div>
@@ -386,9 +318,9 @@ export default function SellerStorefrontShowcase() {
 									</h4>
 									<Image
 										src={Picture1.src}
-										width={500}
-										height={500}
-										className="w-full object-contain rounded-2xl"
+										width={400}
+										height={400}
+										className="w-4/6 mx-auto object-contain rounded-2xl"
 										alt="Fulfillment Pincode Coverage"
 									/>
 								</motion.div>
@@ -407,7 +339,7 @@ export default function SellerStorefrontShowcase() {
 										src={Picture2.src}
 										width={500}
 										height={500}
-										className="w-64 object-contain rounded-2xl mx-auto"
+										className="w-3/6 mx-auto object-contain rounded-2xl"
 										alt="Fulfillment Pincode Coverage"
 									/>
 								</motion.div>
@@ -426,7 +358,7 @@ export default function SellerStorefrontShowcase() {
 										src={Picture3.src}
 										width={500}
 										height={500}
-										className="w-64 object-contain rounded-2xl mx-auto"
+										className="w-3/6 mx-auto object-contain rounded-2xl"
 										alt="Fulfillment Pincode Coverage"
 									/>
 								</motion.div>

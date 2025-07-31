@@ -23,7 +23,6 @@ const SellerStorefrontShowcase = lazy(() =>
 const ProductDetailSection = lazy(() =>
 	import("@/components/SellerPanel/HomePage/ProductDetailSection.jsx")
 );
-
 const SellerBenefits = lazy(() =>
 	import("@/components/SellerPanel/HomePage/SellerBenefits.jsx")
 );

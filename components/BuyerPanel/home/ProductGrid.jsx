@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-// import ProductCard from "@/components/home/ProductCard.jsx";
 import ProductCard from "@/components/BuyerPanel/products/ProductCard.jsx";
 
 export default function ProductGrid({ products, viewMode = "grid" }) {

@@ -1,7 +1,14 @@
+"use client";
+
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import avatar1 from "@/public/images/avatar/avatar1.png";
 import avatar2 from "@/public/images/avatar/avatar2.png";
 
 export default function TrustSection() {
+	const [expandedFaq, setExpandedFaq] = useState(null);
+
 	const successStories = [
 		{
 			name: "Siddharth Arora",
@@ -20,12 +27,36 @@ export default function TrustSection() {
 	];
 
 	const faqs = [
-		"What documents are needed to start selling?",
-		"How do I manage shipping?",
-		"When will I receive payment?",
-		"What if a buyer raises a dispute?",
-		"Can I get MOQs and Bulk Discounts?",
+		{
+			question: "What documents are needed to start selling?",
+			answer:
+				"To start selling on SafeTrade, you'll need basic business documents including GST registration, PAN card, bank account details, and relevant product certifications or licenses depending on your category.",
+		},
+		{
+			question: "How do I manage shipping?",
+			answer:
+				"SafeTrade provides integrated logistics solutions with multiple shipping partners. You can choose from our recommended courier services or use your own logistics provider. We handle tracking and delivery notifications automatically.",
+		},
+		{
+			question: "When will I receive payment?",
+			answer:
+				"Payments are processed within 7-10 business days after successful delivery and buyer confirmation. All transactions go through our secure payment gateway with automatic settlement to your registered bank account.",
+		},
+		{
+			question: "What if a buyer raises a dispute?",
+			answer:
+				"Our dedicated support team mediates all disputes fairly. We have a structured resolution process that typically resolves issues within 3-5 business days. Both parties can present their case through our platform.",
+		},
+		{
+			question: "Can I get MOQs and Bulk Discounts?",
+			answer:
+				"Yes, you can set minimum order quantities (MOQs) for your products and offer tiered pricing for bulk orders. Our platform supports dynamic pricing based on order volume to help you maximize sales.",
+		},
 	];
+
+	const toggleFaq = (index) => {
+		setExpandedFaq(expandedFaq === index ? null : index);
+	};
 
 	return (
 		<section className="py-10">
@@ -60,18 +91,37 @@ export default function TrustSection() {
 				{/* FAQs */}
 				<div>
 					<h2 className="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-12">
-						Seller FAQs (Expandable Accordion)
+						Seller FAQs
 					</h2>
 					<div className="max-w-3xl mx-auto space-y-4">
 						{faqs.map((faq, index) => (
-							<div key={index} className="border border-gray-200 rounded-lg">
-								<button className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50">
-									<span className="font-medium text-gray-900">{faq}</span>
-									<svg
+							<motion.div
+								key={index}
+								className="border border-gray-200 rounded-lg overflow-hidden"
+								initial={false}
+								animate={{
+									boxShadow:
+										expandedFaq === index
+											? "0 4px 12px rgba(0, 0, 0, 0.1)"
+											: "0 1px 3px rgba(0, 0, 0, 0.05)",
+								}}
+								transition={{ duration: 0.3 }}
+							>
+								<motion.button
+									className="w-full px-6 py-4 text-left flex items-center justify-between"
+									onClick={() => toggleFaq(index)}
+									whileTap={{ scale: 0.995 }}
+								>
+									<span className="font-medium text-gray-900">
+										{faq.question}
+									</span>
+									<motion.svg
 										className="w-5 h-5 text-gray-500"
 										fill="none"
 										stroke="currentColor"
 										viewBox="0 0 24 24"
+										animate={{ rotate: expandedFaq === index ? 180 : 0 }}
+										transition={{ duration: 0.3, ease: "easeInOut" }}
 									>
 										<path
 											strokeLinecap="round"
@@ -79,9 +129,43 @@ export default function TrustSection() {
 											strokeWidth={2}
 											d="M19 9l-7 7-7-7"
 										/>
-									</svg>
-								</button>
-							</div>
+									</motion.svg>
+								</motion.button>
+								<AnimatePresence>
+									{expandedFaq === index && (
+										<motion.div
+											initial={{ height: 0, opacity: 0 }}
+											animate={{
+												height: "auto",
+												opacity: 1,
+												transition: {
+													height: { duration: 0.4, ease: "easeInOut" },
+													opacity: { duration: 0.3, delay: 0.1 },
+												},
+											}}
+											exit={{
+												height: 0,
+												opacity: 0,
+												transition: {
+													height: { duration: 0.3, ease: "easeInOut" },
+													opacity: { duration: 0.2 },
+												},
+											}}
+											className="overflow-hidden"
+										>
+											<motion.div
+												className="px-6 pb-4 text-gray-600"
+												initial={{ y: -10 }}
+												animate={{ y: 0 }}
+												exit={{ y: -10 }}
+												transition={{ duration: 0.3 }}
+											>
+												<p>{faq.answer}</p>
+											</motion.div>
+										</motion.div>
+									)}
+								</AnimatePresence>
+							</motion.div>
 						))}
 					</div>
 				</div>
@@ -91,9 +175,27 @@ export default function TrustSection() {
 					<div className="mb-8 p-4 border border-gray-300 rounded-xl">
 						<div className="flex justify-center mb-4">
 							<div className="flex -space-x-2">
-								<div className="w-10 h-10 bg-orange-200 rounded-full"></div>
-								<div className="w-10 h-10 bg-blue-200 rounded-full"></div>
-								<div className="w-10 h-10 bg-green-200 rounded-full"></div>
+								<Avatar>
+									<AvatarImage
+										src="https://github.com/shadcn.png"
+										alt="@shadcn"
+									/>
+									<AvatarFallback>CN</AvatarFallback>
+								</Avatar>
+								<Avatar>
+									<AvatarImage
+										src="https://github.com/shadcn.png"
+										alt="@shadcn"
+									/>
+									<AvatarFallback>CN</AvatarFallback>
+								</Avatar>
+								<Avatar>
+									<AvatarImage
+										src="https://github.com/shadcn.png"
+										alt="@shadcn"
+									/>
+									<AvatarFallback>CN</AvatarFallback>
+								</Avatar>
 							</div>
 						</div>
 						<h3 className="text-xl font-bold text-gray-900 mb-2">

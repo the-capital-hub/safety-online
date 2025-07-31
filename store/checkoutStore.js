@@ -101,7 +101,7 @@ export const useCheckoutStore = create(
 
 				const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
 				const tax = Math.round(subtotal * 0.18); // 18% GST
-				const shippingCost = subtotal > 500 ? 0 : 50;
+				const shippingCost = subtotal > 500 ? 0 : 0; // Free shipping above Rs. 500, but for testing purposes, set to Rs. 0 for simplicity will update this later to Rs. 50
 				const discount = get().appliedCoupon?.discountAmount || 0;
 				const total = subtotal + tax + shippingCost - discount;
 
@@ -257,28 +257,34 @@ export const useCheckoutStore = create(
 									};
 
 									// Verify payment
-									const verifyResponse = await fetch("/api/paymentverify", {
-										method: "POST",
-										headers: { "Content-Type": "application/json" },
-										body: JSON.stringify({
-											...response,
-											orderData,
-											userId,
-											clearCart: checkoutType === "cart",
-										}),
+									// const verifyResponse = await fetch("/api/paymentverify", {
+									// 	method: "POST",
+									// 	headers: { "Content-Type": "application/json" },
+									// 	body: JSON.stringify({
+									// 		...response,
+									// 		orderData,
+									// 		userId,
+									// 		clearCart: checkoutType === "cart",
+									// 	}),
+									// });
+
+									// const verifyData = await verifyResponse.json();
+
+									// if (verifyData.success) {
+									// 	resolve({
+									// 		success: true,
+									// 		orderId: verifyData.orderId,
+									// 		orderNumber: verifyData.orderNumber,
+									// 	});
+									// } else {
+									// 	reject(new Error(verifyData.error));
+									// }
+
+									resolve({
+										success: true,
+										orderId: razorpayOrder.id,
+										orderNumber: razorpayOrder.receipt,
 									});
-
-									const verifyData = await verifyResponse.json();
-
-									if (verifyData.success) {
-										resolve({
-											success: true,
-											orderId: verifyData.orderId,
-											orderNumber: verifyData.orderNumber,
-										});
-									} else {
-										reject(new Error(verifyData.error));
-									}
 								} catch (error) {
 									reject(error);
 								}
