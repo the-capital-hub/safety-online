@@ -33,7 +33,7 @@ export default function HeroSection() {
 				</div>
 
 				{/* Main Hero Content */}
-				<div className="text-center mb-12">
+				<div className="text-center text-white mb-12">
 					<h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
 						Sell Safety. Deliver Trust.
 						<br />
