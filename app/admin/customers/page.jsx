@@ -54,6 +54,8 @@ export default function AdminCustomersPage() {
 		resetFilters,
 	} = useAdminCustomerStore();
 
+	console.log("Customers:", customers);
+
 	const [selectedCustomers, setSelectedCustomers] = useState([]);
 	const [deletePopup, setDeletePopup] = useState({
 		open: false,
@@ -139,7 +141,7 @@ export default function AdminCustomersPage() {
 	};
 
 	const formatDate = (dateString) => {
-		return new Date(dateString).toLocaleDateString("en-US", {
+		return new Date(dateString).toLocaleDateString("en-IN", {
 			year: "numeric",
 			month: "short",
 			day: "numeric",

@@ -1,6 +1,25 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 
+const AddressSchema = new mongoose.Schema(
+	{
+		tag: {
+			type: String,
+			required: true,
+			enum: ["home", "office", "other"],
+			default: "home",
+		},
+		name: { type: String, required: true },
+		street: { type: String, required: true },
+		city: { type: String, required: true },
+		state: { type: String, required: true },
+		zipCode: { type: String, required: true },
+		country: { type: String, default: "India" },
+		isDefault: { type: Boolean, default: false },
+	},
+	{ timestamps: true }
+);
+
 const UserSchema = new mongoose.Schema(
 	{
 		firstName: { type: String, required: true },
@@ -11,6 +30,7 @@ const UserSchema = new mongoose.Schema(
 				"https://res.cloudinary.com/drjt9guif/image/upload/v1731063193/TheCapitalHub/startUps/logos/veyaynpessgiy6ifh9ul.webp",
 		},
 		address: { type: String },
+		addresses: [AddressSchema],
 		email: { type: String, unique: true, sparse: true },
 		mobile: { type: String, unique: true, sparse: true },
 		password: { type: String, required: true },

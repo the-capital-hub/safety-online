@@ -10,6 +10,7 @@ const paymentAPI = {
 		const response = await fetch("/api/razorpay", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
+			credentials: "include",
 			body: JSON.stringify(orderData),
 		});
 		if (!response.ok) {
@@ -23,6 +24,7 @@ const paymentAPI = {
 		const response = await fetch("/api/paymentverify", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
+			credentials: "include",
 			body: JSON.stringify(paymentData),
 		});
 		if (!response.ok) {
@@ -36,6 +38,7 @@ const paymentAPI = {
 		const response = await fetch("/api/orders", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
+			credentials: "include",
 			body: JSON.stringify(orderData),
 		});
 		if (!response.ok) {
@@ -49,11 +52,39 @@ const paymentAPI = {
 		const response = await fetch("/api/coupons/validate", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
+			credentials: "include",
 			body: JSON.stringify({ code: couponCode, orderAmount }),
 		});
 		if (!response.ok) {
 			const error = await response.json();
 			throw new Error(error.message || "Failed to validate coupon");
+		}
+		return response.json();
+	},
+
+	async getUserAddresses() {
+		const response = await fetch("/api/user/addresses", {
+			method: "GET", // Changed from POST to GET
+			headers: { "Content-Type": "application/json" },
+			credentials: "include",
+		});
+		if (!response.ok) {
+			const error = await response.json();
+			throw new Error(error.message || "Failed to fetch addresses");
+		}
+		return response.json();
+	},
+
+	async addUserAddress(addressData) {
+		const response = await fetch("/api/user/addresses", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			credentials: "include",
+			body: JSON.stringify(addressData),
+		});
+		if (!response.ok) {
+			const error = await response.json();
+			throw new Error(error.message || "Failed to add address");
 		}
 		return response.json();
 	},
@@ -68,41 +99,46 @@ export const useCheckoutStore = create(
 				buyNowProduct: null,
 				buyNowQuantity: 1,
 
-				// Customer Information
+				// Customer Information (auto-filled from user)
 				customerInfo: {
 					name: "",
 					email: "",
 					mobile: "",
 				},
 
-				// Delivery Address
-				deliveryAddress: {
+				// Delivery Address Management
+				savedAddresses: [],
+				selectedAddressId: null,
+				newAddress: {
+					tag: "home",
+					name: "",
 					street: "",
 					city: "",
 					state: "",
 					zipCode: "",
 					country: "India",
-					fullAddress: "",
+					isDefault: false,
 				},
+				isAddingNewAddress: false,
 
 				// Order Summary
 				orderSummary: {
 					items: [],
 					subtotal: 0,
-					tax: 0,
-					shippingCost: 50,
+					shippingCost: 0,
 					discount: 0,
 					total: 0,
 				},
 
-				// Applied Coupon
+				// Applied Coupon (only for buyNow flow)
 				appliedCoupon: null,
+				cartAppliedCoupon: null, // For cart flow
 
 				// UI State
 				isLoading: false,
 				paymentLoading: false,
-				currentStep: 1, // 1: Info, 2: Address, 3: Payment
-				paymentMethod: "razorpay", // 'razorpay' or 'cod'
+				currentStep: 1, // 1: Address, 2: Payment
+				paymentMethod: "razorpay", // "razorpay", "cod", "credit_card","debit_card", "net_banking", "upi", "wallet"
 
 				// Actions
 				setCheckoutType: (type, product = null, quantity = 1) => {
@@ -110,18 +146,13 @@ export const useCheckoutStore = create(
 						checkoutType: type,
 						buyNowProduct: product,
 						buyNowQuantity: quantity,
+						currentStep: 1,
 					});
 				},
 
 				setCustomerInfo: (info) => {
 					set((state) => ({
 						customerInfo: { ...state.customerInfo, ...info },
-					}));
-				},
-
-				setDeliveryAddress: (address) => {
-					set((state) => ({
-						deliveryAddress: { ...state.deliveryAddress, ...address },
 					}));
 				},
 
@@ -134,7 +165,12 @@ export const useCheckoutStore = create(
 				},
 
 				// Initialize checkout data
-				initializeCheckout: (cartItems = [], product = null, quantity = 1) => {
+				initializeCheckout: (
+					cartItems = [],
+					product = null,
+					quantity = 1,
+					cartCoupon = null
+				) => {
 					const { checkoutType } = get();
 
 					let items = [];
@@ -143,7 +179,7 @@ export const useCheckoutStore = create(
 						items = [
 							{
 								productId: product.id,
-								productName: product.name,
+								productName: product.name || product.title,
 								productImage: product.image,
 								quantity: quantity,
 								price: product.price,
@@ -165,16 +201,28 @@ export const useCheckoutStore = create(
 						(sum, item) => sum + item.totalPrice,
 						0
 					);
-					// const tax = Math.round(subtotal * 0.18); // 18% GST
-					const shippingCost = subtotal > 500 ? 0 : 0; // Free shipping above Rs. 500, but for testing purposes, set to Rs. 0 for simplicity will update this later to Rs. 50
-					const discount = get().appliedCoupon?.discountAmount || 0;
-					const total = subtotal + shippingCost - discount; // total = subtotal + tax + shippingCost - discount
+
+					// Calculate shipping cost: free if subtotal >= 500, else 50
+					const shippingCost = subtotal >= 500 ? 0 : 50;
+
+					// Set coupon based on checkout type
+					let discount = 0;
+					if (checkoutType === "cart" && cartCoupon) {
+						set({ cartAppliedCoupon: cartCoupon });
+						discount =
+							cartCoupon.discountAmount ||
+							(subtotal * cartCoupon.discount) / 100;
+					} else if (checkoutType === "buyNow") {
+						const appliedCoupon = get().appliedCoupon;
+						discount = appliedCoupon?.discountAmount || 0;
+					}
+
+					const total = subtotal + shippingCost - discount;
 
 					set({
 						orderSummary: {
 							items,
 							subtotal,
-							// tax,
 							shippingCost,
 							discount,
 							total,
@@ -182,8 +230,105 @@ export const useCheckoutStore = create(
 					});
 				},
 
-				// Apply coupon
+				// Load user addresses
+				loadUserAddresses: async () => {
+					set({ isLoading: true });
+					try {
+						const data = await paymentAPI.getUserAddresses();
+						if (data.success) {
+							set({ savedAddresses: data.addresses });
+
+							// Auto-select default address if available
+							const defaultAddress = data.addresses.find(
+								(addr) => addr.isDefault
+							);
+							if (defaultAddress) {
+								set({ selectedAddressId: defaultAddress._id });
+							}
+						}
+					} catch (error) {
+						console.error("Failed to load addresses:", error);
+						toast.error("Failed to load saved addresses");
+					} finally {
+						set({ isLoading: false });
+					}
+				},
+
+				// Add new address
+				addNewAddress: async () => {
+					const { newAddress } = get();
+
+					if (
+						!newAddress.name ||
+						!newAddress.street ||
+						!newAddress.city ||
+						!newAddress.state ||
+						!newAddress.zipCode
+					) {
+						toast.error("Please fill all address fields");
+						return false;
+					}
+
+					set({ isLoading: true });
+					try {
+						const data = await paymentAPI.addUserAddress(newAddress);
+						if (data.success) {
+							// Reload addresses
+							await get().loadUserAddresses();
+
+							// Reset new address form
+							set({
+								newAddress: {
+									tag: "home",
+									name: "",
+									street: "",
+									city: "",
+									state: "",
+									zipCode: "",
+									country: "India",
+									isDefault: false,
+								},
+								isAddingNewAddress: false,
+							});
+
+							toast.success("Address added successfully");
+							return true;
+						}
+					} catch (error) {
+						console.error("Failed to add address:", error);
+						toast.error(error.message || "Failed to add address");
+					} finally {
+						set({ isLoading: false });
+					}
+					return false;
+				},
+
+				// Update new address form
+				updateNewAddress: (field, value) => {
+					set((state) => ({
+						newAddress: { ...state.newAddress, [field]: value },
+					}));
+				},
+
+				// Select address
+				selectAddress: (addressId) => {
+					set({ selectedAddressId: addressId });
+				},
+
+				// Toggle add new address form
+				toggleAddNewAddress: () => {
+					set((state) => ({ isAddingNewAddress: !state.isAddingNewAddress }));
+				},
+
+				// Apply coupon (only for buyNow flow)
 				applyCoupon: async (couponCode) => {
+					const { checkoutType } = get();
+
+					if (checkoutType === "cart") {
+						toast.error("Coupon is already applied from cart");
+						return false;
+					}
+
 					set({ isLoading: true });
 
 					try {
@@ -202,15 +347,22 @@ export const useCheckoutStore = create(
 							return false;
 						}
 					} catch (error) {
-						toast.error("Failed to apply coupon");
+						toast.error(error.message || "Failed to apply coupon");
 						return false;
 					} finally {
 						set({ isLoading: false });
 					}
 				},
 
-				// Remove coupon
+				// Remove coupon (only for buyNow flow)
 				removeCoupon: () => {
+					const { checkoutType } = get();
+
+					if (checkoutType === "cart") {
+						toast.error("Cannot remove coupon applied from cart");
+						return;
+					}
+
 					set({ appliedCoupon: null });
 					get().recalculateTotal();
 					toast.success("Coupon removed");
@@ -218,33 +370,63 @@ export const useCheckoutStore = create(
 
 				// Recalculate total
 				recalculateTotal: () => {
-					const { orderSummary, appliedCoupon } = get();
-					const discount = appliedCoupon?.discountAmount || 0;
-					const total =
-						orderSummary.subtotal +
-						orderSummary.tax +
-						orderSummary.shippingCost -
-						discount;
+					const {
+						orderSummary,
+						appliedCoupon,
+						cartAppliedCoupon,
+						checkoutType,
+					} = get();
+
+					// Calculate shipping cost
+					const shippingCost = orderSummary.subtotal >= 500 ? 0 : 50;
+
+					// Calculate discount based on checkout type
+					let discount = 0;
+					if (checkoutType === "cart" && cartAppliedCoupon) {
+						discount =
+							cartAppliedCoupon.discountAmount ||
+							(orderSummary.subtotal * cartAppliedCoupon.discount) / 100;
+					} else if (checkoutType === "buyNow" && appliedCoupon) {
+						discount =
+							appliedCoupon.discountAmount ||
+							(orderSummary.subtotal * appliedCoupon.discount) / 100;
+					}
+
+					const total = orderSummary.subtotal + shippingCost - discount;
 
 					set({
 						orderSummary: {
 							...orderSummary,
+							shippingCost,
 							discount,
 							total,
 						},
 					});
 				},
 
+				// Get selected address
+				getSelectedAddress: () => {
+					const { savedAddresses, selectedAddressId } = get();
+					return savedAddresses.find((addr) => addr._id === selectedAddressId);
+				},
+
 				// Process payment
 				processPayment: async (userId, clearCartCallback = null) => {
 					const {
 						customerInfo,
-						deliveryAddress,
 						orderSummary,
 						appliedCoupon,
+						cartAppliedCoupon,
 						checkoutType,
 						paymentMethod,
 					} = get();
+
+					const selectedAddress = get().getSelectedAddress();
+
+					if (!selectedAddress) {
+						toast.error("Please select a delivery address");
+						return { success: false, error: "No delivery address selected" };
+					}
 
 					if (orderSummary.items.length === 0) {
 						toast.error("No items to checkout");
@@ -254,6 +436,10 @@ export const useCheckoutStore = create(
 					set({ paymentLoading: true });
 
 					try {
+						// Determine which coupon to use
+						const couponToUse =
+							checkoutType === "cart" ? cartAppliedCoupon : appliedCoupon;
+
 						// Prepare order data
 						const orderData = {
 							userId: userId,
@@ -262,20 +448,26 @@ export const useCheckoutStore = create(
 							customerMobile: customerInfo.mobile,
 							products: orderSummary.items,
 							subtotal: orderSummary.subtotal,
-							tax: orderSummary.tax,
 							shippingCost: orderSummary.shippingCost,
 							discount: orderSummary.discount,
 							totalAmount: orderSummary.total,
 							paymentMethod: paymentMethod,
 							deliveryAddress: {
-								...deliveryAddress,
-								fullAddress: `${deliveryAddress.street}, ${deliveryAddress.city}, ${deliveryAddress.state} - ${deliveryAddress.zipCode}`,
+								tag: selectedAddress.tag,
+								name: selectedAddress.name,
+								street: selectedAddress.street,
+								city: selectedAddress.city,
+								state: selectedAddress.state,
+								zipCode: selectedAddress.zipCode,
+								country: selectedAddress.country,
+								fullAddress: `${selectedAddress.street}, ${selectedAddress.city}, ${selectedAddress.state} - ${selectedAddress.zipCode}`,
 							},
-							couponApplied: appliedCoupon
+							couponApplied: couponToUse
 								? {
-										couponCode: appliedCoupon.code,
-										discountAmount: appliedCoupon.discountAmount,
-										discountType: appliedCoupon.discountType,
+										couponCode: couponToUse.code,
+										discountAmount:
+											couponToUse.discountAmount || orderSummary.discount,
+										discountType: "percentage",
 								  }
 								: null,
 						};
@@ -293,16 +485,16 @@ export const useCheckoutStore = create(
 								key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
 								amount: razorpayOrder.amount,
 								currency: razorpayOrder.currency,
-								name: "Safety Online",
-								description: "Order Payment",
+								name: "Your Store Name",
+								description: "Purchase from Your Store",
 								order_id: razorpayOrder.id,
 								handler: async function (response) {
 									try {
 										// Verify payment
 										const verificationData = {
-											razorpay_order_id: response.razorpay_order_id,
+											// razorpay_order_id: response.razorpay_order_id,
 											razorpay_payment_id: response.razorpay_payment_id,
-											razorpay_signature: response.razorpay_signature,
+											// razorpay_signature: response.razorpay_signature,
 											orderData,
 											userId: userId,
 											clearCart: checkoutType === "cart",
@@ -405,23 +597,28 @@ export const useCheckoutStore = create(
 						buyNowProduct: null,
 						buyNowQuantity: 1,
 						customerInfo: { name: "", email: "", mobile: "" },
-						deliveryAddress: {
+						savedAddresses: [],
+						selectedAddressId: null,
+						newAddress: {
+							tag: "home",
+							name: "",
 							street: "",
 							city: "",
 							state: "",
 							zipCode: "",
 							country: "India",
-							fullAddress: "",
+							isDefault: false,
 						},
+						isAddingNewAddress: false,
 						orderSummary: {
 							items: [],
 							subtotal: 0,
-							tax: 0,
-							shippingCost: 50, // Default shipping cost/ delivery fee in INR - need to check
+							shippingCost: 0,
 							discount: 0,
 							total: 0,
 						},
 						appliedCoupon: null,
+						cartAppliedCoupon: null,
 						currentStep: 1,
 						paymentMethod: "razorpay",
 						paymentLoading: false,
@@ -430,7 +627,7 @@ export const useCheckoutStore = create(
 
 				// Validate checkout data
 				validateCheckoutData: () => {
-					const { customerInfo, deliveryAddress, orderSummary } = get();
+					const { customerInfo, selectedAddressId, orderSummary } = get();
 					const errors = [];
 
 					// Validate customer info
@@ -441,12 +638,8 @@ export const useCheckoutStore = create(
 						errors.push("Mobile number is required");
 
 					// Validate delivery address
-					if (!deliveryAddress.street.trim())
-						errors.push("Street address is required");
-					if (!deliveryAddress.city.trim()) errors.push("City is required");
-					if (!deliveryAddress.state.trim()) errors.push("State is required");
-					if (!deliveryAddress.zipCode.trim())
-						errors.push("ZIP code is required");
+					if (!selectedAddressId)
+						errors.push("Please select a delivery address");
 
 					// Validate order items
 					if (orderSummary.items.length === 0) errors.push("No items in order");
@@ -459,7 +652,16 @@ export const useCheckoutStore = create(
 
 				// Get checkout summary
 				getCheckoutSummary: () => {
-					const { orderSummary, appliedCoupon, paymentMethod } = get();
+					const {
+						orderSummary,
+						appliedCoupon,
+						cartAppliedCoupon,
+						paymentMethod,
+						checkoutType,
+					} = get();
+					const couponToUse =
+						checkoutType === "cart" ? cartAppliedCoupon : appliedCoupon;
+
 					return {
 						itemCount: orderSummary.items.reduce(
 							(sum, item) => sum + item.quantity,
@@ -467,17 +669,16 @@ export const useCheckoutStore = create(
 						),
 						uniqueItems: orderSummary.items.length,
 						...orderSummary,
-						hasPromo: !!appliedCoupon,
-						promoCode: appliedCoupon?.code,
+						hasPromo: !!couponToUse,
+						promoCode: couponToUse?.code,
 						paymentMethod,
+						checkoutType,
 					};
 				},
 			}),
 			{
 				name: "checkout-storage",
 				partialize: (state) => ({
-					customerInfo: state.customerInfo,
-					deliveryAddress: state.deliveryAddress,
 					paymentMethod: state.paymentMethod,
 				}),
 			}

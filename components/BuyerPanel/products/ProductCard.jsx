@@ -7,51 +7,37 @@ import { Badge } from "@/components/ui/badge";
 import { ShoppingCart, Heart, Eye, ArrowRight, Star } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/cartStore";
-import { useProductStore } from "@/store/productStore.js";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import Image from "next/image";
 
 export default function ProductCard({ product, viewMode = "grid" }) {
 	const router = useRouter();
-	const { addItemLocal } = useCartStore();
-	const { addToCart, buyNow } = useProductStore();
+	const { addItem, isLoading } = useCartStore();
 
 	const handleViewProduct = () => {
-		router.push(`/products/${product.id}`);
+		router.push(`/products/${product.id || product._id}`);
 	};
 
 	const handleAddToCart = async (e) => {
 		e.stopPropagation();
 
-		// Add to local cart immediately for better UX
-		addItemLocal({
-			id: product.id,
-			name: product.name,
+		// Use the unified addItem function
+		await addItem({
+			id: product.id || product._id,
+			name: product.title,
 			description: product.description,
-			price: product.price,
-			image: product.image,
+			price: product.salePrice || product.price,
+			originalPrice: product.price,
+			image: product.images?.[0] || product.image,
 			inStock: product.inStock,
 		});
-
-		// Also sync with server
-		const success = await addToCart(product.id, 1);
-		if (!success) {
-			toast.error("Failed to sync with server, but added to local cart");
-		}
 	};
 
 	const handleBuyNow = async (e) => {
 		e.stopPropagation();
 
-		// const redirectUrl = await buyNow(product.id, 1);
-		// if (redirectUrl) {
-		// 	router.push(redirectUrl);
-		// } else {
-		// 	toast.error("Failed to process buy now request");
-		// }
-
 		// Redirect to checkout with buy now parameters
-		router.push(`/checkout?buyNow=true&id=${product.id}&qty=1`);
+		router.push(`/checkout?buyNow=true&id=${product.id || product._id}&qty=1`);
 	};
 
 	if (viewMode === "list") {
@@ -62,7 +48,8 @@ export default function ProductCard({ product, viewMode = "grid" }) {
 						<div className="relative w-full sm:w-48 h-48 bg-gray-50 rounded-lg overflow-hidden flex-shrink-0">
 							<Image
 								src={
-									product.images[0] ||
+									product.images?.[0] ||
+									product.image ||
 									"/placeholder.svg?height=192&width=192&text=Product"
 								}
 								alt={product.title}
@@ -107,11 +94,11 @@ export default function ProductCard({ product, viewMode = "grid" }) {
 								<div className="space-y-1">
 									<div className="flex items-center gap-2">
 										<p className="text-2xl font-bold">
-											₹{product.price.toLocaleString()}
+											₹{(product.salePrice || product.price).toLocaleString()}
 										</p>
-										{product.originalPrice > product.price && (
+										{product.price > (product.salePrice || product.price) && (
 											<p className="text-lg text-gray-500 line-through">
-												₹{product.originalPrice.toLocaleString()}
+												₹{product.price.toLocaleString()}
 											</p>
 										)}
 									</div>
@@ -120,7 +107,7 @@ export default function ProductCard({ product, viewMode = "grid" }) {
 											product.inStock ? "text-green-600" : "text-red-600"
 										}`}
 									>
-										{product.status}
+										{product.inStock ? "In Stock" : "Out of Stock"}
 									</p>
 								</div>
 
@@ -134,7 +121,7 @@ export default function ProductCard({ product, viewMode = "grid" }) {
 									</Button>
 									<Button
 										onClick={handleAddToCart}
-										disabled={!product.inStock}
+										disabled={!product.inStock || isLoading}
 										variant="outline"
 										className="rounded-full bg-transparent"
 									>
@@ -143,7 +130,7 @@ export default function ProductCard({ product, viewMode = "grid" }) {
 									</Button>
 									<Button
 										onClick={handleBuyNow}
-										disabled={!product.inStock}
+										disabled={!product.inStock || isLoading}
 										className="bg-black text-white hover:bg-gray-800 rounded-full"
 									>
 										Buy Now
@@ -170,6 +157,7 @@ export default function ProductCard({ product, viewMode = "grid" }) {
 						<div className="relative h-64 bg-gray-50 rounded-t-xl overflow-hidden">
 							<Image
 								src={
+									product.images?.[0] ||
 									product.image ||
 									"/placeholder.svg?height=256&width=256&text=Product"
 								}
@@ -232,11 +220,11 @@ export default function ProductCard({ product, viewMode = "grid" }) {
 						<div className="space-y-2 mb-4">
 							<div className="flex items-center gap-2">
 								<p className="text-xl font-bold">
-									₹{product.price.toLocaleString()}
+									₹{(product.salePrice || product.price).toLocaleString()}
 								</p>
-								{product.originalPrice > product.price && (
+								{product.price > (product.salePrice || product.price) && (
 									<p className="text-sm text-gray-500 line-through">
-										₹{product.originalPrice.toLocaleString()}
+										₹{product.price.toLocaleString()}
 									</p>
 								)}
 							</div>
@@ -245,7 +233,7 @@ export default function ProductCard({ product, viewMode = "grid" }) {
 									product.inStock ? "text-green-600" : "text-red-600"
 								}`}
 							>
-								{product.status}
+								{product.inStock ? "In Stock" : "Out of Stock"}
 							</p>
 						</div>
 
@@ -263,7 +251,7 @@ export default function ProductCard({ product, viewMode = "grid" }) {
 									variant="outline"
 									size="icon"
 									onClick={handleAddToCart}
-									disabled={!product.inStock}
+									disabled={!product.inStock || isLoading}
 									className="rounded-full border-gray-300 hover:border-gray-400 bg-transparent"
 								>
 									<ShoppingCart className="h-4 w-4" />
@@ -272,7 +260,7 @@ export default function ProductCard({ product, viewMode = "grid" }) {
 
 							<Button
 								onClick={handleBuyNow}
-								disabled={!product.inStock}
+								disabled={!product.inStock || isLoading}
 								className="bg-black text-white hover:bg-gray-800 rounded-full flex-1 max-w-[120px]"
 								size="sm"
 							>

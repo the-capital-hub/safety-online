@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ShoppingCart, X, Plus, Minus } from "lucide-react";
-import { useCartStore } from "@/store/cartStore.js";
+import { useCartStore } from "@/store/cartStore";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
@@ -16,12 +16,11 @@ export default function MiniCart() {
 		isOpen,
 		closeCart,
 		totals,
-		updateQuantityLocal,
-		removeItemLocal,
+		updateQuantity,
+		removeItem,
 		getTotalItems,
+		isLoading,
 	} = useCartStore();
-
-	// console.log("totals", totals);
 
 	const handleViewCart = () => {
 		closeCart();
@@ -106,11 +105,9 @@ export default function MiniCart() {
 																size="icon"
 																className="h-6 w-6 bg-transparent"
 																onClick={() =>
-																	updateQuantityLocal(
-																		item.id,
-																		item.quantity - 1
-																	)
+																	updateQuantity(item.id, item.quantity - 1)
 																}
+																disabled={isLoading}
 															>
 																<Minus className="h-3 w-3" />
 															</Button>
@@ -122,11 +119,9 @@ export default function MiniCart() {
 																size="icon"
 																className="h-6 w-6 bg-transparent"
 																onClick={() =>
-																	updateQuantityLocal(
-																		item.id,
-																		item.quantity + 1
-																	)
+																	updateQuantity(item.id, item.quantity + 1)
 																}
+																disabled={isLoading}
 															>
 																<Plus className="h-3 w-3" />
 															</Button>
@@ -135,7 +130,8 @@ export default function MiniCart() {
 															variant="ghost"
 															size="sm"
 															className="text-red-600 hover:text-red-700 p-1"
-															onClick={() => removeItemLocal(item.id)}
+															onClick={() => removeItem(item.id)}
+															disabled={isLoading}
 														>
 															<X className="h-3 w-3" />
 														</Button>
@@ -158,10 +154,6 @@ export default function MiniCart() {
 													<span>-₹{totals.discount.toLocaleString()}</span>
 												</div>
 											)}
-											<div className="flex justify-between text-sm">
-												<span>Delivery</span>
-												<span>₹{totals.deliveryFee}</span>
-											</div>
 											<Separator />
 											<div className="flex justify-between font-bold">
 												<span>Total</span>
@@ -173,6 +165,7 @@ export default function MiniCart() {
 											<Button
 												onClick={handleCheckout}
 												className="w-full bg-black text-white hover:bg-gray-800"
+												disabled={isLoading}
 											>
 												Checkout
 											</Button>
@@ -180,10 +173,15 @@ export default function MiniCart() {
 												onClick={handleViewCart}
 												variant="outline"
 												className="w-full bg-transparent"
+												disabled={isLoading}
 											>
 												View Cart
 											</Button>
 										</div>
+
+										<p className="text-xs text-gray-500 text-center mt-3">
+											Shipping calculated at checkout
+										</p>
 									</div>
 								</>
 							)}

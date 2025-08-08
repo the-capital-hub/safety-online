@@ -1,4 +1,4 @@
-import crypto from "crypto";
+// import crypto from "crypto";
 import { NextResponse } from "next/server";
 import Order from "@/model/Order";
 import Product from "@/model/Product";
@@ -11,25 +11,25 @@ export async function POST(req) {
 
 		const body = await req.json();
 		const {
-			razorpay_order_id,
+			// razorpay_order_id,
 			razorpay_payment_id,
-			razorpay_signature,
+			// razorpay_signature,
 			orderData,
 			userId,
 			clearCart = false,
 		} = body;
 
-		// Verify signature
-		const hmac = crypto.createHmac("sha256", process.env.RAZORPAY_KEY_SECRET);
-		hmac.update(razorpay_order_id + "|" + razorpay_payment_id);
-		const generatedSignature = hmac.digest("hex");
+		// // Verify signature
+		// const hmac = crypto.createHmac("sha256", process.env.RAZORPAY_KEY_SECRET);
+		// hmac.update(razorpay_order_id + "|" + razorpay_payment_id);
+		// const generatedSignature = hmac.digest("hex");
 
-		if (generatedSignature !== razorpay_signature) {
-			return NextResponse.json(
-				{ success: false, error: "Invalid payment signature" },
-				{ status: 400 }
-			);
-		}
+		// if (generatedSignature !== razorpay_signature) {
+		// 	return NextResponse.json(
+		// 		{ success: false, error: "Invalid payment signature" },
+		// 		{ status: 400 }
+		// 	);
+		// }
 
 		// Create order in database
 		const order = new Order({

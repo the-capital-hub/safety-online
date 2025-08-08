@@ -27,9 +27,8 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/cartStore";
-import { useProductStore } from "@/store/productStore.js";
 import ProductCard from "@/components/BuyerPanel/products/ProductCard.jsx";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import Image from "next/image";
 
 export default function ProductDetail({ product, relatedProducts = [] }) {
@@ -37,8 +36,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 	const [quantity, setQuantity] = useState(1);
 	const [selectedQuantityOffer, setSelectedQuantityOffer] = useState(null);
 	const router = useRouter();
-	const { addItemLocal } = useCartStore();
-	const { addToCart, buyNow } = useProductStore();
+	const { addItem, isLoading } = useCartStore();
 
 	// Mock reviews data - you can replace this with real reviews from the API
 	const reviews = [
@@ -95,38 +93,28 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 		},
 	];
 
-	const handleAddToCart = async () => {
-		try {
-			// Add to local cart immediately for better UX
-			addItemLocal({
-				id: product.id,
-				name: product.name,
-				description: product.description,
-				price: product.price,
-				image: product.image,
-				inStock: product.inStock,
-				quantity: quantity,
-			});
+	const handleAddToCart = async (e) => {
+		e.stopPropagation();
 
-			// Also sync with server
-			const success = await addToCart(product.id, quantity);
-			if (success) {
-				toast.success(`Added ${quantity} item(s) to cart`);
-			} else {
-				toast.error("Failed to sync with server, but added to local cart");
-			}
-		} catch (error) {
-			toast.error("Failed to add to cart");
-		}
+		// Use the unified addItem function
+		await addItem({
+			id: product.id || product._id,
+			name: product.title,
+			description: product.description,
+			price: product.salePrice || product.price,
+			originalPrice: product.price,
+			image: product.images?.[0] || product.image,
+			inStock: product.inStock,
+		});
 	};
 
-	const handleBuyNow = async () => {
-		try {
-			// Redirect to checkout with buy now parameters
-			router.push(`/checkout?buyNow=true&id=${product.id}&qty=${quantity}`);
-		} catch (error) {
-			toast.error("Failed to process buy now request");
-		}
+	const handleBuyNow = async (e) => {
+		e.stopPropagation();
+
+		// Redirect to checkout with buy now parameters
+		router.push(
+			`/checkout?buyNow=true&id=${product.id || product._id}&qty=${quantity}`
+		);
 	};
 
 	const handleQuantityChange = (change) => {
@@ -327,7 +315,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 							<div className="flex flex-col sm:flex-row gap-4">
 								<Button
 									onClick={handleAddToCart}
-									disabled={!product.inStock}
+									disabled={!product.inStock || isLoading}
 									className="flex-1 bg-black text-white hover:bg-gray-800"
 									size="lg"
 								>
