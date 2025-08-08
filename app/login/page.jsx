@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/card";
 import { useAuthStore } from "@/store/authStore";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import Logo from "@/public/SafetyLogo.png";
 import LoginModel from "@/public/images/login/LoginModel.png";
 

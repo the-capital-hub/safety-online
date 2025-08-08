@@ -151,7 +151,7 @@ export default function CartPage() {
 							</AnimatePresence>
 
 							{/* Recommended Products Section */}
-							<Card className="mt-8">
+							{/* <Card className="mt-8">
 								<CardContent className="p-6">
 									<h3 className="text-lg font-semibold mb-4">
 										You might also like
@@ -166,7 +166,7 @@ export default function CartPage() {
 										))}
 									</div>
 								</CardContent>
-							</Card>
+							</Card> */}
 						</div>
 
 						{/* Cart Summary */}

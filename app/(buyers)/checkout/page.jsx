@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import {
 	ShoppingBag,
 	MapPin,
@@ -24,6 +24,7 @@ import {
 import { useCartStore } from "@/store/cartStore.js";
 import { useProductStore } from "@/store/productStore.js";
 import { useCheckoutStore } from "@/store/checkoutStore.js";
+import { useAuthStore } from "@/store/authStore.js";
 import Image from "next/image";
 
 export default function CheckoutPage() {
@@ -46,8 +47,12 @@ export default function CheckoutPage() {
 		country: "India",
 	});
 
+	// Auth store
+	const { user } = useAuthStore();
+
 	// Optimized store selectors - only subscribe to what we need
 	const cartItems = useCartStore((state) => state.items);
+	const clearCartLocal = useCartStore((state) => state.clearCartLocal);
 	const getProductById = useProductStore((state) => state.getProductById);
 
 	// Use shallow comparison for checkout store to prevent unnecessary re-renders
@@ -61,6 +66,7 @@ export default function CheckoutPage() {
 		appliedCoupon,
 		currentStep,
 		isLoading,
+		paymentLoading,
 	} = useCheckoutStore();
 
 	// Separate selectors for actions to prevent re-renders when calling them
@@ -86,6 +92,19 @@ export default function CheckoutPage() {
 	useEffect(() => {
 		setLocalDeliveryAddress(deliveryAddress);
 	}, [deliveryAddress]);
+
+	// Pre-fill customer info from auth store if user is logged in
+	useEffect(() => {
+		if (user && (!customerInfo.name || !customerInfo.email)) {
+			const userInfo = {
+				name: user.name || "",
+				email: user.email || "",
+				mobile: user.mobile || customerInfo.mobile || "",
+			};
+			setCustomerInfo(userInfo);
+			setLocalCustomerInfo(userInfo);
+		}
+	}, [user, customerInfo, setCustomerInfo]);
 
 	// Initialize checkout based on URL params
 	useEffect(() => {
@@ -202,7 +221,10 @@ export default function CheckoutPage() {
 		}
 
 		try {
-			const result = await processPayment("6879e05bd21ada0372379876");
+			// Get userId from auth store, fallback to null for guest checkout
+			const userId = user?._id || user?.id || null;
+
+			const result = await processPayment(userId, clearCartLocal);
 
 			if (result.success) {
 				toast.success("Payment successful!");
@@ -215,7 +237,14 @@ export default function CheckoutPage() {
 			console.error("Payment error:", error);
 			toast.error(error.message || "Payment failed. Please try again.");
 		}
-	}, [isRazorpayLoaded, processPayment, router, resetCheckout]);
+	}, [
+		isRazorpayLoaded,
+		processPayment,
+		user,
+		clearCartLocal,
+		router,
+		resetCheckout,
+	]);
 
 	// Memoized step components to prevent unnecessary re-renders
 	const CustomerInfoStep = useMemo(
@@ -401,10 +430,10 @@ export default function CheckoutPage() {
 						</Button>
 						<Button
 							onClick={handlePayment}
-							disabled={isLoading || !isRazorpayLoaded}
+							// disabled={paymentLoading || !isRazorpayLoaded}
 							className="flex-1 bg-green-600 hover:bg-green-700"
 						>
-							{isLoading ? (
+							{paymentLoading ? (
 								<>
 									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 									Processing...
@@ -422,7 +451,7 @@ export default function CheckoutPage() {
 		),
 		[
 			handlePayment,
-			isLoading,
+			paymentLoading,
 			isRazorpayLoaded,
 			orderSummary.total,
 			setCurrentStep,
@@ -445,7 +474,8 @@ export default function CheckoutPage() {
 									<Image
 										src={
 											item.productImage ||
-											"/placeholder.svg?height=48&width=48&text=Product"
+											"/placeholder.svg?height=48&width=48&text=Product" ||
+											"/placeholder.svg"
 										}
 										alt={item.productName}
 										fill
@@ -513,10 +543,10 @@ export default function CheckoutPage() {
 							<span>Subtotal</span>
 							<span>₹{orderSummary.subtotal.toLocaleString()}</span>
 						</div>
-						<div className="flex justify-between">
+						{/* <div className="flex justify-between">
 							<span>Tax (GST)</span>
 							<span>₹{orderSummary.tax.toLocaleString()}</span>
-						</div>
+						</div> */}
 						<div className="flex justify-between">
 							<span>Shipping</span>
 							<span>
@@ -599,6 +629,11 @@ export default function CheckoutPage() {
 								? "Complete your purchase"
 								: "Review your cart and complete your order"}
 						</p>
+						{user && (
+							<p className="text-sm text-gray-500 mt-1">
+								Logged in as: {user.name || user.email}
+							</p>
+						)}
 					</div>
 
 					{/* Progress Steps */}

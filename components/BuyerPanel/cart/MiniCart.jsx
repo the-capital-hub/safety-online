@@ -21,6 +21,8 @@ export default function MiniCart() {
 		getTotalItems,
 	} = useCartStore();
 
+	// console.log("totals", totals);
+
 	const handleViewCart = () => {
 		closeCart();
 		router.push("/cart");

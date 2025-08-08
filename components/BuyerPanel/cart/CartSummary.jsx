@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tag, X, ShoppingBag, CreditCard } from "lucide-react";
 import { useCartStore } from "@/store/cartStore.js";
 import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
 
 export default function CartSummary() {
 	const [promoCode, setPromoCode] = useState("");
@@ -29,8 +30,12 @@ export default function CartSummary() {
 
 		setIsApplyingPromo(true);
 		const success = await applyPromoCode(promoCode);
+		console.log("Promo applied:", success);
 		if (success) {
+			toast.success("Promo code applied!");
 			setPromoCode("");
+		} else {
+			toast.error("Invalid Promo Code");
 		}
 		setIsApplyingPromo(false);
 	};
@@ -99,7 +104,9 @@ export default function CartSummary() {
 									{isApplyingPromo ? "Applying..." : "Apply"}
 								</Button>
 							</div>
-							<p className="text-xs text-gray-500">Try "SAVE20" for 20% off</p>
+							<p className="text-xs text-gray-500">
+								Try "MQXE0KDU" for 20% off
+							</p>
 						</div>
 					)}
 				</div>

@@ -1,354 +1,486 @@
 "use client";
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
-import { toast } from "sonner";
+import { persist, devtools } from "zustand/middleware";
+import { toast } from "react-hot-toast";
+
+// Payment API functions
+const paymentAPI = {
+	async createRazorpayOrder(orderData) {
+		const response = await fetch("/api/razorpay", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(orderData),
+		});
+		if (!response.ok) {
+			const error = await response.json();
+			throw new Error(error.message || "Failed to create payment order");
+		}
+		return response.json();
+	},
+
+	async verifyPayment(paymentData) {
+		const response = await fetch("/api/paymentverify", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(paymentData),
+		});
+		if (!response.ok) {
+			const error = await response.json();
+			throw new Error(error.message || "Payment verification failed");
+		}
+		return response.json();
+	},
+
+	async createOrder(orderData) {
+		const response = await fetch("/api/orders", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(orderData),
+		});
+		if (!response.ok) {
+			const error = await response.json();
+			throw new Error(error.message || "Failed to create order");
+		}
+		return response.json();
+	},
+
+	async validateCoupon(couponCode, orderAmount) {
+		const response = await fetch("/api/coupons/validate", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ code: couponCode, orderAmount }),
+		});
+		if (!response.ok) {
+			const error = await response.json();
+			throw new Error(error.message || "Failed to validate coupon");
+		}
+		return response.json();
+	},
+};
 
 export const useCheckoutStore = create(
-	persist(
-		(set, get) => ({
-			// State
-			checkoutType: "cart", // 'cart' or 'buyNow'
-			buyNowProduct: null,
-			buyNowQuantity: 1,
+	devtools(
+		persist(
+			(set, get) => ({
+				// State
+				checkoutType: "cart", // 'cart' or 'buyNow'
+				buyNowProduct: null,
+				buyNowQuantity: 1,
 
-			// Customer Information
-			customerInfo: {
-				name: "",
-				email: "",
-				mobile: "",
-			},
+				// Customer Information
+				customerInfo: {
+					name: "",
+					email: "",
+					mobile: "",
+				},
 
-			// Delivery Address
-			deliveryAddress: {
-				street: "",
-				city: "",
-				state: "",
-				zipCode: "",
-				country: "India",
-				fullAddress: "",
-			},
+				// Delivery Address
+				deliveryAddress: {
+					street: "",
+					city: "",
+					state: "",
+					zipCode: "",
+					country: "India",
+					fullAddress: "",
+				},
 
-			// Order Summary
-			orderSummary: {
-				items: [],
-				subtotal: 0,
-				tax: 0,
-				shippingCost: 50,
-				discount: 0,
-				total: 0,
-			},
+				// Order Summary
+				orderSummary: {
+					items: [],
+					subtotal: 0,
+					tax: 0,
+					shippingCost: 50,
+					discount: 0,
+					total: 0,
+				},
 
-			// Applied Coupon
-			appliedCoupon: null,
+				// Applied Coupon
+				appliedCoupon: null,
 
-			// UI State
-			isLoading: false,
-			currentStep: 1, // 1: Info, 2: Address, 3: Payment
+				// UI State
+				isLoading: false,
+				paymentLoading: false,
+				currentStep: 1, // 1: Info, 2: Address, 3: Payment
+				paymentMethod: "razorpay", // 'razorpay' or 'cod'
 
-			// Actions
-			setCheckoutType: (type, product = null, quantity = 1) => {
-				set({
-					checkoutType: type,
-					buyNowProduct: product,
-					buyNowQuantity: quantity,
-				});
-			},
+				// Actions
+				setCheckoutType: (type, product = null, quantity = 1) => {
+					set({
+						checkoutType: type,
+						buyNowProduct: product,
+						buyNowQuantity: quantity,
+					});
+				},
 
-			setCustomerInfo: (info) => {
-				set((state) => ({
-					customerInfo: { ...state.customerInfo, ...info },
-				}));
-			},
-
-			setDeliveryAddress: (address) => {
-				set((state) => ({
-					deliveryAddress: { ...state.deliveryAddress, ...address },
-				}));
-			},
-
-			setCurrentStep: (step) => {
-				set({ currentStep: step });
-			},
-
-			// Initialize checkout data
-			initializeCheckout: (cartItems = [], product = null, quantity = 1) => {
-				const { checkoutType } = get();
-
-				let items = [];
-
-				if (checkoutType === "buyNow" && product) {
-					items = [
-						{
-							productId: product.id,
-							productName: product.name,
-							productImage: product.image,
-							quantity: quantity,
-							price: product.price,
-							totalPrice: product.price * quantity,
-						},
-					];
-				} else {
-					items = cartItems.map((item) => ({
-						productId: item.id,
-						productName: item.name,
-						productImage: item.image,
-						quantity: item.quantity,
-						price: item.price,
-						totalPrice: item.price * item.quantity,
+				setCustomerInfo: (info) => {
+					set((state) => ({
+						customerInfo: { ...state.customerInfo, ...info },
 					}));
-				}
+				},
 
-				const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
-				const tax = Math.round(subtotal * 0.18); // 18% GST
-				const shippingCost = subtotal > 500 ? 0 : 0; // Free shipping above Rs. 500, but for testing purposes, set to Rs. 0 for simplicity will update this later to Rs. 50
-				const discount = get().appliedCoupon?.discountAmount || 0;
-				const total = subtotal + tax + shippingCost - discount;
+				setDeliveryAddress: (address) => {
+					set((state) => ({
+						deliveryAddress: { ...state.deliveryAddress, ...address },
+					}));
+				},
 
-				set({
-					orderSummary: {
-						items,
-						subtotal,
-						tax,
-						shippingCost,
-						discount,
-						total,
-					},
-				});
-			},
+				setCurrentStep: (step) => {
+					set({ currentStep: step });
+				},
 
-			// Apply coupon
-			applyCoupon: async (couponCode) => {
-				set({ isLoading: true });
+				setPaymentMethod: (method) => {
+					set({ paymentMethod: method });
+				},
 
-				try {
-					const response = await fetch("/api/coupons/validate", {
-						method: "POST",
-						headers: { "Content-Type": "application/json" },
-						body: JSON.stringify({
-							code: couponCode,
-							orderAmount: get().orderSummary.subtotal,
-						}),
-					});
+				// Initialize checkout data
+				initializeCheckout: (cartItems = [], product = null, quantity = 1) => {
+					const { checkoutType } = get();
 
-					const data = await response.json();
+					let items = [];
 
-					if (data.success) {
-						set({ appliedCoupon: data.coupon });
-						get().recalculateTotal();
-						toast.success("Coupon applied successfully!");
-						return true;
+					if (checkoutType === "buyNow" && product) {
+						items = [
+							{
+								productId: product.id,
+								productName: product.name,
+								productImage: product.image,
+								quantity: quantity,
+								price: product.price,
+								totalPrice: product.price * quantity,
+							},
+						];
 					} else {
-						toast.error(data.message || "Invalid coupon code");
-						return false;
+						items = cartItems.map((item) => ({
+							productId: item.id,
+							productName: item.name,
+							productImage: item.image,
+							quantity: item.quantity,
+							price: item.price,
+							totalPrice: item.price * item.quantity,
+						}));
 					}
-				} catch (error) {
-					toast.error("Failed to apply coupon");
-					return false;
-				} finally {
-					set({ isLoading: false });
-				}
-			},
 
-			// Remove coupon
-			removeCoupon: () => {
-				set({ appliedCoupon: null });
-				get().recalculateTotal();
-				toast.success("Coupon removed");
-			},
+					const subtotal = items.reduce(
+						(sum, item) => sum + item.totalPrice,
+						0
+					);
+					// const tax = Math.round(subtotal * 0.18); // 18% GST
+					const shippingCost = subtotal > 500 ? 0 : 0; // Free shipping above Rs. 500, but for testing purposes, set to Rs. 0 for simplicity will update this later to Rs. 50
+					const discount = get().appliedCoupon?.discountAmount || 0;
+					const total = subtotal + shippingCost - discount; // total = subtotal + tax + shippingCost - discount
 
-			// Recalculate total
-			recalculateTotal: () => {
-				const { orderSummary, appliedCoupon } = get();
-				const discount = appliedCoupon?.discountAmount || 0;
-				const total =
-					orderSummary.subtotal +
-					orderSummary.tax +
-					orderSummary.shippingCost -
-					discount;
-
-				set({
-					orderSummary: {
-						...orderSummary,
-						discount,
-						total,
-					},
-				});
-			},
-
-			// Create Razorpay order
-			createRazorpayOrder: async () => {
-				const { orderSummary } = get();
-
-				try {
-					const response = await fetch("/api/razorpay", {
-						method: "POST",
-						headers: { "Content-Type": "application/json" },
-						body: JSON.stringify({
-							amount: orderSummary.total,
-							currency: "INR",
-							receipt: `order_${Date.now()}`,
-						}),
+					set({
+						orderSummary: {
+							items,
+							subtotal,
+							// tax,
+							shippingCost,
+							discount,
+							total,
+						},
 					});
+				},
 
-					const data = await response.json();
-
-					if (data.success) {
-						return data.order;
-					} else {
-						throw new Error(data.error);
-					}
-				} catch (error) {
-					console.error("Failed to create Razorpay order:", error);
-					throw error;
-				}
-			},
-
-			// Process payment
-			processPayment: async (userId) => {
-				const {
-					customerInfo,
-					deliveryAddress,
-					orderSummary,
-					appliedCoupon,
-					checkoutType,
-				} = get();
-
-				try {
+				// Apply coupon
+				applyCoupon: async (couponCode) => {
 					set({ isLoading: true });
 
-					// Create Razorpay order
-					const razorpayOrder = await get().createRazorpayOrder();
+					try {
+						const data = await paymentAPI.validateCoupon(
+							couponCode,
+							get().orderSummary.subtotal
+						);
 
-					return new Promise((resolve, reject) => {
-						const options = {
-							key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-							amount: razorpayOrder.amount,
-							currency: "INR",
-							name: "Your Store",
-							description: "Order Payment",
-							order_id: razorpayOrder.id,
-							handler: async (response) => {
-								try {
-									// Prepare order data
-									const orderData = {
-										userId,
-										customerName: customerInfo.name,
-										customerEmail: customerInfo.email,
-										customerMobile: customerInfo.mobile,
-										products: orderSummary.items,
-										subtotal: orderSummary.subtotal,
-										tax: orderSummary.tax,
-										shippingCost: orderSummary.shippingCost,
-										discount: orderSummary.discount,
-										totalAmount: orderSummary.total,
-										paymentMethod: "razorpay",
-										deliveryAddress: {
-											...deliveryAddress,
-											fullAddress: `${deliveryAddress.street}, ${deliveryAddress.city}, ${deliveryAddress.state} - ${deliveryAddress.zipCode}`,
-										},
-										couponApplied: appliedCoupon
-											? {
-													couponCode: appliedCoupon.code,
-													discountAmount: appliedCoupon.discountAmount,
-													discountType: appliedCoupon.discountType,
-											  }
-											: null,
-									};
+						if (data.success) {
+							set({ appliedCoupon: data.coupon });
+							get().recalculateTotal();
+							toast.success("Coupon applied successfully!");
+							return true;
+						} else {
+							toast.error(data.message || "Invalid coupon code");
+							return false;
+						}
+					} catch (error) {
+						toast.error("Failed to apply coupon");
+						return false;
+					} finally {
+						set({ isLoading: false });
+					}
+				},
 
-									// Verify payment
-									// const verifyResponse = await fetch("/api/paymentverify", {
-									// 	method: "POST",
-									// 	headers: { "Content-Type": "application/json" },
-									// 	body: JSON.stringify({
-									// 		...response,
-									// 		orderData,
-									// 		userId,
-									// 		clearCart: checkoutType === "cart",
-									// 	}),
-									// });
+				// Remove coupon
+				removeCoupon: () => {
+					set({ appliedCoupon: null });
+					get().recalculateTotal();
+					toast.success("Coupon removed");
+				},
 
-									// const verifyData = await verifyResponse.json();
+				// Recalculate total
+				recalculateTotal: () => {
+					const { orderSummary, appliedCoupon } = get();
+					const discount = appliedCoupon?.discountAmount || 0;
+					const total =
+						orderSummary.subtotal +
+						orderSummary.tax +
+						orderSummary.shippingCost -
+						discount;
 
-									// if (verifyData.success) {
-									// 	resolve({
-									// 		success: true,
-									// 		orderId: verifyData.orderId,
-									// 		orderNumber: verifyData.orderNumber,
-									// 	});
-									// } else {
-									// 	reject(new Error(verifyData.error));
-									// }
+					set({
+						orderSummary: {
+							...orderSummary,
+							discount,
+							total,
+						},
+					});
+				},
 
-									resolve({
-										success: true,
-										orderId: razorpayOrder.id,
-										orderNumber: razorpayOrder.receipt,
-									});
-								} catch (error) {
-									reject(error);
-								}
+				// Process payment
+				processPayment: async (userId, clearCartCallback = null) => {
+					const {
+						customerInfo,
+						deliveryAddress,
+						orderSummary,
+						appliedCoupon,
+						checkoutType,
+						paymentMethod,
+					} = get();
+
+					if (orderSummary.items.length === 0) {
+						toast.error("No items to checkout");
+						return { success: false, error: "No items to checkout" };
+					}
+
+					set({ paymentLoading: true });
+
+					try {
+						// Prepare order data
+						const orderData = {
+							userId: userId,
+							customerName: customerInfo.name,
+							customerEmail: customerInfo.email,
+							customerMobile: customerInfo.mobile,
+							products: orderSummary.items,
+							subtotal: orderSummary.subtotal,
+							tax: orderSummary.tax,
+							shippingCost: orderSummary.shippingCost,
+							discount: orderSummary.discount,
+							totalAmount: orderSummary.total,
+							paymentMethod: paymentMethod,
+							deliveryAddress: {
+								...deliveryAddress,
+								fullAddress: `${deliveryAddress.street}, ${deliveryAddress.city}, ${deliveryAddress.state} - ${deliveryAddress.zipCode}`,
 							},
-							prefill: {
-								name: customerInfo.name,
-								email: customerInfo.email,
-								contact: customerInfo.mobile,
-							},
-							theme: {
-								color: "#3399cc",
-							},
-							modal: {
-								ondismiss: () => {
-									reject(new Error("Payment cancelled by user"));
-								},
-							},
+							couponApplied: appliedCoupon
+								? {
+										couponCode: appliedCoupon.code,
+										discountAmount: appliedCoupon.discountAmount,
+										discountType: appliedCoupon.discountType,
+								  }
+								: null,
 						};
 
-						const rzp = new window.Razorpay(options);
-						rzp.open();
-					});
-				} catch (error) {
-					console.error("Payment processing error:", error);
-					throw error;
-				} finally {
-					set({ isLoading: false });
-				}
-			},
+						if (paymentMethod === "razorpay") {
+							// Create Razorpay order
+							const razorpayOrder = await paymentAPI.createRazorpayOrder({
+								amount: orderSummary.total,
+								currency: "INR",
+								receipt: `order_${Date.now()}`,
+							});
 
-			// Reset checkout
-			resetCheckout: () => {
-				set({
-					checkoutType: "cart",
-					buyNowProduct: null,
-					buyNowQuantity: 1,
-					customerInfo: { name: "", email: "", mobile: "" },
-					deliveryAddress: {
-						street: "",
-						city: "",
-						state: "",
-						zipCode: "",
-						country: "India",
-						fullAddress: "",
-					},
-					orderSummary: {
-						items: [],
-						subtotal: 0,
-						tax: 0,
-						shippingCost: 50,
-						discount: 0,
-						total: 0,
-					},
-					appliedCoupon: null,
-					currentStep: 1,
-				});
-			},
-		}),
-		{
-			name: "checkout-storage",
-			partialize: (state) => ({
-				customerInfo: state.customerInfo,
-				deliveryAddress: state.deliveryAddress,
+							// Initialize Razorpay payment
+							const options = {
+								key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+								amount: razorpayOrder.amount,
+								currency: razorpayOrder.currency,
+								name: "Safety Online",
+								description: "Order Payment",
+								order_id: razorpayOrder.id,
+								handler: async function (response) {
+									try {
+										// Verify payment
+										const verificationData = {
+											razorpay_order_id: response.razorpay_order_id,
+											razorpay_payment_id: response.razorpay_payment_id,
+											razorpay_signature: response.razorpay_signature,
+											orderData,
+											userId: userId,
+											clearCart: checkoutType === "cart",
+										};
+
+										const verificationResult = await paymentAPI.verifyPayment(
+											verificationData
+										);
+
+										if (verificationResult.success) {
+											// Clear cart if it was a cart checkout
+											if (checkoutType === "cart" && clearCartCallback) {
+												clearCartCallback();
+											}
+
+											// Reset checkout
+											get().resetCheckout();
+
+											toast.success("Payment successful! Order placed.");
+
+											// Redirect to success page
+											window.location.href = `/order-success?orderId=${verificationResult.orderId}&orderNumber=${verificationResult.orderNumber}`;
+										} else {
+											toast.error("Payment verification failed");
+										}
+									} catch (error) {
+										console.error("Payment verification error:", error);
+										toast.error("Payment verification failed");
+									} finally {
+										set({ paymentLoading: false });
+									}
+								},
+								prefill: {
+									name: customerInfo.name,
+									email: customerInfo.email,
+									contact: customerInfo.mobile,
+								},
+								theme: {
+									color: "#000000",
+								},
+								modal: {
+									ondismiss: function () {
+										set({ paymentLoading: false });
+										toast.error("Payment cancelled");
+									},
+								},
+							};
+
+							const razorpay = new window.Razorpay(options);
+							razorpay.open();
+
+							return { success: true, paymentMethod: "razorpay" };
+						} else if (paymentMethod === "cod") {
+							// Handle Cash on Delivery
+							const codOrderData = {
+								orderData: {
+									...orderData,
+									paymentStatus: "pending",
+									status: "confirmed",
+								},
+								userId: userId,
+								clearCart: checkoutType === "cart",
+							};
+
+							const result = await paymentAPI.createOrder(codOrderData);
+
+							if (result.success) {
+								// Clear cart if it was a cart checkout
+								if (checkoutType === "cart" && clearCartCallback) {
+									clearCartCallback();
+								}
+
+								// Reset checkout
+								get().resetCheckout();
+
+								toast.success("Order placed successfully!");
+
+								// Redirect to success page
+								window.location.href = `/order-success?orderId=${result.orderId}&orderNumber=${result.orderNumber}`;
+
+								return { success: true, paymentMethod: "cod" };
+							} else {
+								toast.error("Failed to place order");
+								return { success: false, error: result.error };
+							}
+						}
+					} catch (error) {
+						console.error("Payment processing error:", error);
+						toast.error("Payment processing failed");
+						return { success: false, error: error.message };
+					} finally {
+						set({ paymentLoading: false });
+					}
+				},
+
+				// Reset checkout
+				resetCheckout: () => {
+					set({
+						checkoutType: "cart",
+						buyNowProduct: null,
+						buyNowQuantity: 1,
+						customerInfo: { name: "", email: "", mobile: "" },
+						deliveryAddress: {
+							street: "",
+							city: "",
+							state: "",
+							zipCode: "",
+							country: "India",
+							fullAddress: "",
+						},
+						orderSummary: {
+							items: [],
+							subtotal: 0,
+							tax: 0,
+							shippingCost: 50, // Default shipping cost/ delivery fee in INR - need to check
+							discount: 0,
+							total: 0,
+						},
+						appliedCoupon: null,
+						currentStep: 1,
+						paymentMethod: "razorpay",
+						paymentLoading: false,
+					});
+				},
+
+				// Validate checkout data
+				validateCheckoutData: () => {
+					const { customerInfo, deliveryAddress, orderSummary } = get();
+					const errors = [];
+
+					// Validate customer info
+					if (!customerInfo.name.trim())
+						errors.push("Customer name is required");
+					if (!customerInfo.email.trim()) errors.push("Email is required");
+					if (!customerInfo.mobile.trim())
+						errors.push("Mobile number is required");
+
+					// Validate delivery address
+					if (!deliveryAddress.street.trim())
+						errors.push("Street address is required");
+					if (!deliveryAddress.city.trim()) errors.push("City is required");
+					if (!deliveryAddress.state.trim()) errors.push("State is required");
+					if (!deliveryAddress.zipCode.trim())
+						errors.push("ZIP code is required");
+
+					// Validate order items
+					if (orderSummary.items.length === 0) errors.push("No items in order");
+
+					return {
+						isValid: errors.length === 0,
+						errors,
+					};
+				},
+
+				// Get checkout summary
+				getCheckoutSummary: () => {
+					const { orderSummary, appliedCoupon, paymentMethod } = get();
+					return {
+						itemCount: orderSummary.items.reduce(
+							(sum, item) => sum + item.quantity,
+							0
+						),
+						uniqueItems: orderSummary.items.length,
+						...orderSummary,
+						hasPromo: !!appliedCoupon,
+						promoCode: appliedCoupon?.code,
+						paymentMethod,
+					};
+				},
 			}),
-		}
+			{
+				name: "checkout-storage",
+				partialize: (state) => ({
+					customerInfo: state.customerInfo,
+					deliveryAddress: state.deliveryAddress,
+					paymentMethod: state.paymentMethod,
+				}),
+			}
+		)
 	)
 );
