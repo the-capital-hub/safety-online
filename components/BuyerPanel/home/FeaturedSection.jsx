@@ -7,76 +7,12 @@ import FeaturedProduct from "@/components/BuyerPanel/home/FeaturedProduct.jsx";
 import ServiceGuarantees from "@/components/BuyerPanel/home/ServiceGuarantees.jsx";
 import { ProductCardVarient } from "@/components/BuyerPanel/home/ProductCardVarient.jsx";
 import BannerImg from "@/public/images/home/Banner.png";
-import {
-	Product10,
-	Product11,
-	Product13,
-	Product14,
-	Product15,
-	Product3,
-} from "@/public/images/home/index.js";
 
-export default function FeaturedSection() {
-	const topProducts = [
-		{
-			id: 1,
-			name: "Retro reflective Sign",
-			description:
-				"Road safety refers to the measures and practices used to prevent road accidents and protect members of all road users.",
-			price: "₹ 5,000",
-			image: Product11.src,
-		},
-		{
-			id: 2,
-			name: "Road Safety",
-			description:
-				"Road safety refers to the measures and practices used to prevent road accidents and protect members of all road users.",
-			price: "₹ 5,000",
-			image: Product10.src,
-		},
-		{
-			id: 3,
-			name: "Industrial Safety",
-			description:
-				"Road safety refers to the measures and practices used to prevent road accidents and protect members of all road users.",
-			price: "₹ 5,000",
-			image: Product3.src,
-		},
-	];
-
-	const featuredProducts = [
-		{
-			id: 1,
-			name: "SAFETY AND EFFICIENCY",
-			description:
-				"Often used for childproofing homes or securing pets, safety gates block off staircases or rooms to prevent accidents.",
-			price: "₹ 5,000",
-			originalPrice: "₹ 7,000",
-			image: Product14.src,
-			colors: ["blue", "black", "red", "orange"],
-		},
-		{
-			id: 2,
-			name: "SAFETY AND EFFICIENCY",
-			description:
-				"If you're talking about safety at a 'gate' safety gates block off staircases or rooms to prevent accidents.",
-			price: "₹ 5,000",
-			originalPrice: "₹ 7,000",
-			image: Product13.src,
-			colors: ["blue", "black", "red"],
-		},
-		{
-			id: 3,
-			name: "Convex Mirror",
-			description:
-				"If you're talking about safety at a 'gate' safety gates block off staircases or rooms to prevent accidents.",
-			price: "₹ 5,000",
-			originalPrice: "₹ 7,000",
-			image: Product15.src,
-			colors: ["blue", "black", "red"],
-		},
-	];
-
+export default function FeaturedSection({
+	topSellingProducts = [],
+	bestSellingProduct = null,
+	featuredProducts = [],
+}) {
 	return (
 		<section className="py-8 md:py-16 bg-gray-50">
 			<div className="px-10">
@@ -90,13 +26,13 @@ export default function FeaturedSection() {
 					<h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">
 						Top Selling Products
 					</h2>
-					<ProductCarousel products={topProducts} showDots={true} />
+					<ProductCarousel products={topSellingProducts} showDots={true} />
 				</motion.div>
 			</div>
 
 			<div className="px-10">
 				{/* Best Selling Product */}
-				<FeaturedProduct />
+				{bestSellingProduct && <FeaturedProduct product={bestSellingProduct} />}
 			</div>
 
 			<Image
@@ -140,7 +76,6 @@ export default function FeaturedSection() {
 									whileInView={{ opacity: 1, y: 0 }}
 									viewport={{ once: true }}
 									transition={{ delay: index * 0.1 }}
-									// className="h-[400px] md:h-[450px]"
 								>
 									<ProductCardVarient product={product} variant="horizontal" />
 								</motion.div>

@@ -9,7 +9,7 @@ export default function Footer() {
 			title: "Support",
 			links: [
 				{ label: "help@safetyonline.in", href: "mailto:help@safetyonline.in" },
-				{ label: "Safety Hill", href: "#" },
+				{ label: "9945234161", href: "#" },
 			],
 		},
 		account: {
@@ -17,6 +17,7 @@ export default function Footer() {
 			links: [
 				{ label: "My Account", href: "/account" },
 				{ label: "Login / Register", href: "/auth" },
+				{ label: "Cart", href: "/cart" },
 				{ label: "Wishlist", href: "/wishlist" },
 				{ label: "Shop", href: "/shop" },
 			],
@@ -73,7 +74,7 @@ export default function Footer() {
 									placeholder="Enter your email"
 									className="flex-1 px-3 py-2 bg-transparent border border-white rounded-l-lg focus:outline-none focus:border-amber-600"
 								/>
-								<button className="bg-amber-600 hover:bg-amber-700 px-4 py-2 rounded-r-lg">
+								<button className="bg-amber-400 hover:bg-amber-500 text-black px-4 py-2 rounded-r-lg">
 									<ArrowRight className="w-6 h-6" />
 								</button>
 							</div>

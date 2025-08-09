@@ -144,9 +144,9 @@ export default function ProductCategoriesSearch() {
 								variants={itemVariants}
 								whileHover={{
 									scale: 1.05,
-									boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)",
+									// boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)",
 								}}
-								className="flex flex-col items-center justify-center bg-white rounded-2xl p-8 shadow-lg border border-gray-100 cursor-pointer group"
+								className="flex flex-col items-center justify-center bg-gray-200  shadow-lg shadow-gray-300 rounded-2xl p-8 border border-gray-200 cursor-pointer group"
 							>
 								<Image
 									src={category.image.src}
@@ -220,11 +220,12 @@ export default function ProductCategoriesSearch() {
 						<h4 className="text-xl font-semibold text-gray-900 mb-6">
 							Buyer-side Filters
 						</h4>
+						{/* Filter Options - First 5 */}
 						<motion.div
 							variants={containerVariants}
-							className="flex flex-wrap justify-center gap-4"
+							className="flex flex-wrap justify-center gap-8"
 						>
-							{filterOptions.map((filter) => (
+							{filterOptions.slice(0, 5).map((filter) => (
 								<motion.button
 									key={filter.id}
 									variants={filterVariants}
@@ -243,7 +244,42 @@ export default function ProductCategoriesSearch() {
 											: "bg-white text-gray-700 border-gray-300 hover:border-amber-400"
 									}`}
 								>
-									{/* <span className="text-lg">{filter.icon}</span> */}
+									<Image
+										src={filter.icon.src}
+										alt={filter.label}
+										width={30}
+										height={30}
+										className="w-10 h-10 object-cover rounded-full"
+									/>
+									<span className="font-medium">{filter.label}</span>
+								</motion.button>
+							))}
+						</motion.div>
+
+						{/* More Filters - remaining 2 */}
+						<motion.div
+							variants={containerVariants}
+							className="flex flex-wrap justify-center gap-8 mt-8"
+						>
+							{filterOptions.slice(5, 7).map((filter) => (
+								<motion.button
+									key={filter.id}
+									variants={filterVariants}
+									whileHover={{ scale: 1.05 }}
+									whileTap={{ scale: 0.95 }}
+									onClick={() => {
+										setActiveFilters((prev) =>
+											prev.includes(filter.id)
+												? prev.filter((id) => id !== filter.id)
+												: [...prev, filter.id]
+										);
+									}}
+									className={`flex items-center gap-2 px-6 py-3 rounded-full border-2 transition-all duration-300 ${
+										activeFilters.includes(filter.id)
+											? "bg-amber-400 text-white border-amber-400"
+											: "bg-white text-gray-700 border-gray-300 hover:border-amber-400"
+									}`}
+								>
 									<Image
 										src={filter.icon.src}
 										alt={filter.label}

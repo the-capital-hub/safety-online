@@ -5,8 +5,8 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import ProductCard from "@/components/SellerPanel/HomePage/ProductCard.jsx";
 import {
-	ArrowLeft,
 	ShoppingCart,
 	Heart,
 	Share2,
@@ -17,120 +17,161 @@ import {
 	CreditCard,
 	Star,
 	User,
-	RotateCcw,
-	Home,
-	AlertCircle,
-	Receipt,
-	Lock,
-	HelpCircle,
 } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useCartStore } from "@/store/cartStore";
-import ProductCard from "@/components/BuyerPanel/products/ProductCard.jsx";
-import { toast } from "react-hot-toast";
 import Image from "next/image";
 
-export default function ProductDetail({ product, relatedProducts = [] }) {
+import {
+	ISP1, // green helmet
+	ISP2, // Industrial safety kit combo - Orange helmet + Safety glasses + Gloves + Headset / HeadPhone
+	ISP3, // yellow helmet
+	ISP4, // reflective jacket
+	ISP5, // Fire Extinguisher
+	PSP1, // mask
+	PSP3, // Orange helmet and Reflective jacket
+	PSP5, // Quick Heal - First Aid Kit
+} from "@/public/images/products";
+
+// Dummy data
+const dummyProduct = {
+	id: "ISP2",
+	name: "Industrial Safety Kit Combo",
+	description:
+		"Complete safety kit with orange helmet, safety glasses, gloves, and headset.",
+	longDescription:
+		"This comprehensive industrial safety kit provides complete protection for workers in hazardous environments. The combo includes an orange safety helmet, protective safety glasses, industrial gloves, and noise-cancelling headset. Each component is carefully selected to work together, providing head, eye, hand, and hearing protection. Perfect for construction sites, factories, and industrial facilities where multiple safety hazards exist.",
+	price: 4500,
+	originalPrice: 5000,
+	image: ISP2.src,
+	category: "industrial-safety",
+	inStock: true,
+	featured: true,
+	rating: 4.5,
+	stocks: 50,
+	status: "In Stock",
+	discountPercentage: 10,
+	features: [
+		{
+			title: "Complete Protection",
+			description:
+				"All-in-one safety solution covering head, eyes, hands, and hearing protection.",
+		},
+		{
+			title: "High-Quality Components",
+			description:
+				"Each item meets individual safety standards while working together as a complete system.",
+		},
+		{
+			title: "Comfortable Design",
+			description:
+				"Ergonomically designed components ensure comfort during extended use.",
+		},
+		{
+			title: "Cost-Effective",
+			description:
+				"Bundled pricing offers significant savings compared to purchasing items separately.",
+		},
+	],
+	images: [ISP2.src, ISP3.src, PSP3.src, PSP1.src],
+};
+
+const dummyReviews = [
+	{
+		id: 1,
+		name: "KL RAHUL KUMAR KARTHIK",
+		rating: 5,
+		comment:
+			"The Industrial Safety Kit Combo offers superior protection and quality. Each item is carefully crafted to meet ISI standards, ensuring high-quality safety for demanding work conditions.",
+	},
+	{
+		id: 2,
+		name: "VAIBHAV SHARMA",
+		rating: 5,
+		comment:
+			"Excellent quality Industrial Safety Kit Combo. The build quality is outstanding and it provides great value for money. Highly recommended for professional use.",
+	},
+	{
+		id: 3,
+		name: "ANITA GUPTA",
+		rating: 4,
+		comment:
+			"Good product overall. The Industrial Safety Kit Combo meets expectations and the delivery was prompt. Would purchase again.",
+	},
+];
+
+const products = [
+	{
+		id: 1,
+		title: "Retro reflective Sign",
+		price: "₹2,000",
+		originalPrice: "₹3,500",
+		discount: "33% OFF",
+		image: ISP1.src,
+		rating: 4.5,
+		inStock: true,
+	},
+	{
+		id: 2,
+		title: "Quick Heal - First Aid Kit",
+		price: "₹5,000",
+		originalPrice: "₹7,500",
+		discount: "33% OFF",
+		image: PSP5.src,
+		rating: 4.8,
+		inStock: true,
+	},
+	{
+		id: 3,
+		title: "Fire Extinguisher",
+		price: "₹3,500",
+		originalPrice: "₹7,000",
+		discount: "50% OFF",
+		image: ISP5.src,
+		rating: 4.6,
+		inStock: true,
+	},
+	{
+		id: 4,
+		title: "Reflective jacket",
+		price: "₹5,000",
+		originalPrice: "₹7,500",
+		discount: "33% OFF",
+		image: ISP4.src,
+		rating: 4.7,
+		inStock: false,
+	},
+];
+
+export default function ProductDetailDemo() {
 	const [selectedImage, setSelectedImage] = useState(0);
 	const [quantity, setQuantity] = useState(1);
-	const [selectedQuantityOffer, setSelectedQuantityOffer] = useState(null);
-	const router = useRouter();
-	const { addItem, isLoading } = useCartStore();
 
-	// Mock reviews data - you can replace this with real reviews from the API
-	const reviews = [
-		{
-			id: 1,
-			name: "KL RAHUL KUMAR KARTHIK",
-			rating: 5,
-			comment: `The ${product.name} offers superior protection and quality. Each item is carefully crafted to meet ISI standards, ensuring high-quality safety for demanding work conditions. Whether you're working in construction or industrial environments, this product delivers excellent value.`,
+	const containerVariants = {
+		hidden: { opacity: 0 },
+		visible: {
+			opacity: 1,
+			transition: {
+				staggerChildren: 0.1,
+			},
 		},
-		{
-			id: 2,
-			name: "VAIBHAV SHARMA",
-			rating: 5,
-			comment: `Excellent quality ${product.name}. The build quality is outstanding and it provides great value for money. Highly recommended for professional use.`,
-		},
-		{
-			id: 3,
-			name: "ANITA GUPTA",
-			rating: 4,
-			comment: `Good product overall. The ${product.name} meets expectations and the delivery was prompt. Would purchase again.`,
-		},
-		{
-			id: 4,
-			name: "RAJESH MEHTA",
-			rating: 4,
-			comment: `Quality product with good durability. The ${product.name} is well-designed and serves its purpose effectively.`,
-		},
-	];
-
-	const quantityOffers = [
-		{
-			qty: 2,
-			price: Math.round(product.price * 0.95),
-			discount: 5,
-			label: "Qty 2",
-		},
-		{
-			qty: 3,
-			price: Math.round(product.price * 0.9),
-			discount: 10,
-			label: "Qty 3",
-		},
-		{
-			qty: 5,
-			price: Math.round(product.price * 0.85),
-			discount: 15,
-			label: "Qty 5",
-		},
-		{
-			qty: 10,
-			price: Math.round(product.price * 0.8),
-			discount: 20,
-			label: "Qty 10",
-		},
-	];
-
-	const handleAddToCart = async (e) => {
-		e.stopPropagation();
-
-		// Use the unified addItem function
-		await addItem({
-			id: product.id || product._id,
-			name: product.title,
-			description: product.description,
-			price: product.salePrice || product.price,
-			originalPrice: product.price,
-			image: product.images?.[0] || product.image,
-			inStock: product.inStock,
-		});
 	};
 
-	const handleBuyNow = async (e) => {
-		e.stopPropagation();
-
-		// Redirect to checkout with buy now parameters
-		router.push(
-			`/checkout?buyNow=true&id=${product.id || product._id}&qty=${quantity}`
-		);
+	const itemVariants = {
+		hidden: { y: 30, opacity: 0 },
+		visible: {
+			y: 0,
+			opacity: 1,
+			transition: {
+				duration: 0.6,
+			},
+		},
 	};
 
 	const handleQuantityChange = (change) => {
 		const newQuantity = quantity + change;
-		if (newQuantity >= 1 && newQuantity <= product.stocks) {
+		if (newQuantity >= 1 && newQuantity <= 10) {
 			setQuantity(newQuantity);
 		}
 	};
-
-	const colors = [
-		"bg-blue-500",
-		"bg-black",
-		"bg-red-500",
-		"bg-orange-500",
-		"bg-gray-500",
-	];
 
 	const renderStars = (rating) => {
 		return Array.from({ length: 5 }, (_, i) => (
@@ -143,29 +184,8 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 		));
 	};
 
-	if (!product) {
-		return (
-			<div className="min-h-screen bg-gray-50 flex items-center justify-center">
-				<div className="text-center">
-					<h1 className="text-2xl font-bold text-gray-900 mb-4">
-						Product Not Found
-					</h1>
-					<p className="text-gray-600 mb-8">
-						The requested product could not be found.
-					</p>
-					<Link href="/products">
-						<Button className="bg-black text-white hover:bg-gray-800">
-							<ArrowLeft className="h-4 w-4 mr-2" />
-							Back to Products
-						</Button>
-					</Link>
-				</div>
-			</div>
-		);
-	}
-
 	return (
-		<div className="min-h-screen bg-gray-50">
+		<div className="min-h-screen bg-gray-200 rounded-xl">
 			<div className="container mx-auto px-4 lg:px-10 py-8">
 				{/* Product Details */}
 				<div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
@@ -177,24 +197,10 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 							animate={{ opacity: 1, x: 0 }}
 							transition={{ duration: 0.5 }}
 						>
-							<div className="absolute top-4 left-4 z-10">
-								<Link
-									href="/products"
-									className="inline-flex items-center bg-black text-white py-2 px-4 rounded-full hover:bg-gray-800 transition-colors"
-								>
-									<ArrowLeft className="h-4 w-4 mr-2" />
-									Back
-								</Link>
-							</div>
-
 							<div className="relative w-full h-96 lg:h-[400px]">
 								<Image
-									src={
-										product.images?.[selectedImage] ||
-										product.image ||
-										"/placeholder.svg?height=400&width=400&text=Product"
-									}
-									alt={product.name}
+									src={dummyProduct.images[selectedImage] || "/placeholder.svg"}
+									alt={dummyProduct.name}
 									fill
 									className="object-contain p-8"
 									priority
@@ -203,31 +209,26 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 						</motion.div>
 
 						{/* Image Gallery */}
-						{product.images && product.images.length > 1 && (
-							<div className="flex space-x-4 justify-center overflow-x-auto">
-								{product.images.map((image, index) => (
-									<button
-										key={index}
-										onClick={() => setSelectedImage(index)}
-										className={`relative w-20 h-20 border-2 rounded-lg overflow-hidden flex-shrink-0 ${
-											selectedImage === index
-												? "border-black"
-												: "border-gray-200 hover:border-gray-400"
-										}`}
-									>
-										<Image
-											src={
-												image ||
-												"/placeholder.svg?height=80&width=80&text=Image"
-											}
-											alt={`${product.name} view ${index + 1}`}
-											fill
-											className="object-contain p-2"
-										/>
-									</button>
-								))}
-							</div>
-						)}
+						<div className="flex space-x-4 justify-center overflow-x-auto">
+							{dummyProduct.images.map((image, index) => (
+								<button
+									key={index}
+									onClick={() => setSelectedImage(index)}
+									className={`relative w-20 h-20 border-2 rounded-lg overflow-hidden flex-shrink-0 ${
+										selectedImage === index
+											? "border-black"
+											: "border-gray-200 hover:border-gray-400"
+									}`}
+								>
+									<Image
+										src={image || "/placeholder.svg"}
+										alt={`${dummyProduct.name} view ${index + 1}`}
+										fill
+										className="object-contain p-2"
+									/>
+								</button>
+							))}
+						</div>
 					</div>
 
 					{/* Product Info */}
@@ -239,44 +240,47 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 					>
 						<div>
 							<Badge variant="secondary" className="mb-4">
-								{product.category?.replace("-", " ").toUpperCase()}
+								{dummyProduct.category.replace("-", " ").toUpperCase()}
 							</Badge>
 							<h1 className="text-3xl lg:text-4xl font-bold mb-4">
-								{product.name}
+								{dummyProduct.name}
 							</h1>
 
 							{/* Product rating */}
 							<div className="flex items-center mb-2">
 								<span className="flex items-center gap-2 bg-green-600 text-white px-2 py-1 rounded-lg">
-									{product.rating || 4.5}
+									{dummyProduct.rating}
 									<Star className="w-4 h-4 fill-white text-white" />
 								</span>
 								<span className="ml-2 text-gray-600 font-semibold">
-									({reviews.length} Reviews)
+									({dummyReviews.length} Reviews)
 								</span>
 							</div>
 
 							{/* Product price */}
 							<p className="text-xl lg:text-2xl font-semibold text-black mb-2">
-								₹ {product.price.toLocaleString()}
+								₹ {dummyProduct.price.toLocaleString()}
 							</p>
 
 							{/* Discounted price and discount percentage */}
-							{product.originalPrice > product.price && (
-								<div className="flex items-center mb-4">
-									<span className="text-gray-500 line-through mr-2">
-										₹ {product.originalPrice.toLocaleString()}
-									</span>
-									<span className="text-green-500">
-										{product.discountPercentage}% off
-									</span>
-								</div>
-							)}
+							<div className="flex items-center mb-4">
+								<span className="text-gray-500 line-through mr-2">
+									₹ {dummyProduct.originalPrice.toLocaleString()}
+								</span>
+								<span className="text-green-500">
+									{dummyProduct.discountPercentage}% off
+								</span>
+							</div>
 						</div>
 
 						{/* Product Colors */}
 						<div className="w-fit flex space-x-2 p-3 bg-gray-200 rounded-lg">
-							{colors.map((color, i) => (
+							{[
+								"bg-orange-500",
+								"bg-yellow-500",
+								"bg-red-500",
+								"bg-blue-500",
+							].map((color, i) => (
 								<div
 									key={i}
 									className={`w-6 h-6 rounded-full border border-gray-200 cursor-pointer ${color}`}
@@ -302,20 +306,18 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 										variant="ghost"
 										size="icon"
 										onClick={() => handleQuantityChange(1)}
-										disabled={quantity >= product.stocks}
+										disabled={quantity >= 10}
 									>
 										<Plus className="h-4 w-4" />
 									</Button>
 								</div>
 								<span className="text-sm text-gray-500">
-									({product.stocks} available)
+									({dummyProduct.stocks} available)
 								</span>
 							</div>
 
 							<div className="flex flex-col sm:flex-row gap-4">
 								<Button
-									onClick={handleAddToCart}
-									disabled={!product.inStock || isLoading}
 									className="flex-1 bg-black text-white hover:bg-gray-800"
 									size="lg"
 								>
@@ -323,8 +325,6 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 									Add to Cart
 								</Button>
 								<Button
-									onClick={handleBuyNow}
-									disabled={!product.inStock}
 									className="flex-1 bg-green-600 text-white hover:bg-green-700"
 									size="lg"
 								>
@@ -342,16 +342,8 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 
 						{/* Stock Status */}
 						<div className="flex items-center space-x-2">
-							<div
-								className={`w-3 h-3 rounded-full ${
-									product.inStock ? "bg-green-500" : "bg-red-500"
-								}`}
-							/>
-							<span
-								className={product.inStock ? "text-green-600" : "text-red-600"}
-							>
-								{product.status}
-							</span>
+							<div className="w-3 h-3 rounded-full bg-green-500" />
+							<span className="text-green-600">{dummyProduct.status}</span>
 						</div>
 					</motion.div>
 				</div>
@@ -363,7 +355,6 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 						initial={{ opacity: 0, y: 20 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ duration: 0.5, delay: 0.3 }}
-						className="flex-1"
 					>
 						<Card className="bg-green-50 border-green-200">
 							<CardContent className="p-6">
@@ -423,7 +414,6 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 						initial={{ opacity: 0, y: 20 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ duration: 0.5, delay: 0.4 }}
-						className="flex-1"
 					>
 						<Card className="bg-green-50 border-green-200">
 							<CardContent className="p-6">
@@ -492,16 +482,16 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 									<h3 className="text-xl font-bold mb-4">
 										Buy More & Save More
 									</h3>
-									<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-										{quantityOffers.map((offer, index) => (
+									<div className="grid grid-cols-2 gap-4">
+										{[
+											{ qty: 2, price: 4275, discount: 5, label: "Qty 2" },
+											{ qty: 3, price: 4050, discount: 10, label: "Qty 3" },
+											{ qty: 5, price: 3825, discount: 15, label: "Qty 5" },
+											{ qty: 10, price: 3600, discount: 20, label: "Qty 10" },
+										].map((offer, index) => (
 											<div
 												key={index}
-												className={`border-2 rounded-lg p-4 cursor-pointer transition-colors ${
-													selectedQuantityOffer === index
-														? "border-green-600 bg-green-50"
-														: "border-gray-200 bg-white hover:border-green-300"
-												}`}
-												onClick={() => setSelectedQuantityOffer(index)}
+												className="border-2 border-gray-200 bg-white hover:border-green-300 rounded-lg p-4 cursor-pointer transition-colors"
 											>
 												<div className="text-center">
 													<h4 className="font-semibold text-lg">
@@ -528,34 +518,28 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 				</div>
 
 				{/* Product Features */}
-				{product.features && product.features.length > 0 && (
-					<motion.div
-						className="mb-10"
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.5, delay: 0.5 }}
-					>
-						<h2 className="text-2xl font-bold mb-8">Product Features</h2>
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-							{product.features.map((feature, index) => (
-								<Card key={index} className="bg-white rounded-xl p-6 shadow-sm">
-									<h3 className="font-semibold text-lg mb-3">
-										{feature.title}
-									</h3>
-									<p className="text-gray-600">{feature.description}</p>
-								</Card>
-							))}
-						</div>
-						{product.longDescription && (
-							<Card className="bg-white rounded-xl p-6 shadow-sm">
-								<h2 className="text-2xl font-bold mb-4">Product Description</h2>
-								<p className="text-gray-600 leading-relaxed">
-									{product.longDescription}
-								</p>
+				<motion.div
+					className="mb-10"
+					initial={{ opacity: 0, y: 20 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ duration: 0.5, delay: 0.5 }}
+				>
+					<h2 className="text-2xl font-bold mb-8">Product Features</h2>
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+						{dummyProduct.features.map((feature, index) => (
+							<Card key={index} className="bg-white rounded-xl p-6 shadow-sm">
+								<h3 className="font-semibold text-lg mb-3">{feature.title}</h3>
+								<p className="text-gray-600">{feature.description}</p>
 							</Card>
-						)}
-					</motion.div>
-				)}
+						))}
+					</div>
+					<Card className="bg-white rounded-xl p-6 shadow-sm">
+						<h2 className="text-2xl font-bold mb-4">Product Description</h2>
+						<p className="text-gray-600 leading-relaxed">
+							{dummyProduct.longDescription}
+						</p>
+					</Card>
+				</motion.div>
 
 				{/* Reviews & Ratings Section */}
 				<motion.div
@@ -574,7 +558,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 							</div>
 
 							<p className="text-gray-600 mb-6">
-								{product.name} - Customer Reviews and Ratings
+								{dummyProduct.name} - Customer Reviews and Ratings
 							</p>
 
 							{/* Rating Summary */}
@@ -582,13 +566,13 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 								<div className="text-center">
 									<div className="flex items-center justify-center space-x-2 mb-2">
 										<span className="text-4xl font-bold text-green-600">
-											{product.rating || 4.5}
+											{dummyProduct.rating}
 										</span>
 										<Star className="w-8 h-8 fill-green-600 text-green-600" />
 									</div>
 									<p className="text-gray-600">
-										Average Rating based on {reviews.length} ratings and{" "}
-										{reviews.length} reviews
+										Average Rating based on {dummyReviews.length} ratings and{" "}
+										{dummyReviews.length} reviews
 									</p>
 								</div>
 
@@ -601,12 +585,12 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 													className="bg-green-600 h-2 rounded-full"
 													style={{
 														width:
-															stars === 5 ? "58%" : stars === 4 ? "41%" : "0%",
+															stars === 5 ? "67%" : stars === 4 ? "33%" : "0%",
 													}}
 												></div>
 											</div>
 											<span className="text-sm text-gray-600 w-12">
-												{stars === 5 ? "58%" : stars === 4 ? "41%" : "0%"}
+												{stars === 5 ? "67%" : stars === 4 ? "33%" : "0%"}
 											</span>
 										</div>
 									))}
@@ -615,7 +599,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 
 							{/* Individual Reviews */}
 							<div className="space-y-6">
-								{reviews.map((review) => (
+								{dummyReviews.map((review) => (
 									<div
 										key={review.id}
 										className="border-b border-gray-200 pb-6 last:border-b-0"
@@ -643,77 +627,19 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 					</Card>
 				</motion.div>
 
-				{/* Related Products */}
-				{relatedProducts.length > 0 && (
+				{/* Related Products Section */}
+				<motion.div variants={itemVariants}>
+					<h3 className="text-2xl font-bold text-gray-900 mb-8">
+						Related Products
+					</h3>
 					<motion.div
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.5, delay: 0.7 }}
-						className="mb-10"
+						variants={containerVariants}
+						className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
 					>
-						<h2 className="text-2xl font-bold mb-8">Related Products</h2>
-						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-							{relatedProducts.map((relatedProduct) => (
-								<ProductCard key={relatedProduct.id} product={relatedProduct} />
-							))}
-						</div>
+						{products.map((product) => (
+							<ProductCard key={product.id} product={product} />
+						))}
 					</motion.div>
-				)}
-
-				{/* Benefits and Warranty Section */}
-				<motion.div
-					className="mb-10"
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.5, delay: 0.8 }}
-				>
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-						{/* Store Benefits */}
-						<Card>
-							<CardContent className="p-6">
-								<h2 className="text-xl font-bold mb-6">Store Benefits</h2>
-								<div className="space-y-4">
-									<div className="flex items-center space-x-3 p-3 border border-green-200 rounded-lg">
-										<Receipt className="h-5 w-5 text-green-600" />
-										<span className="font-medium">GST Invoice Available</span>
-									</div>
-									<div className="flex items-center space-x-3 p-3 border border-green-200 rounded-lg">
-										<Lock className="h-5 w-5 text-green-600" />
-										<span className="font-medium">Secure Payments</span>
-									</div>
-									<div className="flex items-center space-x-3 p-3 border border-green-200 rounded-lg">
-										<HelpCircle className="h-5 w-5 text-green-600" />
-										<span className="font-medium">365 Days Help Desk</span>
-									</div>
-								</div>
-							</CardContent>
-						</Card>
-
-						{/* Return & Warranty Policy */}
-						<Card>
-							<CardContent className="p-6">
-								<h2 className="text-xl font-bold mb-6">
-									Return & Warranty Policy
-								</h2>
-								<div className="space-y-4">
-									<div className="flex items-center space-x-3 p-3 border border-green-200 rounded-lg">
-										<RotateCcw className="h-5 w-5 text-green-600" />
-										<span className="font-medium">
-											Upto 7 Days Return Policy
-										</span>
-									</div>
-									<div className="flex items-center space-x-3 p-3 border border-green-200 rounded-lg">
-										<Home className="h-5 w-5 text-green-600" />
-										<span className="font-medium">Damage Products</span>
-									</div>
-									<div className="flex items-center space-x-3 p-3 border border-green-200 rounded-lg">
-										<AlertCircle className="h-5 w-5 text-green-600" />
-										<span className="font-medium">Wrong Product</span>
-									</div>
-								</div>
-							</CardContent>
-						</Card>
-					</div>
 				</motion.div>
 			</div>
 		</div>

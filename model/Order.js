@@ -81,7 +81,8 @@ const OrderSchema = new mongoose.Schema(
 		paymentMethod: {
 			type: String,
 			enum: [
-				"cash",
+				"cod",
+				"razorpay",
 				"credit_card",
 				"debit_card",
 				"net_banking",
@@ -120,6 +121,8 @@ const OrderSchema = new mongoose.Schema(
 			zipCode: String,
 			country: String,
 			fullAddress: String,
+			name: String,
+			tag: String,
 		},
 
 		// Coupon Information

@@ -35,8 +35,18 @@ export async function POST(req) {
 		// await Verification.deleteOne({ email });
 	}
 
+	const lastLogin = Date.now();
+
 	// Create and save new user
-	const newUser = new User({ email, mobile, password, firstName, lastName });
+	const newUser = new User({
+		email,
+		mobile,
+		password,
+		firstName,
+		lastName,
+		lastLogin,
+		isVerified: true,
+	});
 	await newUser.save();
 
 	return Response.json({ message: "Registration successful" });

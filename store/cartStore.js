@@ -1,8 +1,9 @@
 "use client";
 
 import { create } from "zustand";
-import { persist, subscribeWithSelector } from "zustand/middleware";
-import { toast } from "sonner";
+import { persist, subscribeWithSelector, devtools } from "zustand/middleware";
+import { toast } from "react-hot-toast";
+import { useAuthStore } from "@/store/authStore.js";
 
 // Cart API functions
 const cartAPI = {
@@ -67,6 +68,30 @@ const cartAPI = {
 		return response.json();
 	},
 
+	async removePromo() {
+		const response = await fetch("/api/cart/remove-promo", {
+			method: "DELETE",
+		});
+		if (!response.ok) {
+			const error = await response.json();
+			throw new Error(error.message || "Failed to remove promo code");
+		}
+		return response.json();
+	},
+
+	async validateCoupon(couponCode, orderAmount) {
+		const response = await fetch("/api/coupons/validate", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ code: couponCode, orderAmount }),
+		});
+		if (!response.ok) {
+			const error = await response.json();
+			throw new Error(error.message || "Failed to validate coupon");
+		}
+		return response.json();
+	},
+
 	async clearCart() {
 		const response = await fetch("/api/cart/clear", {
 			method: "DELETE",
@@ -80,375 +105,498 @@ const cartAPI = {
 };
 
 export const useCartStore = create(
-	subscribeWithSelector(
-		persist(
-			(set, get) => ({
-				// State
-				items: [],
-				serverCart: null,
-				isLoading: false,
-				isOpen: false,
-				appliedPromo: null,
-				totals: {
-					subtotal: 0,
-					discount: 0,
-					deliveryFee: 15,
-					total: 0,
-				},
-				lastSyncTime: null,
-				isAuthenticated: false,
-				syncError: null,
+	devtools(
+		subscribeWithSelector(
+			persist(
+				(set, get) => ({
+					// State
+					items: [],
+					serverCart: null,
+					isLoading: false,
+					isOpen: false,
+					appliedPromo: null,
+					totals: {
+						subtotal: 0,
+						discount: 0,
+						total: 0,
+					},
+					lastSyncTime: null,
+					syncError: null,
 
-				// Actions
-				setAuthenticated: (isAuth) => {
-					set({ isAuthenticated: isAuth });
-					if (isAuth) {
-						get().syncWithServer();
-					} else {
-						// Clear server data when logged out
-						set({
-							serverCart: null,
-							appliedPromo: null,
-							lastSyncTime: null,
-							syncError: null,
-						});
-					}
-				},
+					// Helper function to check if user is authenticated
+					isAuthenticated: () => {
+						return useAuthStore.getState().user !== null;
+					},
 
-				// Local cart operations (work offline)
-				addItemLocal: (product) => {
-					const { items } = get();
-					const existingItem = items.find((item) => item.id === product.id);
+					// Unified add item function - handles both authenticated and non-authenticated users
+					addItem: async (product) => {
+						const isAuth = get().isAuthenticated();
 
-					if (existingItem) {
-						set({
-							items: items.map((item) =>
-								item.id === product.id
-									? { ...item, quantity: item.quantity + 1 }
-									: item
-							),
-						});
-					} else {
-						set({ items: [...items, { ...product, quantity: 1 }] });
-					}
+						if (isAuth) {
+							// For authenticated users: Update database directly
+							set({ isLoading: true });
+							try {
+								const data = await cartAPI.addToCart(product.id, 1);
 
-					get().calculateTotals();
-					toast.success("Added to cart!");
+								// Update local state with server response
+								const serverItems = data.cart.products.map((item) => ({
+									id: item.product._id,
+									name: item.product.title,
+									description: item.product.description,
+									price: item.product.salePrice || item.product.price,
+									originalPrice: item.product.price,
+									image:
+										item.product.images?.[0] ||
+										"/placeholder.svg?height=300&width=300&text=Product",
+									quantity: item.quantity,
+									inStock: item.product.inStock,
+								}));
 
-					// Sync with server if authenticated
-					if (get().isAuthenticated) {
-						get().syncAddToServer(product.id, 1);
-					}
-				},
+								set({
+									items: serverItems,
+									serverCart: data.cart,
+									lastSyncTime: Date.now(),
+								});
 
-				updateQuantityLocal: (productId, quantity) => {
-					if (quantity <= 0) {
-						get().removeItemLocal(productId);
-						return;
-					}
-
-					set({
-						items: get().items.map((item) =>
-							item.id === productId ? { ...item, quantity } : item
-						),
-					});
-
-					get().calculateTotals();
-
-					// Sync with server if authenticated
-					if (get().isAuthenticated) {
-						get().syncUpdateQuantity(productId, quantity);
-					}
-				},
-
-				removeItemLocal: (productId) => {
-					set({ items: get().items.filter((item) => item.id !== productId) });
-					get().calculateTotals();
-					toast.success("Item removed from cart");
-
-					// Sync with server if authenticated
-					if (get().isAuthenticated) {
-						get().syncRemoveFromServer(productId);
-					}
-				},
-
-				clearCartLocal: () => {
-					set({
-						items: [],
-						appliedPromo: null,
-						totals: { subtotal: 0, discount: 0, deliveryFee: 15, total: 15 },
-					});
-
-					// Sync with server if authenticated
-					if (get().isAuthenticated) {
-						get().syncClearServer();
-					}
-				},
-
-				// Server sync operations
-				syncWithServer: async () => {
-					if (!get().isAuthenticated) return;
-
-					set({ isLoading: true, syncError: null });
-
-					try {
-						const data = await cartAPI.fetchCart();
-						const serverItems = data.cart.products.map((item) => ({
-							id: item.product._id,
-							name: item.product.title,
-							description: item.product.description,
-							price: item.product.salePrice || item.product.price,
-							originalPrice: item.product.price,
-							image:
-								item.product.images?.[0] ||
-								"/placeholder.svg?height=300&width=300&text=Product",
-							quantity: item.quantity,
-							inStock: item.product.inStock,
-						}));
-
-						// Merge local and server carts
-						const mergedItems = get().mergeCartItems(get().items, serverItems);
-
-						set({
-							items: mergedItems,
-							serverCart: data.cart,
-							appliedPromo: data.cart.appliedPromo
-								? {
-										code: data.cart.appliedPromo,
-										discount: 20, // You might want to fetch this from a promo API
-								  }
-								: null,
-							lastSyncTime: Date.now(),
-						});
-
-						get().calculateTotals();
-					} catch (error) {
-						if (error.message === "UNAUTHORIZED") {
-							set({ isAuthenticated: false });
+								get().calculateTotals();
+								toast.success("Added to cart!");
+							} catch (error) {
+								console.error("Failed to add to cart:", error);
+								toast.error(error.message || "Failed to add to cart");
+								if (error.message === "UNAUTHORIZED") {
+									// Clear auth state if unauthorized
+									useAuthStore.getState().clearUser();
+								}
+							} finally {
+								set({ isLoading: false });
+							}
 						} else {
-							set({ syncError: error.message });
-							console.error("Cart sync error:", error);
+							// For non-authenticated users: Update locally
+							const { items } = get();
+							const existingItem = items.find((item) => item.id === product.id);
+
+							if (existingItem) {
+								set({
+									items: items.map((item) =>
+										item.id === product.id
+											? { ...item, quantity: item.quantity + 1 }
+											: item
+									),
+								});
+							} else {
+								set({ items: [...items, { ...product, quantity: 1 }] });
+							}
+
+							get().calculateTotals();
+							toast.success("Added to cart!");
 						}
-					} finally {
-						set({ isLoading: false });
-					}
-				},
+					},
 
-				syncAddToServer: async (productId, quantity) => {
-					try {
-						await cartAPI.addToCart(productId, quantity);
-						get().updateLastSyncTime();
-					} catch (error) {
-						console.error("Failed to sync add to server:", error);
-						toast.error("Failed to sync with server");
-					}
-				},
+					// Unified update quantity function
+					updateQuantity: async (productId, quantity) => {
+						if (quantity <= 0) {
+							get().removeItem(productId);
+							return;
+						}
 
-				syncUpdateQuantity: async (productId, quantity) => {
-					try {
-						await cartAPI.updateQuantity(productId, quantity);
-						get().updateLastSyncTime();
-					} catch (error) {
-						console.error("Failed to sync quantity update:", error);
-						toast.error("Failed to sync with server");
-					}
-				},
+						const isAuth = get().isAuthenticated();
 
-				syncRemoveFromServer: async (productId) => {
-					try {
-						await cartAPI.removeItem(productId);
-						get().updateLastSyncTime();
-					} catch (error) {
-						console.error("Failed to sync remove from server:", error);
-						toast.error("Failed to sync with server");
-					}
-				},
+						if (isAuth) {
+							// For authenticated users: Update database directly
+							set({ isLoading: true });
+							try {
+								const data = await cartAPI.updateQuantity(productId, quantity);
 
-				syncClearServer: async () => {
-					try {
-						await cartAPI.clearCart();
-						get().updateLastSyncTime();
-					} catch (error) {
-						console.error("Failed to sync clear cart:", error);
-						toast.error("Failed to sync with server");
-					}
-				},
+								// Update local state with server response
+								const serverItems = data.cart.products.map((item) => ({
+									id: item.product._id,
+									name: item.product.title,
+									description: item.product.description,
+									price: item.product.salePrice || item.product.price,
+									originalPrice: item.product.price,
+									image:
+										item.product.images?.[0] ||
+										"/placeholder.svg?height=300&width=300&text=Product",
+									quantity: item.quantity,
+									inStock: item.product.inStock,
+								}));
 
-				// Promo code operations
-				applyPromoCode: async (promoCode) => {
-					if (!get().isAuthenticated) {
-						// Local promo application for non-authenticated users
-						if (promoCode.toLowerCase() === "save20") {
+								set({
+									items: serverItems,
+									serverCart: data.cart,
+									lastSyncTime: Date.now(),
+								});
+
+								get().calculateTotals();
+							} catch (error) {
+								console.error("Failed to update quantity:", error);
+								toast.error(error.message || "Failed to update quantity");
+								if (error.message === "UNAUTHORIZED") {
+									useAuthStore.getState().clearUser();
+								}
+							} finally {
+								set({ isLoading: false });
+							}
+						} else {
+							// For non-authenticated users: Update locally
 							set({
-								appliedPromo: { code: promoCode, discount: 20 },
+								items: get().items.map((item) =>
+									item.id === productId ? { ...item, quantity } : item
+								),
 							});
 							get().calculateTotals();
-							toast.success("Promo code applied!");
-							return true;
+						}
+					},
+
+					// Unified remove item function
+					removeItem: async (productId) => {
+						const isAuth = get().isAuthenticated();
+
+						if (isAuth) {
+							// For authenticated users: Update database directly
+							set({ isLoading: true });
+							try {
+								const data = await cartAPI.removeItem(productId);
+
+								// Update local state with server response
+								const serverItems = data.cart.products.map((item) => ({
+									id: item.product._id,
+									name: item.product.title,
+									description: item.product.description,
+									price: item.product.salePrice || item.product.price,
+									originalPrice: item.product.price,
+									image:
+										item.product.images?.[0] ||
+										"/placeholder.svg?height=300&width=300&text=Product",
+									quantity: item.quantity,
+									inStock: item.product.inStock,
+								}));
+
+								set({
+									items: serverItems,
+									serverCart: data.cart,
+									lastSyncTime: Date.now(),
+								});
+
+								get().calculateTotals();
+								toast.success("Item removed from cart");
+							} catch (error) {
+								console.error("Failed to remove item:", error);
+								toast.error(error.message || "Failed to remove item");
+								if (error.message === "UNAUTHORIZED") {
+									useAuthStore.getState().clearUser();
+								}
+							} finally {
+								set({ isLoading: false });
+							}
 						} else {
-							toast.error("Invalid promo code");
+							// For non-authenticated users: Update locally
+							set({
+								items: get().items.filter((item) => item.id !== productId),
+							});
+							get().calculateTotals();
+							toast.success("Item removed from cart");
+						}
+					},
+
+					// Unified clear cart function
+					clearCart: async () => {
+						const isAuth = get().isAuthenticated();
+
+						if (isAuth) {
+							// For authenticated users: Update database directly
+							set({ isLoading: true });
+							try {
+								await cartAPI.clearCart();
+
+								set({
+									items: [],
+									serverCart: null,
+									appliedPromo: null,
+									totals: {
+										subtotal: 0,
+										discount: 0,
+										total: 0,
+									},
+									lastSyncTime: Date.now(),
+								});
+							} catch (error) {
+								console.error("Failed to clear cart:", error);
+								toast.error(error.message || "Failed to clear cart");
+								if (error.message === "UNAUTHORIZED") {
+									useAuthStore.getState().clearUser();
+								}
+							} finally {
+								set({ isLoading: false });
+							}
+						} else {
+							// For non-authenticated users: Update locally
+							set({
+								items: [],
+								appliedPromo: null,
+								totals: { subtotal: 0, discount: 0, total: 0 },
+							});
+						}
+					},
+
+					// Fetch cart from server (for authenticated users)
+					fetchCart: async () => {
+						const isAuth = get().isAuthenticated();
+						if (!isAuth) return;
+
+						set({ isLoading: true, syncError: null });
+
+						try {
+							const data = await cartAPI.fetchCart();
+							const serverItems = data.cart.products.map((item) => ({
+								id: item.product._id,
+								name: item.product.title,
+								description: item.product.description,
+								price: item.product.salePrice || item.product.price,
+								originalPrice: item.product.price,
+								image:
+									item.product.images?.[0] ||
+									"/placeholder.svg?height=300&width=300&text=Product",
+								quantity: item.quantity,
+								inStock: item.product.inStock,
+							}));
+
+							set({
+								items: serverItems,
+								serverCart: data.cart,
+								appliedPromo: data.cart.appliedPromo
+									? {
+											code: data.cart.appliedPromo,
+											discount: 20,
+									  }
+									: null,
+								lastSyncTime: Date.now(),
+							});
+
+							get().calculateTotals();
+						} catch (error) {
+							if (error.message === "UNAUTHORIZED") {
+								useAuthStore.getState().clearUser();
+							} else {
+								set({ syncError: error.message });
+								console.error("Cart fetch error:", error);
+							}
+						} finally {
+							set({ isLoading: false });
+						}
+					},
+
+					// Handle authentication state changes
+					handleAuthChange: (isAuth) => {
+						if (isAuth) {
+							// User just logged in - fetch their server cart
+							get().fetchCart();
+						} else {
+							// User logged out - clear server data but keep local cart
+							set({
+								serverCart: null,
+								appliedPromo: null,
+								lastSyncTime: null,
+								syncError: null,
+							});
+							// Recalculate totals for local cart
+							get().calculateTotals();
+						}
+					},
+
+					// Promo code operations
+					applyPromoCode: async (promoCode) => {
+						const isAuth = get().isAuthenticated();
+
+						if (isAuth) {
+							// For authenticated users: Apply promo on server
+							set({ isLoading: true });
+							try {
+								const data = await cartAPI.applyPromo(promoCode);
+								set({
+									appliedPromo: { code: promoCode, discount: data.discount },
+									serverCart: data.cart,
+								});
+								get().calculateTotals();
+								toast.success("Promo code applied successfully!");
+								return true;
+							} catch (error) {
+								toast.error(error.message);
+								if (error.message === "UNAUTHORIZED") {
+									useAuthStore.getState().clearUser();
+								}
+								return false;
+							} finally {
+								set({ isLoading: false });
+							}
+						} else {
+							// For non-authenticated users: Validate coupon locally
+							set({ isLoading: true });
+							try {
+								const data = await cartAPI.validateCoupon(
+									promoCode,
+									get().totals.subtotal
+								);
+
+								if (data.success) {
+									set({
+										appliedPromo: {
+											code: data.coupon.code,
+											discount: data.coupon.discount,
+											discountAmount: data.coupon.discountAmount,
+										},
+									});
+									get().calculateTotals();
+									toast.success("Promo code applied!");
+									return true;
+								} else {
+									toast.error(data.message || "Invalid promo code");
+									return false;
+								}
+							} catch (error) {
+								toast.error(error.message || "Failed to apply coupon");
+								return false;
+							} finally {
+								set({ isLoading: false });
+							}
+						}
+					},
+
+					removePromoCode: () => {
+						// For authenticated users: Remove promo on server
+						const isAuth = get().isAuthenticated();
+						if (isAuth) {
+							cartAPI.removePromo();
+						}
+						set({ appliedPromo: null });
+						get().calculateTotals();
+						toast.success("Promo code removed");
+					},
+
+					// Calculate totals - removed delivery fee calculation
+					calculateTotals: () => {
+						const { items, appliedPromo } = get();
+						const subtotal = items.reduce(
+							(sum, item) => sum + item.price * item.quantity,
+							0
+						);
+
+						// Use discountAmount if available, otherwise calculate percentage
+						const discount = appliedPromo
+							? appliedPromo.discountAmount ||
+							  (subtotal * appliedPromo.discount) / 100
+							: 0;
+
+						// Total is now just subtotal minus discount (no delivery fee)
+						const total = subtotal - discount;
+
+						set({
+							totals: {
+								subtotal,
+								discount,
+								total,
+							},
+						});
+					},
+
+					// UI state management
+					toggleCart: () => set({ isOpen: !get().isOpen }),
+					openCart: () => set({ isOpen: true }),
+					closeCart: () => set({ isOpen: false }),
+
+					// Getters
+					getTotalItems: () => {
+						return get().items.reduce(
+							(total, item) => total + item.quantity,
+							0
+						);
+					},
+
+					getItemById: (productId) => {
+						return get().items.find((item) => item.id === productId);
+					},
+
+					isItemInCart: (productId) => {
+						return get().items.some((item) => item.id === productId);
+					},
+
+					getCartSummary: () => {
+						const { items, totals, appliedPromo } = get();
+						return {
+							itemCount: items.reduce((sum, item) => sum + item.quantity, 0),
+							uniqueItems: items.length,
+							...totals,
+							hasPromo: !!appliedPromo,
+							promoCode: appliedPromo?.code,
+						};
+					},
+
+					// Checkout integration
+					proceedToCheckout: (
+						checkoutType = "cart",
+						product = null,
+						quantity = 1
+					) => {
+						const { items } = get();
+
+						if (checkoutType === "cart" && items.length === 0) {
+							toast.error("Cart is empty");
 							return false;
 						}
-					}
 
-					// Server promo application for authenticated users
-					set({ isLoading: true });
-					try {
-						const data = await cartAPI.applyPromo(promoCode);
-						set({
-							appliedPromo: { code: promoCode, discount: data.discount },
-							serverCart: data.cart,
-						});
-						get().calculateTotals();
-						toast.success("Promo code applied successfully!");
-						return true;
-					} catch (error) {
-						toast.error(error.message);
-						return false;
-					} finally {
-						set({ isLoading: false });
-					}
-				},
+						// Navigate to checkout page with appropriate parameters
+						const params = new URLSearchParams();
+						params.set("type", checkoutType);
 
-				removePromoCode: () => {
-					set({ appliedPromo: null });
-					get().calculateTotals();
-					toast.success("Promo code removed");
-				},
-
-				// Utility functions
-				mergeCartItems: (localItems, serverItems) => {
-					const merged = [...serverItems];
-
-					localItems.forEach((localItem) => {
-						const existingIndex = merged.findIndex(
-							(item) => item.id === localItem.id
-						);
-						if (existingIndex >= 0) {
-							// Use the higher quantity
-							merged[existingIndex].quantity = Math.max(
-								merged[existingIndex].quantity,
-								localItem.quantity
-							);
-						} else {
-							merged.push(localItem);
+						if (checkoutType === "buyNow" && product) {
+							params.set("productId", product.id);
+							params.set("quantity", quantity.toString());
 						}
-					});
 
-					return merged;
-				},
-
-				calculateTotals: () => {
-					const { items, appliedPromo } = get();
-					const subtotal = items.reduce(
-						(sum, item) => sum + item.price * item.quantity,
-						0
-					);
-					const discount = appliedPromo
-						? (subtotal * appliedPromo.discount) / 100
-						: 0;
-					const deliveryFee = subtotal > 0 ? 15 : 0;
-					const total = subtotal - discount + deliveryFee;
-
-					set({
-						totals: {
-							subtotal,
-							discount,
-							deliveryFee,
-							total,
-						},
-					});
-				},
-
-				updateLastSyncTime: () => {
-					set({ lastSyncTime: Date.now() });
-				},
-
-				// UI state management
-				toggleCart: () => set({ isOpen: !get().isOpen }),
-				openCart: () => set({ isOpen: true }),
-				closeCart: () => set({ isOpen: false }),
-
-				// Getters
-				getTotalItems: () => {
-					return get().items.reduce((total, item) => total + item.quantity, 0);
-				},
-
-				getItemById: (productId) => {
-					return get().items.find((item) => item.id === productId);
-				},
-
-				isItemInCart: (productId) => {
-					return get().items.some((item) => item.id === productId);
-				},
-
-				getCartSummary: () => {
-					const { items, totals, appliedPromo } = get();
-					return {
-						itemCount: items.reduce((sum, item) => sum + item.quantity, 0),
-						uniqueItems: items.length,
-						...totals,
-						hasPromo: !!appliedPromo,
-						promoCode: appliedPromo?.code,
-					};
-				},
-
-				// Force refresh from server
-				forceSync: async () => {
-					await get().syncWithServer();
-				},
-
-				// Check if cart needs sync (for periodic sync)
-				needsSync: () => {
-					const { lastSyncTime, isAuthenticated } = get();
-					if (!isAuthenticated) return false;
-					if (!lastSyncTime) return true;
-
-					// Sync if last sync was more than 5 minutes ago
-					return Date.now() - lastSyncTime > 5 * 60 * 1000;
-				},
-			}),
-			{
-				name: "cart-storage",
-				partialize: (state) => ({
-					// Only persist local cart data, not server state
-					items: state.items,
-					appliedPromo: state.appliedPromo,
-					totals: state.totals,
+						window.location.href = `/checkout?${params.toString()}`;
+						return true;
+					},
 				}),
-				onRehydrateStorage: () => (state) => {
-					// Recalculate totals after rehydration
-					if (state) {
-						state.calculateTotals();
-					}
-				},
-			}
+				{
+					name: "cart-storage",
+					partialize: (state) => ({
+						// Only persist local cart data for non-authenticated users
+						items: state.items,
+						appliedPromo: state.appliedPromo,
+						totals: state.totals,
+					}),
+					onRehydrateStorage: () => (state) => {
+						// Recalculate totals after rehydration
+						if (state) {
+							state.calculateTotals();
+						}
+					},
+				}
+			)
 		)
 	)
 );
 
-// Subscribe to auth changes and sync accordingly
+// Subscribe to auth state changes
 if (typeof window !== "undefined") {
-	// Auto-sync when cart changes and user is authenticated
-	useCartStore.subscribe(
-		(state) => state.items,
-		() => {
-			const state = useCartStore.getState();
-			if (state.isAuthenticated && state.needsSync()) {
-				// Debounce sync calls
-				clearTimeout(window.cartSyncTimeout);
-				window.cartSyncTimeout = setTimeout(() => {
-					state.forceSync();
-				}, 1000);
-			}
+	// Listen for authentication state changes
+	useAuthStore.subscribe(
+		(state) => !!state.user, // Convert user to boolean
+		(isAuthenticated) => {
+			useCartStore.getState().handleAuthChange(isAuthenticated);
 		}
 	);
 
-	// Periodic sync every 5 minutes
-	setInterval(() => {
-		const state = useCartStore.getState();
-		if (state.needsSync()) {
-			state.forceSync();
+	// Auto-fetch cart when user becomes authenticated
+	useAuthStore.subscribe(
+		(state) => state.user,
+		(user) => {
+			if (user) {
+				// User just logged in, fetch their cart
+				setTimeout(() => {
+					useCartStore.getState().fetchCart();
+				}, 100); // Small delay to ensure auth state is fully set
+			}
 		}
-	}, 5 * 60 * 1000);
+	);
 }

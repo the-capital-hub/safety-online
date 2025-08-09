@@ -5,32 +5,26 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ShoppingCart, ArrowLeft, Trash2 } from "lucide-react";
+import { useCartStore } from "@/store/cartStore";
 import { useRouter } from "next/navigation";
-import { useCartStore } from "@/store/cartStore.js";
-import CartItem from "@/components/BuyerPanel/cart/CartItem.jsx";
-import CartSummary from "@/components/BuyerPanel/cart/CartSummary.jsx";
+import CartItem from "./CartItem";
+import CartSummary from "./CartSummary";
 
 export default function CartPage() {
 	const router = useRouter();
-	const {
-		items,
-		isLoading,
-		syncError,
-		clearCartLocal,
-		forceSync,
-		isAuthenticated,
-	} = useCartStore();
+	const { items, isLoading, syncError, clearCart, fetchCart, isAuthenticated } =
+		useCartStore();
 
 	useEffect(() => {
-		// Sync with server on page load if authenticated
-		if (isAuthenticated) {
-			forceSync();
+		// Fetch cart on page load if authenticated
+		if (isAuthenticated()) {
+			fetchCart();
 		}
-	}, [isAuthenticated, forceSync]);
+	}, [fetchCart, isAuthenticated]);
 
 	const handleClearCart = () => {
 		if (window.confirm("Are you sure you want to clear your cart?")) {
-			clearCartLocal();
+			clearCart();
 		}
 	};
 
@@ -67,7 +61,7 @@ export default function CartPage() {
 									Error Loading Cart
 								</h2>
 								<p className="text-gray-600 mb-4">{syncError}</p>
-								<Button onClick={() => forceSync()} className="w-full">
+								<Button onClick={() => fetchCart()} className="w-full">
 									Try Again
 								</Button>
 							</CardContent>
@@ -79,8 +73,8 @@ export default function CartPage() {
 	}
 
 	return (
-		<div className="min-h-screen bg-gray-50 hide-scrollbar">
-			<div className="py-8 px-10">
+		<div className="min-h-screen bg-gray-50">
+			<div className="container mx-auto px-4 py-8">
 				{/* Header */}
 				<div className="flex items-center justify-between mb-8">
 					<div className="flex items-center gap-4">
@@ -104,6 +98,7 @@ export default function CartPage() {
 							variant="outline"
 							onClick={handleClearCart}
 							className="text-red-600 hover:text-red-700 hover:bg-red-50 bg-transparent"
+							disabled={isLoading}
 						>
 							<Trash2 className="h-4 w-4 mr-2" />
 							Clear Cart
@@ -149,24 +144,6 @@ export default function CartPage() {
 									<CartItem key={item.id} item={item} />
 								))}
 							</AnimatePresence>
-
-							{/* Recommended Products Section */}
-							<Card className="mt-8">
-								<CardContent className="p-6">
-									<h3 className="text-lg font-semibold mb-4">
-										You might also like
-									</h3>
-									<div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-										{[1, 2, 3, 4].map((i) => (
-											<div key={i} className="text-center">
-												<div className="w-full h-24 bg-gray-100 rounded-lg mb-2"></div>
-												<p className="text-sm font-medium">Product {i}</p>
-												<p className="text-sm text-gray-600">₹999</p>
-											</div>
-										))}
-									</div>
-								</CardContent>
-							</Card>
 						</div>
 
 						{/* Cart Summary */}

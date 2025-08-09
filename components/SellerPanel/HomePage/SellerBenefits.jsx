@@ -63,7 +63,7 @@ export default function SellerBenefits() {
 	];
 
 	return (
-		<section className="py-10 bg-white">
+		<section className="py-10  bg-gray-100">
 			<div className="px-10">
 				{/* Secure Checkout */}
 				<div className="text-center mb-16">
@@ -92,7 +92,7 @@ export default function SellerBenefits() {
 						{trustFeatures.slice(0, 2).map((feature, index) => (
 							<div
 								key={index}
-								className="flex flex-col justify-center items-center gap-4 rounded-2xl p-8 shadow-lg text-center border border-gray-200"
+								className="flex flex-col justify-center items-center gap-4 rounded-2xl p-8 shadow-lg text-center bg-white border border-gray-200"
 							>
 								<img src={feature.img.src} alt="Banner" className="w-48 h-48 object-contain" />
 								<h3 className="text-2xl font-bold text-gray-900">
@@ -106,7 +106,7 @@ export default function SellerBenefits() {
 						{trustFeatures.slice(2, 5).map((feature, index) => (
 							<div
 								key={index}
-								className="flex flex-col justify-center items-center gap-4 rounded-2xl p-8 shadow-lg text-center border border-gray-200"
+								className="flex flex-col justify-center items-center gap-4 rounded-2xl p-8 shadow-lg text-center bg-white border border-gray-200"
 							>
 								<img src={feature.img.src} alt="Banner" className="w-48 h-48 object-contain" />
 								<h3 className="text-2xl font-bold text-gray-900">
@@ -123,7 +123,7 @@ export default function SellerBenefits() {
 					<h2 className="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-6">
 						Quick Glance: Seller Benefits
 					</h2>
-					<div className="rounded-2xl p-8 border border-gray-300">
+					<div className="rounded-2xl p-8 bg-white border border-gray-300">
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 							<div className="font-semibold text-amber-400 text-3xl">
 								Feature
