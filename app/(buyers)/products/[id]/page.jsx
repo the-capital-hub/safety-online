@@ -1,13 +1,21 @@
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 import ProductDetail from "@/components/BuyerPanel/products/ProductDetail.jsx";
 
 // Server-side function to fetch product data
 async function getProduct(id) {
-	try {
-		const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-		const response = await fetch(`${baseUrl}/api/products/${id}`, {
-			cache: "no-store",
-		});
+        try {
+                // Determine the base URL for server-side fetching. Fall back to the current
+                // request's host when the environment variable isn't provided to avoid
+                // constructing an invalid URL which previously resulted in a 404 page.
+                const baseUrl =
+                        process.env.NEXT_PUBLIC_BASE_URL ||
+                        process.env.BASE_URL ||
+                        `http://${headers().get("host")}`;
+
+                const response = await fetch(`${baseUrl}/api/products/${id}`, {
+                        cache: "no-store",
+                });
 
 		if (!response.ok) {
 			return null;
