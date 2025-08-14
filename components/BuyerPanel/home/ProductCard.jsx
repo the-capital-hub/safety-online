@@ -3,11 +3,21 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ShoppingCart, Heart } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function ProductCard({ product }) {
-	return (
-		<Card className="w-full h-full hover:shadow-lg transition-shadow">
-			<CardContent className="p-4 md:p-6 relative">
+        const router = useRouter();
+
+        const handleViewProduct = () => {
+                router.push(`/products/${product.id || product._id}`);
+        };
+
+        return (
+                <Card
+                        onClick={handleViewProduct}
+                        className="w-full h-full hover:shadow-lg transition-shadow cursor-pointer"
+                >
+                        <CardContent className="p-4 md:p-6 relative">
 				<div className="flex justify-between items-start mb-4">
 					<div>
 						<h3 className="font-bold text-base md:text-lg mb-1">
