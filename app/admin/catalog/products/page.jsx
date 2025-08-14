@@ -429,7 +429,7 @@ export default function AdminProductsPage() {
 														<div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
 															{product.images?.[0] ? (
 																<img
-																	src={product.images[0] || "/placeholder.svg"}
+																	src={product.images[0] || "https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"}
 																	alt={product.title}
 																	className="w-full h-full object-cover rounded-lg"
 																/>

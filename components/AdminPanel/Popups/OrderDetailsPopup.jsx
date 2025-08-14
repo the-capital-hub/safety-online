@@ -187,7 +187,7 @@ export function OrderDetailsPopup({ open, onOpenChange, order }) {
 										>
 											{product.productImage && (
 												<img
-													src={product.productImage || "/placeholder.svg"}
+													src={product.productImage || "https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"}
 													alt={product.productName}
 													className="w-16 h-16 object-cover rounded"
 												/>

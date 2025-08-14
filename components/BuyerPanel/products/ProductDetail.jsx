@@ -192,7 +192,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 									src={
 										product.images?.[selectedImage] ||
 										product.image ||
-										"/placeholder.svg?height=400&width=400&text=Product"
+										"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"
 									}
 									alt={product.name}
 									fill
@@ -218,7 +218,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 										<Image
 											src={
 												image ||
-												"/placeholder.svg?height=80&width=80&text=Image"
+												"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"
 											}
 											alt={`${product.name} view ${index + 1}`}
 											fill

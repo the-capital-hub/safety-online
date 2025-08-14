@@ -84,7 +84,7 @@ export default function MiniCart() {
 													<Image
 														src={
 															item.image ||
-															"/placeholder.svg?height=64&width=64&text=Product"
+															"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"
 														}
 														alt={item.name}
 														fill

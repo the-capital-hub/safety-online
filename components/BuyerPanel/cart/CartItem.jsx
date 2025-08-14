@@ -38,7 +38,7 @@ export default function CartItem({ item }) {
 							<Image
 								src={
 									item.image ||
-									"/placeholder.svg?height=96&width=96&text=Product"
+									"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"
 								}
 								alt={item.name}
 								fill

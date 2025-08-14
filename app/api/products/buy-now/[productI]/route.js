@@ -42,7 +42,7 @@ export async function POST(request, { params }) {
 				(product.salePrice > 0 ? product.salePrice : product.price) * quantity,
 			productImage:
 				product.images?.[0] ||
-				"/placeholder.svg?height=300&width=300&text=Product",
+				"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png",
 		};
 
 		return Response.json({

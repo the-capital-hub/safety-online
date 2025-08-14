@@ -151,7 +151,7 @@ export function InvoicePopup({ open, onOpenChange, order }) {
 									<div className="flex items-center gap-3">
 										{product.productImage && (
 											<img
-												src={product.productImage || "/placeholder.svg"}
+												src={product.productImage || "https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"}
 												alt={product.productName}
 												className="w-12 h-12 object-cover rounded"
 											/>

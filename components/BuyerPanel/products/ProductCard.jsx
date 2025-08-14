@@ -53,7 +53,7 @@ export default function ProductCard({ product, viewMode = "grid" }) {
 								src={
 									product.images?.[0] ||
 									product.image ||
-									"/placeholder.svg?height=192&width=192&text=Product"
+									"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"
 								}
 								alt={product.title}
 								fill
@@ -165,7 +165,7 @@ export default function ProductCard({ product, viewMode = "grid" }) {
 								src={
 									product.images?.[0] ||
 									product.image ||
-									"/placeholder.svg?height=256&width=256&text=Product"
+									"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"
 								}
 								alt={product.title}
 								fill

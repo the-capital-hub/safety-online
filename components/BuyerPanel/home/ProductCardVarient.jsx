@@ -94,7 +94,7 @@ function ProductCardVarient({ product, variant = "vertical" }) {
 					{/* Right side - Product Image */}
 					<div className="flex-1 w-full h-[300px] overflow-hidden">
 						<Image
-							src={product?.image || "/placeholder.svg"}
+							src={product?.image || "https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"}
 							alt={product?.title}
 							width={300}
 							height={300}
@@ -171,7 +171,7 @@ function ProductCardVarient({ product, variant = "vertical" }) {
 				<div className="relative flex-1 px-4 md:px-6 pb-16 md:pb-20">
 					<div className="w-full h-full overflow-hidden relative">
 						<img
-							src={product?.image || "/placeholder.svg"}
+							src={product?.image || "https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"}
 							alt={product?.title}
 							className="w-full h-full object-cover rounded-lg"
 						/>
