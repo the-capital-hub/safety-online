@@ -4,14 +4,23 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ShoppingCart, Heart, ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 function ProductCardVarient({ product, variant = "vertical" }) {
-	console.log("Product:", product);
+        console.log("Product:", product);
+        const router = useRouter();
 
-	if (variant === "horizontal") {
-		return (
-			<Card className="w-full hover:shadow-lg transition-shadow duration-300 overflow-hidden">
-				<CardContent className="p-0 flex justify-between h-full">
+        const handleViewProduct = () => {
+                router.push(`/products/${product?.id || product?._id}`);
+        };
+
+        if (variant === "horizontal") {
+                return (
+                        <Card
+                                onClick={handleViewProduct}
+                                className="w-full hover:shadow-lg transition-shadow duration-300 overflow-hidden cursor-pointer"
+                        >
+                                <CardContent className="p-0 flex justify-between h-full">
 					{/* Left side - Product Info */}
 					<div className="flex-1 p-4 md:p-6 flex flex-col justify-between">
 						<div>
@@ -98,9 +107,12 @@ function ProductCardVarient({ product, variant = "vertical" }) {
 	}
 
 	// Default vertical variant
-	return (
-		<Card className="w-full h-full hover:shadow-lg transition-shadow duration-300">
-			<CardContent className="h-full relative p-0 flex flex-col">
+        return (
+                <Card
+                        onClick={handleViewProduct}
+                        className="w-full h-full hover:shadow-lg transition-shadow duration-300 cursor-pointer"
+                >
+                        <CardContent className="h-full relative p-0 flex flex-col">
 				{/* Product Info Header */}
 				<div className="flex justify-between items-start p-4 md:p-6 flex-shrink-0">
 					<div className="flex-1">

@@ -6,12 +6,22 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ShoppingCart, Heart, Eye, ArrowRight, Star } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function ProductCard({ product, viewMode = "grid" }) {
-	if (viewMode === "list") {
-		return (
-			<Card className="hover:shadow-lg transition-all duration-300 cursor-pointer group">
-				<CardContent className="p-6">
+        const router = useRouter();
+
+        const handleViewProduct = () => {
+                router.push(`/products/${product.id || product._id}`);
+        };
+
+        if (viewMode === "list") {
+                return (
+                        <Card
+                                onClick={handleViewProduct}
+                                className="hover:shadow-lg transition-all duration-300 cursor-pointer group"
+                        >
+                                <CardContent className="p-6">
 					<div className="flex flex-col sm:flex-row gap-6">
 						<div className="relative w-full sm:w-48 h-48 bg-gray-50 rounded-lg overflow-hidden flex-shrink-0">
 							<Image
@@ -109,14 +119,17 @@ export default function ProductCard({ product, viewMode = "grid" }) {
 		);
 	}
 
-	return (
-		<motion.div
-			whileHover={{ y: -5 }}
-			transition={{ duration: 0.2 }}
-			className="h-full"
-		>
-			<Card className="hover:shadow-xl transition-all duration-300 cursor-pointer group h-full flex flex-col">
-				<CardContent className="p-0 flex-1 flex flex-col">
+        return (
+                <motion.div
+                        whileHover={{ y: -5 }}
+                        transition={{ duration: 0.2 }}
+                        className="h-full"
+                >
+                        <Card
+                                onClick={handleViewProduct}
+                                className="hover:shadow-xl transition-all duration-300 cursor-pointer group h-full flex flex-col"
+                        >
+                                <CardContent className="p-0 flex-1 flex flex-col">
 					<div className="relative overflow-hidden">
 						<div className="relative h-64 bg-gray-50 rounded-t-xl overflow-hidden">
 							<Image
