@@ -56,7 +56,7 @@ export default function ProductCard({ product }) {
 
 				<div className="relative mb-4">
 					<img
-						src={product.image || "/placeholder.svg"}
+						src={product.image || "https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"}
 						alt={product.title}
 						className="w-full h-32 md:h-48 object-contain rounded"
 					/>

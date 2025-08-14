@@ -118,7 +118,7 @@ export default function FeaturedProduct({ product }) {
 								</Badge>
 							)}
 							<Image
-								src={product.image || "/placeholder.svg"}
+								src={product.image || "https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"}
 								alt={product.name}
 								width={400}
 								height={400}

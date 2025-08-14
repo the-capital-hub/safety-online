@@ -199,7 +199,7 @@ export default function ProductDetailDemo() {
 						>
 							<div className="relative w-full h-96 lg:h-[400px]">
 								<Image
-									src={dummyProduct.images[selectedImage] || "/placeholder.svg"}
+									src={dummyProduct.images[selectedImage] || "https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"}
 									alt={dummyProduct.name}
 									fill
 									className="object-contain p-8"
@@ -221,7 +221,7 @@ export default function ProductDetailDemo() {
 									}`}
 								>
 									<Image
-										src={image || "/placeholder.svg"}
+										src={image || "https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"}
 										alt={`${dummyProduct.name} view ${index + 1}`}
 										fill
 										className="object-contain p-2"

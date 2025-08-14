@@ -653,7 +653,7 @@ export default function CheckoutPage() {
 									<Image
 										src={
 											item.productImage ||
-											"/placeholder.svg?height=48&width=48&text=Product"
+											"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"
 										}
 										alt={item.productName}
 										fill
