@@ -81,32 +81,32 @@ const menuItems = [
 		icon: ShoppingCart,
 		href: "/admin/orders",
 	},
-	{
-		title: "Our Staff",
-		icon: UserCheck,
-		href: "/admin/our-staff",
-	},
-	{
-		title: "Settings",
-		icon: Settings,
-		href: "/admin/settings",
-	},
-	{
-		title: "International",
-		icon: Globe,
-		items: [
-			{
-				title: "Languages",
-				href: "/admin/international/languages",
-				icon: Languages,
-			},
-			{
-				title: "Currencies",
-				href: "/admin/international/currencies",
-				icon: DollarSign,
-			},
-		],
-	},
+	// {
+	// 	title: "Our Staff",
+	// 	icon: UserCheck,
+	// 	href: "/admin/our-staff",
+	// },
+	// {
+	// 	title: "Settings",
+	// 	icon: Settings,
+	// 	href: "/admin/settings",
+	// },
+	// {
+	// 	title: "International",
+	// 	icon: Globe,
+	// 	items: [
+	// 		{
+	// 			title: "Languages",
+	// 			href: "/admin/international/languages",
+	// 			icon: Languages,
+	// 		},
+	// 		{
+	// 			title: "Currencies",
+	// 			href: "/admin/international/currencies",
+	// 			icon: DollarSign,
+	// 		},
+	// 	],
+	// },
 	{
 		title: "Online Store",
 		icon: Store,
@@ -121,9 +121,9 @@ const menuItems = [
 		],
 	},
 	{
-		title: "Help & getting started",
+		title: "Sellers Support",
 		icon: HelpCircle,
-		href: "/admin/help",
+		href: "/admin/sellers-support",
 	},
 ];
 
@@ -162,61 +162,68 @@ export function AdminSidebar() {
 			</SidebarHeader>
 
 			<SidebarContent className="px-2 bg-white">
-                                <SidebarMenu>
-                                        {menuItems.map((item) => {
-                                                const isActive = item.items
-                                                        ? item.items.some((subItem) => pathname.startsWith(subItem.href))
-                                                        : pathname === item.href;
-                                                return (
-                                                        <SidebarMenuItem key={item.title}>
-                                                                {item.items ? (
-                                                                        <Collapsible defaultOpen={isActive}>
-                                                                                <CollapsibleTrigger asChild>
-                                                                                        <SidebarMenuButton
-                                                                                                className="w-full justify-between"
-                                                                                                isActive={isActive}
-                                                                                        >
-                                                                                                <div className="flex items-center gap-2">
-                                                                                                        <item.icon className="w-4 h-4" />
-                                                                                                        <span className="font-semibold">{item.title}</span>
-                                                                                                </div>
-                                                                                                <ChevronDown className="w-4 h-4 transition-transform group-data-[state=open]:rotate-180" />
-                                                                                        </SidebarMenuButton>
-                                                                                </CollapsibleTrigger>
-                                                                                <CollapsibleContent>
-                                                                                        <SidebarMenuSub>
-                                                                                                {item.items.map((subItem) => {
-                                                                                                        const subItemActive = pathname.startsWith(subItem.href);
-                                                                                                        return (
-                                                                                                                <SidebarMenuSubItem key={subItem.title}>
-                                                                                                                        <SidebarMenuSubButton asChild isActive={subItemActive}>
-                                                                                                                                <Link
-                                                                                                                                        href={subItem.href}
-                                                                                                                                        className="flex items-center gap-2"
-                                                                                                                                >
-                                                                                                                                        <subItem.icon className="w-4 h-4" />
-                                                                                                                                        <span className="font-semibold">{subItem.title}</span>
-                                                                                                                                </Link>
-                                                                                                                        </SidebarMenuSubButton>
-                                                                                                                </SidebarMenuSubItem>
-                                                                                                        );
-                                                                                                })}
-                                                                                        </SidebarMenuSub>
-                                                                                </CollapsibleContent>
-                                                                        </Collapsible>
-                                                                ) : (
-                                                                        <SidebarMenuButton asChild isActive={isActive}>
-                                                                                <Link href={item.href} className="flex items-center gap-2">
-                                                                                        <item.icon className="w-4 h-4" />
-                                                                                        <span className="font-semibold">{item.title}</span>
-                                                                                </Link>
-                                                                        </SidebarMenuButton>
-                                                                )}
-                                                        </SidebarMenuItem>
-                                                );
-                                        })}
-                                </SidebarMenu>
-                        </SidebarContent>
+				<SidebarMenu>
+					{menuItems.map((item) => {
+						const isActive = item.items
+							? item.items.some((subItem) => pathname.startsWith(subItem.href))
+							: pathname === item.href;
+						return (
+							<SidebarMenuItem key={item.title}>
+								{item.items ? (
+									<Collapsible defaultOpen={isActive}>
+										<CollapsibleTrigger asChild>
+											<SidebarMenuButton
+												className="w-full justify-between"
+												isActive={isActive}
+											>
+												<div className="flex items-center gap-2">
+													<item.icon className="w-4 h-4" />
+													<span className="font-semibold">{item.title}</span>
+												</div>
+												<ChevronDown className="w-4 h-4 transition-transform group-data-[state=open]:rotate-180" />
+											</SidebarMenuButton>
+										</CollapsibleTrigger>
+										<CollapsibleContent>
+											<SidebarMenuSub>
+												{item.items.map((subItem) => {
+													const subItemActive = pathname.startsWith(
+														subItem.href
+													);
+													return (
+														<SidebarMenuSubItem key={subItem.title}>
+															<SidebarMenuSubButton
+																asChild
+																isActive={subItemActive}
+															>
+																<Link
+																	href={subItem.href}
+																	className="flex items-center gap-2"
+																>
+																	<subItem.icon className="w-4 h-4" />
+																	<span className="font-semibold">
+																		{subItem.title}
+																	</span>
+																</Link>
+															</SidebarMenuSubButton>
+														</SidebarMenuSubItem>
+													);
+												})}
+											</SidebarMenuSub>
+										</CollapsibleContent>
+									</Collapsible>
+								) : (
+									<SidebarMenuButton asChild isActive={isActive}>
+										<Link href={item.href} className="flex items-center gap-2">
+											<item.icon className="w-4 h-4" />
+											<span className="font-semibold">{item.title}</span>
+										</Link>
+									</SidebarMenuButton>
+								)}
+							</SidebarMenuItem>
+						);
+					})}
+				</SidebarMenu>
+			</SidebarContent>
 
 			<SidebarFooter className="p-4">
 				<div className="flex gap-2">
