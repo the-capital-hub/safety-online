@@ -22,7 +22,7 @@ export function TopProducts({ products = [] }) {
 						<TrendingUp className="w-5 h-5 text-green-600" />
 						Top Selling Products
 					</CardTitle>
-					<Link href="/admin/products">
+					<Link href="/admin/catalog/products">
 						<Button variant="outline" size="sm">
 							View All
 						</Button>
