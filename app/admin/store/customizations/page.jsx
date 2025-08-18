@@ -1097,7 +1097,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -1126,6 +1126,10 @@ import { ToggleField } from "@/components/AdminPanel/StoreCustomization/ToggleFi
 import { InputField } from "@/components/AdminPanel/StoreCustomization/InputField.jsx";
 import { TextareaField } from "@/components/AdminPanel/StoreCustomization/TextareaField.jsx";
 import { FileUploadArea } from "@/components/AdminPanel/StoreCustomization/FileUploadArea.jsx";
+
+
+import { useIsAuthenticated } from "@/store/adminAuthStore.js";
+import { useRouter } from "next/navigation";
 
 export default function StoreCustomizationsPage() {
 	const [activeTab, setActiveTab] = useState("home-page");
@@ -1264,6 +1268,10 @@ export default function StoreCustomizationsPage() {
 		privacyPolicyPageText: "",
 	});
 
+	const isAuthenticated = useIsAuthenticated();
+	const [isRedirecting, setIsRedirecting] = useState(false);
+	const router = useRouter();
+
 	const handleInputChange = (field, value) => {
 		setFormData((prev) => ({ ...prev, [field]: value }));
 	};
@@ -1291,6 +1299,26 @@ export default function StoreCustomizationsPage() {
 			setUpdatingSection(null);
 		}
 	};
+
+	useEffect(() => {
+		if (!isAuthenticated) {
+			setIsRedirecting(true);
+			const timer = setTimeout(() => {
+				router.push("/admin/login");
+			}, 3);
+			
+			return () => clearTimeout(timer);
+		}
+	}, [isAuthenticated, router]);
+
+	// Show redirecting message if not authenticated
+	if (!isAuthenticated) {
+		return (
+			<div className="flex items-center justify-center py-4 px-6 bg-white">
+				<div className="text-gray-600">Redirecting to login...</div>
+			</div>
+		);
+	}
 
 	return (
 		<div className="space-y-6">

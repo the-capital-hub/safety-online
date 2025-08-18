@@ -41,8 +41,13 @@ import { useAdminCategoryStore } from "@/store/adminCategoryStore.js";
 import { DeletePopup } from "@/components/AdminPanel/Popups/DeletePopup.jsx";
 import { AddCategoryPopup } from "@/components/AdminPanel/Popups/AddCategoryPopup.jsx";
 import { UpdateCategoryPopup } from "@/components/AdminPanel/Popups/UpdateCategoryPopup.jsx";
+import { useIsAuthenticated } from "@/store/adminAuthStore.js";
+import { useRouter } from "next/navigation";
 
 export default function AdminCategoriesPage() {
+	const isAuthenticated = useIsAuthenticated();
+	const [isRedirecting, setIsRedirecting] = useState(false);
+	const router = useRouter();
 	const {
 		categories,
 		isLoading,
@@ -74,7 +79,25 @@ export default function AdminCategoriesPage() {
 	useEffect(() => {
 		fetchCategories();
 	}, [fetchCategories]);
+	useEffect(() => {
+		if (!isAuthenticated) {
+			setIsRedirecting(true);
+			const timer = setTimeout(() => {
+				router.push("/admin/login");
+			}, 3);
+			
+			return () => clearTimeout(timer);
+		}
+	}, [isAuthenticated, router]);
 
+	// Show redirecting message if not authenticated
+	if (!isAuthenticated) {
+		return (
+			<div className="flex items-center justify-center py-4 px-6 bg-white">
+				<div className="text-gray-600">Redirecting to login...</div>
+			</div>
+		);
+	}
 	const handleSearch = (value) => {
 		setFilters({ search: value });
 	};

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +24,8 @@ import {
 	CheckCircle,
 	AlertCircle,
 } from "lucide-react";
+import { useIsAuthenticated } from "@/store/adminAuthStore.js";
+import { useRouter } from "next/navigation";
 
 const stats = [
 	{
@@ -187,6 +189,28 @@ const recentOrders = [
 
 export default function AdminDashboard() {
 	const [salesPeriod, setSalesPeriod] = useState("weekly");
+	const isAuthenticated = useIsAuthenticated();
+	const [isRedirecting, setIsRedirecting] = useState(false);
+	const router = useRouter();
+	useEffect(() => {
+		if (!isAuthenticated) {
+			setIsRedirecting(true);
+			const timer = setTimeout(() => {
+				router.push("/admin/login");
+			}, 3);
+			
+			return () => clearTimeout(timer);
+		}
+	}, [isAuthenticated, router]);
+
+	// Show redirecting message if not authenticated
+	if (!isAuthenticated) {
+		return (
+			<div className="flex items-center justify-center py-4 px-6 bg-white">
+				<div className="text-gray-600">Redirecting to login...</div>
+			</div>
+		);
+	}
 
 	const getStatusColor = (status) => {
 		switch (status.toLowerCase()) {
