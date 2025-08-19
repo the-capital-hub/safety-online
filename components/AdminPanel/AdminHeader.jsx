@@ -56,7 +56,7 @@ export function AdminHeader() {
 
 				{/* Right side: Notifications + Profile */}
 				<div className="flex items-center gap-4">
-					<NotificationDropdown />
+					{/* <NotificationDropdown /> */}
 
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
@@ -84,16 +84,16 @@ export function AdminHeader() {
 									</span>
 								</div>
 							</div>
-							<DropdownMenuSeparator />
+							{/* <DropdownMenuSeparator /> */}
 
-							<DropdownMenuItem>
+							{/* <DropdownMenuItem>
 								<User className="mr-2 h-4 w-4" />
 								<span>Profile settings</span>
 							</DropdownMenuItem>
 							<DropdownMenuItem>
 								<Settings className="mr-2 h-4 w-4" />
 								<span>Account settings</span>
-							</DropdownMenuItem>
+							</DropdownMenuItem> */}
 							<DropdownMenuSeparator />
 							<DropdownMenuItem
 								className="text-red-600"
