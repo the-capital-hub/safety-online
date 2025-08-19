@@ -31,7 +31,7 @@ export function UpdateCustomerPopup({ open, onOpenChange, customer }) {
 		lastName: "",
 		email: "",
 		mobile: "",
-		address: "",
+		// address: "",
 		status: "active",
 	});
 
@@ -42,7 +42,7 @@ export function UpdateCustomerPopup({ open, onOpenChange, customer }) {
 				lastName: customer.lastName || "",
 				email: customer.email || "",
 				mobile: customer.mobile || "",
-				address: customer.address || "",
+				// address: customer.address || "",
 				status: customer.status || "active",
 			});
 		}
@@ -138,7 +138,7 @@ export function UpdateCustomerPopup({ open, onOpenChange, customer }) {
 							/>
 						</div>
 
-						<div>
+						{/* <div>
 							<Label htmlFor="address">Address</Label>
 							<Textarea
 								id="address"
@@ -150,7 +150,7 @@ export function UpdateCustomerPopup({ open, onOpenChange, customer }) {
 								className="mt-1"
 								rows={3}
 							/>
-						</div>
+						</div> */}
 
 						<div>
 							<Label htmlFor="status">Status</Label>

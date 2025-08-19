@@ -54,6 +54,8 @@ export default function AdminSellersPage() {
 		bulkDeleteSellers,
 		setFilters,
 		resetFilters,
+		exportToCSV,
+		exportToJSON,
 	} = useAdminSellerStore();
 
 	const [selectedSellers, setSelectedSellers] = useState([]);
@@ -80,7 +82,7 @@ export default function AdminSellersPage() {
 			const timer = setTimeout(() => {
 				router.push("/admin/login");
 			}, 3);
-			
+
 			return () => clearTimeout(timer);
 		}
 	}, [isAuthenticated, router]);
@@ -193,7 +195,7 @@ export default function AdminSellersPage() {
 						</div>
 						<div>
 							<h1 className="text-3xl font-bold text-gray-900">Sellers</h1>
-							<p className="text-gray-600">Manage your seller accounts</p>
+							<p className="text-gray-600">Manage seller accounts</p>
 						</div>
 					</div>
 				</motion.div>
@@ -207,22 +209,19 @@ export default function AdminSellersPage() {
 									<Button
 										variant="outline"
 										className="text-orange-600 border-orange-600 bg-transparent"
+										onClick={exportToCSV}
 									>
 										<Upload className="w-4 h-4 mr-2" />
-										Export
-									</Button>
-
-									<Button variant="outline">
-										<Download className="w-4 h-4 mr-2" />
-										Import
+										Export CSV
 									</Button>
 
 									<Button
 										variant="outline"
-										className="text-blue-600 border-blue-600 bg-transparent"
+										className="text-green-600 border-green-600 bg-transparent"
+										onClick={exportToJSON}
 									>
-										<MoreHorizontal className="w-4 h-4 mr-2" />
-										Bulk Action
+										<Upload className="w-4 h-4 mr-2" />
+										Export JSON
 									</Button>
 
 									{selectedSellers.length > 0 && (

@@ -24,7 +24,7 @@ export function AddSellerPopup({ open, onOpenChange }) {
 		lastName: "",
 		email: "",
 		mobile: "",
-		password: "",
+		// password: "",
 		address: "",
 	});
 
@@ -38,7 +38,7 @@ export function AddSellerPopup({ open, onOpenChange }) {
 				lastName: "",
 				email: "",
 				mobile: "",
-				password: "",
+				// password: "",
 				address: "",
 			});
 		}
@@ -139,7 +139,7 @@ export function AddSellerPopup({ open, onOpenChange }) {
 							/>
 						</div>
 
-						<div>
+						{/* <div>
 							<Label htmlFor="address">Address</Label>
 							<Textarea
 								id="address"
@@ -151,7 +151,7 @@ export function AddSellerPopup({ open, onOpenChange }) {
 								className="mt-1"
 								rows={3}
 							/>
-						</div>
+						</div> */}
 
 						<DialogFooter className="flex gap-3 mt-6">
 							<Button

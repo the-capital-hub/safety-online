@@ -58,7 +58,7 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen w-full grid place-items-center bg-gradient-to-b from-background to-muted p-4">
+    <div className="h-full w-full grid place-items-center">
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -70,8 +70,8 @@ export default function Login() {
             <div className="mx-auto h-12 w-12 grid place-items-center rounded-2xl bg-primary/10">
               <LogIn className="h-6 w-6" aria-hidden />
             </div>
-            <CardTitle className="text-2xl">Welcome back</CardTitle>
-            <CardDescription>Sign in to your account</CardDescription>
+            <CardTitle className="text-2xl">Admin Panel</CardTitle>
+            <CardDescription>Use your credentials to sign in</CardDescription>
           </CardHeader>
 
           <CardContent>
@@ -122,34 +122,34 @@ export default function Login() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-end">
+              {/* <div className="flex items-center justify-end">
                 <Link href="/forgot-password" className="text-sm underline underline-offset-4 hover:no-underline">
                   Forgot password?
                 </Link>
-              </div>
+              </div> */}
 
               <Button type="submit" className="w-full rounded-2xl" disabled={loading}>
                 {loading ? "Signing in..." : "Sign in"}
               </Button>
             </form>
 
-            <div className="relative my-6">
+            {/* <div className="relative my-6">
               <div className="absolute inset-0 flex items-center" aria-hidden="true">
                 <span className="w-full border-t" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
               </div>
-            </div>
+            </div> */}
 
-            <div className="grid grid-cols-2 gap-3">
+            {/* <div className="grid grid-cols-2 gap-3">
               <Button variant="outline" className="rounded-2xl" type="button">
                 <Github className="mr-2 h-4 w-4" /> GitHub
               </Button>
               <Button variant="outline" className="rounded-2xl" type="button">
                 <Chrome className="mr-2 h-4 w-4" /> Google
               </Button>
-            </div>
+            </div> */}
           </CardContent>
 
           <CardFooter className="flex justify-center">

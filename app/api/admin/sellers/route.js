@@ -60,10 +60,10 @@ export async function GET(request) {
 // POST - Add new seller
 export async function POST(request) {
 	try {
-		await connectDB();
+		await dbConnect();
 
 		const body = await request.json();
-		const { firstName, lastName, email, mobile, password, address } = body;
+		const { firstName, lastName, email, mobile, password } = body;
 
 		// Check if seller already exists
 		const existingUser = await User.findOne({
@@ -86,7 +86,6 @@ export async function POST(request) {
 			email,
 			mobile,
 			password,
-			address,
 			userType: "seller",
 			status: "active",
 		});

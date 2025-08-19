@@ -54,9 +54,11 @@ export default function AdminCustomersPage() {
 		bulkDeleteCustomers,
 		setFilters,
 		resetFilters,
+		exportToCSV,
+		exportToJSON,
 	} = useAdminCustomerStore();
 
-	console.log("Customers:", customers);
+	// console.log("Customers:", customers);
 
 	const [selectedCustomers, setSelectedCustomers] = useState([]);
 	const [deletePopup, setDeletePopup] = useState({
@@ -70,18 +72,18 @@ export default function AdminCustomersPage() {
 	});
 	const isAuthenticated = useIsAuthenticated();
 	const [isRedirecting, setIsRedirecting] = useState(false);
-	const router = useRouter();	useEffect(() => {
+	const router = useRouter();
+	useEffect(() => {
 		if (!isAuthenticated) {
 			setIsRedirecting(true);
 			const timer = setTimeout(() => {
 				router.push("/admin/login");
 			}, 3);
-			
+
 			return () => clearTimeout(timer);
 		}
 	}, [isAuthenticated, router]);
 
-	
 	useEffect(() => {
 		fetchCustomers();
 	}, []);
@@ -90,7 +92,7 @@ export default function AdminCustomersPage() {
 		setFilters({ search: value });
 		fetchCustomers({ ...filters, search: value, page: 1 });
 	};
-	
+
 	const handleStatusFilter = (status) => {
 		setFilters({ status });
 		fetchCustomers({ ...filters, status, page: 1 });
@@ -154,7 +156,7 @@ export default function AdminCustomersPage() {
 				return "bg-gray-100 text-gray-800";
 		}
 	};
-	
+
 	const formatDate = (dateString) => {
 		return new Date(dateString).toLocaleDateString("en-IN", {
 			year: "numeric",
@@ -193,7 +195,7 @@ export default function AdminCustomersPage() {
 						</div>
 						<div>
 							<h1 className="text-3xl font-bold text-gray-900">Customers</h1>
-							<p className="text-gray-600">Manage your customer accounts</p>
+							<p className="text-gray-600">Manage customer accounts</p>
 						</div>
 					</div>
 				</motion.div>
@@ -207,22 +209,19 @@ export default function AdminCustomersPage() {
 									<Button
 										variant="outline"
 										className="text-orange-600 border-orange-600 bg-transparent"
+										onClick={exportToCSV}
 									>
 										<Upload className="w-4 h-4 mr-2" />
-										Export
-									</Button>
-
-									<Button variant="outline">
-										<Download className="w-4 h-4 mr-2" />
-										Import
+										Export CSV
 									</Button>
 
 									<Button
 										variant="outline"
-										className="text-blue-600 border-blue-600 bg-transparent"
+										className="text-green-600 border-green-600 bg-transparent"
+										onClick={exportToJSON}
 									>
-										<MoreHorizontal className="w-4 h-4 mr-2" />
-										Bulk Action
+										<Upload className="w-4 h-4 mr-2" />
+										Export JSON
 									</Button>
 
 									{selectedCustomers.length > 0 && (

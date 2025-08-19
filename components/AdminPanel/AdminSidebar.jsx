@@ -62,7 +62,7 @@ const menuItems = [
 		items: [
 			{ title: "Products", href: "/admin/catalog/products", icon: FolderOpen },
 			{ title: "Categories", href: "/admin/catalog/categories", icon: Tags },
-			{ title: "Attributes", href: "/admin/catalog/attributes", icon: Layers },
+			// { title: "Attributes", href: "/admin/catalog/attributes", icon: Layers },
 			{ title: "Coupons", href: "/admin/catalog/coupons", icon: Ticket },
 		],
 	},
@@ -107,19 +107,19 @@ const menuItems = [
 	// 		},
 	// 	],
 	// },
-	{
-		title: "Online Store",
-		icon: Store,
-		items: [
-			{ title: "View Store", href: "/admin/store/view", icon: Eye },
-			{
-				title: "Store Customizations",
-				href: "/admin/store/customizations",
-				icon: Palette,
-			},
-			{ title: "Store Settings", href: "/admin/store/settings", icon: Cog },
-		],
-	},
+	// {
+	// 	title: "Online Store",
+	// 	icon: Store,
+	// 	items: [
+	// 		{ title: "View Store", href: "/admin/store/view", icon: Eye },
+	// 		{
+	// 			title: "Store Customizations",
+	// 			href: "/admin/store/customizations",
+	// 			icon: Palette,
+	// 		},
+	// 		{ title: "Store Settings", href: "/admin/store/settings", icon: Cog },
+	// 	],
+	// },
 	{
 		title: "Sellers Support",
 		icon: HelpCircle,

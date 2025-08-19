@@ -98,7 +98,7 @@ export default function AdminProductsPage() {
 			const timer = setTimeout(() => {
 				router.push("/admin/login");
 			}, 3);
-			
+
 			return () => clearTimeout(timer);
 		}
 	}, [isAuthenticated, router]);
@@ -107,15 +107,15 @@ export default function AdminProductsPage() {
 	const handleSearch = (value) => {
 		setFilters({ search: value });
 	};
-	
+
 	const handleFilterChange = (key, value) => {
 		setFilters({ [key]: value });
 	};
-	
+
 	const handleApplyFilters = () => {
 		fetchProducts();
 	};
-	
+
 	const handleSelectAll = (checked) => {
 		if (checked) {
 			selectAllProducts();
@@ -131,13 +131,13 @@ export default function AdminProductsPage() {
 	const handleUpdate = (product) => {
 		setPopups((prev) => ({ ...prev, update: { open: true, product } }));
 	};
-	
+
 	const confirmDelete = async () => {
 		if (popups.delete.product) {
 			await deleteProduct(popups.delete.product._id);
 		}
 	};
-	
+
 	const handleBulkDelete = async () => {
 		if (selectedProducts.length > 0) {
 			await deleteMultipleProducts(selectedProducts);
@@ -198,7 +198,7 @@ export default function AdminProductsPage() {
 		a.click();
 		window.URL.revokeObjectURL(url);
 	};
-	
+
 	if (!isAuthenticated) {
 		return (
 			<div className="flex items-center justify-center py-4 px-6 bg-white">
@@ -230,7 +230,7 @@ export default function AdminProductsPage() {
 						Products Management
 					</h1>
 					<p className="text-gray-600 mt-1">
-						Manage your product inventory and details
+						Manage product inventory and details
 					</p>
 				</motion.div>
 
@@ -451,7 +451,10 @@ export default function AdminProductsPage() {
 														<div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
 															{product.images?.[0] ? (
 																<img
-																	src={product.images[0] || "https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"}
+																	src={
+																		product.images[0] ||
+																		"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"
+																	}
 																	alt={product.title}
 																	className="w-full h-full object-cover rounded-lg"
 																/>

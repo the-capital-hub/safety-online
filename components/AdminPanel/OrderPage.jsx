@@ -42,7 +42,7 @@ import { useAdminOrderStore } from "@/store/adminOrderStore.js";
 import { OrderDetailsPopup } from "@/components/AdminPanel/Popups/OrderDetailsPopup.jsx";
 import { UpdateOrderPopup } from "@/components/AdminPanel/Popups/UpdateOrderPopup.jsx";
 import { DeleteOrderPopup } from "@/components/AdminPanel/Popups/DeleteOrderPopup.jsx";
-import { InvoicePopup } from "@/components/AdminPanel/Popups/InvoicePopup.jsx";
+// import { InvoicePopup } from "@/components/AdminPanel/Popups/InvoicePopup.jsx";
 import { useIsAuthenticated } from "@/store/adminAuthStore.js";
 import { useRouter } from "next/navigation";
 
@@ -68,7 +68,7 @@ function OrderPage() {
 		details: { open: false, order: null },
 		update: { open: false, order: null },
 		delete: { open: false, order: null },
-		invoice: { open: false, order: null },
+		// invoice: { open: false, order: null },
 	});
 
 	const isAuthenticated = useIsAuthenticated();
@@ -81,7 +81,7 @@ function OrderPage() {
 			const timer = setTimeout(() => {
 				router.push("/admin/login");
 			}, 3);
-			
+
 			return () => clearTimeout(timer);
 		}
 	}, [isAuthenticated, router]);
@@ -320,7 +320,8 @@ function OrderPage() {
 									</SelectTrigger>
 									<SelectContent>
 										<SelectItem value="all">All Methods</SelectItem>
-										<SelectItem value="cash">Cash</SelectItem>
+										<SelectItem value="cod">COD</SelectItem>
+										<SelectItem value="razorpay">Razorpay</SelectItem>
 										<SelectItem value="credit_card">Credit Card</SelectItem>
 										<SelectItem value="debit_card">Debit Card</SelectItem>
 										<SelectItem value="net_banking">Net Banking</SelectItem>
@@ -358,10 +359,10 @@ function OrderPage() {
 									</div>
 								)}
 
-								<Button className="bg-green-600 hover:bg-green-700">
+								{/* <Button className="bg-green-600 hover:bg-green-700">
 									<Download className="w-4 h-4 mr-2" />
 									Export Orders
-								</Button>
+								</Button> */}
 							</div>
 						</div>
 
@@ -535,13 +536,13 @@ function OrderPage() {
 												</TableCell>
 												<TableCell>
 													<div className="flex gap-1">
-														<Button
+														{/* <Button
 															size="icon"
 															variant="outline"
 															onClick={() => openPopup("details", order)}
 														>
 															<Eye className="w-4 h-4" />
-														</Button>
+														</Button> */}
 														<Button
 															size="icon"
 															variant="outline"
@@ -667,11 +668,11 @@ function OrderPage() {
 				}}
 			/>
 
-			<InvoicePopup
+			{/* <InvoicePopup
 				open={popups.invoice.open}
 				onOpenChange={() => closePopup("invoice")}
 				order={popups.invoice.order}
-			/>
+			/> */}
 		</>
 	);
 }

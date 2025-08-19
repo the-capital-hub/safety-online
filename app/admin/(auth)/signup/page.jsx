@@ -46,7 +46,7 @@ export default function Signup() {
   }
 
   return (
-    <div className="min-h-screen w-full grid place-items-center bg-gradient-to-b from-background to-muted p-4">
+    <div className="h-full w-full grid place-items-center">
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -58,7 +58,7 @@ export default function Signup() {
             <div className="mx-auto h-12 w-12 grid place-items-center rounded-2xl bg-primary/10">
               <UserPlus className="h-6 w-6" aria-hidden />
             </div>
-            <CardTitle className="text-2xl">Create an account</CardTitle>
+            <CardTitle className="text-2xl">Admin Panel</CardTitle>
             <CardDescription>Fill in your details to register</CardDescription>
           </CardHeader>
 

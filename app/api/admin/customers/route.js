@@ -63,7 +63,7 @@ export async function POST(request) {
 		await connectDB();
 
 		const body = await request.json();
-		const { firstName, lastName, email, mobile, password, address } = body;
+		const { firstName, lastName, email, mobile, password } = body;
 
 		// Check if customer already exists
 		const existingUser = await User.findOne({
@@ -86,7 +86,6 @@ export async function POST(request) {
 			email,
 			mobile,
 			password,
-			address,
 			userType: "customer",
 			status: "active",
 		});

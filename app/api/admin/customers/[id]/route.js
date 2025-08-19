@@ -37,7 +37,7 @@ export async function PUT(request, { params }) {
 		await connectDB();
 
 		const body = await request.json();
-		const { firstName, lastName, email, mobile, address, status } = body;
+		const { firstName, lastName, email, mobile, status } = body;
 
 		const customer = await User.findOneAndUpdate(
 			{ _id: params.id, userType: "customer" },
@@ -46,7 +46,6 @@ export async function PUT(request, { params }) {
 				lastName,
 				email,
 				mobile,
-				address,
 				status,
 			},
 			{ new: true, runValidators: true }

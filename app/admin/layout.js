@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { Toaster } from "react-hot-toast";
 import { SidebarProvider } from "@/components/ui/sidebar";
@@ -7,14 +8,17 @@ import { AdminSidebar } from "@/components/AdminPanel/AdminSidebar.jsx";
 import { AdminHeader } from "@/components/AdminPanel/AdminHeader.jsx";
 
 export default function AdminLayout({ children }) {
+	const pathname = usePathname();
+	const showHeaderSidebar = pathname !== "/admin/login" && pathname !== "/admin/signup";
+
 	return (
 		<SidebarProvider defaultOpen={true}>
 			<div className="w-full min-h-screen flex bg-gray-50">
-				<AdminSidebar />
+				{showHeaderSidebar && <AdminSidebar />}
 				<div className="flex flex-col flex-1 min-h-screen">
 					{/* Fixed Header */}
 					<div className="sticky top-0 z-10">
-						<AdminHeader />
+						{showHeaderSidebar && <AdminHeader />}
 					</div>
 
 					{/* Scrollable Content */}
