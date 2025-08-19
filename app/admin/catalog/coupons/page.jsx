@@ -43,6 +43,8 @@ import { useAdminCouponStore } from "@/store/adminCouponStore.js";
 import { DeletePopup } from "@/components/AdminPanel/Popups/DeletePopup.jsx";
 import { AddCouponPopup } from "@/components/AdminPanel/Popups/AddCouponPopup.jsx";
 import { UpdateCouponPopup } from "@/components/AdminPanel/Popups/UpdateCouponPopup.jsx";
+import { useIsAuthenticated } from "@/store/adminAuthStore.js";
+import { useRouter } from "next/navigation";
 
 export default function AdminCouponsPage() {
 	const {
@@ -72,10 +74,26 @@ export default function AdminCouponsPage() {
 		add: false,
 		update: { open: false, coupon: null },
 	});
+	const isAuthenticated = useIsAuthenticated();
+	const [isRedirecting, setIsRedirecting] = useState(false);
+	const router = useRouter();
 
 	useEffect(() => {
 		fetchCoupons();
 	}, [fetchCoupons]);
+
+	useEffect(() => {
+		if (!isAuthenticated) {
+			setIsRedirecting(true);
+			const timer = setTimeout(() => {
+				router.push("/admin/login");
+			}, 3);
+			
+			return () => clearTimeout(timer);
+		}
+	}, [isAuthenticated, router]);
+
+
 
 	const handleSearch = (value) => {
 		setFilters({ search: value });
@@ -146,7 +164,15 @@ export default function AdminCouponsPage() {
 			day: "numeric",
 		});
 	};
-
+	// Show redirecting message if not authenticated
+	if (!isAuthenticated) {
+		return (
+			<div className="flex items-center justify-center py-4 px-6 bg-white">
+				<div className="text-gray-600">Redirecting to login...</div>
+			</div>
+		);
+	}
+	
 	if (error) {
 		return (
 			<div className="flex items-center justify-center min-h-[400px]">

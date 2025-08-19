@@ -40,6 +40,8 @@ import { useAdminCustomerStore } from "@/store/adminCustomerStore.js";
 import { DeleteCustomerPopup } from "@/components/AdminPanel/Popups/DeleteCustomerPopup.jsx";
 import { AddCustomerPopup } from "@/components/AdminPanel/Popups/AddCustomerPopup.jsx";
 import { UpdateCustomerPopup } from "@/components/AdminPanel/Popups/UpdateCustomerPopup.jsx";
+import { useIsAuthenticated } from "@/store/adminAuthStore.js";
+import { useRouter } from "next/navigation";
 
 export default function AdminCustomersPage() {
 	const {
@@ -66,7 +68,20 @@ export default function AdminCustomersPage() {
 		open: false,
 		customer: null,
 	});
+	const isAuthenticated = useIsAuthenticated();
+	const [isRedirecting, setIsRedirecting] = useState(false);
+	const router = useRouter();	useEffect(() => {
+		if (!isAuthenticated) {
+			setIsRedirecting(true);
+			const timer = setTimeout(() => {
+				router.push("/admin/login");
+			}, 3);
+			
+			return () => clearTimeout(timer);
+		}
+	}, [isAuthenticated, router]);
 
+	
 	useEffect(() => {
 		fetchCustomers();
 	}, []);
@@ -75,7 +90,7 @@ export default function AdminCustomersPage() {
 		setFilters({ search: value });
 		fetchCustomers({ ...filters, search: value, page: 1 });
 	};
-
+	
 	const handleStatusFilter = (status) => {
 		setFilters({ status });
 		fetchCustomers({ ...filters, status, page: 1 });
@@ -139,7 +154,7 @@ export default function AdminCustomersPage() {
 				return "bg-gray-100 text-gray-800";
 		}
 	};
-
+	
 	const formatDate = (dateString) => {
 		return new Date(dateString).toLocaleDateString("en-IN", {
 			year: "numeric",
@@ -147,6 +162,14 @@ export default function AdminCustomersPage() {
 			day: "numeric",
 		});
 	};
+	// Show redirecting message if not authenticated
+	if (!isAuthenticated) {
+		return (
+			<div className="flex items-center justify-center py-4 px-6 bg-white">
+				<div className="text-gray-600">Redirecting to login...</div>
+			</div>
+		);
+	}
 
 	if (loading && customers.length === 0) {
 		return (

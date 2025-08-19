@@ -1,8 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
 import {
 	Sidebar,
@@ -47,6 +48,7 @@ import {
 	Cog,
 } from "lucide-react";
 import Logo from "@/public/SafetyLogo.png";
+import { useIsAuthenticated } from "@/store/adminAuthStore.js";
 
 const menuItems = [
 	{
@@ -128,10 +130,22 @@ const menuItems = [
 export function AdminSidebar() {
 	const pathname = usePathname();
 	const [theme, setTheme] = useState("light");
+	const isAuthenticated = useIsAuthenticated();
+	const router = useRouter();
 
 	const toggleTheme = () => {
 		setTheme(theme === "light" ? "dark" : "light");
 	};
+
+	useEffect(() => {
+		if (!isAuthenticated) {
+			router.push("/admin/login");
+		}
+	}, [isAuthenticated, router]);
+
+	if (!isAuthenticated) {
+		return null;
+	}
 
 	return (
 		<Sidebar className="border-none bg-white">

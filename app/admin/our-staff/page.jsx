@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,8 @@ import { Search, Plus, Filter, RotateCcw, Edit, Trash2 } from "lucide-react";
 import { DeletePopup } from "@/components/AdminPanel/Popups/DeletePopup.jsx";
 import { AddStaffPopup } from "@/components/AdminPanel/Popups/AddStaffPopup.jsx";
 import { UpdateStaffPopup } from "@/components/AdminPanel/Popups/UpdateStaffPopup.jsx";
+import { useIsAuthenticated } from "@/store/adminAuthStore.js";
+import { useRouter } from "next/navigation";
 
 const staff = [
 	{
@@ -147,6 +149,29 @@ export default function StaffPage() {
 	const [deletePopup, setDeletePopup] = useState({ open: false, staff: null });
 	const [addPopup, setAddPopup] = useState(false);
 	const [updatePopup, setUpdatePopup] = useState({ open: false, staff: null });
+	const isAuthenticated = useIsAuthenticated();
+	const [isRedirecting, setIsRedirecting] = useState(false);
+	const router = useRouter();
+
+	useEffect(() => {
+		if (!isAuthenticated) {
+			setIsRedirecting(true);
+			const timer = setTimeout(() => {
+				router.push("/admin/login");
+			}, 3);
+			
+			return () => clearTimeout(timer);
+		}
+	}, [isAuthenticated, router]);
+
+	// Show redirecting message if not authenticated
+	if (!isAuthenticated) {
+		return (
+			<div className="flex items-center justify-center py-4 px-6 bg-white">
+				<div className="text-gray-600">Redirecting to login...</div>
+			</div>
+		);
+	}
 
 	const handleDelete = (staffMember) => {
 		setDeletePopup({ open: true, staff: staffMember });

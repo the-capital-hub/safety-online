@@ -43,6 +43,8 @@ import { OrderDetailsPopup } from "@/components/AdminPanel/Popups/OrderDetailsPo
 import { UpdateOrderPopup } from "@/components/AdminPanel/Popups/UpdateOrderPopup.jsx";
 import { DeleteOrderPopup } from "@/components/AdminPanel/Popups/DeleteOrderPopup.jsx";
 import { InvoicePopup } from "@/components/AdminPanel/Popups/InvoicePopup.jsx";
+import { useIsAuthenticated } from "@/store/adminAuthStore.js";
+import { useRouter } from "next/navigation";
 
 function OrderPage() {
 	const {
@@ -68,6 +70,30 @@ function OrderPage() {
 		delete: { open: false, order: null },
 		invoice: { open: false, order: null },
 	});
+
+	const isAuthenticated = useIsAuthenticated();
+	const [isRedirecting, setIsRedirecting] = useState(false);
+	const router = useRouter();
+
+	useEffect(() => {
+		if (!isAuthenticated) {
+			setIsRedirecting(true);
+			const timer = setTimeout(() => {
+				router.push("/admin/login");
+			}, 3);
+			
+			return () => clearTimeout(timer);
+		}
+	}, [isAuthenticated, router]);
+
+	// Show redirecting message if not authenticated
+	if (!isAuthenticated) {
+		return (
+			<div className="flex items-center justify-center py-4 px-6 bg-white">
+				<div className="text-gray-600">Redirecting to login...</div>
+			</div>
+		);
+	}
 
 	useEffect(() => {
 		fetchOrders();

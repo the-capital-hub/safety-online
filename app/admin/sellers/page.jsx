@@ -40,6 +40,8 @@ import { useAdminSellerStore } from "@/store/adminSellerStore.js";
 import { DeleteSellerPopup } from "@/components/AdminPanel/Popups/DeleteSellerPopup.jsx";
 import { AddSellerPopup } from "@/components/AdminPanel/Popups/AddSellerPopup.jsx";
 import { UpdateSellerPopup } from "@/components/AdminPanel/Popups/UpdateSellerPopup.jsx";
+import { useIsAuthenticated } from "@/store/adminAuthStore.js";
+import { useRouter } from "next/navigation";
 
 export default function AdminSellersPage() {
 	const {
@@ -64,10 +66,33 @@ export default function AdminSellersPage() {
 		open: false,
 		seller: null,
 	});
+	const isAuthenticated = useIsAuthenticated();
+	const [isRedirecting, setIsRedirecting] = useState(false);
+	const router = useRouter();
 
 	useEffect(() => {
 		fetchSellers();
 	}, []);
+
+	useEffect(() => {
+		if (!isAuthenticated) {
+			setIsRedirecting(true);
+			const timer = setTimeout(() => {
+				router.push("/admin/login");
+			}, 3);
+			
+			return () => clearTimeout(timer);
+		}
+	}, [isAuthenticated, router]);
+
+	// Show redirecting message if not authenticated
+	if (!isAuthenticated) {
+		return (
+			<div className="flex items-center justify-center py-4 px-6 bg-white">
+				<div className="text-gray-600">Redirecting to login...</div>
+			</div>
+		);
+	}
 
 	const handleSearch = (value) => {
 		setFilters({ search: value });

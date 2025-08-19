@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +29,8 @@ import {
 import { DeletePopup } from "@/components/AdminPanel/Popups/DeletePopup.jsx";
 import { AddAttributePopup } from "@/components/AdminPanel/Popups/AddAttributePopup.jsx";
 import { UpdateAttributePopup } from "@/components/AdminPanel/Popups/UpdateAttributePopup.jsx";
+import { useIsAuthenticated } from "@/store/adminAuthStore.js";
+import { useRouter } from "next/navigation";
 
 const attributes = [
 	{
@@ -122,6 +124,9 @@ export default function AttributesPage() {
 		open: false,
 		attribute: null,
 	});
+	const isAuthenticated = useIsAuthenticated();
+	const [isRedirecting, setIsRedirecting] = useState(false);
+	const router = useRouter();
 
 	const handleSelectAll = (checked) => {
 		if (checked) {
@@ -156,6 +161,26 @@ export default function AttributesPage() {
 	const handleBulkDelete = () => {
 		console.log("Bulk deleting attributes:", selectedAttributes);
 	};
+
+	useEffect(() => {
+		if (!isAuthenticated) {
+			setIsRedirecting(true);
+			const timer = setTimeout(() => {
+				router.push("/admin/login");
+			}, 3);
+			
+			return () => clearTimeout(timer);
+		}
+	}, [isAuthenticated, router]);
+
+	// Show redirecting message if not authenticated
+	if (!isAuthenticated) {
+		return (
+			<div className="flex items-center justify-center py-4 px-6 bg-white">
+				<div className="text-gray-600">Redirecting to login...</div>
+			</div>
+		);
+	}
 
 	return (
 		<>

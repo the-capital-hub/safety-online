@@ -16,10 +16,21 @@ import {
 import { Search, User, Settings, LogOut } from "lucide-react";
 import { NotificationDropdown } from "@/components/AdminPanel/NotificationDropdown.jsx";
 import { LogoutPopup } from "@/components/Shared/Popups/LogoutPopup.jsx";
+import {
+	useUserFullName,
+	useUserEmail,
+	useUserProfilePic,
+	useIsAuthenticated,
+} from "@/store/adminAuthStore.js";
 
 export function AdminHeader() {
 	const [showLogoutPopup, setShowLogoutPopup] = useState(false);
 	const [searchQuery, setSearchQuery] = useState("");
+	const fullName = useUserFullName();
+	const email = useUserEmail();
+	const profilePic = useUserProfilePic();
+	const isAuthenticated = useIsAuthenticated();
+
 
 	return (
 		<>
@@ -29,6 +40,7 @@ export function AdminHeader() {
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.3 }}
 			>
+				{/* Left side: Sidebar + Search */}
 				<div className="flex items-center gap-4">
 					<SidebarTrigger />
 					<div className="relative">
@@ -42,6 +54,7 @@ export function AdminHeader() {
 					</div>
 				</div>
 
+				{/* Right side: Notifications + Profile */}
 				<div className="flex items-center gap-4">
 					<NotificationDropdown />
 
@@ -49,15 +62,30 @@ export function AdminHeader() {
 						<DropdownMenuTrigger asChild>
 							<Button variant="ghost" className="relative h-8 w-8 rounded-full">
 								<Avatar className="h-8 w-8">
-									<AvatarImage
-										src="/placeholder.svg?height=32&width=32"
-										alt="Admin"
-									/>
+									<AvatarImage src={profilePic} alt="Admin" />
 									<AvatarFallback>AD</AvatarFallback>
 								</Avatar>
 							</Button>
 						</DropdownMenuTrigger>
+
 						<DropdownMenuContent className="w-56" align="end" forceMount>
+							{/* User Info Header */}
+							<div className="flex items-center gap-3 p-3">
+								<Avatar className="h-10 w-10">
+									<AvatarImage src={profilePic} alt={fullName || "Admin"} />
+									<AvatarFallback>
+										{fullName ? fullName.charAt(0) : "A"}
+									</AvatarFallback>
+								</Avatar>
+								<div className="flex flex-col">
+									<span className="font-medium">{fullName || "Admin User"}</span>
+									<span className="text-xs text-muted-foreground">
+										{email || "admin@example.com"}
+									</span>
+								</div>
+							</div>
+							<DropdownMenuSeparator />
+
 							<DropdownMenuItem>
 								<User className="mr-2 h-4 w-4" />
 								<span>Profile settings</span>

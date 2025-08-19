@@ -43,6 +43,8 @@ import { DeletePopup } from "@/components/AdminPanel/Popups/DeleteProductPopup.j
 import { AddProductPopup } from "@/components/AdminPanel/Popups/AddProductPopup.jsx";
 import { UpdateProductPopup } from "@/components/AdminPanel/Popups/UpdateProductPopup.jsx";
 import { BulkUploadPopup } from "@/components/AdminPanel/Popups/BulkProductUploadPopup.jsx";
+import { useIsAuthenticated } from "@/store/adminAuthStore.js";
+import { useRouter } from "next/navigation";
 
 const categories = [
 	{ value: "all", label: "All Categories" },
@@ -84,23 +86,36 @@ export default function AdminProductsPage() {
 		update: { open: false, product: null },
 		bulkUpload: false,
 	});
-
+	const isAuthenticated = useIsAuthenticated();
+	const [isRedirecting, setIsRedirecting] = useState(false);
+	const router = useRouter();
 	useEffect(() => {
 		fetchProducts();
 	}, [fetchProducts]);
+	useEffect(() => {
+		if (!isAuthenticated) {
+			setIsRedirecting(true);
+			const timer = setTimeout(() => {
+				router.push("/admin/login");
+			}, 3);
+			
+			return () => clearTimeout(timer);
+		}
+	}, [isAuthenticated, router]);
 
+	// Show redirecting message if not authenticated
 	const handleSearch = (value) => {
 		setFilters({ search: value });
 	};
-
+	
 	const handleFilterChange = (key, value) => {
 		setFilters({ [key]: value });
 	};
-
+	
 	const handleApplyFilters = () => {
 		fetchProducts();
 	};
-
+	
 	const handleSelectAll = (checked) => {
 		if (checked) {
 			selectAllProducts();
@@ -116,13 +131,13 @@ export default function AdminProductsPage() {
 	const handleUpdate = (product) => {
 		setPopups((prev) => ({ ...prev, update: { open: true, product } }));
 	};
-
+	
 	const confirmDelete = async () => {
 		if (popups.delete.product) {
 			await deleteProduct(popups.delete.product._id);
 		}
 	};
-
+	
 	const handleBulkDelete = async () => {
 		if (selectedProducts.length > 0) {
 			await deleteMultipleProducts(selectedProducts);
@@ -183,7 +198,14 @@ export default function AdminProductsPage() {
 		a.click();
 		window.URL.revokeObjectURL(url);
 	};
-
+	
+	if (!isAuthenticated) {
+		return (
+			<div className="flex items-center justify-center py-4 px-6 bg-white">
+				<div className="text-gray-600">Redirecting to login...</div>
+			</div>
+		);
+	}
 	if (error) {
 		return (
 			<div className="flex items-center justify-center min-h-[400px]">

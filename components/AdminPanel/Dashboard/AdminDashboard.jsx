@@ -22,6 +22,8 @@ import { StatsCard } from "@/components/AdminPanel/Dashboard/StatsCard.jsx";
 import { RecentOrders } from "@/components/AdminPanel/Dashboard/RecentOrders.jsx";
 import { TopProducts } from "@/components/AdminPanel/Dashboard/TopProducts.jsx";
 import { SimpleBarChart } from "@/components/AdminPanel/Dashboard/SimpleBarChart.jsx";
+import { useIsAuthenticated } from "@/store/adminAuthStore.js";
+import { useRouter } from "next/navigation";
 
 export default function AdminDashboard() {
 	const {
@@ -34,6 +36,21 @@ export default function AdminDashboard() {
 		getOrdersByStatusChartData,
 	} = useAdminDashboardStore();
 
+	const isAuthenticated = useIsAuthenticated();
+	const router = useRouter();
+	useEffect(() => {
+		if (!isAuthenticated) {
+
+			const timer = setTimeout(() => {
+				router.push("/admin/login");
+			}, 3);
+
+			return () => clearTimeout(timer);
+		}
+	}, [isAuthenticated, router]);
+
+
+
 	useEffect(() => {
 		fetchDashboardData();
 	}, [fetchDashboardData]);
@@ -41,6 +58,15 @@ export default function AdminDashboard() {
 	const handleRefresh = async () => {
 		await refreshData();
 	};
+
+	if (!isAuthenticated) {
+		return (
+			<div className="flex items-center justify-center py-4 px-6 bg-white">
+				<div className="text-gray-600">Redirecting to login...</div>
+			</div>
+		);
+	}
+
 
 	if (loading && !data.overview.totalOrders) {
 		return (

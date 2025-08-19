@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,8 @@ import { DeletePopup } from "@/components/AdminPanel/Popups/DeletePopup.jsx";
 import { AddLanguagePopup } from "@/components/AdminPanel/Popups/AddLanguagePopup.jsx";
 import { UpdateLanguagePopup } from "@/components/AdminPanel/Popups/UpdateLanguagePopup.jsx";
 import { BulkUpdateLanguagesPopup } from "@/components/AdminPanel/Popups/BulkUpdateLanguagesPopup.jsx";
+import { useIsAuthenticated } from "@/store/adminAuthStore.js";
+import { useRouter } from "next/navigation";
 
 const languages = [
 	{
@@ -86,6 +88,29 @@ export default function LanguagesPage() {
 		language: null,
 	});
 	const [bulkUpdatePopup, setBulkUpdatePopup] = useState(false);
+	const isAuthenticated = useIsAuthenticated();
+	const [isRedirecting, setIsRedirecting] = useState(false);
+	const router = useRouter();
+
+	useEffect(() => {
+		if (!isAuthenticated) {
+			setIsRedirecting(true);
+			const timer = setTimeout(() => {
+				router.push("/admin/login");
+			}, 3);
+			
+			return () => clearTimeout(timer);
+		}
+	}, [isAuthenticated, router]);
+
+	// Show redirecting message if not authenticated
+	if (!isAuthenticated) {
+		return (
+			<div className="flex items-center justify-center py-4 px-6 bg-white">
+				<div className="text-gray-600">Redirecting to login...</div>
+			</div>
+		);
+	}
 
 	const handleSelectAll = (checked) => {
 		if (checked) {
