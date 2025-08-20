@@ -488,7 +488,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 								</div>
 
 								{/* Buy More & Save More */}
-								<div>
+								{/* <div>
 									<h3 className="text-xl font-bold mb-4">
 										Buy More & Save More
 									</h3>
@@ -521,7 +521,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 											</div>
 										))}
 									</div>
-								</div>
+								</div> */}
 							</CardContent>
 						</Card>
 					</motion.div>
@@ -568,9 +568,9 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 						<CardContent className="p-6">
 							<div className="flex items-center justify-between mb-6">
 								<h2 className="text-2xl font-bold">Reviews & Ratings</h2>
-								<Button className="bg-black text-white hover:bg-gray-800">
+								{/* <Button className="bg-black text-white hover:bg-gray-800">
 									WRITE A REVIEW
-								</Button>
+								</Button> */}
 							</div>
 
 							<p className="text-gray-600 mb-6">
