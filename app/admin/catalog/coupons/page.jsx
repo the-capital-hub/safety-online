@@ -221,7 +221,7 @@ export default function AdminCouponsPage() {
 										className="text-green-600 border-green-600 bg-transparent"
 										onClick={exportToJSON}
 									>
-										<Download className="w-4 h-4 mr-2" />
+										<Upload className="w-4 h-4 mr-2" />
 										Export JSON
 									</Button>
 

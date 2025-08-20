@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import User from "@/model/User.js";
-import connectDB from "@/lib/dbConnect.js";
+import { dbConnect } from "@/lib/dbConnect.js";
 
 // GET - Fetch single seller
 export async function GET(request, { params }) {
 	try {
-		await connectDB();
+		await dbConnect();
 
 		const seller = await User.findOne({
 			_id: params.id,
@@ -34,10 +34,10 @@ export async function GET(request, { params }) {
 // PUT - Update seller
 export async function PUT(request, { params }) {
 	try {
-		await connectDB();
+		await dbConnect();
 
 		const body = await request.json();
-		const { firstName, lastName, email, mobile, address, status } = body;
+		const { firstName, lastName, email, mobile, status } = body;
 
 		const seller = await User.findOneAndUpdate(
 			{ _id: params.id, userType: "seller" },
@@ -46,7 +46,6 @@ export async function PUT(request, { params }) {
 				lastName,
 				email,
 				mobile,
-				address,
 				status,
 			},
 			{ new: true, runValidators: true }
@@ -75,7 +74,7 @@ export async function PUT(request, { params }) {
 // DELETE - Delete seller
 export async function DELETE(request, { params }) {
 	try {
-		await connectDB();
+		await dbConnect();
 
 		const seller = await User.findOneAndDelete({
 			_id: params.id,

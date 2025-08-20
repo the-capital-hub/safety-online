@@ -182,4 +182,129 @@ export const useAdminCustomerStore = create((set, get) => ({
 			filters: { search: "", status: "" },
 		});
 	},
+
+	// Export functionality
+	exportToCSV: () => {
+		const { customers } = get();
+
+		if (!customers || customers.length === 0) {
+			toast.error("No customers data to export");
+			return;
+		}
+
+		try {
+			const csvContent = [
+				[
+					"ID",
+					"First Name",
+					"Last Name",
+					"Email",
+					"Mobile",
+					"Status",
+					"User Type",
+					"Verified",
+					"Last Login",
+					"Created At",
+					"Updated At",
+					"Address Count",
+					"Legacy Address",
+				].join(","),
+				...customers.map((customer) =>
+					[
+						customer._id || "",
+						`"${customer.firstName || ""}"`,
+						`"${customer.lastName || ""}"`,
+						`"${customer.email || ""}"`,
+						`"${customer.mobile || ""}"`,
+						customer.status || "",
+						customer.userType || "",
+						customer.isVerified ? "Yes" : "No",
+						customer.lastLogin
+							? new Date(customer.lastLogin).toLocaleDateString()
+							: "Never",
+						customer.createdAt
+							? new Date(customer.createdAt).toLocaleDateString()
+							: "",
+						customer.updatedAt
+							? new Date(customer.updatedAt).toLocaleDateString()
+							: "",
+						customer.addresses ? customer.addresses.length : 0,
+						`"${customer.address || ""}"`,
+					].join(",")
+				),
+			].join("\n");
+
+			const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+			const url = window.URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = `customers_${new Date().toISOString().split("T")[0]}.csv`;
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+			window.URL.revokeObjectURL(url);
+
+			toast.success("Customers data exported to CSV successfully");
+		} catch (error) {
+			toast.error("Failed to export customers data to CSV");
+			console.error("CSV Export Error:", error);
+		}
+	},
+
+	exportToJSON: () => {
+		const { customers } = get();
+
+		if (!customers || customers.length === 0) {
+			toast.error("No customers data to export");
+			return;
+		}
+
+		try {
+			// Clean up the data for export (remove sensitive information)
+			const exportData = customers.map((customer) => ({
+				id: customer._id,
+				firstName: customer.firstName,
+				lastName: customer.lastName,
+				email: customer.email,
+				mobile: customer.mobile,
+				status: customer.status,
+				userType: customer.userType,
+				isVerified: customer.isVerified,
+				lastLogin: customer.lastLogin,
+				createdAt: customer.createdAt,
+				updatedAt: customer.updatedAt,
+				profilePic: customer.profilePic,
+				legacyAddress: customer.address,
+				addresses: customer.addresses || [],
+				addressCount: customer.addresses ? customer.addresses.length : 0,
+			}));
+
+			const jsonContent = JSON.stringify(
+				{
+					exportDate: new Date().toISOString(),
+					totalCustomers: exportData.length,
+					customers: exportData,
+				},
+				null,
+				2
+			);
+
+			const blob = new Blob([jsonContent], {
+				type: "application/json;charset=utf-8;",
+			});
+			const url = window.URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = `customers_${new Date().toISOString().split("T")[0]}.json`;
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+			window.URL.revokeObjectURL(url);
+
+			toast.success("Customers data exported to JSON successfully");
+		} catch (error) {
+			toast.error("Failed to export customers data to JSON");
+			console.error("JSON Export Error:", error);
+		}
+	},
 }));

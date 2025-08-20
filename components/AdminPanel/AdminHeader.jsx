@@ -43,7 +43,7 @@ export function AdminHeader() {
 				{/* Left side: Sidebar + Search */}
 				<div className="flex items-center gap-4">
 					<SidebarTrigger />
-					<div className="relative">
+					{/* <div className="relative">
 						<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
 						<Input
 							placeholder="Search"
@@ -51,12 +51,12 @@ export function AdminHeader() {
 							onChange={(e) => setSearchQuery(e.target.value)}
 							className="pl-10 w-80"
 						/>
-					</div>
+					</div> */}
 				</div>
 
 				{/* Right side: Notifications + Profile */}
 				<div className="flex items-center gap-4">
-					<NotificationDropdown />
+					{/* <NotificationDropdown /> */}
 
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
@@ -84,16 +84,16 @@ export function AdminHeader() {
 									</span>
 								</div>
 							</div>
-							<DropdownMenuSeparator />
+							{/* <DropdownMenuSeparator /> */}
 
-							<DropdownMenuItem>
+							{/* <DropdownMenuItem>
 								<User className="mr-2 h-4 w-4" />
 								<span>Profile settings</span>
 							</DropdownMenuItem>
 							<DropdownMenuItem>
 								<Settings className="mr-2 h-4 w-4" />
 								<span>Account settings</span>
-							</DropdownMenuItem>
+							</DropdownMenuItem> */}
 							<DropdownMenuSeparator />
 							<DropdownMenuItem
 								className="text-red-600"

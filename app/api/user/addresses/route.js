@@ -111,7 +111,7 @@ export async function POST(request) {
 		}
 
 		// If this is set as default, unset other default addresses
-		if (isDefault) {
+		if (isDefault && user.addresses.length > 0) {
 			user.addresses.forEach((addr) => {
 				addr.isDefault = false;
 			});

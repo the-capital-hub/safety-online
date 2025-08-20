@@ -10,11 +10,14 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { useAdminAuthStore } from "@/store/adminAuthStore";
 
 export function LogoutPopup({ open, onOpenChange }) {
+	const { clearUser } = useAdminAuthStore();
 	const handleLogout = () => {
 		// Handle logout logic here
 		console.log("Logging out...");
+		clearUser();
 		onOpenChange(false);
 	};
 
@@ -30,13 +33,13 @@ export function LogoutPopup({ open, onOpenChange }) {
 						<div className="mx-auto mb-4 w-24 h-24 bg-blue-100 rounded-lg flex items-center justify-center">
 							<div className="text-4xl">👋</div>
 						</div>
-						<DialogTitle className="text-xl font-semibold">
-							Are You Trying Logging Out ?
+						<DialogTitle className="text-xl text-center font-semibold">
+							Are you sure you want to log out?
 						</DialogTitle>
-						<DialogDescription className="text-gray-600">
+						{/* <DialogDescription className="text-gray-600">
 							Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
 							eiusmod tempor incididunt ut labore et dolore
-						</DialogDescription>
+						</DialogDescription> */}
 					</DialogHeader>
 					<DialogFooter className="flex gap-3 mt-6">
 						<Button

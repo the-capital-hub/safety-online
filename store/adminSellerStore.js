@@ -180,4 +180,126 @@ export const useAdminSellerStore = create((set, get) => ({
 			filters: { search: "", status: "" },
 		});
 	},
+
+	// Export functionality
+	exportToCSV: () => {
+		const { sellers } = get();
+
+		if (!sellers || sellers.length === 0) {
+			toast.error("No sellers data to export");
+			return;
+		}
+
+		try {
+			const csvContent = [
+				[
+					"ID",
+					"First Name",
+					"Last Name",
+					"Email",
+					"Mobile",
+					"Status",
+					"User Type",
+					"Verified",
+					"Last Login",
+					"Created At",
+					"Updated At",
+					"Address Count",
+				].join(","),
+				...sellers.map((seller) =>
+					[
+						seller._id || "",
+						`"${seller.firstName || ""}"`,
+						`"${seller.lastName || ""}"`,
+						`"${seller.email || ""}"`,
+						`"${seller.mobile || ""}"`,
+						seller.status || "",
+						seller.userType || "",
+						seller.isVerified ? "Yes" : "No",
+						seller.lastLogin
+							? new Date(seller.lastLogin).toLocaleDateString()
+							: "Never",
+						seller.createdAt
+							? new Date(seller.createdAt).toLocaleDateString()
+							: "",
+						seller.updatedAt
+							? new Date(seller.updatedAt).toLocaleDateString()
+							: "",
+						seller.addresses ? seller.addresses.length : 0,
+					].join(",")
+				),
+			].join("\n");
+
+			const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+			const url = window.URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = `sellers_${new Date().toISOString().split("T")[0]}.csv`;
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+			window.URL.revokeObjectURL(url);
+
+			toast.success("Sellers data exported to CSV successfully");
+		} catch (error) {
+			toast.error("Failed to export sellers data to CSV");
+			console.error("CSV Export Error:", error);
+		}
+	},
+
+	exportToJSON: () => {
+		const { sellers } = get();
+
+		if (!sellers || sellers.length === 0) {
+			toast.error("No sellers data to export");
+			return;
+		}
+
+		try {
+			// Clean up the data for export (remove sensitive information)
+			const exportData = sellers.map((seller) => ({
+				id: seller._id,
+				firstName: seller.firstName,
+				lastName: seller.lastName,
+				email: seller.email,
+				mobile: seller.mobile,
+				status: seller.status,
+				userType: seller.userType,
+				isVerified: seller.isVerified,
+				lastLogin: seller.lastLogin,
+				createdAt: seller.createdAt,
+				updatedAt: seller.updatedAt,
+				profilePic: seller.profilePic,
+				addresses: seller.addresses || [],
+				addressCount: seller.addresses ? seller.addresses.length : 0,
+			}));
+
+			const jsonContent = JSON.stringify(
+				{
+					exportDate: new Date().toISOString(),
+					totalSellers: exportData.length,
+					sellers: exportData,
+				},
+				null,
+				2
+			);
+
+			const blob = new Blob([jsonContent], {
+				type: "application/json;charset=utf-8;",
+			});
+			const url = window.URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = `sellers_${new Date().toISOString().split("T")[0]}.json`;
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+			window.URL.revokeObjectURL(url);
+
+			toast.success("Sellers data exported to JSON successfully");
+		} catch (error) {
+			toast.error("Failed to export sellers data to JSON");
+			console.error("JSON Export Error:", error);
+		}
+	},
 }));

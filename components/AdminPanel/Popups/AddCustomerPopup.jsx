@@ -25,7 +25,7 @@ export function AddCustomerPopup({ open, onOpenChange }) {
 		email: "",
 		mobile: "",
 		password: "",
-		address: "",
+		// address: "",
 	});
 
 	const handleSubmit = async (e) => {
@@ -39,7 +39,7 @@ export function AddCustomerPopup({ open, onOpenChange }) {
 				email: "",
 				mobile: "",
 				password: "",
-				address: "",
+				// address: "",
 			});
 		}
 	};
@@ -139,7 +139,7 @@ export function AddCustomerPopup({ open, onOpenChange }) {
 							/>
 						</div>
 
-						<div>
+						{/* <div>
 							<Label htmlFor="address">Address</Label>
 							<Textarea
 								id="address"
@@ -151,7 +151,7 @@ export function AddCustomerPopup({ open, onOpenChange }) {
 								className="mt-1"
 								rows={3}
 							/>
-						</div>
+						</div> */}
 
 						<DialogFooter className="flex gap-3 mt-6">
 							<Button

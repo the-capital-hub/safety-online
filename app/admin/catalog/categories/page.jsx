@@ -171,7 +171,7 @@ export default function AdminCategoriesPage() {
 						Categories Management
 					</h1>
 					<p className="text-gray-600 mt-1">
-						Organize and manage your product categories
+						Organize and manage product categories
 					</p>
 				</motion.div>
 
