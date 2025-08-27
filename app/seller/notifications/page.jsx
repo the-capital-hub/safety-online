@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Heart, MessageSquare, MoreHorizontal, Filter } from "lucide-react";
+import { useIsSellerAuthenticated } from "@/store/sellerAuthStore";
 
 const notificationsData = [
 	{
@@ -80,6 +82,16 @@ const filterOptions = [
 ];
 
 export default function SellerNotificationsPage() {
+	const router = useRouter();
+	const isAuthenticated = useIsSellerAuthenticated();
+
+	useEffect(() => {
+		if (!isAuthenticated) {
+			router.push("/seller/login");
+			return;
+		}
+	}, [isAuthenticated, router]);
+
 	const [filters, setFilters] = useState(filterOptions);
 	const [replyingTo, setReplyingTo] = useState(null);
 

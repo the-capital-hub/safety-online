@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -12,6 +14,7 @@ import {
 	TrendingDown,
 	ChevronRight,
 } from "lucide-react";
+import { useIsSellerAuthenticated } from "@/store/sellerAuthStore";
 
 const statsData = [
 	{
@@ -82,6 +85,16 @@ const productActivity = [
 ];
 
 export default function SellerAnalyticsPage() {
+	const router = useRouter();
+	const isAuthenticated = useIsSellerAuthenticated();
+
+	useEffect(() => {
+		if (!isAuthenticated) {
+			router.push("/seller/login");
+			return;
+		}
+	}, [isAuthenticated, router]);
+
 	return (
 		<div className="p-6 space-y-6">
 			{/* Stats Cards */}

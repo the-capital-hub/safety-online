@@ -7,7 +7,10 @@ import { useState } from "react";
 
 export default function BuyersPanelLayout({ children }) {
 	const pathname = usePathname();
-	const showFooter = pathname === "/home" || pathname === "/cart";
+	const showFooter =
+		pathname === "/home" ||
+		pathname === "/cart" ||
+		pathname === "/children-helmet";
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 
 	return (

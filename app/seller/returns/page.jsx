@@ -1,9 +1,12 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { RotateCcw, ChevronLeft, ChevronRight } from "lucide-react";
+import { useIsSellerAuthenticated } from "@/store/sellerAuthStore";
 
 const returnsData = [
 	{
@@ -108,6 +111,16 @@ const returnsData = [
 ];
 
 export default function SellerReturnsPage() {
+	const router = useRouter();
+	const isAuthenticated = useIsSellerAuthenticated();
+
+	useEffect(() => {
+		if (!isAuthenticated) {
+			router.push("/seller/login");
+			return;
+		}
+	}, [isAuthenticated, router]);
+
 	return (
 		<div className="p-6">
 			{/* Orders Return */}
