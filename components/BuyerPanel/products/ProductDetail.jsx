@@ -168,7 +168,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 		<div className="min-h-screen bg-gray-50">
 			<div className="container mx-auto px-4 lg:px-10 py-8">
 				{/* Product Details */}
-				<div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+				<div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-10">
 					{/* Product Images */}
 					<div className="space-y-6">
 						<motion.div
@@ -275,14 +275,19 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 						</div>
 
 						{/* Product Colors */}
-						<div className="w-fit flex space-x-2 p-3 bg-gray-200 rounded-lg">
+						{/* <div className="w-fit flex space-x-2 p-3 bg-gray-200 rounded-lg">
 							{colors.map((color, i) => (
 								<div
 									key={i}
 									className={`w-6 h-6 rounded-full border border-gray-200 cursor-pointer ${color}`}
 								/>
 							))}
-						</div>
+						</div> */}
+
+						{/* Product short description */}
+						{product.description && (
+							<p className="text-gray-600">{product.description}</p>
+						)}
 
 						{/* Quantity and Add to Cart */}
 						<div className="space-y-4">
@@ -307,6 +312,23 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 										<Plus className="h-4 w-4" />
 									</Button>
 								</div>
+
+								{/* Stock Status */}
+								<div className="flex items-center space-x-2">
+									<div
+										className={`w-3 h-3 rounded-full ${
+											product.inStock ? "bg-green-500" : "bg-red-500"
+										}`}
+									/>
+									<span
+										className={
+											product.inStock ? "text-green-600" : "text-red-600"
+										}
+									>
+										{product.status}
+									</span>
+								</div>
+
 								<span className="text-sm text-gray-500">
 									({product.stocks} available)
 								</span>
@@ -339,22 +361,52 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 								</Button>
 							</div>
 						</div>
-
-						{/* Stock Status */}
-						<div className="flex items-center space-x-2">
-							<div
-								className={`w-3 h-3 rounded-full ${
-									product.inStock ? "bg-green-500" : "bg-red-500"
-								}`}
-							/>
-							<span
-								className={product.inStock ? "text-green-600" : "text-red-600"}
-							>
-								{product.status}
-							</span>
-						</div>
 					</motion.div>
 				</div>
+
+				{/* Product Description */}
+				{product.longDescription && (
+					<motion.div
+						className="mb-10"
+						initial={{ opacity: 0, y: 20 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ duration: 0.5, delay: 0.5 }}
+					>
+						<Card className="bg-white rounded-xl p-6 shadow-sm">
+							<h2 className="text-2xl font-bold mb-4">Product Description</h2>
+							<p className="text-gray-600 leading-relaxed">
+								{product.longDescription}
+							</p>
+						</Card>
+					</motion.div>
+				)}
+
+				{/* Product Features */}
+				{product.features && product.features.length > 0 && (
+					<motion.div
+						className="mb-10"
+						initial={{ opacity: 0, y: 20 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ duration: 0.5, delay: 0.5 }}
+					>
+						<Card className="bg-white rounded-xl p-6 shadow-sm">
+							<h2 className="text-2xl font-bold mb-4">Product Features</h2>
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+								{product.features.map((feature, index) => (
+									<Card
+										key={index}
+										className="bg-gray-50 rounded-xl p-6 shadow-sm"
+									>
+										<h3 className="font-semibold text-lg mb-3">
+											{feature.title}
+										</h3>
+										<p className="text-gray-600">{feature.description}</p>
+									</Card>
+								))}
+							</div>
+						</Card>
+					</motion.div>
+				)}
 
 				{/* Delivery Details and Offers */}
 				<div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-10">
@@ -526,36 +578,6 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 						</Card>
 					</motion.div>
 				</div>
-
-				{/* Product Features */}
-				{product.features && product.features.length > 0 && (
-					<motion.div
-						className="mb-10"
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.5, delay: 0.5 }}
-					>
-						<h2 className="text-2xl font-bold mb-8">Product Features</h2>
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-							{product.features.map((feature, index) => (
-								<Card key={index} className="bg-white rounded-xl p-6 shadow-sm">
-									<h3 className="font-semibold text-lg mb-3">
-										{feature.title}
-									</h3>
-									<p className="text-gray-600">{feature.description}</p>
-								</Card>
-							))}
-						</div>
-						{product.longDescription && (
-							<Card className="bg-white rounded-xl p-6 shadow-sm">
-								<h2 className="text-2xl font-bold mb-4">Product Description</h2>
-								<p className="text-gray-600 leading-relaxed">
-									{product.longDescription}
-								</p>
-							</Card>
-						)}
-					</motion.div>
-				)}
 
 				{/* Reviews & Ratings Section */}
 				<motion.div
