@@ -11,13 +11,16 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useAdminAuthStore } from "@/store/adminAuthStore";
+import { useSellerAuthStore } from "@/store/sellerAuthStore";
 
 export function LogoutPopup({ open, onOpenChange }) {
 	const { clearUser } = useAdminAuthStore();
+	const { clearSellerUser } = useSellerAuthStore();
 	const handleLogout = () => {
 		// Handle logout logic here
 		console.log("Logging out...");
 		clearUser();
+		clearSellerUser();
 		onOpenChange(false);
 	};
 
