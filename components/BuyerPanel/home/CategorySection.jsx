@@ -126,7 +126,7 @@ export default function CategorySection({
 							<Filter className="h-4 w-4" />
 							<span>FILTER</span>
 						</div> */}
-						<div className="flex space-x-1">
+						<div className="md:flex hidden space-x-1">
 							<Button
 								variant={viewMode === "grid" ? "default" : "outline"}
 								size="icon"

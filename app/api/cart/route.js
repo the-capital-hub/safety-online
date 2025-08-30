@@ -91,8 +91,8 @@ export async function POST(req) {
 		// Recalculate total price
 		await cart.populate("products.product");
 		cart.totalPrice = cart.products.reduce((total, item) => {
-			const price = item.product.salePrice || item.product.price;
-			return total + price * item.quantity;
+			const price = (product.salePrice > 0) ? product.salePrice : product.price;
+			return total + (price * item.quantity);
 		}, 0);
 
 		await cart.save();

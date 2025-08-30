@@ -8,7 +8,9 @@ import { useAuthStore } from "@/store/authStore.js";
 // Cart API functions
 const cartAPI = {
 	async fetchCart() {
-		const response = await fetch("/api/cart");
+		const response = await fetch("/api/cart",{
+			method:"GET"
+		});
 		if (!response.ok) {
 			if (response.status === 401) {
 				throw new Error("UNAUTHORIZED");
