@@ -120,11 +120,11 @@ const menuItems = [
 	// 		{ title: "Store Settings", href: "/admin/store/settings", icon: Cog },
 	// 	],
 	// },
-	{
-		title: "Sellers Support",
-		icon: HelpCircle,
-		href: "/admin/sellers-support",
-	},
+	// {
+	// 	title: "Sellers Support",
+	// 	icon: HelpCircle,
+	// 	href: "/admin/sellers-support",
+	// },
 ];
 
 export function AdminSidebar() {

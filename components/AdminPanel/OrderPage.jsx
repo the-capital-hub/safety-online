@@ -370,6 +370,7 @@ function OrderPage() {
 						<div className="flex gap-4 items-center">
 							<div className="flex items-center gap-2">
 								<Calendar className="w-4 h-4 text-gray-400" />
+								<h3>From</h3>
 								<Input
 									type="date"
 									className="w-40"
@@ -381,6 +382,7 @@ function OrderPage() {
 							</div>
 							<div className="flex items-center gap-2">
 								<Calendar className="w-4 h-4 text-gray-400" />
+								<h3>To</h3>
 								<Input
 									type="date"
 									className="w-40"
@@ -390,10 +392,10 @@ function OrderPage() {
 									}
 								/>
 							</div>
-							<Button className="bg-green-600 hover:bg-green-700">
+							{/* <Button className="bg-green-600 hover:bg-green-700">
 								<Filter className="w-4 h-4 mr-2" />
 								Apply Date Filter
-							</Button>
+							</Button> */}
 						</div>
 					</CardHeader>
 

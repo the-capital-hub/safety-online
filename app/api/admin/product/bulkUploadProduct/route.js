@@ -2,7 +2,7 @@
 
 import { dbConnect } from "@/lib/dbConnect";
 import Product from "@/model/Product";
-import { uploadMultipleImagesToCloudinary } from "@/lib/cloudnary.js";
+// import { uploadMultipleImagesToCloudinary } from "@/lib/cloudnary.js";
 
 export async function POST(request) {
 	await dbConnect();
@@ -38,28 +38,28 @@ export async function POST(request) {
 				let imageUrls = [];
 
 				// Handle image uploads if provided
-				if (productData.images && productData.images.length > 0) {
-					try {
-						// Extract base64 data from images
-						const base64Images = productData.images
-							.map((img) =>
-								typeof img === "string" && img.startsWith("data:")
-									? img
-									: img.base64
-							)
-							.filter(Boolean);
+				// if (productData.images && productData.images.length > 0) {
+				// 	try {
+				// 		// Extract base64 data from images
+				// 		const base64Images = productData.images
+				// 			.map((img) =>
+				// 				typeof img === "string" && img.startsWith("data:")
+				// 					? img
+				// 					: img.base64
+				// 			)
+				// 			.filter(Boolean);
 
-						if (base64Images.length > 0) {
-							imageUrls = await uploadMultipleImagesToCloudinary(
-								base64Images,
-								"products"
-							);
-						}
-					} catch (error) {
-						console.error("Image upload error for product:", title, error);
-						// Continue without images rather than failing the entire product
-					}
-				}
+				// 		if (base64Images.length > 0) {
+				// 			imageUrls = await uploadMultipleImagesToCloudinary(
+				// 				base64Images,
+				// 				"products"
+				// 			);
+				// 		}
+				// 	} catch (error) {
+				// 		console.error("Image upload error for product:", title, error);
+				// 		// Continue without images rather than failing the entire product
+				// 	}
+				// }
 
 				// Create new product
 				const product = new Product({
