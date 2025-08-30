@@ -463,10 +463,12 @@ export default function AdminProductsPage() {
 															)}
 														</div>
 														<div>
-															<div className="font-medium">{product.title}</div>
-															<div className="text-sm text-gray-500 line-clamp-1">
-																{product.description}
+															<div className="font-medium truncate">
+																{product.title}
 															</div>
+															{/* <div className="text-sm text-gray-500 truncate">
+																{product.description}
+															</div> */}
 														</div>
 													</div>
 												</TableCell>
