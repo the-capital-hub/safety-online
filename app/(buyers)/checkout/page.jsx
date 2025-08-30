@@ -50,26 +50,6 @@ export default function CheckoutPage() {
 	const user = useLoggedInUser();
 	const userEmail = useUserEmail();
 
-	// Check authentication - redirect if not logged in
-	useEffect(() => {
-		if (!user) {
-			toast.error("Please login to continue with checkout");
-			router.push("/login");
-			return;
-		}
-	}, [user, router]);
-
-	// Don't render anything if user is not authenticated
-	if (!user) {
-		return (
-			<div className="min-h-screen bg-gray-50 flex items-center justify-center">
-				<div className="text-center">
-					<Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-					<p>Redirecting to login...</p>
-				</div>
-			</div>
-		);
-	}
 
 	// Store selectors
 	const cartItems = useCartStore((state) => state.items);
@@ -120,6 +100,17 @@ export default function CheckoutPage() {
 	const getSelectedAddress = useCheckoutStore(
 		(state) => state.getSelectedAddress
 	);
+
+
+	// Check authentication - redirect if not logged in
+	useEffect(() => {
+		if (!user) {
+			toast.error("Please login to continue with checkout");
+			router.push("/login");
+			return;
+		}
+	}, [user, router]);
+
 
 	// Initialize customer info from user data
 	useEffect(() => {
@@ -785,6 +776,19 @@ export default function CheckoutPage() {
 		removeCoupon,
 		isLoading,
 	]);
+
+	
+	// Don't render anything if user is not authenticated
+	if (!user) {
+		return (
+			<div className="min-h-screen bg-gray-50 flex items-center justify-center">
+				<div className="text-center">
+					<Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+					<p>Redirecting to login...</p>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<>

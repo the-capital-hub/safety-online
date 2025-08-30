@@ -14,12 +14,15 @@ import {
 	useUserProfilePic,
 	useIsAuthenticated,
 } from "@/store/authStore.js";
+import NavigationBar from "./NavigationBar";
+import { useState } from "react";
 
-export default function Header({ onMenuToggle, isMenuOpen }) {
+export default function Header() {
 	const fullName = useUserFullName();
 	const email = useUserEmail();
 	const profilePic = useUserProfilePic();
 	const isAuthenticated = useIsAuthenticated();
+	const [isMenuOpen, setIsMenuOpen] = useState(false);
 
 	// console.log("isAuthenticated", isAuthenticated);
 
@@ -48,18 +51,18 @@ export default function Header({ onMenuToggle, isMenuOpen }) {
 						</div> */}
 
 						<div className="flex items-center space-x-2 md:space-x-4">
-							{/* <Button
+							<Button
 								variant="ghost"
 								size="icon"
 								className="lg:hidden"
-								onClick={onMenuToggle}
+								onClick={() => setIsMenuOpen(!isMenuOpen)}
 							>
 								{isMenuOpen ? (
 									<X className="h-6 w-6" />
 								) : (
 									<Menu className="h-6 w-6" />
 								)}
-							</Button> */}
+							</Button>
 
 							<Link href="/" className="flex items-center space-x-2">
 								{/* <div className="h-8 w-20 lg:w-24 bg-gray-200 rounded flex items-center justify-center">
@@ -121,6 +124,12 @@ export default function Header({ onMenuToggle, isMenuOpen }) {
 				</div>
 			</header>
 			<MiniCart />
+			<div className="md:hidden block">
+			<NavigationBar
+				isMenuOpen={isMenuOpen}
+				onMenuClose={() => setIsMenuOpen(false)}
+			/>
+			</div>
 		</>
 	);
 }

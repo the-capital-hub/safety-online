@@ -70,7 +70,7 @@ export default function ProductCarousel({
 							whileInView={{ opacity: 1, x: 0 }}
 							viewport={{ once: true }}
 							transition={{ delay: index * 0.1 }}
-							className="embla__slide flex-[0_0_100%] sm:flex-[0_0_50%] lg:flex-[0_0_33.333%] pl-4"
+							className="md:embla__slide flex-[0_0_100%] lg:flex-[0_0_33.333%] pl-4"
 						>
 							<ProductCard product={product} />
 						</motion.div>

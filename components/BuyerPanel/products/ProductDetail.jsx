@@ -334,12 +334,12 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 								</span>
 							</div>
 
-							<div className="flex flex-col sm:flex-row gap-4">
+							<div className="flex flex-col md:flex-row gap-4">
 								<Button
 									onClick={handleAddToCart}
 									disabled={!product.inStock || isLoading}
 									className="flex-1 bg-black text-white hover:bg-gray-800"
-									size="lg"
+									
 								>
 									<ShoppingCart className="h-5 w-5 mr-2" />
 									Add to Cart
@@ -348,17 +348,19 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 									onClick={handleBuyNow}
 									disabled={!product.inStock}
 									className="flex-1 bg-green-600 text-white hover:bg-green-700"
-									size="lg"
+									
 								>
 									Buy Now
 								</Button>
-								<Button variant="outline" size="lg">
+								<div className="grid grid-cols-2 gap-2">
+								<Button variant="outline" >
 									<Heart className="h-5 w-5 mr-2" />
 									Wishlist
 								</Button>
-								<Button variant="outline" size="lg">
+								<Button variant="outline" >
 									<Share2 className="h-5 w-5" />
 								</Button>
+								</div>
 							</div>
 						</div>
 					</motion.div>
@@ -421,7 +423,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 							<CardContent className="p-6">
 								<h2 className="text-2xl font-bold mb-6">Delivery Details</h2>
 
-								{/* Location Check */}
+								{/* Location Check
 								<div className="bg-white rounded-lg p-4 mb-6 flex items-center justify-between">
 									<div className="flex items-center space-x-3">
 										<MapPin className="h-6 w-6 text-gray-600" />
@@ -430,11 +432,11 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 									<Button className="bg-black text-white hover:bg-gray-800 rounded-full px-6">
 										CHECK
 									</Button>
-								</div>
-
+								</div> */}
+{/* 
 								<p className="text-gray-700 mb-6">
 									Check serviceability at your location
-								</p>
+								</p> */}
 
 								{/* Delivery Options */}
 								<div className="space-y-4">
@@ -483,7 +485,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 
 								{/* Offers List */}
 								<div className="space-y-4 mb-8">
-									<div className="flex items-start space-x-3">
+									{/* <div className="flex items-start space-x-3">
 										<div className="bg-green-600 p-1 rounded">
 											<div className="w-4 h-4 bg-white rounded-sm flex items-center justify-center">
 												<div className="w-2 h-2 bg-green-600 rounded-sm"></div>
@@ -497,7 +499,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 												via UPI, EMI, Credit/Debit Card, Net Banking, Wallets.
 											</p>
 										</div>
-									</div>
+									</div> */}
 
 									<div className="flex items-start space-x-3">
 										<div className="bg-green-600 p-1 rounded">
@@ -515,12 +517,12 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 														Min cart value ₹2,000
 													</p>
 												</div>
-												<Badge
+												{/* <Badge
 													variant="outline"
 													className="border-green-600 text-green-600 border-dashed"
 												>
 													SAFETY ₹1000
-												</Badge>
+												</Badge> */}
 											</div>
 										</div>
 									</div>
