@@ -667,7 +667,7 @@ export default function CheckoutPage() {
 					<Separator />
 
 					{/* Coupon Section - Only show for buyNow flow */}
-					{checkoutType === "buyNow" && (
+					{/* {checkoutType === "buyNow" && (
 						<>
 							<div className="space-y-3">
 								{appliedCoupon ? (
@@ -707,7 +707,7 @@ export default function CheckoutPage() {
 							</div>
 							<Separator />
 						</>
-					)}
+					)} */}
 
 					{/* Show applied cart coupon for cart flow */}
 					{checkoutType === "cart" && cartAppliedCoupon && (
