@@ -75,7 +75,7 @@ function ProductCardVarient({ product, variant = "vertical" }) {
 						</div>
 
 						{/* Action Buttons */}
-						<div className="flex justify-between items-center">
+						<div className="flex justify-between items-center gap-5 md:gap-0">
 							<div className="flex space-x-2">
 								<Button variant="outline" size="icon" className="rounded-full">
 									<ShoppingCart className="h-4 w-4" />
@@ -117,7 +117,7 @@ function ProductCardVarient({ product, variant = "vertical" }) {
 		>
 			<CardContent className="h-full relative p-0 flex flex-col">
 				{/* Product Info Header */}
-				<div className="flex justify-between items-start p-4 md:p-6 flex-shrink-0">
+				<div className="flex justify- items-start p-4 md:p-6 flex-shrink-0">
 					<div className="flex-1">
 						<h3 className="font-bold text-base md:text-lg mb-1 line-clamp-2">
 							{product?.title}
