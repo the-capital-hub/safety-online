@@ -88,12 +88,10 @@ export default function AdminCouponsPage() {
 			const timer = setTimeout(() => {
 				router.push("/admin/login");
 			}, 3);
-			
+
 			return () => clearTimeout(timer);
 		}
 	}, [isAuthenticated, router]);
-
-
 
 	const handleSearch = (value) => {
 		setFilters({ search: value });
@@ -172,7 +170,7 @@ export default function AdminCouponsPage() {
 			</div>
 		);
 	}
-	
+
 	if (error) {
 		return (
 			<div className="flex items-center justify-center min-h-[400px]">
@@ -555,6 +553,7 @@ export default function AdminCouponsPage() {
 				onOpenChange={(open) =>
 					setPopups((prev) => ({ ...prev, delete: { open, coupon: null } }))
 				}
+				title="Delete Coupon"
 				itemName={popups.delete.coupon?.name}
 				onConfirm={confirmDelete}
 			/>

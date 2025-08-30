@@ -17,7 +17,7 @@ export default function ProductGrid({ products, viewMode = "grid" }) {
 	const gridClass =
 		viewMode === "grid"
 			? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"
-			: "space-y-4";
+			: "grid grid-cols-1 xl:grid-cols-2 gap-8 w-full";
 
 	return (
 		<div className={gridClass}>
@@ -28,9 +28,9 @@ export default function ProductGrid({ products, viewMode = "grid" }) {
 					whileInView={{ opacity: 1, y: 0 }}
 					viewport={{ once: true }}
 					transition={{ delay: index * 0.1 }}
-					className={viewMode === "list" ? "max-w-md mx-auto" : ""}
+					className={viewMode === "list" ? "max-w-7xl mx-auto" : ""}
 				>
-					<ProductCard product={product} />
+					<ProductCard product={product} viewMode={viewMode} />
 				</motion.div>
 			))}
 		</div>

@@ -122,10 +122,10 @@ export default function CategorySection({
 						Top Products ({pagination?.totalProducts || products.length})
 					</h3>
 					<div className="flex items-center space-x-4">
-						<div className="flex items-center space-x-2 text-sm text-gray-600">
+						{/* <div className="flex items-center space-x-2 text-sm text-gray-600">
 							<Filter className="h-4 w-4" />
 							<span>FILTER</span>
-						</div>
+						</div> */}
 						<div className="flex space-x-1">
 							<Button
 								variant={viewMode === "grid" ? "default" : "outline"}
