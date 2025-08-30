@@ -37,6 +37,7 @@ import {
 	DollarSign,
 	Clock,
 	CheckCircle,
+	IndianRupee,
 } from "lucide-react";
 import { useAdminOrderStore } from "@/store/adminOrderStore.js";
 import { OrderDetailsPopup } from "@/components/AdminPanel/Popups/OrderDetailsPopup.jsx";
@@ -232,13 +233,13 @@ function OrderPage() {
 					<Card>
 						<CardContent className="p-6">
 							<div className="flex items-center">
-								<DollarSign className="h-8 w-8 text-green-600" />
+								<IndianRupee className="h-8 w-8 text-green-600" />
 								<div className="ml-4">
 									<p className="text-sm font-medium text-gray-600">
 										Total Revenue
 									</p>
 									<p className="text-2xl font-bold text-gray-900">
-										${stats.totalRevenue.toFixed(2)}
+										₹{stats.totalRevenue.toFixed(2)}
 									</p>
 								</div>
 							</div>
@@ -502,7 +503,7 @@ function OrderPage() {
 													</div>
 												</TableCell>
 												<TableCell className="font-medium text-green-600">
-													${order.totalAmount.toFixed(2)}
+													₹{order.totalAmount.toFixed(2)}
 												</TableCell>
 												<TableCell>
 													<Select

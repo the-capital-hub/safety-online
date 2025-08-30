@@ -113,14 +113,14 @@ export default function CartItem({ item }) {
 								</div>
 
 								{/* Wishlist Button - Need to add functionality */}
-								<Button
+								{/* <Button
 									variant="outline"
 									size="sm"
 									className="flex items-center gap-2"
 								>
 									<Heart className="h-4 w-4" />
 									Save for Later
-								</Button>
+								</Button> */}
 							</div>
 
 							{/* Item Total */}

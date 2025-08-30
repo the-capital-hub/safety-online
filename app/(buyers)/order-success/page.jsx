@@ -8,11 +8,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, Package, Truck, Home, Download } from "lucide-react";
 import Link from "next/link";
+import useOrder from "@/hooks/useOrder.js";
 
 export default function OrderSuccessPage() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const [orderDetails, setOrderDetails] = useState(null);
+	const [isDownloading, setIsDownloading] = useState(false);
+
+	// Use the useOrder hook
+	const { downloadInvoice } = useOrder();
 
 	const orderId = searchParams.get("orderId");
 	const orderNumber = searchParams.get("orderNumber");
@@ -32,6 +37,30 @@ export default function OrderSuccessPage() {
 			).toLocaleDateString(),
 		});
 	}, [orderId, orderNumber, router]);
+
+	const handleDownloadInvoice = async () => {
+		if (!orderDetails?.orderId || !orderDetails?.orderNumber) {
+			alert("Order details not available");
+			return;
+		}
+
+		setIsDownloading(true);
+
+		try {
+			const result = await downloadInvoice(
+				orderDetails.orderId,
+				orderDetails.orderNumber
+			);
+
+			if (!result.success) {
+				alert(result.message || "Failed to download invoice");
+			}
+		} catch (error) {
+			alert("An error occurred while downloading the invoice");
+		} finally {
+			setIsDownloading(false);
+		}
+	};
 
 	if (!orderDetails) {
 		return <div>Loading...</div>;
@@ -124,15 +153,20 @@ export default function OrderSuccessPage() {
 
 					{/* Action Buttons */}
 					<div className="flex flex-col sm:flex-row gap-4">
-						<Button asChild className="flex-1">
+						{/* <Button asChild className="flex-1">
 							<Link href="/orders">
 								<Package className="w-4 h-4 mr-2" />
 								Track Order
 							</Link>
-						</Button>
-						<Button variant="outline" className="flex-1 bg-transparent">
+						</Button> */}
+						<Button
+							variant="outline"
+							className="flex-1 bg-transparent"
+							onClick={handleDownloadInvoice}
+							disabled={isDownloading}
+						>
 							<Download className="w-4 h-4 mr-2" />
-							Download Invoice
+							{isDownloading ? "Downloading..." : "Download Invoice"}
 						</Button>
 						<Button variant="outline" asChild className="flex-1 bg-transparent">
 							<Link href="/products">
