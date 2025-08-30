@@ -53,13 +53,13 @@ export default function FeaturedSection({
 						Featured Products
 					</h2>
 
-					<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+					<div className="grid grid-cols-1 lg:grid-cols-3 md:gap-6">
 						{/* First Product - vertical */}
 						<motion.div
 							initial={{ opacity: 0, y: 30 }}
 							whileInView={{ opacity: 1, y: 0 }}
 							viewport={{ once: true }}
-							className="w-full col-span-1"
+							className="w-full col-span-1 mb-6 md:mb-0"
 						>
 							<ProductCardVarient
 								product={featuredProducts[0]}

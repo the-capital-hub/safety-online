@@ -34,14 +34,14 @@ function ProductCardVarient({ product, variant = "vertical" }) {
 											{product?.subtitle}
 										</p>
 									)}
-									<p className="text-gray-600 text-sm mb-4 line-clamp-3">
+									<p className="text-gray-600 text-sm mb-4 line-clamp-2">
 										{product?.description}
 									</p>
 								</div>
 							</div>
 
-							<div className="flex flex-col mb-4">
-								<p className="flex font-bold text-xl md:text-2xl mb-2">
+							<div className="flex gap-2 md:gap-0 md:flex-col items-center md:items-start mb-4">
+								<p className="flex font-bold text-xl md:text-2xl md:mb-2">
 									₹{product?.price}
 								</p>
 								{product?.originalPrice && (
@@ -54,7 +54,21 @@ function ProductCardVarient({ product, variant = "vertical" }) {
 								)}
 							</div>
 
-							{product?.colors && (
+							{/* Right side - Product Image - Hidden on Desktop */}
+							<div className="flex-1 w-full h-[300px] md:hidden overflow-hidden">
+								<Image
+									src={
+										product?.image ||
+										"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"
+									}
+									alt={product?.title || "Product Image"}
+									width={300}
+									height={300}
+									className="w-full h-[300px] object-contain"
+								/>
+							</div>
+
+							{/* {product?.colors && (
 								<div className="flex space-x-1">
 									{product?.colors.map((color, i) => (
 										<div
@@ -71,7 +85,7 @@ function ProductCardVarient({ product, variant = "vertical" }) {
 										/>
 									))}
 								</div>
-							)}
+							)} */}
 						</div>
 
 						{/* Action Buttons */}
@@ -91,8 +105,8 @@ function ProductCardVarient({ product, variant = "vertical" }) {
 						</div>
 					</div>
 
-					{/* Right side - Product Image */}
-					<div className="flex-1 w-full h-[300px] overflow-hidden">
+					{/* Right side - Product Image - Hidden on mobile */}
+					<div className="flex-1 w-full h-[300px] hidden md:block overflow-hidden">
 						<Image
 							src={
 								product?.image ||
@@ -127,6 +141,16 @@ function ProductCardVarient({ product, variant = "vertical" }) {
 								{product?.subtitle}
 							</p>
 						)}
+
+						{/* product? Description */}
+						{product?.description && (
+							<div className="pb-2 flex-shrink-0">
+								<p className="text-gray-600 text-sm line-clamp-2">
+									{product?.description}
+								</p>
+							</div>
+						)}
+
 						<div className="flex items-center mt-2">
 							<p className="font-bold text-lg md:text-xl">₹{product?.price}</p>
 							{product?.originalPrice && (
@@ -141,7 +165,7 @@ function ProductCardVarient({ product, variant = "vertical" }) {
 							)}
 						</div>
 					</div>
-					{product?.colors && (
+					{/* {product?.colors && (
 						<div className="flex space-x-1 flex-shrink-0 ml-2">
 							{product?.colors.map((color, i) => (
 								<div
@@ -158,17 +182,8 @@ function ProductCardVarient({ product, variant = "vertical" }) {
 								/>
 							))}
 						</div>
-					)}
+					)} */}
 				</div>
-
-				{/* product? Description */}
-				{product?.description && (
-					<div className="px-4 md:px-6 pb-2 flex-shrink-0">
-						<p className="text-gray-600 text-sm line-clamp-2">
-							{product?.description}
-						</p>
-					</div>
-				)}
 
 				{/* product? Image - Takes remaining space */}
 				<div className="relative flex-1 px-4 md:px-6 pb-16 md:pb-20">
@@ -178,7 +193,7 @@ function ProductCardVarient({ product, variant = "vertical" }) {
 								product?.image ||
 								"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"
 							}
-							alt={product?.title}
+							alt={product?.title || "Product Image"}
 							className="w-full h-full object-cover rounded-lg"
 						/>
 					</div>

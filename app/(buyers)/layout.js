@@ -4,6 +4,7 @@ import Header from "@/components/BuyerPanel/Header.jsx";
 import Footer from "@/components/BuyerPanel/Footer.jsx";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { Toaster } from "react-hot-toast";
 
 export default function BuyersPanelLayout({ children }) {
 	const pathname = usePathname();
@@ -23,6 +24,7 @@ export default function BuyersPanelLayout({ children }) {
 				{children}
 			</main>
 			{showFooter && <Footer />}
+			<Toaster />
 		</>
 	);
 }

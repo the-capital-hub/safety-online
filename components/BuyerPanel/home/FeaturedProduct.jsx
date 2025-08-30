@@ -109,7 +109,7 @@ export default function FeaturedProduct({ product }) {
 				<CardContent className="p-6 md:p-8">
 					<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 items-center">
 						<div
-							className="relative order-2 lg:order-1 cursor-pointer"
+							className="relative order-1 lg:order-2 cursor-pointer"
 							onClick={handleViewProduct}
 						>
 							{product.discountPercentage > 0 && (
@@ -118,14 +118,17 @@ export default function FeaturedProduct({ product }) {
 								</Badge>
 							)}
 							<Image
-								src={product.image || "https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"}
-								alt={product.name}
+								src={
+									product.image ||
+									"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"
+								}
+								alt={product.title || "Product Image"}
 								width={400}
 								height={400}
 								className="w-full h-auto rounded max-h-[400px] object-contain"
 							/>
 						</div>
-						<div className="order-1 lg:order-2">
+						<div className="order-2 lg:order-1">
 							<h3
 								className="text-xl md:text-2xl lg:text-4xl font-bold mb-4 cursor-pointer hover:text-blue-600"
 								onClick={handleViewProduct}

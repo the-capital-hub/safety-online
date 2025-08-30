@@ -16,6 +16,7 @@ import {
 	RefreshCw,
 	BarChart3,
 	PieChart,
+	IndianRupee,
 } from "lucide-react";
 import { useAdminDashboardStore } from "@/store/adminDashboardStore.js";
 import { StatsCard } from "@/components/AdminPanel/Dashboard/StatsCard.jsx";
@@ -40,7 +41,6 @@ export default function AdminDashboard() {
 	const router = useRouter();
 	useEffect(() => {
 		if (!isAuthenticated) {
-
 			const timer = setTimeout(() => {
 				router.push("/admin/login");
 			}, 3);
@@ -48,8 +48,6 @@ export default function AdminDashboard() {
 			return () => clearTimeout(timer);
 		}
 	}, [isAuthenticated, router]);
-
-
 
 	useEffect(() => {
 		fetchDashboardData();
@@ -66,7 +64,6 @@ export default function AdminDashboard() {
 			</div>
 		);
 	}
-
 
 	if (loading && !data.overview.totalOrders) {
 		return (
@@ -131,7 +128,7 @@ export default function AdminDashboard() {
 					title="Total Revenue"
 					value={`₹${data.overview.totalRevenue.toLocaleString()}`}
 					change={data.overview.revenueGrowth}
-					icon={DollarSign}
+					icon={IndianRupee}
 					color="green"
 					delay={0.2}
 				/>

@@ -95,7 +95,7 @@ export default function CartSummary() {
 					)}
 				</div> */}
 
-				<Separator />
+				{/* <Separator /> */}
 
 				{/* Order Breakdown */}
 				<div className="space-y-2">
