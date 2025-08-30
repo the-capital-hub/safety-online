@@ -50,7 +50,6 @@ export default function CheckoutPage() {
 	const user = useLoggedInUser();
 	const userEmail = useUserEmail();
 
-
 	// Store selectors
 	const cartItems = useCartStore((state) => state.items);
 	const cartAppliedPromo = useCartStore((state) => state.appliedPromo);
@@ -101,7 +100,6 @@ export default function CheckoutPage() {
 		(state) => state.getSelectedAddress
 	);
 
-
 	// Check authentication - redirect if not logged in
 	useEffect(() => {
 		if (!user) {
@@ -110,7 +108,6 @@ export default function CheckoutPage() {
 			return;
 		}
 	}, [user, router]);
-
 
 	// Initialize customer info from user data
 	useEffect(() => {
@@ -667,7 +664,7 @@ export default function CheckoutPage() {
 					<Separator />
 
 					{/* Coupon Section - Only show for buyNow flow */}
-					{checkoutType === "buyNow" && (
+					{/* {checkoutType === "buyNow" && (
 						<>
 							<div className="space-y-3">
 								{appliedCoupon ? (
@@ -707,7 +704,7 @@ export default function CheckoutPage() {
 							</div>
 							<Separator />
 						</>
-					)}
+					)} */}
 
 					{/* Show applied cart coupon for cart flow */}
 					{checkoutType === "cart" && cartAppliedCoupon && (
@@ -777,7 +774,6 @@ export default function CheckoutPage() {
 		isLoading,
 	]);
 
-	
 	// Don't render anything if user is not authenticated
 	if (!user) {
 		return (

@@ -122,7 +122,7 @@ export default function FeaturedProduct({ product }) {
 									product.image ||
 									"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"
 								}
-								alt={product.name}
+								alt={product.title || "Product Image"}
 								width={400}
 								height={400}
 								className="w-full h-auto rounded max-h-[400px] object-contain"

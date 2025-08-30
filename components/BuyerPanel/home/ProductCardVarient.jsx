@@ -61,7 +61,7 @@ function ProductCardVarient({ product, variant = "vertical" }) {
 										product?.image ||
 										"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"
 									}
-									alt={product?.title}
+									alt={product?.title || "Product Image"}
 									width={300}
 									height={300}
 									className="w-full h-[300px] object-contain"
@@ -193,7 +193,7 @@ function ProductCardVarient({ product, variant = "vertical" }) {
 								product?.image ||
 								"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"
 							}
-							alt={product?.title}
+							alt={product?.title || "Product Image"}
 							className="w-full h-full object-cover rounded-lg"
 						/>
 					</div>

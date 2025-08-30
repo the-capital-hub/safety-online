@@ -2,14 +2,14 @@
 
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Toaster } from "react-hot-toast";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AdminSidebar } from "@/components/AdminPanel/AdminSidebar.jsx";
 import { AdminHeader } from "@/components/AdminPanel/AdminHeader.jsx";
 
 export default function AdminLayout({ children }) {
 	const pathname = usePathname();
-	const showHeaderSidebar = pathname !== "/admin/login" && pathname !== "/admin/signup";
+	const showHeaderSidebar =
+		pathname !== "/admin/login" && pathname !== "/admin/signup";
 
 	return (
 		<SidebarProvider defaultOpen={true}>
@@ -32,7 +32,6 @@ export default function AdminLayout({ children }) {
 					</motion.main>
 				</div>
 			</div>
-			<Toaster />
 		</SidebarProvider>
 	);
 }
