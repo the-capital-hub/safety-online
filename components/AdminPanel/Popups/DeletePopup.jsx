@@ -12,7 +12,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
 
-export function DeletePopup({ open, onOpenChange, itemName, onConfirm }) {
+export function DeletePopup({
+	open,
+	onOpenChange,
+	itemName,
+	title,
+	onConfirm,
+}) {
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="sm:max-w-md">
@@ -28,7 +34,7 @@ export function DeletePopup({ open, onOpenChange, itemName, onConfirm }) {
 							</div>
 							<div>
 								<DialogTitle className="text-lg font-semibold">
-									Delete Product
+									{title} || "Delete Product"
 								</DialogTitle>
 								<DialogDescription className="text-gray-600">
 									Are you sure you want to delete "{itemName}"?

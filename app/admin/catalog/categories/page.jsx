@@ -85,7 +85,7 @@ export default function AdminCategoriesPage() {
 			const timer = setTimeout(() => {
 				router.push("/admin/login");
 			}, 3);
-			
+
 			return () => clearTimeout(timer);
 		}
 	}, [isAuthenticated, router]);
@@ -488,6 +488,7 @@ export default function AdminCategoriesPage() {
 				onOpenChange={(open) =>
 					setPopups((prev) => ({ ...prev, delete: { open, category: null } }))
 				}
+				title="Delete Category"
 				itemName={popups.delete.category?.name}
 				onConfirm={confirmDelete}
 			/>

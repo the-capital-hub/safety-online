@@ -135,7 +135,7 @@ export default function ProductShowcase({ products = [] }) {
 					{/* Right Column - Product Cards Carousel */}
 					<div className="lg:col-span-2">
 						<div className="overflow-hidden" ref={emblaRef}>
-							<div className="flex gap-4 sm:gap-6 lg:gap-8 ml-8">
+							<div className="flex gap-4 sm:gap-6 lg:gap-8 md:px-10">
 								{products.map((product, index) => (
 									<div
 										key={product.id}
