@@ -25,7 +25,7 @@ export default function NavigationBar({ isMenuOpen, onMenuClose }) {
 		{ id: "queue-management", label: "Q-Please" },
 		{ id: "fire-safety", label: "Fire Safety" },
 		{ id: "first-aid", label: "First Aid" },
-		{ id: "water-safety", label: "Water Safety" },
+		// { id: "water-safety", label: "Water Safety" },
 		{ id: "emergency-kit", label: "Emergency Kit" },
 	];
 
@@ -69,7 +69,7 @@ export default function NavigationBar({ isMenuOpen, onMenuClose }) {
 						))}
 					</div>
 
-					<form
+					{/* <form
 						onSubmit={handleSearch}
 						className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-4"
 					>
@@ -82,7 +82,7 @@ export default function NavigationBar({ isMenuOpen, onMenuClose }) {
 							/>
 							<Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
 						</div>
-					</form>
+					</form> */}
 				</div>
 			</div>
 		</nav>

@@ -29,9 +29,10 @@ export default function HomePage() {
 		refetch,
 	} = useHomeData(selectedCategory, searchQuery, currentPage);
 
-	console.log("top selling products", topSellingProducts);
-	console.log("best selling product", bestSellingProduct);
-	console.log("featured products", featuredProducts);
+	// console.log("discounted products", discountedProducts);
+	// console.log("top selling products", topSellingProducts);
+	// console.log("best selling product", bestSellingProduct);
+	// console.log("featured products", featuredProducts);
 
 	const handleSearch = (query) => {
 		setSearchQuery(query);
@@ -91,10 +92,10 @@ export default function HomePage() {
 				featuredProducts={featuredProducts}
 			/>
 
-			<SearchSection
+			{/* <SearchSection
 				searchQuery={searchQuery}
 				setSearchQuery={setSearchQuery}
-			/>
+			/> */}
 		</div>
 	);
 }

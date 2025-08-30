@@ -37,7 +37,7 @@ export default function Header({ onMenuToggle, isMenuOpen }) {
 					{/* Top Bar */}
 					<div className="flex items-center justify-between py-3">
 						{/* Desktop Menu */}
-						<div className="hidden lg:block">
+						{/* <div className="hidden lg:block">
 							<Button variant="ghost" size="icon" onClick={onMenuToggle}>
 								{isMenuOpen ? (
 									<X className="h-6 w-6" />
@@ -45,10 +45,10 @@ export default function Header({ onMenuToggle, isMenuOpen }) {
 									<Menu className="h-6 w-6" />
 								)}
 							</Button>
-						</div>
+						</div> */}
 
 						<div className="flex items-center space-x-2 md:space-x-4">
-							<Button
+							{/* <Button
 								variant="ghost"
 								size="icon"
 								className="lg:hidden"
@@ -59,7 +59,7 @@ export default function Header({ onMenuToggle, isMenuOpen }) {
 								) : (
 									<Menu className="h-6 w-6" />
 								)}
-							</Button>
+							</Button> */}
 
 							<Link href="/" className="flex items-center space-x-2">
 								{/* <div className="h-8 w-20 lg:w-24 bg-gray-200 rounded flex items-center justify-center">

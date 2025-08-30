@@ -7,20 +7,20 @@ import { ShoppingCart, Heart, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 function ProductCardVarient({ product, variant = "vertical" }) {
-        console.log("Product:", product);
-        const router = useRouter();
+	// console.log("Product:", product);
+	const router = useRouter();
 
-        const handleViewProduct = () => {
-                router.push(`/products/${product?.id || product?._id}`);
-        };
+	const handleViewProduct = () => {
+		router.push(`/products/${product?.id || product?._id}`);
+	};
 
-        if (variant === "horizontal") {
-                return (
-                        <Card
-                                onClick={handleViewProduct}
-                                className="w-full hover:shadow-lg transition-shadow duration-300 overflow-hidden cursor-pointer"
-                        >
-                                <CardContent className="p-0 flex justify-between h-full">
+	if (variant === "horizontal") {
+		return (
+			<Card
+				onClick={handleViewProduct}
+				className="w-full hover:shadow-lg transition-shadow duration-300 overflow-hidden cursor-pointer"
+			>
+				<CardContent className="p-0 flex justify-between h-full">
 					{/* Left side - Product Info */}
 					<div className="flex-1 p-4 md:p-6 flex flex-col justify-between">
 						<div>
@@ -42,11 +42,11 @@ function ProductCardVarient({ product, variant = "vertical" }) {
 
 							<div className="flex flex-col mb-4">
 								<p className="flex font-bold text-xl md:text-2xl mb-2">
-									{product?.price}
+									₹{product?.price}
 								</p>
 								{product?.originalPrice && (
 									<p className="text-gray-500 line-through text-sm">
-										{product?.originalPrice}
+										₹{product?.originalPrice}
 										<span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded ml-2">
 											25% OFF
 										</span>
@@ -94,7 +94,10 @@ function ProductCardVarient({ product, variant = "vertical" }) {
 					{/* Right side - Product Image */}
 					<div className="flex-1 w-full h-[300px] overflow-hidden">
 						<Image
-							src={product?.image || "https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"}
+							src={
+								product?.image ||
+								"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"
+							}
 							alt={product?.title}
 							width={300}
 							height={300}
@@ -107,12 +110,12 @@ function ProductCardVarient({ product, variant = "vertical" }) {
 	}
 
 	// Default vertical variant
-        return (
-                <Card
-                        onClick={handleViewProduct}
-                        className="w-full h-full hover:shadow-lg transition-shadow duration-300 cursor-pointer"
-                >
-                        <CardContent className="h-full relative p-0 flex flex-col">
+	return (
+		<Card
+			onClick={handleViewProduct}
+			className="w-full h-full hover:shadow-lg transition-shadow duration-300 cursor-pointer"
+		>
+			<CardContent className="h-full relative p-0 flex flex-col">
 				{/* Product Info Header */}
 				<div className="flex justify-between items-start p-4 md:p-6 flex-shrink-0">
 					<div className="flex-1">
@@ -125,11 +128,11 @@ function ProductCardVarient({ product, variant = "vertical" }) {
 							</p>
 						)}
 						<div className="flex items-center mt-2">
-							<p className="font-bold text-lg md:text-xl">{product?.price}</p>
+							<p className="font-bold text-lg md:text-xl">₹{product?.price}</p>
 							{product?.originalPrice && (
 								<>
 									<p className="text-gray-500 line-through ml-2 text-sm">
-										{product?.originalPrice}
+										₹{product?.originalPrice}
 									</p>
 									<span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded ml-2">
 										25% OFF
@@ -171,7 +174,10 @@ function ProductCardVarient({ product, variant = "vertical" }) {
 				<div className="relative flex-1 px-4 md:px-6 pb-16 md:pb-20">
 					<div className="w-full h-full overflow-hidden relative">
 						<img
-							src={product?.image || "https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"}
+							src={
+								product?.image ||
+								"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"
+							}
 							alt={product?.title}
 							className="w-full h-full object-cover rounded-lg"
 						/>

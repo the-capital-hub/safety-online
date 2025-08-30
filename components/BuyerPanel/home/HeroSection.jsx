@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +13,7 @@ import {
 import { HeroImg } from "@/public/images/home";
 
 export default function HeroSection() {
+	const router = useRouter();
 	const sidebarCategories = [
 		"SAFETY FIRST",
 		"FIRST AID KIT",
@@ -85,7 +87,10 @@ export default function HeroSection() {
 									It is the sum of safety precautions that determines the safety
 									of the people working near you.
 								</p>
-								<Button className="bg-black text-white px-6 md:px-8 py-2 md:py-3 rounded-full w-full md:w-fit">
+								<Button
+									className="bg-black text-white px-6 md:px-8 py-2 md:py-3 rounded-full w-full md:w-fit"
+									onClick={() => router.push("/products")}
+								>
 									BUY NOW
 									<ArrowRight className="ml-2 h-4 w-4" />
 								</Button>
@@ -117,13 +122,9 @@ export default function HeroSection() {
 				transition={{ delay: 1 }}
 				className="flex justify-center lg:absolute bottom-4 lg:bottom-6 left-1/2 transform -translate-x-1/2 animate-bounce"
 			>
-				<Button
-					variant="outline"
-					size="icon"
-					className="rounded-full bg-black text-white"
-				>
-					<ChevronDown className="h-4 w-4" />
-				</Button>
+				<div className="rounded-full bg-black text-white">
+					<ChevronDown className="h-8 w-8" />
+				</div>
 			</motion.div>
 		</section>
 	);
