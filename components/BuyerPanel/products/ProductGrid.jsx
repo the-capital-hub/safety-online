@@ -80,7 +80,7 @@ export default function ProductGrid() {
 						</Select>
 
 						{/* View Mode Toggle */}
-						<div className="flex items-center border rounded-lg">
+						<div className="md:flex items-center border rounded-lg hidden">
 							<Button
 								variant={viewMode === "grid" ? "default" : "ghost"}
 								size="sm"
