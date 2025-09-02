@@ -96,7 +96,7 @@ export default function Header() {
 
 							{isAuthenticated ? (
 								<div className="flex items-center space-x-2 md:space-x-4">
-									<Link href="/account">
+									<Link href="/account/profile">
 										<div className="flex items-center space-x-2">
 											<Image
 												src={profilePic}
@@ -113,7 +113,7 @@ export default function Header() {
 									</Link>
 								</div>
 							) : (
-								<Link href="/account">
+								<Link href="/login">
 									<Button variant="ghost" size="icon">
 										<User className="h-5 w-5 md:h-6 md:w-6" />
 									</Button>
@@ -125,10 +125,10 @@ export default function Header() {
 			</header>
 			<MiniCart />
 			<div className="md:hidden block">
-			<NavigationBar
-				isMenuOpen={isMenuOpen}
-				onMenuClose={() => setIsMenuOpen(false)}
-			/>
+				<NavigationBar
+					isMenuOpen={isMenuOpen}
+					onMenuClose={() => setIsMenuOpen(false)}
+				/>
 			</div>
 		</>
 	);

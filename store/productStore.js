@@ -157,8 +157,25 @@ export const useProductStore = create(
 					await get().fetchProducts();
 				},
 
-				getProductById: (id) => {
-					return get().products.find((product) => product.id === id);
+				getProductById: async (id) => {
+					try {
+						const response = await fetch(`/api/product/${id}`, {
+							method: "GET",
+						});
+
+						const data = await response.json();
+						// console.log("Product data(productStore):", data.product);
+
+						if (data.success) {
+							return data.product;
+						}
+
+						return null;
+					} catch (error) {
+						console.error("Failed to fetch product:", error);
+						return null;
+					}
+					// return get().products.find((product) => product.id === id);
 				},
 
 				addToCart: async (productId, quantity = 1) => {

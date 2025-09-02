@@ -1,3 +1,5 @@
+// app/api/orders/[id]/invoice/route.js
+
 import { NextResponse } from "next/server";
 import { dbConnect } from "@/lib/dbConnect.js";
 import Order from "@/model/Order.js";

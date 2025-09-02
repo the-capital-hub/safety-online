@@ -2,6 +2,7 @@
 
 import { dbConnect } from "@/lib/dbConnect.js";
 import Product from "@/model/Product.js";
+import Reviews from "@/model/Review.js";
 
 export async function GET(request) {
 	await dbConnect();
@@ -101,6 +102,7 @@ export async function GET(request) {
 		// Execute query with pagination
 		const skip = (page - 1) * limit;
 		const products = await Product.find(query)
+			.propulate("reviews")
 			.sort(sortObj)
 			.skip(skip)
 			.limit(limit)
