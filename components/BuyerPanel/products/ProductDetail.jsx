@@ -34,64 +34,10 @@ import Image from "next/image";
 export default function ProductDetail({ product, relatedProducts = [] }) {
 	const [selectedImage, setSelectedImage] = useState(0);
 	const [quantity, setQuantity] = useState(1);
-	const [selectedQuantityOffer, setSelectedQuantityOffer] = useState(null);
 	const router = useRouter();
 	const { addItem, isLoading } = useCartStore();
 
-	// Mock reviews data - you can replace this with real reviews from the API
-	const reviews = [
-		{
-			id: 1,
-			name: "KL RAHUL KUMAR KARTHIK",
-			rating: 5,
-			comment: `The ${product.name} offers superior protection and quality. Each item is carefully crafted to meet ISI standards, ensuring high-quality safety for demanding work conditions. Whether you're working in construction or industrial environments, this product delivers excellent value.`,
-		},
-		{
-			id: 2,
-			name: "VAIBHAV SHARMA",
-			rating: 5,
-			comment: `Excellent quality ${product.name}. The build quality is outstanding and it provides great value for money. Highly recommended for professional use.`,
-		},
-		{
-			id: 3,
-			name: "ANITA GUPTA",
-			rating: 4,
-			comment: `Good product overall. The ${product.name} meets expectations and the delivery was prompt. Would purchase again.`,
-		},
-		{
-			id: 4,
-			name: "RAJESH MEHTA",
-			rating: 4,
-			comment: `Quality product with good durability. The ${product.name} is well-designed and serves its purpose effectively.`,
-		},
-	];
-
-	const quantityOffers = [
-		{
-			qty: 2,
-			price: Math.round(product.price * 0.95),
-			discount: 5,
-			label: "Qty 2",
-		},
-		{
-			qty: 3,
-			price: Math.round(product.price * 0.9),
-			discount: 10,
-			label: "Qty 3",
-		},
-		{
-			qty: 5,
-			price: Math.round(product.price * 0.85),
-			discount: 15,
-			label: "Qty 5",
-		},
-		{
-			qty: 10,
-			price: Math.round(product.price * 0.8),
-			discount: 20,
-			label: "Qty 10",
-		},
-	];
+	// console.log("Product details:", product);
 
 	const handleAddToCart = async (e) => {
 		e.stopPropagation();
@@ -123,14 +69,6 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 			setQuantity(newQuantity);
 		}
 	};
-
-	const colors = [
-		"bg-blue-500",
-		"bg-black",
-		"bg-red-500",
-		"bg-orange-500",
-		"bg-gray-500",
-	];
 
 	const renderStars = (rating) => {
 		return Array.from({ length: 5 }, (_, i) => (
@@ -252,7 +190,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 									<Star className="w-4 h-4 fill-white text-white" />
 								</span>
 								<span className="ml-2 text-gray-600 font-semibold">
-									({reviews.length} Reviews)
+									({product.reviews.length} Reviews)
 								</span>
 							</div>
 
@@ -286,7 +224,9 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 
 						{/* Product short description */}
 						{product.description && (
-							<p className="text-gray-600">{product.description}</p>
+							<p className="text-gray-600 line-clamp-3">
+								{product.description}
+							</p>
 						)}
 
 						{/* Quantity and Add to Cart */}
@@ -339,7 +279,6 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 									onClick={handleAddToCart}
 									disabled={!product.inStock || isLoading}
 									className="flex-1 bg-black text-white hover:bg-gray-800"
-									
 								>
 									<ShoppingCart className="h-5 w-5 mr-2" />
 									Add to Cart
@@ -348,18 +287,17 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 									onClick={handleBuyNow}
 									disabled={!product.inStock}
 									className="flex-1 bg-green-600 text-white hover:bg-green-700"
-									
 								>
 									Buy Now
 								</Button>
 								<div className="grid grid-cols-2 gap-2">
-								<Button variant="outline" >
-									<Heart className="h-5 w-5 mr-2" />
-									Wishlist
-								</Button>
-								<Button variant="outline" >
-									<Share2 className="h-5 w-5" />
-								</Button>
+									<Button variant="outline">
+										<Heart className="h-5 w-5 mr-2" />
+										Wishlist
+									</Button>
+									{/* <Button variant="outline">
+										<Share2 className="h-5 w-5" />
+									</Button> */}
 								</div>
 							</div>
 						</div>
@@ -433,7 +371,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 										CHECK
 									</Button>
 								</div> */}
-{/* 
+								{/* 
 								<p className="text-gray-700 mb-6">
 									Check serviceability at your location
 								</p> */}
@@ -449,7 +387,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 												Free Delivery
 											</h3>
 											<p className="text-gray-600">
-												No shipping charge on this order
+												No shipping charges on orders above Rs. 500.
 											</p>
 										</div>
 									</div>
@@ -473,7 +411,9 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 					</motion.div>
 
 					{/* Offers and Coupons Section */}
-					<motion.div
+					{/* Offers List */}
+					{/* Buy More & Save More */}
+					{/* <motion.div
 						initial={{ opacity: 0, y: 20 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ duration: 0.5, delay: 0.4 }}
@@ -483,9 +423,8 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 							<CardContent className="p-6">
 								<h2 className="text-2xl font-bold mb-6">Offers and Coupons</h2>
 
-								{/* Offers List */}
 								<div className="space-y-4 mb-8">
-									{/* <div className="flex items-start space-x-3">
+									<div className="flex items-start space-x-3">
 										<div className="bg-green-600 p-1 rounded">
 											<div className="w-4 h-4 bg-white rounded-sm flex items-center justify-center">
 												<div className="w-2 h-2 bg-green-600 rounded-sm"></div>
@@ -499,7 +438,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 												via UPI, EMI, Credit/Debit Card, Net Banking, Wallets.
 											</p>
 										</div>
-									</div> */}
+									</div>
 
 									<div className="flex items-start space-x-3">
 										<div className="bg-green-600 p-1 rounded">
@@ -517,12 +456,12 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 														Min cart value ₹2,000
 													</p>
 												</div>
-												{/* <Badge
+												<Badge
 													variant="outline"
 													className="border-green-600 text-green-600 border-dashed"
 												>
 													SAFETY ₹1000
-												</Badge> */}
+												</Badge>
 											</div>
 										</div>
 									</div>
@@ -541,8 +480,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 									</div>
 								</div>
 
-								{/* Buy More & Save More */}
-								{/* <div>
+								<div>
 									<h3 className="text-xl font-bold mb-4">
 										Buy More & Save More
 									</h3>
@@ -575,10 +513,10 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 											</div>
 										))}
 									</div>
-								</div> */}
+								</div>
 							</CardContent>
 						</Card>
-					</motion.div>
+					</motion.div> */}
 				</div>
 
 				{/* Reviews & Ratings Section */}
@@ -592,9 +530,6 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 						<CardContent className="p-6">
 							<div className="flex items-center justify-between mb-6">
 								<h2 className="text-2xl font-bold">Reviews & Ratings</h2>
-								{/* <Button className="bg-black text-white hover:bg-gray-800">
-									WRITE A REVIEW
-								</Button> */}
 							</div>
 
 							<p className="text-gray-600 mb-6">
@@ -611,12 +546,13 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 										<Star className="w-8 h-8 fill-green-600 text-green-600" />
 									</div>
 									<p className="text-gray-600">
-										Average Rating based on {reviews.length} ratings and{" "}
-										{reviews.length} reviews
+										Average Rating based on {product?.reviews.length} ratings
+										and {product?.reviews.length} reviews
 									</p>
 								</div>
 
 								<div className="space-y-2">
+									{/* <h3 className="text-lg font-semibold mb-2">Rating Breakdown - Need to be fixed</h3> */}
 									{[5, 4, 3, 2, 1].map((stars) => (
 										<div key={stars} className="flex items-center space-x-3">
 											<span className="w-4 text-sm">{stars}</span>
@@ -639,29 +575,46 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 
 							{/* Individual Reviews */}
 							<div className="space-y-6">
-								{reviews.map((review) => (
-									<div
-										key={review.id}
-										className="border-b border-gray-200 pb-6 last:border-b-0"
-									>
-										<div className="flex items-start space-x-4">
-											<div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-												<User className="w-5 h-5 text-gray-600" />
-											</div>
-											<div className="flex-1">
-												<div className="flex items-center space-x-2 mb-2">
-													<h4 className="font-semibold">{review.name}</h4>
+								{product?.reviews.length > 0 ? (
+									product?.reviews.map((review) => (
+										<div
+											key={review.id}
+											className="border-b border-gray-200 pb-6 last:border-b-0"
+										>
+											<div className="flex items-start space-x-4">
+												<Image
+													src={review.user.profilePic}
+													width={32}
+													height={32}
+													className="w-10 h-10 text-gray-600 rounded-full object-cover"
+												/>
+												<div className="flex-1 space-y-1">
+													{/* User details */}
+													<div className="">
+														<div className="flex items-center space-x-2">
+															<h4 className="font-semibold">
+																{review.user.firstName +
+																	" " +
+																	review.user.lastName}
+															</h4>
+														</div>
+													</div>
+													<div className="flex items-center space-x-2 ">
+														<h4 className="font-semibold">{review.name}</h4>
+													</div>
+													<div className="flex items-center space-x-1">
+														{renderStars(review.rating)}
+													</div>
+													<p className="text-gray-700 text-sm leading-relaxed">
+														{review.comment}
+													</p>
 												</div>
-												<div className="flex items-center space-x-1 mb-3">
-													{renderStars(review.rating)}
-												</div>
-												<p className="text-gray-700 text-sm leading-relaxed">
-													{review.comment}
-												</p>
 											</div>
 										</div>
-									</div>
-								))}
+									))
+								) : (
+									<p className="text-gray-600">No reviews yet</p>
+								)}
 							</div>
 						</CardContent>
 					</Card>

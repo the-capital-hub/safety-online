@@ -132,31 +132,43 @@ export default function CheckoutPage() {
 	}, [user, loadUserAddresses]);
 
 	// Initialize checkout based on URL params
+	// Replace this useEffect in your checkout page:
 	useEffect(() => {
-		const buyNow = searchParams.get("buyNow");
-		const productId = searchParams.get("id");
-		const quantity = Number.parseInt(searchParams.get("qty") || "1");
+		const initializeBuyNow = async () => {
+			const buyNow = searchParams.get("buyNow");
+			const productId = searchParams.get("id");
+			const quantity = Number.parseInt(searchParams.get("qty") || "1");
 
-		if (buyNow === "true" && productId) {
-			// Buy Now flow
-			const product = getProductById(productId);
-			if (product) {
-				setCheckoutType("buyNow", product, quantity);
-				initializeCheckout([], product, quantity);
+			if (buyNow === "true" && productId) {
+				// Buy Now flow
+				try {
+					const product = await getProductById(productId);
+					// console.log("Product in checkout:", product);
+					if (product) {
+						setCheckoutType("buyNow", product, quantity);
+						initializeCheckout([], product, quantity);
+					} else {
+						toast.error("Product not found");
+						router.push("/products");
+					}
+				} catch (error) {
+					console.error("Failed to fetch product:", error);
+					toast.error("Failed to load product");
+					router.push("/products");
+				}
 			} else {
-				toast.error("Product not found");
-				router.push("/products");
+				// Cart checkout flow
+				if (cartItems.length === 0) {
+					toast.error("Your cart is empty");
+					router.push("/cart");
+					return;
+				}
+				setCheckoutType("cart");
+				initializeCheckout(cartItems, null, 1, cartAppliedPromo);
 			}
-		} else {
-			// Cart checkout flow
-			if (cartItems.length === 0) {
-				toast.error("Your cart is empty");
-				router.push("/cart");
-				return;
-			}
-			setCheckoutType("cart");
-			initializeCheckout(cartItems, null, 1, cartAppliedPromo);
-		}
+		};
+
+		initializeBuyNow();
 	}, [
 		searchParams,
 		cartItems,

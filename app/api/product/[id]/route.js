@@ -1,5 +1,6 @@
+// app/api/product/[id]/route.js
+
 import Product from "@/model/Product.js";
-import Reviews from "@/model/Review.js";
 import { dbConnect } from "@/lib/dbConnect.js";
 
 export async function GET(req, { params }) {
@@ -11,26 +12,11 @@ export async function GET(req, { params }) {
 	console.log("Product ID:", id);
 
 	try {
-		const product = await Product.findById(id).populate({
-			path: "reviews",
-			model: "Review",
-			populate: {
-				path: "user",
-				model: "User",
-				select: "firstName lastName profilePic",
-			},
-		});
+		const product = await Product.findById(id);
 
 		if (!product) {
 			return Response.json({ message: "Product not found" }, { status: 404 });
 		}
-
-		// Get related products from same category
-		const relatedProducts = await Product.find({
-			category: product.category,
-			_id: { $ne: product._id },
-			published: true,
-		}).limit(4);
 
 		// Transform product data to match frontend expectations
 		const transformedProduct = {
@@ -42,11 +28,11 @@ export async function GET(req, { params }) {
 			originalPrice: product.price,
 			discountPercentage: product.discount || 0,
 			category: product.category,
-			images: product.images || [],
-			gallery: product.images || [],
+			// gallery: product.images || [],
 			image:
 				product.images?.[0] ||
 				"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png",
+			images: product.images || [],
 			inStock: product.stocks > 0,
 			stocks: product.stocks,
 			status: product.stocks > 0 ? "In Stock" : "Out of Stock",
@@ -59,27 +45,9 @@ export async function GET(req, { params }) {
 			updatedAt: product.updatedAt,
 		};
 
-		// Transform related products
-		const transformedRelatedProducts = relatedProducts.map((p) => ({
-			id: p._id.toString(),
-			name: p.title,
-			description: p.description,
-			price: p.salePrice > 0 ? p.salePrice : p.price,
-			originalPrice: p.price,
-			discountPercentage: p.discount || 0,
-			image:
-				p.images?.[0] ||
-				"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png",
-			inStock: p.stocks > 0,
-			status: p.stocks > 0 ? "In Stock" : "Out of Stock",
-			category: p.category,
-			type: p.type,
-		}));
-
 		return Response.json({
 			success: true,
 			product: transformedProduct,
-			relatedProducts: transformedRelatedProducts,
 		});
 	} catch (error) {
 		console.error("Product fetch error:", error);

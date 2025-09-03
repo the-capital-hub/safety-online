@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,65 +20,36 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { Eye, Download } from "lucide-react";
-
-const orders = [
-	{
-		id: "#5302002",
-		product: "Helmet",
-		color: "yellow",
-		qty: 2,
-		date: "June 2, 2025",
-		price: "$253.82",
-		status: "Delivered",
-	},
-	{
-		id: "#5302003",
-		product: "Gloves",
-		color: "black",
-		qty: 3,
-		date: "June 5, 2025",
-		price: "$45.99",
-		status: "In Transit",
-	},
-	{
-		id: "#5302004",
-		product: "Goggles",
-		color: "blue",
-		qty: 5,
-		date: "June 7, 2025",
-		price: "$89.50",
-		status: "Pending",
-	},
-	{
-		id: "#5302005",
-		product: "Jacket",
-		color: "red",
-		qty: 1,
-		date: "June 10, 2025",
-		price: "$120.75",
-		status: "Delivered",
-	},
-	{
-		id: "#5302006",
-		product: "Pants",
-		color: "green",
-		qty: 4,
-		date: "June 12, 2025",
-		price: "$76.30",
-		status: "Returned",
-	},
-];
+import { Eye, Download, Loader2, AlertCircle } from "lucide-react";
+import { useOrderStore } from "@/store/orderStore.js";
+import { toast } from "react-hot-toast";
 
 const getStatusColor = (status) => {
 	const colors = {
-		Delivered: "bg-green-100 text-green-800",
-		"In Transit": "bg-blue-100 text-blue-800",
-		Pending: "bg-yellow-100 text-yellow-800",
-		Returned: "bg-red-100 text-red-800",
-		Cancelled: "bg-gray-100 text-gray-800",
+		delivered: "bg-green-100 text-green-800",
+		shipped: "bg-blue-100 text-blue-800",
+		processing: "bg-yellow-100 text-yellow-800",
+		pending: "bg-orange-100 text-orange-800",
+		confirmed: "bg-blue-100 text-blue-800",
+		cancelled: "bg-red-100 text-red-800",
+		returned: "bg-gray-100 text-gray-800",
 	};
-	return colors[status] || "bg-gray-100 text-gray-800";
+	return colors[status?.toLowerCase()] || "bg-gray-100 text-gray-800";
+};
+
+const formatDate = (dateString) => {
+	return new Date(dateString).toLocaleDateString("en-IN", {
+		year: "numeric",
+		month: "long",
+		day: "numeric",
+	});
+};
+
+const formatPrice = (price) => {
+	return new Intl.NumberFormat("en-IN", {
+		style: "currency",
+		currency: "INR",
+	}).format(price);
 };
 
 const tableVariants = {
@@ -94,67 +67,262 @@ const rowVariants = {
 	visible: { opacity: 1, y: 0 },
 };
 
-export function OrderHistory() {
+export function OrderHistory({ userId }) {
+	const {
+		orders,
+		loading,
+		error,
+		pagination,
+		fetchOrders,
+		fetchOrder,
+		downloadInvoice,
+	} = useOrderStore();
+
+	const [downloadingInvoices, setDownloadingInvoices] = useState(new Set());
+
+	useEffect(() => {
+		// Fetch orders when component mounts
+		fetchOrders();
+	}, [fetchOrders]);
+
+	const handleViewOrder = async (orderId) => {
+		try {
+			const result = await fetchOrder(orderId);
+			// You can add navigation logic here or open a modal
+			console.log("Order details fetched for:", orderId, result);
+		} catch (error) {
+			toast.error("Failed to fetch order details");
+		}
+	};
+
+	const handleDownloadInvoice = async (orderId, orderNumber) => {
+		setDownloadingInvoices((prev) => new Set(prev).add(orderId));
+
+		try {
+			const result = await downloadInvoice(orderId, orderNumber);
+			if (result.success) {
+				toast.success("Invoice downloaded successfully");
+			} else {
+				toast.error(result.message || "Failed to download invoice");
+			}
+		} catch (error) {
+			toast.error("Failed to download invoice");
+		} finally {
+			setDownloadingInvoices((prev) => {
+				const newSet = new Set(prev);
+				newSet.delete(orderId);
+				return newSet;
+			});
+		}
+	};
+
+	const handleExportAll = () => {
+		// Implement export all orders functionality
+		console.log("Export all orders");
+		toast.success("Export functionality coming soon");
+	};
+
+	if (loading && orders.length === 0) {
+		return (
+			<Card>
+				<CardHeader>
+					<CardTitle>Orders History</CardTitle>
+					<CardDescription>Loading your order history...</CardDescription>
+				</CardHeader>
+				<CardContent className="flex items-center justify-center py-8">
+					<Loader2 className="h-8 w-8 animate-spin" />
+				</CardContent>
+			</Card>
+		);
+	}
+
+	if (error) {
+		return (
+			<Card>
+				<CardHeader>
+					<CardTitle>Orders History</CardTitle>
+					<CardDescription>Error loading order history</CardDescription>
+				</CardHeader>
+				<CardContent className="flex items-center justify-center py-8">
+					<div className="text-center">
+						<AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
+						<p className="text-red-600">{error}</p>
+						<Button
+							variant="outline"
+							className="mt-4"
+							onClick={() => fetchOrders()}
+						>
+							Try Again
+						</Button>
+					</div>
+				</CardContent>
+			</Card>
+		);
+	}
+
 	return (
 		<Card>
 			<CardHeader className="flex flex-row items-center justify-between">
 				<div>
 					<CardTitle>Orders History</CardTitle>
-					<CardDescription>View and manage your order history</CardDescription>
+					<CardDescription>
+						{pagination.totalOrders > 0
+							? `Showing ${orders.length} of ${pagination.totalOrders} orders`
+							: "No orders found"}
+					</CardDescription>
 				</div>
-				<Button variant="outline" size="sm">
-					<Download className="h-4 w-4 mr-2" />
-					Export
-				</Button>
+				{/* {orders.length > 0 && (
+					<Button variant="outline" size="sm" onClick={handleExportAll}>
+						<Download className="h-4 w-4 mr-2" />
+						Export
+					</Button>
+				)} */}
 			</CardHeader>
 			<CardContent>
-				<motion.div variants={tableVariants} initial="hidden" animate="visible">
-					<Table>
-						<TableHeader>
-							<TableRow>
-								<TableHead>Order ID</TableHead>
-								<TableHead>Products</TableHead>
-								<TableHead>Qty</TableHead>
-								<TableHead>Order Date</TableHead>
-								<TableHead>Price</TableHead>
-								<TableHead>Status</TableHead>
-								<TableHead>Actions</TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{orders.map((order, index) => (
-								<motion.tr
-									key={order.id}
-									variants={rowVariants}
-									className="hover:bg-muted/50 transition-colors"
-								>
-									<TableCell className="font-medium">{order.id}</TableCell>
-									<TableCell>
-										<div>
-											<div className="font-medium">{order.product}</div>
-											<div className="text-sm text-muted-foreground">
-												{order.color}
+				{orders.length === 0 ? (
+					<div className="text-center py-8">
+						<p className="text-muted-foreground">No orders found</p>
+					</div>
+				) : (
+					<motion.div
+						variants={tableVariants}
+						initial="hidden"
+						animate="visible"
+					>
+						<Table>
+							<TableHeader>
+								<TableRow>
+									<TableHead>Order Number</TableHead>
+									<TableHead>Products</TableHead>
+									<TableHead>Total Items</TableHead>
+									<TableHead>Order Date</TableHead>
+									<TableHead>Total Amount</TableHead>
+									<TableHead>Status</TableHead>
+									<TableHead>Actions</TableHead>
+								</TableRow>
+							</TableHeader>
+							<TableBody>
+								{orders.map((order, index) => (
+									<motion.tr
+										key={order._id}
+										variants={rowVariants}
+										className="hover:bg-muted/50 transition-colors"
+									>
+										<TableCell className="font-medium">
+											{order.orderNumber}
+										</TableCell>
+										<TableCell>
+											<div>
+												{order.products.length === 1 ? (
+													<>
+														<div className="font-medium">
+															{order.products[0].productName}
+														</div>
+														<div className="text-sm text-muted-foreground">
+															Qty: {order.products[0].quantity}
+														</div>
+													</>
+												) : (
+													<>
+														<div className="font-medium">
+															{order.products[0].productName}
+														</div>
+														<div className="text-sm text-muted-foreground">
+															+{order.products.length - 1} more items
+														</div>
+													</>
+												)}
 											</div>
-										</div>
-									</TableCell>
-									<TableCell>{order.qty}</TableCell>
-									<TableCell>{order.date}</TableCell>
-									<TableCell className="font-medium">{order.price}</TableCell>
-									<TableCell>
-										<Badge className={getStatusColor(order.status)}>
-											{order.status}
-										</Badge>
-									</TableCell>
-									<TableCell>
-										<Button variant="ghost" size="sm">
-											<Eye className="h-4 w-4" />
-										</Button>
-									</TableCell>
-								</motion.tr>
-							))}
-						</TableBody>
-					</Table>
-				</motion.div>
+										</TableCell>
+										<TableCell>
+											{order.products.reduce(
+												(total, product) => total + product.quantity,
+												0
+											)}
+										</TableCell>
+										<TableCell>
+											{formatDate(order.orderDate || order.createdAt)}
+										</TableCell>
+										<TableCell className="font-medium">
+											{formatPrice(order.totalAmount)}
+										</TableCell>
+										<TableCell>
+											<Badge className={getStatusColor(order.status)}>
+												{order.status.charAt(0).toUpperCase() +
+													order.status.slice(1)}
+											</Badge>
+										</TableCell>
+										<TableCell>
+											<div className="flex items-center gap-2">
+												<Button
+													variant="ghost"
+													size="sm"
+													onClick={() => handleViewOrder(order._id)}
+													disabled={loading}
+												>
+													<Eye className="h-4 w-4" />
+												</Button>
+												<Button
+													variant="ghost"
+													size="sm"
+													onClick={() =>
+														handleDownloadInvoice(order._id, order.orderNumber)
+													}
+													disabled={downloadingInvoices.has(order._id)}
+												>
+													{downloadingInvoices.has(order._id) ? (
+														<Loader2 className="h-4 w-4 animate-spin" />
+													) : (
+														<Download className="h-4 w-4" />
+													)}
+												</Button>
+												<Link
+													href={`/reviews/${order._id}`}
+													className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition-colors hover:bg-muted"
+												>
+													Rate & Review
+												</Link>
+											</div>
+										</TableCell>
+									</motion.tr>
+								))}
+							</TableBody>
+						</Table>
+
+						{/* Pagination */}
+						{pagination.totalPages > 1 && (
+							<div className="flex items-center justify-between mt-4">
+								<div className="text-sm text-muted-foreground">
+									Page {pagination.currentPage} of {pagination.totalPages}
+								</div>
+								<div className="flex items-center gap-2">
+									<Button
+										variant="outline"
+										size="sm"
+										disabled={!pagination.hasPrev || loading}
+										onClick={() => {
+											// Implement previous page logic
+											console.log("Previous page");
+										}}
+									>
+										Previous
+									</Button>
+									<Button
+										variant="outline"
+										size="sm"
+										disabled={!pagination.hasNext || loading}
+										onClick={() => {
+											// Implement next page logic
+											console.log("Next page");
+										}}
+									>
+										Next
+									</Button>
+								</div>
+							</div>
+						)}
+					</motion.div>
+				)}
 			</CardContent>
 		</Card>
 	);
