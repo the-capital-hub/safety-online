@@ -597,28 +597,48 @@ export default function CheckoutPage() {
 							<ArrowLeft className="mr-2 h-4 w-4" />
 							Back
 						</Button>
-						<Button
-							onClick={handlePayment}
-							disabled={
-								paymentLoading ||
-								(paymentMethod === "razorpay" && !isRazorpayLoaded)
-							}
-							className="flex-1 bg-green-600 hover:bg-green-700"
-						>
-							{paymentLoading ? (
-								<>
-									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-									Processing...
-								</>
-							) : (
-								<>
-									{paymentMethod === "cod"
-										? "Place Order"
-										: `Pay ₹${orderSummary.total.toLocaleString()}`}
-									<ArrowRight className="ml-2 h-4 w-4" />
-								</>
-							)}
-						</Button>
+						{paymentMethod === "razorpay" && (
+							<Button
+								onClick={handlePayment}
+								disabled={
+									paymentLoading ||
+									(paymentMethod === "razorpay" && !isRazorpayLoaded)
+								}
+								className="flex-1 bg-green-600 hover:bg-green-700"
+							>
+								{paymentLoading ? (
+									<>
+										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+										Processing...
+									</>
+								) : (
+									<>
+										{`Pay ₹${orderSummary.total.toLocaleString()}`}
+										<ArrowRight className="ml-2 h-4 w-4" />
+									</>
+								)}
+							</Button>
+						)}
+
+						{paymentMethod === "cod" && (
+							<Button
+								onClick={handlePayment}
+								disabled={paymentLoading}
+								className="flex-1 bg-green-600 hover:bg-green-700"
+							>
+								{paymentLoading ? (
+									<>
+										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+										Processing...
+									</>
+								) : (
+									<>
+										Place Order
+										<ArrowRight className="ml-2 h-4 w-4" />
+									</>
+								)}
+							</Button>
+						)}
 					</div>
 				</CardContent>
 			</Card>

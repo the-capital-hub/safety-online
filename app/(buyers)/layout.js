@@ -10,6 +10,7 @@ export default function BuyersPanelLayout({ children }) {
 	const pathname = usePathname();
 	const showFooter =
 		pathname === "/home" ||
+		pathname.startsWith("/products/") ||
 		pathname === "/cart" ||
 		pathname === "/children-helmet";
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
