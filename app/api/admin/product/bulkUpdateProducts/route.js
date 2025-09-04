@@ -1,6 +1,6 @@
 import { dbConnect } from "@/lib/dbConnect";
 import Product from "@/model/Product";
-import { uploadMultipleImagesToCloudinary } from "@/lib/cloudnary.js";
+import { uploadMultipleImagesToCloudinary } from "@/lib/cloudinary.js";
 
 export async function PUT(request) {
 	await dbConnect();

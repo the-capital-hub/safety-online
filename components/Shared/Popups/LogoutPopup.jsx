@@ -12,14 +12,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { useAdminAuthStore } from "@/store/adminAuthStore";
 import { useSellerAuthStore } from "@/store/sellerAuthStore";
+import { useAuthStore } from "@/store/authStore";
 
 export function LogoutPopup({ open, onOpenChange }) {
-	const { clearUser } = useAdminAuthStore();
+	const { clearAdminUser } = useAdminAuthStore();
 	const { clearSellerUser } = useSellerAuthStore();
+	const { clearUser } = useAuthStore();
 	const handleLogout = () => {
 		// Handle logout logic here
 		console.log("Logging out...");
 		clearUser();
+		clearAdminUser();
 		clearSellerUser();
 		onOpenChange(false);
 	};

@@ -8,8 +8,8 @@ import { useAuthStore } from "@/store/authStore.js";
 // Cart API functions
 const cartAPI = {
 	async fetchCart() {
-		const response = await fetch("/api/cart",{
-			method:"GET"
+		const response = await fetch("/api/cart", {
+			method: "GET",
 		});
 		if (!response.ok) {
 			if (response.status === 401) {
@@ -131,14 +131,14 @@ export const useCartStore = create(
 					},
 
 					// Unified add item function - handles both authenticated and non-authenticated users
-					addItem: async (product) => {
+					addItem: async (product, quantity) => {
 						const isAuth = get().isAuthenticated();
 
 						if (isAuth) {
 							// For authenticated users: Update database directly
 							set({ isLoading: true });
 							try {
-								const data = await cartAPI.addToCart(product.id, 1);
+								const data = await cartAPI.addToCart(product.id, quantity);
 
 								// Update local state with server response
 								const serverItems = data.cart.products.map((item) => ({

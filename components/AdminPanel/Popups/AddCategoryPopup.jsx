@@ -13,7 +13,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useAdminCategoryStore } from "@/store/adminCategoryStore.js";
 
@@ -23,17 +22,47 @@ export function AddCategoryPopup({ open, onOpenChange }) {
 
 	const [formData, setFormData] = useState({
 		name: "",
-		description: "",
-		icon: "",
 		published: true,
-		sortOrder: 0,
+		subCategories: [],
 	});
+
+	const addSub = () => {
+		setFormData((prev) => ({
+			...prev,
+			subCategories: [...prev.subCategories, { name: "" }],
+		}));
+	};
+
+	const removeSub = (idx) => {
+		setFormData((prev) => ({
+			...prev,
+			subCategories: prev.subCategories.filter((_, i) => i !== idx),
+		}));
+	};
+
+	const updateSub = (idx, patch) => {
+		setFormData((prev) => ({
+			...prev,
+			subCategories: prev.subCategories.map((s, i) =>
+				i === idx ? { ...s, ...patch } : s
+			),
+		}));
+	};
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		setIsSubmitting(true);
 
-		const success = await addCategory(formData);
+		// sanitize
+		const payload = {
+			name: formData.name.trim(),
+			published: formData.published,
+			subCategories: (formData.subCategories || []).filter(
+				(s) => (s.name || "").trim() !== ""
+			),
+		};
+
+		const success = await addCategory(payload);
 		if (success) {
 			onOpenChange(false);
 			resetForm();
@@ -44,10 +73,8 @@ export function AddCategoryPopup({ open, onOpenChange }) {
 	const resetForm = () => {
 		setFormData({
 			name: "",
-			description: "",
-			icon: "",
 			published: true,
-			sortOrder: 0,
+			subCategories: [],
 		});
 	};
 
@@ -64,7 +91,7 @@ export function AddCategoryPopup({ open, onOpenChange }) {
 							Add Category
 						</DialogTitle>
 						<DialogDescription className="text-gray-600">
-							Add your category and necessary information from here
+							Add your category. You can also add subcategories below.
 						</DialogDescription>
 					</DialogHeader>
 
@@ -83,57 +110,6 @@ export function AddCategoryPopup({ open, onOpenChange }) {
 							/>
 						</div>
 
-						<div>
-							<Label htmlFor="description">Description *</Label>
-							<Textarea
-								id="description"
-								placeholder="Enter category description"
-								value={formData.description}
-								onChange={(e) =>
-									setFormData({ ...formData, description: e.target.value })
-								}
-								className="mt-1"
-								rows={3}
-								required
-							/>
-						</div>
-
-						<div>
-							<Label htmlFor="icon">Icon URL</Label>
-							<Input
-								id="icon"
-								placeholder="https://example.com/icon.png"
-								value={formData.icon}
-								onChange={(e) =>
-									setFormData({ ...formData, icon: e.target.value })
-								}
-								className="mt-1"
-							/>
-							<p className="text-xs text-gray-500 mt-1">
-								Optional: URL to category icon image
-							</p>
-						</div>
-
-						<div>
-							<Label htmlFor="sortOrder">Sort Order</Label>
-							<Input
-								id="sortOrder"
-								type="number"
-								placeholder="0"
-								value={formData.sortOrder}
-								onChange={(e) =>
-									setFormData({
-										...formData,
-										sortOrder: Number.parseInt(e.target.value) || 0,
-									})
-								}
-								className="mt-1"
-							/>
-							<p className="text-xs text-gray-500 mt-1">
-								Lower numbers appear first
-							</p>
-						</div>
-
 						<div className="flex items-center justify-between">
 							<div>
 								<Label>Publish Category</Label>
@@ -147,6 +123,41 @@ export function AddCategoryPopup({ open, onOpenChange }) {
 									setFormData({ ...formData, published: checked })
 								}
 							/>
+						</div>
+
+						<div className="space-y-2">
+							<div className="flex items-center justify-between">
+								<Label>Subcategories</Label>
+								<Button type="button" variant="outline" onClick={addSub}>
+									Add Subcategory
+								</Button>
+							</div>
+
+							{formData.subCategories.length === 0 && (
+								<p className="text-sm text-gray-500">
+									No subcategories added yet.
+								</p>
+							)}
+
+							<div className="space-y-3">
+								{formData.subCategories.map((sub, idx) => (
+									<div key={idx} className="flex items-center gap-2">
+										<Input
+											placeholder="Subcategory name"
+											value={sub.name}
+											onChange={(e) => updateSub(idx, { name: e.target.value })}
+										/>
+
+										<Button
+											type="button"
+											variant="destructive"
+											onClick={() => removeSub(idx)}
+										>
+											Remove
+										</Button>
+									</div>
+								))}
+							</div>
 						</div>
 
 						<DialogFooter className="flex gap-3 mt-6">

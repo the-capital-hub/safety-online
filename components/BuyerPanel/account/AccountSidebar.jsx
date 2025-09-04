@@ -1,8 +1,17 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter, usePathname } from "next/navigation";
-import { Package, User, CreditCard, Bell, HelpCircle } from "lucide-react";
+import {
+	Package,
+	User,
+	CreditCard,
+	Bell,
+	HelpCircle,
+	LogOut,
+} from "lucide-react";
+import { LogoutPopup } from "@/components/Shared/Popups/LogoutPopup.jsx";
 
 const sidebarItems = [
 	{
@@ -19,20 +28,20 @@ const sidebarItems = [
 		description: "View your past orders",
 		href: "/account/orders",
 	},
-	{
-		id: "payment-options",
-		title: "Payment Options",
-		icon: CreditCard,
-		description: "Cards, wallets & UPI",
-		href: "/account/payment",
-	},
-	{
-		id: "notification-settings",
-		title: "Notification Settings",
-		icon: Bell,
-		description: "Manage your notifications",
-		href: "/account/notifications",
-	},
+	// {
+	// 	id: "payment-options",
+	// 	title: "Payment Options",
+	// 	icon: CreditCard,
+	// 	description: "Cards, wallets & UPI",
+	// 	href: "/account/payment",
+	// },
+	// {
+	// 	id: "notification-settings",
+	// 	title: "Notification Settings",
+	// 	icon: Bell,
+	// 	description: "Manage your notifications",
+	// 	href: "/account/notifications",
+	// },
 	{
 		id: "help-center",
 		title: "Help Center",
@@ -57,6 +66,7 @@ const itemVariants = {
 export function AccountSidebar({ activeTab, onTabChange }) {
 	const router = useRouter();
 	const pathname = usePathname();
+	const [logoutOpen, setLogoutOpen] = useState(false);
 
 	const handleTabClick = (item) => {
 		onTabChange(item.id);
@@ -121,7 +131,19 @@ export function AccountSidebar({ activeTab, onTabChange }) {
 						</motion.div>
 					))}
 				</nav>
+				<button
+					onClick={() => setLogoutOpen(true)}
+					className="w-full text-left p-4 rounded-lg transition-all duration-200 group hover:bg-gray-50 mt-4"
+				>
+					<div className="flex items-center gap-3">
+						<LogOut className="h-5 w-5 text-gray-500 group-hover:text-gray-700" />
+						<span className="font-medium text-gray-900 group-hover:text-gray-900">
+							Logout
+						</span>
+					</div>
+				</button>
 			</div>
+			<LogoutPopup open={logoutOpen} onOpenChange={setLogoutOpen} />
 		</div>
 	);
 }

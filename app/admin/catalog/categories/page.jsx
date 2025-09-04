@@ -35,10 +35,9 @@ import {
 	ChevronLeft,
 	ChevronRight,
 	ArrowUpDown,
-	Package,
 } from "lucide-react";
 import { useAdminCategoryStore } from "@/store/adminCategoryStore.js";
-import { DeletePopup } from "@/components/AdminPanel/Popups/DeletePopup.jsx";
+import { DeleteCategoriesPopup } from "@/components/AdminPanel/Popups/DeleteCategoriesPopup.jsx";
 import { AddCategoryPopup } from "@/components/AdminPanel/Popups/AddCategoryPopup.jsx";
 import { UpdateCategoryPopup } from "@/components/AdminPanel/Popups/UpdateCategoryPopup.jsx";
 import { useIsAuthenticated } from "@/store/adminAuthStore.js";
@@ -286,7 +285,6 @@ export default function AdminCategoriesPage() {
 													onCheckedChange={handleSelectAll}
 												/>
 											</TableHead>
-											<TableHead>Icon</TableHead>
 											<TableHead>
 												<Button
 													variant="ghost"
@@ -297,7 +295,7 @@ export default function AdminCategoriesPage() {
 													<ArrowUpDown className="ml-2 h-4 w-4" />
 												</Button>
 											</TableHead>
-											<TableHead>Description</TableHead>
+											<TableHead>Subcategories</TableHead>
 											<TableHead>Products</TableHead>
 											<TableHead>Published</TableHead>
 											<TableHead>
@@ -330,46 +328,44 @@ export default function AdminCategoriesPage() {
 													/>
 												</TableCell>
 												<TableCell>
-													<div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold">
-														{category.icon ? (
-															<img
-																src={category.icon || "/placeholder.svg"}
-																alt={category.name}
-																className="w-full h-full object-cover rounded-lg"
-															/>
+													<div>
+														<div className="font-medium">{category.name}</div>
+													</div>
+												</TableCell>
+												<TableCell>
+													<div className="flex flex-wrap gap-2 max-w-md">
+														{(category.subCategories || []).length === 0 ? (
+															<span className="text-sm text-gray-500">
+																No subcategories
+															</span>
 														) : (
-															<Package className="w-5 h-5" />
+															(category.subCategories || []).map((sub, i) => (
+																<Badge
+																	key={i}
+																	variant="outline"
+																	className={
+																		sub.published
+																			? "bg-green-50 text-green-700"
+																			: "bg-gray-50 text-gray-600"
+																	}
+																>
+																	{sub.name}
+																</Badge>
+															))
 														)}
 													</div>
 												</TableCell>
 												<TableCell>
-													<div>
-														<div className="font-medium">{category.name}</div>
-														<div className="text-sm text-gray-500">
-															/{category.slug}
-														</div>
-													</div>
-												</TableCell>
-												<TableCell>
-													<div className="max-w-xs">
-														<p className="text-sm text-gray-600 line-clamp-2">
-															{category.description}
-														</p>
-													</div>
-												</TableCell>
-												<TableCell>
-													<div className="flex items-center gap-2">
-														<Badge
-															variant="outline"
-															className="bg-blue-50 text-blue-700"
-														>
-															{category.productCount || 0} products
-														</Badge>
-													</div>
+													<Badge
+														variant="outline"
+														className="bg-blue-50 text-blue-700"
+													>
+														{category.productCount || 0} products
+													</Badge>
 												</TableCell>
 												<TableCell>
 													<Switch
-														checked={category.published}
+														checked={!!category.published}
 														onCheckedChange={(checked) =>
 															handlePublishToggle(category._id, checked)
 														}
@@ -377,7 +373,11 @@ export default function AdminCategoriesPage() {
 												</TableCell>
 												<TableCell>
 													<div className="text-sm text-gray-500">
-														{new Date(category.createdAt).toLocaleDateString()}
+														{category.createdAt
+															? new Date(
+																	category.createdAt
+															  ).toLocaleDateString()
+															: ""}
 													</div>
 												</TableCell>
 												<TableCell>
@@ -483,12 +483,11 @@ export default function AdminCategoriesPage() {
 			</div>
 
 			{/* Popups */}
-			<DeletePopup
+			<DeleteCategoriesPopup
 				open={popups.delete.open}
 				onOpenChange={(open) =>
 					setPopups((prev) => ({ ...prev, delete: { open, category: null } }))
 				}
-				title="Delete Category"
 				itemName={popups.delete.category?.name}
 				onConfirm={confirmDelete}
 			/>

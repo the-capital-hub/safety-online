@@ -1,6 +1,6 @@
 import { dbConnect } from "@/lib/dbConnect.js";
 import Product from "@/model/Product.js";
-import cloudinary from "@/lib/cloudnary.js";
+import cloudinary from "@/lib/cloudinary.js";
 
 export async function POST(request) {
 	await dbConnect();

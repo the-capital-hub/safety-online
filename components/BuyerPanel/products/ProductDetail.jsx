@@ -35,7 +35,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 	const [selectedImage, setSelectedImage] = useState(0);
 	const [quantity, setQuantity] = useState(1);
 	const router = useRouter();
-	const { addItem, isLoading } = useCartStore();
+	const { addItem, updateQuantity, isLoading } = useCartStore();
 
 	// console.log("Product details:", product);
 
@@ -43,15 +43,18 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 		e.stopPropagation();
 
 		// Use the unified addItem function
-		await addItem({
-			id: product.id || product._id,
-			name: product.title,
-			description: product.description,
-			price: product.salePrice || product.price,
-			originalPrice: product.price,
-			image: product.images?.[0] || product.image,
-			inStock: product.inStock,
-		});
+		await addItem(
+			{
+				id: product.id || product._id,
+				name: product.title,
+				description: product.description,
+				price: product.salePrice || product.price,
+				originalPrice: product.price,
+				image: product.images?.[0] || product.image,
+				inStock: product.inStock,
+			},
+			quantity
+		);
 	};
 
 	const handleBuyNow = async (e) => {

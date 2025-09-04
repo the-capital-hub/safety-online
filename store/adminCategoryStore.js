@@ -240,7 +240,7 @@ export const useAdminCategoryStore = create((set, get) => ({
 			[
 				"ID",
 				"Name",
-				"Description",
+				"Subcategories",
 				"Published",
 				"Product Count",
 				"Created At",
@@ -249,10 +249,12 @@ export const useAdminCategoryStore = create((set, get) => ({
 				[
 					category._id,
 					`"${category.name}"`,
-					`"${category.description}"`,
+					category.subCategories ? category.subCategories.length : 0,
 					category.published ? "Yes" : "No",
 					category.productCount || 0,
-					new Date(category.createdAt).toLocaleDateString(),
+					category.createdAt
+						? new Date(category.createdAt).toLocaleDateString()
+						: "",
 				].join(",")
 			),
 		].join("\n");
