@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { dbConnect } from "@/lib/dbConnect.js";
-import User from "@/models/User";
+import User from "@/model/User";
 import cloudinary from "@/lib/cloudinary.js";
 import jwt from "jsonwebtoken";
 
