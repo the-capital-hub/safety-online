@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -15,11 +16,22 @@ import { HeroImg } from "@/public/images/home";
 export default function HeroSection() {
 	const router = useRouter();
 	const sidebarCategories = [
-		"SAFETY FIRST",
+		"INDUSTRIAL SAFETY",
+		"FIRE SAFETY",
+		"ROAD SAFETY",
 		"FIRST AID KIT",
-		"HOME SAFETY",
-		"CAR SAFETY",
 	];
+
+	const [activeIdx, setActiveIdx] = useState(0);
+	const [paused, setPaused] = useState(false);
+
+	useEffect(() => {
+		if (paused) return;
+		const id = setInterval(() => {
+			setActiveIdx((i) => (i + 1) % sidebarCategories.length);
+		}, 1500); // change speed here (ms)
+		return () => clearInterval(id);
+	}, [paused, sidebarCategories.length]);
 
 	return (
 		<section className="relative bg-gray-100 overflow-hidden max-h-fit lg:max-h-[calc(100vh-136px)] h-full px-10">
@@ -34,6 +46,7 @@ export default function HeroSection() {
 					>
 						SAFETY GEAR,
 					</motion.h1>
+
 					<motion.h1
 						initial={{ opacity: 0, y: 30 }}
 						animate={{ opacity: 1, y: 0 }}
@@ -56,23 +69,39 @@ export default function HeroSection() {
 					</motion.h1>
 
 					<div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
-						<div className="flex flex-col items-center lg:items-start lg:space-y-4 order-3 lg:order-1">
-							{sidebarCategories.map((category, index) => (
-								<motion.div
-									key={category}
-									initial={{ opacity: 0, x: -20 }}
-									animate={{ opacity: 1, x: 0 }}
-									transition={{ delay: index * 0.1 }}
-								>
-									<p
-										className={`text-lg lg:text-2xl font-bold whitespace-nowrap lg:whitespace-normal ${
-											index === 0 ? "text-black" : "text-gray-300"
-										}`}
+						{/* Sidebar categories */}
+						<div
+							className="flex flex-col items-center lg:items-start lg:space-y-4 order-3 lg:order-1"
+							onMouseEnter={() => setPaused(true)}
+							onMouseLeave={() => setPaused(false)}
+						>
+							{sidebarCategories.map((category, index) => {
+								const isActive = index === activeIdx;
+								return (
+									<motion.div
+										key={category}
+										initial={{ opacity: 0, x: -20 }}
+										animate={{ opacity: 1, x: 0 }}
+										transition={{ delay: index * 0.1 }}
 									>
-										{category}
-									</p>
-								</motion.div>
-							))}
+										<motion.p
+											// Smoothly animate color/scale between active/inactive
+											animate={{
+												color: isActive ? "#000000" : "#D1D5DB", // black vs gray-300
+												scale: isActive ? 1.05 : 1,
+											}}
+											transition={{
+												type: "spring",
+												stiffness: 200,
+												damping: 20,
+											}}
+											className="text-lg lg:text-2xl font-bold whitespace-nowrap lg:whitespace-normal"
+										>
+											{category}
+										</motion.p>
+									</motion.div>
+								);
+							})}
 						</div>
 
 						<div className="order-2 lg:order-3">
