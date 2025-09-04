@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
+import { useAuthStore } from "@/store/authStore.js";
 
 export const useOrderStore = create(
 	devtools(
@@ -36,6 +37,11 @@ export const useOrderStore = create(
 				// Clear error
 				clearError: () => set({ error: null }),
 
+				userId: () => {
+					const user = useAuthStore.getState().user;
+					return user ? user._id : null;
+				},
+
 				// Fetch orders with optional filters
 				fetchOrders: async (customFilters = null) => {
 					const { filters } = get();
@@ -45,6 +51,9 @@ export const useOrderStore = create(
 
 					try {
 						const queryParams = new URLSearchParams();
+
+						// add userId
+						queryParams.append("userId", useOrderStore.getState().userId());
 
 						// Add pagination
 						queryParams.append("page", activeFilters.page?.toString() || "1");
