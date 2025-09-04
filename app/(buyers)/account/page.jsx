@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { MyProfile } from "@/components/BuyerPanel/account/tabs/MyProfile.jsx";
+import { useIsAuthenticated } from "@/store/authStore";
 
 const contentVariants = {
 	initial: { opacity: 0, x: 20 },
@@ -14,11 +15,19 @@ const contentVariants = {
 
 export default function AccountPage() {
 	const router = useRouter();
+	const pathname = usePathname();
+	const isAuthenticated = useIsAuthenticated();
 
-	// Redirect to profile page by default
 	useEffect(() => {
+	const protectedRoutes = ["/account/profile", "/account/help", "/account/orders"];
+
+	if (protectedRoutes.some((route) => pathname.startsWith(route)) && !isAuthenticated) {
+		router.replace("/login");
+	} else if (pathname === "/account" && isAuthenticated) {
 		router.replace("/account/profile");
-	}, [router]);
+	}
+}, [pathname, isAuthenticated, router]);
+
 
 	return (
 		<AnimatePresence mode="wait">

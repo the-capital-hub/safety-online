@@ -19,13 +19,29 @@ import {
 	AccordionTrigger,
 } from "@/components/ui/accordion";
 import {
-	Search,
-	MessageCircle,
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+	DialogDescription,
+} from "@/components/ui/dialog";4
+import {
+	DropdownMenu,
+	DropdownMenuTrigger,
+	DropdownMenuContent,
+	DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import {
+	// Search,
+	// MessageCircle,
 	Phone,
 	Mail,
 	FileText,
 	ExternalLink,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import toast from "react-hot-toast";
 
 const cardVariants = {
 	hidden: { opacity: 0, y: 20 },
@@ -68,30 +84,94 @@ const faqs = [
 ];
 
 const contactMethods = [
-	{
-		icon: MessageCircle,
-		title: "Live Chat",
-		description: "Chat with our support team",
-		action: "Start Chat",
-		available: "24/7",
-	},
+	// {
+	// 	icon: MessageCircle,
+	// 	title: "Live Chat",
+	// 	description: "Chat with our support team",
+	// 	action: "Start Chat",
+	// 	available: "24/7",
+	// },
 	{
 		icon: Phone,
 		title: "Phone Support",
-		description: "Call us for immediate assistance",
+		description: "Call us on +919945234161 for immediate assistance",
 		action: "Call Now",
 		available: "Mon-Fri 9AM-6PM",
 	},
 	{
 		icon: Mail,
 		title: "Email Support",
-		description: "Send us a detailed message",
+		description: "Send us a detailed message on hello@safetyonline.in",
 		action: "Send Email",
 		available: "Response within 24hrs",
 	},
 ];
 
 export function HelpCenter() {
+	const router = useRouter();
+
+	const [subject, setSubject] = useState("");
+	const [category, setCategory] = useState("");
+	const [message, setMessage] = useState("");
+	const [loading, setLoading] = useState(false);
+
+	const [messages, setMessages] = useState([]);
+	const [selectedMessage, setSelectedMessage] = useState(null);
+	const [openDialog, setOpenDialog] = useState(false);
+
+	const fetchMessages = async () => {
+		try {
+			const res = await fetch("/api/support", { method: "GET" });
+			const data = await res.json();
+			if (data.success) {
+				setMessages(data.messages);
+			}
+		} catch (error) {
+			console.error("Error fetching messages:", error);
+		}
+	};
+
+	useEffect(() => {
+		fetchMessages();
+	}, []);
+
+	const handleSubmit = async () => {
+		if (!subject || !category || !message) {
+			toast.error("Please fill in all fields");
+			return;
+		}
+		const wordCount = message.trim().split(/\s+/).length;
+		if (wordCount < 10) {
+			toast.error("Message must be at least 10 words long");
+			return;
+		}
+
+		setLoading(true);
+		try {
+			const res = await fetch("/api/support", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ subject, category, message }),
+			});
+
+			const data = await res.json();
+
+			if (data.success) {
+				toast.success(data.message || "Message sent successfully");
+				setSubject("");
+				setCategory("");
+				setMessage("");
+				fetchMessages(); // refresh messages
+			} else {
+				toast.error(data.message || "Failed to send message. Try again.");
+			}
+		} catch (error) {
+			toast.error("Something went wrong. Please try again later.");
+		} finally {
+			setLoading(false);
+		}
+	};
+
 	return (
 		<div className="space-y-6">
 			{/* Search Help */}
@@ -104,11 +184,11 @@ export function HelpCenter() {
 				<Card>
 					<CardHeader>
 						<CardTitle>How can we help you?</CardTitle>
-						<CardDescription>
+						{/* <CardDescription>
 							Search our help center or browse frequently asked questions
-						</CardDescription>
+						</CardDescription> */}
 					</CardHeader>
-					<CardContent>
+					{/* <CardContent>
 						<div className="relative">
 							<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
 							<Input
@@ -116,7 +196,7 @@ export function HelpCenter() {
 								className="pl-10"
 							/>
 						</div>
-					</CardContent>
+					</CardContent> */}
 				</Card>
 			</motion.div>
 
@@ -135,7 +215,7 @@ export function HelpCenter() {
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
-						<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 							{contactMethods.map((method) => (
 								<div
 									key={method.title}
@@ -202,11 +282,43 @@ export function HelpCenter() {
 						<div className="grid grid-cols-2 gap-4">
 							<div className="space-y-2">
 								<Label htmlFor="subject">Subject</Label>
-								<Input id="subject" placeholder="What's this about?" />
+								<Input
+									id="subject"
+									placeholder="What's this about?"
+									value={subject}
+									onChange={(e) => setSubject(e.target.value)}
+								/>
 							</div>
 							<div className="space-y-2">
 								<Label htmlFor="category">Category</Label>
-								<Input id="category" placeholder="Order, Payment, Account..." />
+								<DropdownMenu className="w-full">
+									<DropdownMenuTrigger asChild>
+										<Button
+											variant="outline"
+											className="w-full justify-between"
+											id="category"
+										>
+											{category ? category.charAt(0).toUpperCase() + category.slice(1) : "Select a category"}
+										</Button>
+									</DropdownMenuTrigger>
+									<DropdownMenuContent>
+										<DropdownMenuItem onClick={() => setCategory("payments")}>
+											Payments
+										</DropdownMenuItem>
+										<DropdownMenuItem onClick={() => setCategory("refunds")}>
+											Refunds
+										</DropdownMenuItem>
+										<DropdownMenuItem onClick={() => setCategory("orders")}>
+											Orders
+										</DropdownMenuItem>
+										<DropdownMenuItem onClick={() => setCategory("accounts")}>
+											Accounts
+										</DropdownMenuItem>
+										<DropdownMenuItem onClick={() => setCategory("products")}>
+											Products
+										</DropdownMenuItem>
+									</DropdownMenuContent>
+								</DropdownMenu>
 							</div>
 						</div>
 						<div className="space-y-2">
@@ -215,16 +327,73 @@ export function HelpCenter() {
 								id="message"
 								placeholder="Describe your issue or question in detail..."
 								className="min-h-[120px]"
+								value={message}
+								onChange={(e) => setMessage(e.target.value)}
 							/>
 						</div>
-						<Button className="w-full">Send Message</Button>
+						<Button className="w-full" onClick={handleSubmit} disabled={loading}>
+							{loading ? "Sending..." : "Send Message"}
+						</Button>
+					</CardContent>
+				</Card>
+			</motion.div>
+
+			{/* Sent Messages */}
+			<motion.div
+				custom={4}
+				initial="hidden"
+				animate="visible"
+				variants={cardVariants}
+			>
+				<Card>
+					<CardHeader>
+						<CardTitle>Your Messages</CardTitle>
+						<CardDescription>
+							Review your submitted support requests
+						</CardDescription>
+					</CardHeader>
+					<CardContent>
+						{messages.length === 0 ? (
+							<p className="text-sm text-muted-foreground">
+								No messages sent yet.
+							</p>
+						) : (
+							<div className="space-y-4">
+								{messages.map((msg) => (
+									<div
+										key={msg._id}
+										className="flex items-center justify-between border p-3 rounded-lg"
+									>
+										<div>
+											<p className="font-medium">{msg.subject}</p>
+											<p className="text-sm text-muted-foreground">
+												{msg.category} • {new Date(msg.createdAt).toLocaleString()}
+											</p>
+											<p className="text-xs text-muted-foreground">
+												Status: {msg.status || "pending"}
+											</p>
+										</div>
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={() => {
+												setSelectedMessage(msg);
+												setOpenDialog(true);
+											}}
+										>
+											View
+										</Button>
+									</div>
+								))}
+							</div>
+						)}
 					</CardContent>
 				</Card>
 			</motion.div>
 
 			{/* Quick Links */}
 			<motion.div
-				custom={4}
+				custom={5}
 				initial="hidden"
 				animate="visible"
 				variants={cardVariants}
@@ -238,22 +407,38 @@ export function HelpCenter() {
 					</CardHeader>
 					<CardContent>
 						<div className="grid grid-cols-2 gap-4">
-							<Button variant="outline" className="justify-start">
+							<Button
+								variant="outline"
+								className="justify-start"
+								onClick={() => router.push("/terms-conditions")}
+							>
 								<FileText className="h-4 w-4 mr-2" />
 								Terms of Service
 								<ExternalLink className="h-4 w-4 ml-auto" />
 							</Button>
-							<Button variant="outline" className="justify-start">
+							<Button
+								variant="outline"
+								className="justify-start"
+								onClick={() => router.push("/privacy-policy")}
+							>
 								<FileText className="h-4 w-4 mr-2" />
 								Privacy Policy
 								<ExternalLink className="h-4 w-4 ml-auto" />
 							</Button>
-							<Button variant="outline" className="justify-start">
+							<Button
+								variant="outline"
+								className="justify-start"
+								onClick={() => router.push("/shipping-policy")}
+							>
 								<FileText className="h-4 w-4 mr-2" />
 								Shipping Info
 								<ExternalLink className="h-4 w-4 ml-auto" />
 							</Button>
-							<Button variant="outline" className="justify-start">
+							<Button
+								variant="outline"
+								className="justify-start"
+								onClick={() => router.push("/cancellation-refund-policy")}
+							>
 								<FileText className="h-4 w-4 mr-2" />
 								Return Policy
 								<ExternalLink className="h-4 w-4 ml-auto" />
@@ -262,6 +447,30 @@ export function HelpCenter() {
 					</CardContent>
 				</Card>
 			</motion.div>
+
+			{/* View Message Dialog */}
+			<Dialog open={openDialog} onOpenChange={setOpenDialog}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>{selectedMessage?.subject}</DialogTitle>
+						<DialogDescription>
+							Category: {selectedMessage?.category}
+						</DialogDescription>
+					</DialogHeader>
+					<div className="space-y-2">
+						<p className="text-sm">{selectedMessage?.message}</p>
+						<p className="text-xs text-muted-foreground">
+							Submitted on:{" "}
+							{selectedMessage
+								? new Date(selectedMessage.createdAt).toLocaleString()
+								: ""}
+						</p>
+						<p className="text-xs text-muted-foreground">
+							Status: {selectedMessage?.status || "pending"}
+						</p>
+					</div>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 }
