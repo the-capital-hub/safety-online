@@ -23,6 +23,8 @@ import {
 import { Eye, Download, Loader2, AlertCircle } from "lucide-react";
 import { useOrderStore } from "@/store/orderStore.js";
 import { toast } from "react-hot-toast";
+import { OrderDetailPopup } from "../../popups/OrderDetailPopup";
+
 
 const getStatusColor = (status) => {
 	const colors = {
@@ -79,6 +81,10 @@ export function OrderHistory({ userId }) {
 	} = useOrderStore();
 
 	const [downloadingInvoices, setDownloadingInvoices] = useState(new Set());
+	// State for popup
+	const [selectedOrder, setSelectedOrder] = useState(null);
+	const [isPopupOpen, setIsPopupOpen] = useState(false);
+	const [loadingOrderDetails, setLoadingOrderDetails] = useState(false);
 
 	useEffect(() => {
 		// Fetch orders when component mounts
@@ -86,13 +92,34 @@ export function OrderHistory({ userId }) {
 	}, [fetchOrders]);
 
 	const handleViewOrder = async (orderId) => {
-		try {
-			const result = await fetchOrder(orderId);
-			// You can add navigation logic here or open a modal
-			console.log("Order details fetched for:", orderId, result);
-		} catch (error) {
-			toast.error("Failed to fetch order details");
+	try {
+		setLoadingOrderDetails(true);
+		const result = await fetchOrder(orderId);
+		
+		if (result && (result.success !== false)) {
+			const orderData = result.data?.order || result.order || result.data || result;
+			
+			if (orderData) {
+				setSelectedOrder(orderData);
+				setIsPopupOpen(true);
+			} else {
+				toast.error("Order details not found");
+			}
+		} else {
+			
+			toast.error(result?.message || "Failed to fetch order details");
 		}
+	} catch (error) {
+		console.error("Error fetching order details:", error);
+		toast.error("Failed to fetch order details");
+	} finally {
+		setLoadingOrderDetails(false);
+	}
+};
+
+	const handleClosePopup = () => {
+		setIsPopupOpen(false);
+		setSelectedOrder(null);
 	};
 
 	const handleDownloadInvoice = async (orderId, orderNumber) => {
@@ -161,169 +188,178 @@ export function OrderHistory({ userId }) {
 	}
 
 	return (
-		<Card>
-			<CardHeader className="flex flex-row items-center justify-between">
-				<div>
-					<CardTitle>Orders History</CardTitle>
-					<CardDescription>
-						{pagination.totalOrders > 0
-							? `Showing ${orders.length} of ${pagination.totalOrders} orders`
-							: "No orders found"}
-					</CardDescription>
-				</div>
-				{/* {orders.length > 0 && (
-					<Button variant="outline" size="sm" onClick={handleExportAll}>
-						<Download className="h-4 w-4 mr-2" />
-						Export
-					</Button>
-				)} */}
-			</CardHeader>
-			<CardContent>
-				{orders.length === 0 ? (
-					<div className="text-center py-8">
-						<p className="text-muted-foreground">No orders found</p>
+		<>
+			<Card>
+				<CardHeader className="flex flex-row items-center justify-between">
+					<div>
+						<CardTitle>Orders History</CardTitle>
+						<CardDescription>
+							{pagination.totalOrders > 0
+								? `Showing ${orders.length} of ${pagination.totalOrders} orders`
+								: "No orders found"}
+						</CardDescription>
 					</div>
-				) : (
-					<motion.div
-						variants={tableVariants}
-						initial="hidden"
-						animate="visible"
-					>
-						<Table>
-							<TableHeader>
-								<TableRow>
-									<TableHead>Order Number</TableHead>
-									<TableHead>Products</TableHead>
-									<TableHead>Total Items</TableHead>
-									<TableHead>Order Date</TableHead>
-									<TableHead>Total Amount</TableHead>
-									<TableHead>Status</TableHead>
-									<TableHead>Actions</TableHead>
-								</TableRow>
-							</TableHeader>
-							<TableBody>
-								{orders.map((order, index) => (
-									<motion.tr
-										key={order._id}
-										variants={rowVariants}
-										className="hover:bg-muted/50 transition-colors"
-									>
-										<TableCell className="font-medium">
-											{order.orderNumber}
-										</TableCell>
-										<TableCell>
-											<div>
-												{order.products.length === 1 ? (
-													<>
-														<div className="font-medium">
-															{order.products[0].productName}
-														</div>
-														<div className="text-sm text-muted-foreground">
-															Qty: {order.products[0].quantity}
-														</div>
-													</>
-												) : (
-													<>
-														<div className="font-medium">
-															{order.products[0].productName}
-														</div>
-														<div className="text-sm text-muted-foreground">
-															+{order.products.length - 1} more items
-														</div>
-													</>
-												)}
-											</div>
-										</TableCell>
-										<TableCell>
-											{order.products.reduce(
-												(total, product) => total + product.quantity,
-												0
-											)}
-										</TableCell>
-										<TableCell>
-											{formatDate(order.orderDate || order.createdAt)}
-										</TableCell>
-										<TableCell className="font-medium">
-											{formatPrice(order.totalAmount)}
-										</TableCell>
-										<TableCell>
-											<Badge className={getStatusColor(order.status)}>
-												{order.status.charAt(0).toUpperCase() +
-													order.status.slice(1)}
-											</Badge>
-										</TableCell>
-										<TableCell>
-											<div className="flex items-center gap-2">
-												<Button
-													variant="ghost"
-													size="sm"
-													onClick={() => handleViewOrder(order._id)}
-													disabled={loading}
-												>
-													<Eye className="h-4 w-4" />
-												</Button>
-												<Button
-													variant="ghost"
-													size="sm"
-													onClick={() =>
-														handleDownloadInvoice(order._id, order.orderNumber)
-													}
-													disabled={downloadingInvoices.has(order._id)}
-												>
-													{downloadingInvoices.has(order._id) ? (
-														<Loader2 className="h-4 w-4 animate-spin" />
+					{/* {orders.length > 0 && (
+						<Button variant="outline" size="sm" onClick={handleExportAll}>
+							<Download className="h-4 w-4 mr-2" />
+							Export
+						</Button>
+					)} */}
+				</CardHeader>
+				<CardContent>
+					{orders.length === 0 ? (
+						<div className="text-center py-8">
+							<p className="text-muted-foreground">No orders found</p>
+						</div>
+					) : (
+						<motion.div
+							variants={tableVariants}
+							initial="hidden"
+							animate="visible"
+						>
+							<Table>
+								<TableHeader>
+									<TableRow>
+										<TableHead>Order Number</TableHead>
+										<TableHead>Products</TableHead>
+										<TableHead>Total Items</TableHead>
+										<TableHead>Order Date</TableHead>
+										<TableHead>Total Amount</TableHead>
+										<TableHead>Status</TableHead>
+										<TableHead>Actions</TableHead>
+									</TableRow>
+								</TableHeader>
+								<TableBody>
+									{orders.map((order, index) => (
+										<motion.tr
+											key={order._id}
+											variants={rowVariants}
+											className="hover:bg-muted/50 transition-colors"
+										>
+											<TableCell className="font-medium">
+												{order.orderNumber}
+											</TableCell>
+											<TableCell>
+												<div>
+													{order.products.length === 1 ? (
+														<>
+															<div className="font-medium">
+																{order.products[0].productName}
+															</div>
+															<div className="text-sm text-muted-foreground">
+																Qty: {order.products[0].quantity}
+															</div>
+														</>
 													) : (
-														<Download className="h-4 w-4" />
+														<>
+															<div className="font-medium">
+																{order.products[0].productName}
+															</div>
+															<div className="text-sm text-muted-foreground">
+																+{order.products.length - 1} more items
+															</div>
+														</>
 													)}
-												</Button>
-												<Link
-													href={`/reviews/${order._id}`}
-													className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition-colors hover:bg-muted"
-												>
-													Rate & Review
-												</Link>
-											</div>
-										</TableCell>
-									</motion.tr>
-								))}
-							</TableBody>
-						</Table>
+												</div>
+											</TableCell>
+											<TableCell>
+												{order.products.reduce(
+													(total, product) => total + product.quantity,
+													0
+												)}
+											</TableCell>
+											<TableCell>
+												{formatDate(order.orderDate || order.createdAt)}
+											</TableCell>
+											<TableCell className="font-medium">
+												{formatPrice(order.totalAmount)}
+											</TableCell>
+											<TableCell>
+												<Badge className={getStatusColor(order.status)}>
+													{order.status.charAt(0).toUpperCase() +
+														order.status.slice(1)}
+												</Badge>
+											</TableCell>
+											<TableCell>
+												<div className="flex items-center gap-2">
+													<Button
+														variant="ghost"
+														size="sm"
+														onClick={() => handleViewOrder(order._id)}
+														disabled={loading}
+													>
+														<Eye className="h-4 w-4" />
+													</Button>
+													<Button
+														variant="ghost"
+														size="sm"
+														onClick={() =>
+															handleDownloadInvoice(order._id, order.orderNumber)
+														}
+														disabled={downloadingInvoices.has(order._id)}
+													>
+														{downloadingInvoices.has(order._id) ? (
+															<Loader2 className="h-4 w-4 animate-spin" />
+														) : (
+															<Download className="h-4 w-4" />
+														)}
+													</Button>
+													<Link
+														href={`/reviews/${order._id}`}
+														className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition-colors hover:bg-muted"
+													>
+														Rate & Review
+													</Link>
+												</div>
+											</TableCell>
+										</motion.tr>
+									))}
+								</TableBody>
+							</Table>
 
-						{/* Pagination */}
-						{pagination.totalPages > 1 && (
-							<div className="flex items-center justify-between mt-4">
-								<div className="text-sm text-muted-foreground">
-									Page {pagination.currentPage} of {pagination.totalPages}
+							{/* Pagination */}
+							{pagination.totalPages > 1 && (
+								<div className="flex items-center justify-between mt-4">
+									<div className="text-sm text-muted-foreground">
+										Page {pagination.currentPage} of {pagination.totalPages}
+									</div>
+									<div className="flex items-center gap-2">
+										<Button
+											variant="outline"
+											size="sm"
+											disabled={!pagination.hasPrev || loading}
+											onClick={() => {
+												// Implement previous page logic
+												console.log("Previous page");
+											}}
+										>
+											Previous
+										</Button>
+										<Button
+											variant="outline"
+											size="sm"
+											disabled={!pagination.hasNext || loading}
+											onClick={() => {
+												// Implement next page logic
+												console.log("Next page");
+											}}
+										>
+											Next
+										</Button>
+									</div>
 								</div>
-								<div className="flex items-center gap-2">
-									<Button
-										variant="outline"
-										size="sm"
-										disabled={!pagination.hasPrev || loading}
-										onClick={() => {
-											// Implement previous page logic
-											console.log("Previous page");
-										}}
-									>
-										Previous
-									</Button>
-									<Button
-										variant="outline"
-										size="sm"
-										disabled={!pagination.hasNext || loading}
-										onClick={() => {
-											// Implement next page logic
-											console.log("Next page");
-										}}
-									>
-										Next
-									</Button>
-								</div>
-							</div>
-						)}
-					</motion.div>
-				)}
-			</CardContent>
-		</Card>
+							)}
+						</motion.div>
+					)}
+				</CardContent>
+			</Card>
+
+			{/* Order Detail Popup */}
+			<OrderDetailPopup
+				open={isPopupOpen}
+				onOpenChange={handleClosePopup}
+				order={selectedOrder}
+			/>
+		</>
 	);
 }

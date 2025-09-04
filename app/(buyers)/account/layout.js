@@ -41,10 +41,11 @@ export default function AccountLayout({ children }) {
 	if (!isClient) {
 		return (
 			<div className="h-[calc(100vh-68px)] bg-gray-50">
-				<div className="fixed left-0 top-0 w-80 h-[calc(100vh-68px)] bg-white border-r border-gray-200">
+				{/* Desktop loading sidebar */}
+				<div className="hidden md:block fixed left-0 top-0 w-72 h-[calc(100vh-68px)] bg-white border-r border-gray-200">
 					<div className="p-6">Loading...</div>
 				</div>
-				<div className="ml-80">
+				<div className="md:ml-72">
 					<div className="h-[calc(100vh-68px)] overflow-y-auto">
 						<div className="p-8">{children}</div>
 					</div>
@@ -55,11 +56,14 @@ export default function AccountLayout({ children }) {
 
 	return (
 		<div className="h-[calc(100vh-68px)] bg-gray-50">
+			{/* Sidebar handles mobile + desktop itself */}
 			<AccountSidebar activeTab={activeTab} onTabChange={setActiveTab} />
-			<div className="ml-72">
+
+			{/* Content area: full width on mobile, pushed right on desktop */}
+			<div className="md:ml-72">
 				<div className="h-[calc(100vh-68px)] overflow-y-auto hide-scrollbar">
-					<motion.div className="p-8" {...fadeInUp}>
-						<div className="">{children}</div>
+					<motion.div className="p-4 md:p-8" {...fadeInUp}>
+						{children}
 					</motion.div>
 				</div>
 			</div>

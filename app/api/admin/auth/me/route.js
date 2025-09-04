@@ -8,7 +8,7 @@ export async function GET() {
 
 	try {
 		const cookieStore = await cookies();
-		const token = cookieStore.get("auth_token")?.value;
+		const token = cookieStore.get("admin_token")?.value;
 
 		if (!token) {
 			return Response.json({ message: "No token provided" }, { status: 401 });

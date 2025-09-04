@@ -16,7 +16,7 @@ export async function POST(req) {
 	}
 
 	const token = createToken(user);
-	const cookie = serialize("auth_token", token, {
+	const cookie = serialize("admin_token", token, {
 		httpOnly: true,
 		secure: process.env.NODE_ENV === "production",
 		sameSite: "strict",

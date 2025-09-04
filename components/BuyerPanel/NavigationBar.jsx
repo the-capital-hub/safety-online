@@ -178,7 +178,7 @@ export default function NavigationBar({ isMenuOpen, onMenuClose }) {
 				isMenuOpen ? "block" : "hidden"
 			} lg:block bg-white border-t shadow-sm`}
 		>
-			<div className="px-4 lg:px-10">
+			<div className="px-4 lg:px-10 relative z-10">
 				<div className="flex flex-col lg:flex-row lg:items-center lg:justify-between py-4 space-y-4 lg:space-y-0 overflow-x-auto hide-scrollbar">
 					<div className="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0 lg:space-x-4">
 						<Button

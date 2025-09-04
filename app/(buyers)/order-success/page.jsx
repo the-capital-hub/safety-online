@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle, Package, Truck, Home, Download } from "lucide-react";
 import Link from "next/link";
 import useOrder from "@/hooks/useOrder.js";
+import Image from "next/image";
+import { useOrderStore } from "@/store/orderStore";
 
 export default function OrderSuccessPage() {
 	const router = useRouter();
@@ -21,6 +23,7 @@ export default function OrderSuccessPage() {
 
 	const orderId = searchParams.get("orderId");
 	const orderNumber = searchParams.get("orderNumber");
+	const { loading, error, fetchOrder } = useOrderStore();
 
 	useEffect(() => {
 		if (!orderId || !orderNumber) {
@@ -28,15 +31,30 @@ export default function OrderSuccessPage() {
 			return;
 		}
 
-		// You can fetch order details here if needed
-		setOrderDetails({
-			orderId,
-			orderNumber,
-			estimatedDelivery: new Date(
-				Date.now() + 7 * 24 * 60 * 60 * 1000
-			).toLocaleDateString(),
-		});
-	}, [orderId, orderNumber, router]);
+		const fetchOrderDetails = async () => {
+			try {
+				const orderData = await fetchOrder(orderId);
+
+				setOrderDetails({
+					orderId,
+					orderNumber,
+					estimatedDelivery: new Date(
+						Date.now() + 7 * 24 * 60 * 60 * 1000
+					).toLocaleDateString(),
+					productName: orderData?.products[0]?.productName,
+					productImage: orderData?.products[0]?.productImage,
+					amount: orderData?.totalAmount,
+					discount: orderData?.discount,
+					paymentMethod: orderData?.paymentMethod,
+					orderDate: orderData?.orderDate,
+				});
+			} catch (err) {
+				console.error("Failed to fetch order details", err);
+			}
+		};
+
+		fetchOrderDetails();
+	}, [orderId, orderNumber, router, fetchOrder]);
 
 	const handleDownloadInvoice = async () => {
 		if (!orderDetails?.orderId || !orderDetails?.orderNumber) {
@@ -110,10 +128,50 @@ export default function OrderSuccessPage() {
 								<span className="font-medium">{orderDetails.orderId}</span>
 							</div>
 							<div className="flex justify-between items-center">
+								<span className="text-gray-600">Order Date:</span>
+								<span className="font-medium">{new Date(orderDetails.orderDate).toLocaleString("en-IN", {
+									year: "numeric",
+									month: "short",
+									day: "numeric",
+									hour: "2-digit",
+									minute: "2-digit",
+								})}</span>
+							</div>
+							<div className="flex justify-between items-center">
 								<span className="text-gray-600">Estimated Delivery:</span>
 								<span className="font-medium">
 									{orderDetails.estimatedDelivery}
 								</span>
+							</div>
+							<div className="flex justify-between items-center">
+								<span className="text-gray-600">Product Name:</span>
+								<span className="font-medium max-w-[200px] truncate text-right">
+									{orderDetails.productName}
+								</span>
+							</div>
+							<div className="flex justify-between items-center">
+								<span className="text-gray-600">Product Image:</span>
+								{orderDetails.productImage && (
+									<Image
+										width={200}
+										height={250}
+										src={orderDetails.productImage}
+										alt={orderDetails.productName || "Product"}
+										className="w-12 h-12 rounded object-cover"
+									/>
+								)}
+							</div>
+							<div className="flex justify-between items-center">
+								<span className="text-gray-600">Order Amount:</span>
+								<span className="font-medium">₹{orderDetails.amount}</span>
+							</div>
+							<div className="flex justify-between items-center">
+								<span className="text-gray-600">Discount:</span>
+								<span className="font-medium">₹{orderDetails.discount}</span>
+							</div>
+							<div className="flex justify-between items-center">
+								<span className="text-gray-600">Payment Method:</span>
+								<Badge className="font-medium bg-blue-300 text-blue-600 rounded-xl">{orderDetails.paymentMethod}</Badge>
 							</div>
 						</CardContent>
 					</Card>
@@ -153,12 +211,6 @@ export default function OrderSuccessPage() {
 
 					{/* Action Buttons */}
 					<div className="flex flex-col sm:flex-row gap-4">
-						{/* <Button asChild className="flex-1">
-							<Link href="/orders">
-								<Package className="w-4 h-4 mr-2" />
-								Track Order
-							</Link>
-						</Button> */}
 						<Button
 							variant="outline"
 							className="flex-1 bg-transparent"
