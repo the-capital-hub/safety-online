@@ -102,7 +102,6 @@ export async function GET(request) {
 		// Execute query with pagination
 		const skip = (page - 1) * limit;
 		const products = await Product.find(query)
-			.propulate("reviews")
 			.sort(sortObj)
 			.skip(skip)
 			.limit(limit)

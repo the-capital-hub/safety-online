@@ -7,7 +7,7 @@ export const useAdminAuthStore = create(
 			(set) => ({
 				user: null,
 				setAdminUser: (user) => set({ user }),
-				clearUser: () => set({ user: null }),
+				clearAdminUser: () => set({ user: null }),
 			}),
 			{
 				name: "logged-in-user",
@@ -22,7 +22,9 @@ export const useAdminAuthStore = create(
 export const useLoggedInUser = () => useAdminAuthStore((state) => state.user);
 
 export const useUserFullName = () =>
-	useAdminAuthStore((state) => state.user?.firstName + " " + state.user?.lastName);
+	useAdminAuthStore(
+		(state) => state.user?.firstName + " " + state.user?.lastName
+	);
 
 export const useUserEmail = () =>
 	useAdminAuthStore((state) => state.user?.email || "");
@@ -30,4 +32,5 @@ export const useUserEmail = () =>
 export const useUserProfilePic = () =>
 	useAdminAuthStore((state) => state.user?.profilePic || "");
 
-export const useIsAuthenticated = () => useAdminAuthStore((state) => !!state.user);
+export const useIsAuthenticated = () =>
+	useAdminAuthStore((state) => !!state.user);

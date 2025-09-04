@@ -121,7 +121,7 @@ export default function ReviewOrderPage() {
 					setForm(initial);
 				}
 			} catch (e) {
-				console.error("[v0] load order for review error", e);
+				console.error("load order for review error", e);
 			} finally {
 				setLoading(false);
 			}
@@ -202,7 +202,7 @@ export default function ReviewOrderPage() {
 				throw new Error(data?.message || "Failed to submit reviews");
 			}
 		} catch (e) {
-			console.error("[v0] submit reviews error:", e);
+			console.error("submit reviews error:", e);
 			alert(e.message);
 		} finally {
 			setSubmitting(false);

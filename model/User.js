@@ -29,7 +29,6 @@ const UserSchema = new mongoose.Schema(
 			default:
 				"https://res.cloudinary.com/drjt9guif/image/upload/v1731063193/TheCapitalHub/startUps/logos/veyaynpessgiy6ifh9ul.webp",
 		},
-		// address: { type: String },
 		location: { type: String },
 		addresses: [AddressSchema],
 		email: { type: String, unique: true, sparse: true },

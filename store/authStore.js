@@ -24,10 +24,17 @@ export const useLoggedInUser = () => useAuthStore((state) => state.user);
 export const useUserFullName = () =>
 	useAuthStore((state) => state.user?.firstName + " " + state.user?.lastName);
 
-export const useUserEmail = () =>
-	useAuthStore((state) => state.user?.email || "");
+export const useUserFirstName = () =>
+	useAuthStore((state) => state.user?.firstName);
+
+export const useUserLastName = () =>
+	useAuthStore((state) => state.user?.lastName);
+
+export const useUserEmail = () => useAuthStore((state) => state.user?.email);
+
+export const useUsermobile = () => useAuthStore((state) => state.user?.mobile);
 
 export const useUserProfilePic = () =>
-	useAuthStore((state) => state.user?.profilePic || "");
+	useAuthStore((state) => state.user?.profilePic);
 
 export const useIsAuthenticated = () => useAuthStore((state) => !!state.user);

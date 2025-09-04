@@ -13,7 +13,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useAdminCategoryStore } from "@/store/adminCategoryStore.js";
 
@@ -23,23 +22,47 @@ export function UpdateCategoryPopup({ open, onOpenChange, category }) {
 
 	const [formData, setFormData] = useState({
 		name: "",
-		description: "",
-		icon: "",
 		published: true,
-		sortOrder: 0,
+		subCategories: [],
 	});
 
 	useEffect(() => {
 		if (category) {
 			setFormData({
 				name: category.name || "",
-				description: category.description || "",
-				icon: category.icon || "",
 				published: category.published !== undefined ? category.published : true,
-				sortOrder: category.sortOrder || 0,
+				subCategories: Array.isArray(category.subCategories)
+					? category.subCategories.map((s) => ({
+							name: s.name || "",
+							published: s.published !== undefined ? !!s.published : true,
+					  }))
+					: [],
 			});
 		}
 	}, [category]);
+
+	const addSub = () => {
+		setFormData((prev) => ({
+			...prev,
+			subCategories: [...prev.subCategories, { name: "", published: true }],
+		}));
+	};
+
+	const removeSub = (idx) => {
+		setFormData((prev) => ({
+			...prev,
+			subCategories: prev.subCategories.filter((_, i) => i !== idx),
+		}));
+	};
+
+	const updateSub = (idx, patch) => {
+		setFormData((prev) => ({
+			...prev,
+			subCategories: prev.subCategories.map((s, i) =>
+				i === idx ? { ...s, ...patch } : s
+			),
+		}));
+	};
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
@@ -47,7 +70,15 @@ export function UpdateCategoryPopup({ open, onOpenChange, category }) {
 
 		setIsSubmitting(true);
 
-		const success = await updateCategory(category._id, formData);
+		const payload = {
+			name: formData.name.trim(),
+			published: formData.published,
+			subCategories: (formData.subCategories || []).filter(
+				(s) => (s.name || "").trim() !== ""
+			),
+		};
+
+		const success = await updateCategory(category._id, payload);
 		if (success) {
 			onOpenChange(false);
 		}
@@ -67,7 +98,7 @@ export function UpdateCategoryPopup({ open, onOpenChange, category }) {
 							Update Category
 						</DialogTitle>
 						<DialogDescription className="text-gray-600">
-							Update your category and necessary information from here
+							Update your category and manage its subcategories.
 						</DialogDescription>
 					</DialogHeader>
 
@@ -86,57 +117,6 @@ export function UpdateCategoryPopup({ open, onOpenChange, category }) {
 							/>
 						</div>
 
-						<div>
-							<Label htmlFor="description">Description *</Label>
-							<Textarea
-								id="description"
-								placeholder="Enter category description"
-								value={formData.description}
-								onChange={(e) =>
-									setFormData({ ...formData, description: e.target.value })
-								}
-								className="mt-1"
-								rows={3}
-								required
-							/>
-						</div>
-
-						<div>
-							<Label htmlFor="icon">Icon URL</Label>
-							<Input
-								id="icon"
-								placeholder="https://example.com/icon.png"
-								value={formData.icon}
-								onChange={(e) =>
-									setFormData({ ...formData, icon: e.target.value })
-								}
-								className="mt-1"
-							/>
-							<p className="text-xs text-gray-500 mt-1">
-								Optional: URL to category icon image
-							</p>
-						</div>
-
-						<div>
-							<Label htmlFor="sortOrder">Sort Order</Label>
-							<Input
-								id="sortOrder"
-								type="number"
-								placeholder="0"
-								value={formData.sortOrder}
-								onChange={(e) =>
-									setFormData({
-										...formData,
-										sortOrder: Number.parseInt(e.target.value) || 0,
-									})
-								}
-								className="mt-1"
-							/>
-							<p className="text-xs text-gray-500 mt-1">
-								Lower numbers appear first
-							</p>
-						</div>
-
 						<div className="flex items-center justify-between">
 							<div>
 								<Label>Publish Category</Label>
@@ -150,6 +130,49 @@ export function UpdateCategoryPopup({ open, onOpenChange, category }) {
 									setFormData({ ...formData, published: checked })
 								}
 							/>
+						</div>
+
+						<div className="space-y-2">
+							<div className="flex items-center justify-between">
+								<Label>Subcategories</Label>
+								<Button type="button" variant="outline" onClick={addSub}>
+									Add Subcategory
+								</Button>
+							</div>
+
+							{formData.subCategories.length === 0 && (
+								<p className="text-sm text-gray-500">
+									No subcategories added yet.
+								</p>
+							)}
+
+							<div className="space-y-3">
+								{formData.subCategories.map((sub, idx) => (
+									<div key={idx} className="flex items-center gap-2">
+										<Input
+											placeholder="Subcategory name"
+											value={sub.name}
+											onChange={(e) => updateSub(idx, { name: e.target.value })}
+										/>
+										<div className="flex items-center gap-2">
+											<span className="text-sm text-gray-600">Published</span>
+											<Switch
+												checked={!!sub.published}
+												onCheckedChange={(checked) =>
+													updateSub(idx, { published: checked })
+												}
+											/>
+										</div>
+										<Button
+											type="button"
+											variant="destructive"
+											onClick={() => removeSub(idx)}
+										>
+											Remove
+										</Button>
+									</div>
+								))}
+							</div>
 						</div>
 
 						<DialogFooter className="flex gap-3 mt-6">
