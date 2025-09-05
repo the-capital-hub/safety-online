@@ -13,25 +13,25 @@ import {
 export default function TestimonialsSection() {
 	const testimonials = [
 		{
-			name: "Mike Torello",
+			name: "Anjali, Gurgaon",
 			role: "CEO of Initech",
 			image: Avatar1.src,
 			rating: 5,
-			text: "I like getting the SMS & knowing the jobs done. I often refer to it, 'hope you get a ping today!' because my product",
+			text: "My son calls his helmet the Brave Blue Rider – he doesn’t even argue about wearing it anymore!",
 		},
 		{
-			name: "Richards Hawkins",
+			name: "Suresh, Pune",
 			role: "Marketing Manager of Upnow",
 			image: Avatar2.src,
 			rating: 5,
-			text: "We have successfully sold digital product and have happy with the results & look forward to using it again this.",
+			text: "My daughter loves the Pretty Pink Explorer. She even wears it around the house sometimes. Totally worth it!",
 		},
 		{
-			name: "Thomas Magnum",
+			name: " Kavita, Chennai",
 			role: "Barellon NSW",
 			image: Avatar3.src,
 			rating: 5,
-			text: "Design Monks offers producers a cost-effective selling tool. Having the ability to post prices that you want on an exchange visible.",
+			text: "The helmets are safe, sturdy, and so adorable. Finally, a product that both parents and kids agree on.",
 		},
 	];
 

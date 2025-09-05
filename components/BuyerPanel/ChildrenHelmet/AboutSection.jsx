@@ -2,6 +2,12 @@
 import { motion } from "framer-motion";
 import { GrayHelmet } from "@/public/images/children-helmet/index.js";
 
+const features = [
+    { title: "Safe", desc: "Tested to meet ISI standards" },
+    { title: "Fun", desc: "Bright colors & characters kids love" },
+    { title: "Comfortable", desc: "Cushioned, lightweight, and secure" },
+  ];
+
 export default function AboutSection() {
 	return (
 		<section id="about" className="py-10 overflow-hidden">
@@ -33,27 +39,25 @@ export default function AboutSection() {
 							</h2>
 
 							<h3 className="text-xl font-semibold text-primary">
-								We Are Focusing On Your Children's Safety First
+							Our goal is simple: <b>turn boring safety gear into exciting gear kids choose to wear.</b>
 							</h3>
 						</div>
 
 						<div className="space-y-4">
-							<p>
-								Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-								eiusmod tempor incididunt ut labore et dolore magna aliqua.
-								Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-								eiusmod tempor incididunt ut labore et dolore magna aliqua.
-							</p>
-
-							<p>
-								Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-								eiusmod tempor incididunt ut labore et dolore magna aliqua.
-							</p>
-
-							<p>
-								Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-								eiusmod tempor incididunt ut labore
-							</p>
+						<ul className="space-y-4">
+        {features.map((f, i) => (
+          <motion.li
+            key={i}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: i * 0.3, duration: 0.6 }}
+            className="bg-white shadow rounded-2xl p-4 border-l-4 border-teal-500"
+          >
+            <p className="font-semibold text-teal-600">{f.title}</p>
+            <p className="text-gray-600">{f.desc}</p>
+          </motion.li>
+        ))}
+      </ul>
 						</div>
 					</motion.div>
 				</div>
