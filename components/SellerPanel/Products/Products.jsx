@@ -45,9 +45,8 @@ import { AddProductPopup } from "@/components/SellerPanel/Products/AddProductPop
 import { UpdateProductPopup } from "@/components/SellerPanel/Products/UpdateProductPopup.jsx";
 import { BulkUploadPopup } from "@/components/SellerPanel/Products/BulkProductUploadPopup.jsx";
 import { toast } from "react-hot-toast";
-
-// import { useIsAuthenticated } from "@/store/adminAuthStore.js";
-// import { useRouter } from "next/navigation";
+import { useIsSellerAuthenticated } from "@/store/sellerAuthStore.js";
+import { useRouter } from "next/navigation";
 
 const categories = [
 	{ value: "all", label: "All Categories" },
@@ -90,26 +89,33 @@ export default function SellerProductsPage() {
 		bulkUpload: false,
 	});
 
-	// const isAuthenticated = useIsAuthenticated();
-	// const [isRedirecting, setIsRedirecting] = useState(false);
-	// const router = useRouter();
+	const isAuthenticated = useIsSellerAuthenticated();
+	const [isRedirecting, setIsRedirecting] = useState(false);
+	const router = useRouter();
+
+	useEffect(() => {
+		if (!isAuthenticated) {
+			setIsRedirecting(true);
+			const timer = setTimeout(() => {
+				router.push("/seller/login");
+			}, 100);
+
+			return () => clearTimeout(timer);
+		}
+	}, [isAuthenticated, router]);
 
 	useEffect(() => {
 		fetchProducts();
 	}, [fetchProducts]);
 
-	// useEffect(() => {
-	// 	if (!isAuthenticated) {
-	// 		setIsRedirecting(true);
-	// 		const timer = setTimeout(() => {
-	// 			router.push("/admin/login");
-	// 		}, 3);
+	if (!isAuthenticated) {
+		return (
+			<div className="flex items-center justify-center py-4 px-6 bg-white">
+				<div className="text-gray-600">Redirecting to login...</div>
+			</div>
+		);
+	}
 
-	// 		return () => clearTimeout(timer);
-	// 	}
-	// }, [isAuthenticated, router]);
-
-	// Show redirecting message if not authenticated
 	const handleSearch = (value) => {
 		setFilters({ search: value });
 	};
@@ -211,14 +217,6 @@ export default function SellerProductsPage() {
 		toast.success("Link copied to clipboard");
 		console.log("Link copied to clipboard:", shareLink);
 	};
-
-	// if (!isAuthenticated) {
-	// 	return (
-	// 		<div className="flex items-center justify-center py-4 px-6 bg-white">
-	// 			<div className="text-gray-600">Redirecting to login...</div>
-	// 		</div>
-	// 	);
-	// }
 
 	if (error) {
 		return (
@@ -563,7 +561,6 @@ export default function SellerProductsPage() {
 								<div className="flex items-center justify-between mt-6">
 									<p className="text-sm text-gray-600">
 										Showing{" "}
-										{(pagination.currentPage - 1) * pagination.limit + 1} to{" "}
 										{Math.min(
 											pagination.currentPage * pagination.limit,
 											pagination.totalProducts
