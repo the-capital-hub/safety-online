@@ -17,7 +17,7 @@ import {
 	Product4,
 } from "@/public/images/seller-panel/home/storefront";
 
-import ProductCard from "@/components/SellerPanel/HomePage/ProductCard.jsx";
+import ProductCard from "@/components/SellerPanel/LandingPage/ProductCard.jsx";
 
 const products = [
 	{

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Picture1 from "@/public/images/seller-panel/home/product-details/Picture1.png";
-import ProductDetailDemo from "@/components/SellerPanel/HomePage/ProductDetailDemo.jsx";
+import ProductDetailDemo from "@/components/SellerPanel/LandingPage/ProductDetailDemo.jsx";
 
 export default function ProductDetailSection() {
 	return (

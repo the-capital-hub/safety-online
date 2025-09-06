@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import ProductCard from "@/components/SellerPanel/HomePage/ProductCard.jsx";
+import ProductCard from "@/components/SellerPanel/LandingPage/ProductCard.jsx";
 import {
 	ShoppingCart,
 	Heart,
@@ -199,7 +199,10 @@ export default function ProductDetailDemo() {
 						>
 							<div className="relative w-full h-96 lg:h-[400px]">
 								<Image
-									src={dummyProduct.images[selectedImage] || "https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"}
+									src={
+										dummyProduct.images[selectedImage] ||
+										"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"
+									}
 									alt={dummyProduct.name}
 									fill
 									className="object-contain p-8"
@@ -221,7 +224,10 @@ export default function ProductDetailDemo() {
 									}`}
 								>
 									<Image
-										src={image || "https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"}
+										src={
+											image ||
+											"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"
+										}
 										alt={`${dummyProduct.name} view ${index + 1}`}
 										fill
 										className="object-contain p-2"

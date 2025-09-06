@@ -9,7 +9,7 @@ export async function PUT(request) {
 		await dbConnect();
 
 		// Get token from cookies
-		const token = request.cookies.get("auth-token")?.value;
+		const token = request.cookies.get("seller-auth-token")?.value;
 
 		if (!token) {
 			return NextResponse.json(
@@ -102,7 +102,7 @@ export async function PUT(request) {
 		return NextResponse.json({
 			success: true,
 			message: "Profile updated successfully",
-			user: userWithoutPassword,
+			seller: userWithoutPassword,
 		});
 	} catch (error) {
 		console.error("Profile update error:", error);
