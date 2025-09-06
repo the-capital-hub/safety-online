@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowRight, Facebook, Instagram, Linkedin } from "lucide-react";
 import { Barcode, AppStore, GooglePlay } from "@/public/images/home/index.js";
+import Link from "next/link";
 
 export default function Footer() {
 	const footerSections = {
@@ -12,13 +13,26 @@ export default function Footer() {
 			title: "Support",
 			items: ["hello@safetyonline.in", "9945234161"],
 		},
-		account: {
+			account: {
 			title: "Account",
-			items: ["My Account", "Login / Register", "Cart", "Wishlist", "Shop"],
+			items: [
+				{ label: "My Account", href: "/account/profile" },
+				{ label: "Login / Register", href: "/login" },
+				{ label: "Cart", href: "/cart" },
+				// { label: "Wishlist", href: "/wishlist" },
+				{ label: "Shop", href: "/products" },
+			],
 		},
 		quickLinks: {
 			title: "Quick Link",
-			items: ["Privacy Policy", "Terms Of Use", "FAQ", "Contact"],
+			items: [
+				{ label: "Privacy Policy", href: "/privacy-policy" },
+				{ label: "Terms Of Use", href: "/terms-conditions" },
+				{ label: "Pricing Policy", href: "/pricing-policy" },
+				{ label: "Shipping Policy", href: "/shipping-policy" },
+				{ label: "Refund Policy", href: "/cancellation-refund-policy" },
+				{ label: "Help", href: "/account/help" },
+			],
 		},
 	};
 
@@ -72,12 +86,13 @@ export default function Footer() {
 						</h3>
 						<div className="space-y-3 text-gray-400">
 							{footerSections.account.items.map((item, index) => (
-								<p
+								<Link
+								href={item.href}
 									key={index}
-									className="hover:text-white cursor-pointer transition-colors"
+									className="hover:text-white flex flex-col cursor-pointer transition-colors"
 								>
-									{item}
-								</p>
+									{item.label}
+								</Link>
 							))}
 						</div>
 					</div>
@@ -89,12 +104,13 @@ export default function Footer() {
 						</h3>
 						<div className="space-y-3 text-gray-400">
 							{footerSections.quickLinks.items.map((item, index) => (
-								<p
+								<Link
+								href={item.href}
 									key={index}
-									className="hover:text-white cursor-pointer transition-colors"
+									className="flex flex-col hover:text-white cursor-pointer transition-colors"
 								>
-									{item}
-								</p>
+									{item.label}
+								</Link>
 							))}
 						</div>
 					</div>

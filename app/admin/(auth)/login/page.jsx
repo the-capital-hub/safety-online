@@ -41,11 +41,11 @@ export default function Login() {
         const userResponse = await fetch("/api/admin/auth/me");
         if (userResponse.ok) {
             const userData = await userResponse.json();
-            setAdminUser(userData.user);
+            setAdminUser(userData?.user);
         }
 
         toast.success("Login successful!");
-        router.push("/admin/dashboard"); // Redirect to dashboard or home page
+        router.push("/admin/dashboard"); 
     } else {
         toast.error(data.message || "Login failed");
     }
