@@ -43,8 +43,8 @@ export default function HeroSection() {
 							</h1>
 
 							<p className="text-lg max-w-xl">
-								Lightweight & well-ventilated everyday use for biking to school
-								or around the park rounded shape with air vents
+							Meet India’s most lovable kids’ bike helmets – <b>Brave Blue Rider & Pretty Pink Explorer</b>.
+							Safe. Stylish. Super fun to wear!
 							</p>
 						</div>
 

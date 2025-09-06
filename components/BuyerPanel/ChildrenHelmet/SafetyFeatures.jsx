@@ -5,27 +5,32 @@ import { OrangeHelmet } from "@/public/images/children-helmet/index.js";
 export default function SafetyFeatures() {
 	const features = [
 		{
-			title: "Rubber Protection",
+			title: " Impact-Absorbing Shell",
 			description:
-				"Lightweight, comfy, and built for safety — helmets kids love to wear",
+				"Strong outer layer for maximum safety",
 			position: { top: "20%", right: "10%" },
 		},
 		{
-			title: "Metal Grill",
+			title: "Cushioned Inner Foam",
 			description:
-				"Lightweight, comfy, and built for safety — helmets kids love to wear",
-			position: { top: "45%", right: "15%" },
+				"Soft padding for extra comfort",
+			position: { top: "50%", right: "13%" },
 		},
 		{
-			title: "Reduce The Impact To The Head",
+			title: "Shock Absorption",
 			description:
-				"Lightweight, comfy, and built for safety — helmets kids love to wear",
-			position: { top: "60%", left: "-5%" },
+				"Reduces head injuries during falls",
+			position: { top: "60%", left: "5%" },
 		},
 		{
-			title: "Leather",
-			description: "Lightweight, comfy, and built for safety",
-			position: { bottom: "15%", right: "30%" },
+			title: "Adjustable Fit",
+			description: " Available in Small (3–6 yrs) & Medium (7–12 yrs)",
+			position: { bottom: "5%", right: "30%" },
+		},
+		{
+			title: "Fun Characters",
+			description: "Helmets kids actually want to wear",
+			position: { top: "27%", left: "15%" },
 		},
 	];
 

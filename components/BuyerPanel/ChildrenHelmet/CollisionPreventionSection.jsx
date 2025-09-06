@@ -28,8 +28,7 @@ export default function CollisionPreventionSection() {
 					</h2>
 
 					<p className="text-gray-600 text-sm sm:text-base lg:text-lg leading-relaxed max-w-xs sm:max-w-md px-2 sm:px-0">
-						Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-						eiusmod tempor incididunt ut labore et dolore magna aliqua.
+					Every helmet is ISI certified and built with high-impact technology that protects kids from bumps, falls, and collisions. With a snug, adjustable fit, parents can breathe easy knowing their child’s head is always protected.
 					</p>
 				</motion.div>
 
@@ -142,8 +141,7 @@ export default function CollisionPreventionSection() {
 							transition={{ duration: 0.5, delay: 0.9 }}
 							viewport={{ once: true }}
 						>
-							Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-							eiusmod tempor incididunt ut labore et dolore magna aliqua.
+							Every helmet is ISI certified and built with high-impact technology that protects kids from bumps, falls, and collisions.
 						</motion.p>
 					</motion.div>
 				</motion.div>
@@ -225,8 +223,7 @@ export default function CollisionPreventionSection() {
 								Buy Now
 							</Button>
 							<p className="text-gray-600 leading-relaxed">
-								Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-								eiusmod tempor incididunt ut labore et dolore magna aliqua.
+							Every helmet is ISI certified and built with high-impact technology that protects kids from bumps, falls, and collisions.
 							</p>
 
 							<motion.div

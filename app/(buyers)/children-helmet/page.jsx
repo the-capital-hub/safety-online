@@ -5,6 +5,7 @@ import ProductShowcase from "@/components/BuyerPanel/ChildrenHelmet/ProductShowc
 import CollisionPreventionSection from "@/components/BuyerPanel/ChildrenHelmet/CollisionPreventionSection.jsx";
 import TestimonialsSection from "@/components/BuyerPanel/ChildrenHelmet/TestimonialsSection.jsx";
 import AboutSection from "@/components/BuyerPanel/ChildrenHelmet/AboutSection.jsx";
+import Footer from "@/components/BuyerPanel/ChildrenHelmet/Footer";
 
 export default function ChildrenHelmetPage() {
 	return (
@@ -29,6 +30,8 @@ export default function ChildrenHelmetPage() {
 
 			{/* Testimonials Section */}
 			<TestimonialsSection />
+
+			<Footer/>
 		</div>
 	);
 }

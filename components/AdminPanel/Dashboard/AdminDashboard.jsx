@@ -1,326 +1,210 @@
 "use client";
 
-import { useEffect } from "react";
-import { motion } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React from "react";
+import dynamic from "next/dynamic";
+import { Card, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import {
-	Package,
-	ShoppingCart,
-	Users,
-	DollarSign,
-	AlertTriangle,
-	CheckCircle,
-	Clock,
-	Store,
-	RefreshCw,
-	BarChart3,
-	PieChart,
-	IndianRupee,
-} from "lucide-react";
-import { useAdminDashboardStore } from "@/store/adminDashboardStore.js";
-import { StatsCard } from "@/components/AdminPanel/Dashboard/StatsCard.jsx";
-import { RecentOrders } from "@/components/AdminPanel/Dashboard/RecentOrders.jsx";
-import { TopProducts } from "@/components/AdminPanel/Dashboard/TopProducts.jsx";
-import { SimpleBarChart } from "@/components/AdminPanel/Dashboard/SimpleBarChart.jsx";
-import { useIsAuthenticated } from "@/store/adminAuthStore.js";
-import { useRouter } from "next/navigation";
 
-export default function AdminDashboard() {
-	const {
-		loading,
-		error,
-		data,
-		fetchDashboardData,
-		refreshData,
-		getMonthlyOrdersChartData,
-		getOrdersByStatusChartData,
-	} = useAdminDashboardStore();
+// Dynamically import Recharts components (disable SSR)
+const BarChart = dynamic(
+  () => import("recharts").then((mod) => mod.BarChart),
+  { ssr: false }
+);
+const Bar = dynamic(() => import("recharts").then((mod) => mod.Bar), {
+  ssr: false,
+});
+const XAxis = dynamic(() => import("recharts").then((mod) => mod.XAxis), {
+  ssr: false,
+});
+const YAxis = dynamic(() => import("recharts").then((mod) => mod.YAxis), {
+  ssr: false,
+});
+const Tooltip = dynamic(() => import("recharts").then((mod) => mod.Tooltip), {
+  ssr: false,
+});
+const ResponsiveContainer = dynamic(
+  () => import("recharts").then((mod) => mod.ResponsiveContainer),
+  { ssr: false }
+);
 
-	const isAuthenticated = useIsAuthenticated();
-	const router = useRouter();
-	useEffect(() => {
-		if (!isAuthenticated) {
-			const timer = setTimeout(() => {
-				router.push("/admin/login");
-			}, 3);
+const Dashboard = () => {
+	const paymentData = [
+		{ name: "Jan", amount: 60 },
+		{ name: "Feb", amount: 75 },
+		{ name: "Mar", amount: 50 },
+		{ name: "Apr", amount: 90 },
+		{ name: "May", amount: 40 },
+		{ name: "Jun", amount: 85 },
+		{ name: "Jul", amount: 70 },
+		{ name: "Aug", amount: 55 },
+		{ name: "Sep", amount: 95 },
+		{ name: "Oct", amount: 65 },
+		{ name: "Nov", amount: 80 },
+		{ name: "Dec", amount: 100 },
+	  ];
 
-			return () => clearTimeout(timer);
+	  const orders = [
+		{ date: "01/04/2024", product: "ZithroMax Antibiotic", status: "In Transit", color: "text-blue-600" },
+		{ date: "02/04/2024", product: "Panadol Extra", status: "Pending", color: "text-yellow-600" },
+		{ date: "24/05/2024", product: "CiproCure 500mg", status: "Delivered", color: "text-green-600" },
+		{ date: "11/04/2024", product: "AmoxiHeal 250mg", status: "Delivered", color: "text-green-600" },
+		{ date: "23/05/2024", product: "ZithroMax Antibiotic", status: "Pending", color: "text-yellow-600" },
+	  ]
+
+	  const getStatusColor = (status) => {
+		switch (status) {
+		  case "Delivered":
+			return "text-green-600"
+		  case "In Transit":
+			return "text-blue-600"
+		  case "Pending":
+			return "text-yellow-600"
+		  default:
+			return "text-gray-600"
 		}
-	}, [isAuthenticated, router]);
+	  }
+	  
 
-	useEffect(() => {
-		fetchDashboardData();
-	}, [fetchDashboardData]);
+  return (
+    <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Top Stats */}
+      <Card className="shadow rounded-2xl">
+        <CardContent className="p-4">
+          <p className="text-sm text-gray-500">Total Orders</p>
+          <h2 className="text-3xl font-bold">400</h2>
+          <p className="text-green-600 text-sm">▲ 10% vs last month</p>
+        </CardContent>
+      </Card>
 
-	const handleRefresh = async () => {
-		await refreshData();
-	};
+      <Card className="shadow rounded-2xl">
+        <CardContent className="p-4">
+          <p className="text-sm text-gray-500">Total Sell</p>
+          <h2 className="text-3xl font-bold">₹42.5L</h2>
+          <p className="text-red-600 text-sm">▼ 5% vs last month</p>
+        </CardContent>
+      </Card>
 
-	if (!isAuthenticated) {
-		return (
-			<div className="flex items-center justify-center py-4 px-6 bg-white">
-				<div className="text-gray-600">Redirecting to login...</div>
-			</div>
-		);
-	}
+      <Card className="shadow rounded-2xl">
+        <CardContent className="p-4">
+          <p className="text-sm text-gray-500">Total Products</p>
+          <h2 className="text-3xl font-bold">452</h2>
+          <p className="text-green-600 text-sm">▲ 23 vs last month</p>
+        </CardContent>
+      </Card>
 
-	if (loading && !data.overview.totalOrders) {
-		return (
-			<div className="flex items-center justify-center h-64">
-				<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-			</div>
-		);
-	}
+      {/* Payment Summary */}
+      <Card className="shadow rounded-2xl col-span-full">
+  <CardContent className="p-4">
+    <div className="flex justify-between mb-4">
+      <h3 className="text-lg font-semibold">Payment Summary</h3>
+      <button className="text-sm font-medium">Paid</button>
+    </div>
+    <div className="w-full h-80"> {/* bigger height */}
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={paymentData}>
+          <XAxis dataKey="name" />
+          <YAxis />
+          <Tooltip />
+          <Bar dataKey="amount" fill="#fbbf24" radius={[6, 6, 0, 0]} />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  </CardContent>
+</Card>
 
-	if (error) {
-		return (
-			<div className="flex items-center justify-center h-64">
-				<div className="text-center">
-					<p className="text-red-600 mb-4">{error}</p>
-					<Button onClick={fetchDashboardData}>Try Again</Button>
-				</div>
-			</div>
-		);
-	}
 
-	const monthlyOrdersData = getMonthlyOrdersChartData();
-	const ordersByStatusData = getOrdersByStatusChartData();
+    
+ {/* Order Summary */}
+ <Card className="shadow rounded-2xl col-span-1 lg:col-span-3">
+  <CardContent className="p-6">
+    <h3 className="text-lg font-semibold mb-6">Order Summary</h3>
+    <div className="space-y-6">
+      {/* Pending Orders */}
+      <div>
+        <div className="flex justify-between items-end mb-2">
+          <div>
+            <p className="text-sm font-medium">Pending Orders</p>
+            <p className="text-xl text-black-500">40%</p>
+          </div>
+          <p className="text-sm font-medium">160/400 Orders</p>
+        </div>
+        <Progress
+          value={40}
+          className="h-2"
+          indicatorClassName="bg-yellow-500"
+        />
+      </div>
 
-	return (
-		<div className="space-y-6">
-			{/* Header */}
-			<motion.div
-				initial={{ opacity: 0, y: 20 }}
-				animate={{ opacity: 1, y: 0 }}
-				transition={{ duration: 0.3 }}
-				className="flex items-center justify-between"
-			>
-				<div>
-					<h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-					<p className="text-gray-600 mt-1">
-						Welcome back! Here's what's happening with your store.
-					</p>
-				</div>
-				<Button
-					onClick={handleRefresh}
-					disabled={loading}
-					className="bg-orange-600 hover:bg-orange-700"
-				>
-					<RefreshCw
-						className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`}
-					/>
-					Refresh
-				</Button>
-			</motion.div>
+      {/* Shipped Orders */}
+      <div>
+        <div className="flex justify-between items-end mb-2">
+          <div>
+            <p className="text-sm font-medium">Shipped Orders</p>
+            <p className="text-xl text-black-500">30%</p>
+          </div>
+          <p className="text-sm font-medium">120/400 Orders</p>
+        </div>
+        <Progress
+          value={30}
+          className="h-2"
+          indicatorClassName="bg-purple-500"
+        />
+      </div>
 
-			{/* Overview Stats */}
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-				<StatsCard
-					title="Total Orders"
-					value={data.overview.totalOrders}
-					change={data.overview.ordersGrowth}
-					icon={ShoppingCart}
-					color="blue"
-					delay={0.1}
-				/>
-				<StatsCard
-					title="Total Revenue"
-					value={`₹${data.overview.totalRevenue.toLocaleString()}`}
-					change={data.overview.revenueGrowth}
-					icon={IndianRupee}
-					color="green"
-					delay={0.2}
-				/>
-				<StatsCard
-					title="Total Products"
-					value={data.overview.totalProducts}
-					subtitle={`${data.products.published} published`}
-					icon={Package}
-					color="purple"
-					delay={0.3}
-				/>
-				<StatsCard
-					title="Active Customers"
-					value={data.overview.activeCustomers}
-					subtitle={`${data.overview.totalCustomers} total`}
-					icon={Users}
-					color="orange"
-					delay={0.4}
-				/>
-			</div>
+      {/* Delivered Orders */}
+      <div>
+        <div className="flex justify-between items-end mb-2">
+          <div>
+            <p className="text-sm font-medium">Delivered Orders</p>
+            <p className="text-xl text-black-500">40%</p>
+          </div>
+          <p className="text-sm font-medium">160/400 Orders</p>
+        </div>
+        <Progress
+          value={70}
+          className="h-2"
+          indicatorClassName="bg-green-500"
+        />
+      </div>
+    </div>
+  </CardContent>
+</Card>
 
-			{/* Charts Section */}
-			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-				{/* Monthly Orders Chart */}
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.3, delay: 0.5 }}
-				>
-					<Card>
-						<CardHeader>
-							<CardTitle className="flex items-center gap-2">
-								<BarChart3 className="w-5 h-5 text-blue-600" />
-								Monthly Orders
-							</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<SimpleBarChart data={monthlyOrdersData} title="" height={250} />
-						</CardContent>
-					</Card>
-				</motion.div>
 
-				{/* Orders by Status */}
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.3, delay: 0.6 }}
-				>
-					<Card>
-						<CardHeader>
-							<CardTitle className="flex items-center gap-2">
-								<PieChart className="w-5 h-5 text-green-600" />
-								Orders by Status
-							</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<div className="space-y-4">
-								{ordersByStatusData.map((item, index) => {
-									const colors = [
-										"bg-blue-500",
-										"bg-green-500",
-										"bg-yellow-500",
-										"bg-red-500",
-										"bg-purple-500",
-									];
-									const color = colors[index % colors.length];
 
-									return (
-										<motion.div
-											key={item.status}
-											initial={{ opacity: 0, x: -20 }}
-											animate={{ opacity: 1, x: 0 }}
-											transition={{ duration: 0.3, delay: index * 0.1 }}
-											className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-										>
-											<div className="flex items-center gap-3">
-												<div className={`w-4 h-4 rounded-full ${color}`}></div>
-												<span className="font-medium capitalize">
-													{item.status}
-												</span>
-											</div>
-											<div className="text-right">
-												<p className="font-bold">{item.count}</p>
-												<p className="text-sm text-gray-600">
-													₹{item.revenue.toLocaleString()}
-												</p>
-											</div>
-										</motion.div>
-									);
-								})}
-							</div>
-						</CardContent>
-					</Card>
-				</motion.div>
-			</div>
 
-			{/* Quick Stats Grid */}
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.3, delay: 0.7 }}
-				>
-					<Card>
-						<CardContent className="p-6">
-							<div className="flex items-center justify-between">
-								<div>
-									<p className="text-sm font-medium text-gray-600">
-										Pending Orders
-									</p>
-									<p className="text-2xl font-bold text-yellow-600">
-										{data.orders.pending}
-									</p>
-								</div>
-								<Clock className="h-8 w-8 text-yellow-600" />
-							</div>
-						</CardContent>
-					</Card>
-				</motion.div>
+	    {/* Review Orders */}
+		<Card className="shadow rounded-2xl w-full col-span-full">
+      <CardContent className="p-6">
+        <h3 className="text-lg font-semibold mb-6">Review Orders</h3>
+        <ul className="space-y-4">
+          {orders.map((order, index) => (
+            <li key={index} className="flex justify-between items-center text-sm">
+              <span>
+                {order.date} - {order.product}
+              </span>
 
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.3, delay: 0.8 }}
-				>
-					<Card>
-						<CardContent className="p-6">
-							<div className="flex items-center justify-between">
-								<div>
-									<p className="text-sm font-medium text-gray-600">
-										Completed Orders
-									</p>
-									<p className="text-2xl font-bold text-green-600">
-										{data.orders.completed}
-									</p>
-								</div>
-								<CheckCircle className="h-8 w-8 text-green-600" />
-							</div>
-						</CardContent>
-					</Card>
-				</motion.div>
+              {order.status === "Pending" ? (
+                <div className="flex space-x-2">
+                  <Button size="sm" className="bg-green-500 hover:bg-green-600 text-white">
+                    Accept
+                  </Button>
+                  <Button size="sm" className="bg-red-500 hover:bg-red-600 text-white">
+                    Reject
+                  </Button>
+                </div>
+              ) : (
+                <span className={getStatusColor(order.status)}>{order.status}</span>
+              )}
+            </li>
+          ))}
+        </ul>
+      </CardContent>
+    </Card>
 
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.3, delay: 0.9 }}
-				>
-					<Card>
-						<CardContent className="p-6">
-							<div className="flex items-center justify-between">
-								<div>
-									<p className="text-sm font-medium text-gray-600">
-										Low Stock Products
-									</p>
-									<p className="text-2xl font-bold text-red-600">
-										{data.products.lowStock}
-									</p>
-								</div>
-								<AlertTriangle className="h-8 w-8 text-red-600" />
-							</div>
-						</CardContent>
-					</Card>
-				</motion.div>
+    </div>
+  );
+};
 
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.3, delay: 1.0 }}
-				>
-					<Card>
-						<CardContent className="p-6">
-							<div className="flex items-center justify-between">
-								<div>
-									<p className="text-sm font-medium text-gray-600">
-										Active Sellers
-									</p>
-									<p className="text-2xl font-bold text-purple-600">
-										{data.users.sellers.active}
-									</p>
-								</div>
-								<Store className="h-8 w-8 text-purple-600" />
-							</div>
-						</CardContent>
-					</Card>
-				</motion.div>
-			</div>
-
-			{/* Recent Orders and Top Products */}
-			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-				<RecentOrders orders={data.orders.recent} />
-				<TopProducts products={data.products.top} />
-			</div>
-		</div>
-	);
-}
+export default Dashboard;
