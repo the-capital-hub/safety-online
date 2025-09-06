@@ -75,16 +75,23 @@ export default function ProductCategories() {
 						className="space-y-8"
 					>
 						<div className="space-y-4">
-							<div className="space-y-2">
-								<h3 className="text-xl font-semibold">
-									SAFE HELMET FOR YOUR CHILDREN'S
-								</h3>
-								<p className="text-lg">
-									Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-									do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-								</p>
-							</div>
-						</div>
+  <h3 className="text-xl font-semibold">SAFE HELMET FOR YOUR CHILDREN</h3>
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div className="p-4 rounded-2xl shadow bg-white border border-gray-200">
+      <p className="font-medium">Strong outer shell + EPS foam lining</p>
+    </div>
+    <div className="p-4 rounded-2xl shadow bg-white border border-gray-200">
+      <p className="font-medium">Lightweight & breathable design</p>
+    </div>
+    <div className="p-4 rounded-2xl shadow bg-white border border-gray-200">
+      <p className="font-medium">Adjustable straps for growing kids</p>
+    </div>
+    <div className="p-4 rounded-2xl shadow bg-white border border-gray-200">
+      <p className="font-medium">Certified safe for Indian roads</p>
+    </div>
+  </div>
+</div>
+
 
 						{/* Category Buttons */}
 						<div className="flex flex-wrap gap-3">
