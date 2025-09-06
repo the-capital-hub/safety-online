@@ -10,6 +10,13 @@ const OrderSchema = new mongoose.Schema(
 				`ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
 		},
 
+		// New field
+		sellerId: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "User",
+			// required: true,
+		},
+
 		// Customer Information
 		userId: {
 			type: mongoose.Schema.Types.ObjectId,

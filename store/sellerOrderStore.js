@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 
-export const useAdminOrderStore = create(
+export const useSellerOrderStore = create(
 	devtools(
 		persist((set, get) => ({
 			// State
@@ -20,7 +20,7 @@ export const useAdminOrderStore = create(
 				totalOrders: 0,
 				totalRevenue: 0,
 				pendingOrders: 0,
-				completedOrders: 0,
+				acceptedOrders: 0,
 			},
 			filters: {
 				search: "",
@@ -52,7 +52,7 @@ export const useAdminOrderStore = create(
 					},
 				}),
 
-			// Fetch orders
+			// Fetch orders for seller
 			fetchOrders: async () => {
 				const { filters } = get();
 				set({ loading: true, error: null });
@@ -65,7 +65,10 @@ export const useAdminOrderStore = create(
 						}
 					});
 
-					const response = await fetch(`/api/admin/orders?${queryParams}`);
+					const response = await fetch(`/api/seller/orders?${queryParams}`, {
+						method: "GET",
+						credentials: "include",
+					});
 					const data = await response.json();
 
 					if (data.success) {
@@ -83,35 +86,17 @@ export const useAdminOrderStore = create(
 				}
 			},
 
-			// Fetch single order
-			fetchOrder: async (id) => {
+			// Accept order
+			acceptOrder: async (orderId) => {
 				set({ loading: true, error: null });
 
 				try {
-					const response = await fetch(`/api/admin/orders/${id}`);
-					const data = await response.json();
-
-					if (data.success) {
-						set({ currentOrder: data.order, loading: false });
-					} else {
-						set({ error: data.message, loading: false });
-					}
-				} catch (error) {
-					set({ error: "Failed to fetch order", loading: false });
-				}
-			},
-
-			// Update order
-			updateOrder: async (id, updateData) => {
-				set({ loading: true, error: null });
-
-				try {
-					const response = await fetch(`/api/admin/orders/${id}`, {
+					const response = await fetch(`/api/seller/orders/${orderId}/accept`, {
 						method: "PUT",
 						headers: {
 							"Content-Type": "application/json",
 						},
-						body: JSON.stringify(updateData),
+						credentials: "include",
 					});
 
 					const data = await response.json();
@@ -119,9 +104,10 @@ export const useAdminOrderStore = create(
 					if (data.success) {
 						set((state) => ({
 							orders: state.orders.map((order) =>
-								order._id === id ? data.order : order
+								order._id === orderId
+									? { ...order, status: "processing" }
+									: order
 							),
-							currentOrder: data.order,
 							loading: false,
 						}));
 						return { success: true, message: data.message };
@@ -130,25 +116,33 @@ export const useAdminOrderStore = create(
 						return { success: false, message: data.message };
 					}
 				} catch (error) {
-					set({ error: "Failed to update order", loading: false });
-					return { success: false, message: "Failed to update order" };
+					set({ error: "Failed to accept order", loading: false });
+					return { success: false, message: "Failed to accept order" };
 				}
 			},
 
-			// Delete order
-			deleteOrder: async (id) => {
+			// Reject order
+			rejectOrder: async (orderId) => {
 				set({ loading: true, error: null });
 
 				try {
-					const response = await fetch(`/api/admin/orders/${id}`, {
-						method: "DELETE",
+					const response = await fetch(`/api/seller/orders/${orderId}/reject`, {
+						method: "PUT",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						credentials: "include",
 					});
 
 					const data = await response.json();
 
 					if (data.success) {
 						set((state) => ({
-							orders: state.orders.filter((order) => order._id !== id),
+							orders: state.orders.map((order) =>
+								order._id === orderId
+									? { ...order, status: "cancelled" }
+									: order
+							),
 							loading: false,
 						}));
 						return { success: true, message: data.message };
@@ -157,61 +151,48 @@ export const useAdminOrderStore = create(
 						return { success: false, message: data.message };
 					}
 				} catch (error) {
-					set({ error: "Failed to delete order", loading: false });
-					return { success: false, message: "Failed to delete order" };
+					set({ error: "Failed to reject order", loading: false });
+					return { success: false, message: "Failed to reject order" };
 				}
 			},
 
-			// Download invoice
-			downloadInvoice: async (orderId, orderNumber) => {
+			// Download shipment receipt
+			downloadShipmentReceipt: async (orderId, orderNumber) => {
 				try {
-					const response = await fetch(`/api/admin/orders/${orderId}/invoice`);
+					const response = await fetch(
+						`/api/seller/orders/${orderId}/shipment-receipt`,
+						{
+							method: "GET",
+							credentials: "include",
+						}
+					);
 
 					if (response.ok) {
 						const blob = await response.blob();
 						const url = window.URL.createObjectURL(blob);
 						const a = document.createElement("a");
 						a.href = url;
-						a.download = `invoice-${orderNumber}.pdf`;
+						a.download = `shipment-receipt-${orderNumber}.pdf`;
 						document.body.appendChild(a);
 						a.click();
 						window.URL.revokeObjectURL(url);
 						document.body.removeChild(a);
 						return { success: true };
 					} else {
-						return { success: false, message: "Failed to download invoice" };
+						return { success: false, message: "Failed to download receipt" };
 					}
 				} catch (error) {
-					return { success: false, message: "Failed to download invoice" };
-				}
-			},
-
-			// Bulk operations
-			bulkUpdateStatus: async (orderIds, status) => {
-				set({ loading: true, error: null });
-
-				try {
-					const promises = orderIds.map((id) =>
-						fetch(`/api/admin/orders/${id}`, {
-							method: "PUT",
-							headers: {
-								"Content-Type": "application/json",
-							},
-							body: JSON.stringify({ status }),
-						})
-					);
-
-					await Promise.all(promises);
-
-					// Refresh orders
-					await get().fetchOrders();
-
-					return { success: true, message: "Orders updated successfully" };
-				} catch (error) {
-					set({ error: "Failed to update orders", loading: false });
-					return { success: false, message: "Failed to update orders" };
+					return { success: false, message: "Failed to download receipt" };
 				}
 			},
 		}))
 	)
 );
+
+// Selectors
+export const useSellerOrders = () =>
+	useSellerOrderStore((state) => state.orders);
+export const useSellerOrderLoading = () =>
+	useSellerOrderStore((state) => state.loading);
+export const useSellerOrderStats = () =>
+	useSellerOrderStore((state) => state.stats);
