@@ -41,7 +41,7 @@ export async function POST(request) {
 
 		// Generate JWT token
 		const token = jwt.sign(
-			{ userId: user._id, email: user.email, role: user.role },
+			{ userId: user._id, email: user.email, userType: user.userType },
 			process.env.JWT_SECRET,
 			{
 				expiresIn: "7d",
@@ -54,12 +54,12 @@ export async function POST(request) {
 		const response = NextResponse.json({
 			success: true,
 			message: "Login successful",
-			user: userWithoutPassword,
+			seller: userWithoutPassword,
 			token,
 		});
 
 		// Set HTTP-only cookie
-		response.cookies.set("auth-token", token, {
+		response.cookies.set("seller-auth-token", token, {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === "production",
 			sameSite: "strict",

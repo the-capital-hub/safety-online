@@ -6,15 +6,15 @@ export const useSellerAuthStore = create(
 	devtools(
 		persist(
 			(set, get) => ({
-				user: null,
+				seller: null,
 				loading: false,
 				error: null,
 
-				// Set seller user
-				setSellerUser: (user) => set({ user }),
+				// Set seller
+				setSeller: (seller) => set({ seller }),
 
-				// Clear user
-				clearSellerUser: () => set({ user: null }),
+				// Clear seller
+				clearSeller: () => set({ seller: null }),
 
 				// Login seller
 				login: async (credentials) => {
@@ -32,7 +32,7 @@ export const useSellerAuthStore = create(
 
 						if (data.success) {
 							set({
-								user: data.user,
+								seller: data.seller,
 								loading: false,
 							});
 							toast.success("Login successful");
@@ -50,7 +50,7 @@ export const useSellerAuthStore = create(
 				},
 
 				// Register seller
-				register: async (userData) => {
+				register: async (sellerData) => {
 					set({ loading: true, error: null });
 					try {
 						const response = await fetch("/api/seller/auth/register", {
@@ -58,7 +58,7 @@ export const useSellerAuthStore = create(
 							headers: {
 								"Content-Type": "application/json",
 							},
-							body: JSON.stringify(userData),
+							body: JSON.stringify(sellerData),
 						});
 
 						const data = await response.json();
@@ -88,13 +88,14 @@ export const useSellerAuthStore = create(
 								"Content-Type": "application/json",
 							},
 							body: JSON.stringify(profileData),
+							credentials: "include",
 						});
 
 						const data = await response.json();
 
 						if (data.success) {
 							set({
-								user: data.user,
+								seller: data.seller,
 								loading: false,
 							});
 							toast.success("Profile updated successfully");
@@ -116,7 +117,7 @@ export const useSellerAuthStore = create(
 			}),
 			{
 				name: "seller-auth-storage",
-				partialize: (state) => ({ user: state.user }),
+				partialize: (state) => ({ seller: state.seller }),
 			}
 		)
 	)
@@ -124,18 +125,18 @@ export const useSellerAuthStore = create(
 
 // Selectors
 export const useLoggedInSeller = () =>
-	useSellerAuthStore((state) => state.user);
+	useSellerAuthStore((state) => state.seller);
 
 export const useSellerFullName = () =>
 	useSellerAuthStore((state) =>
-		state.user ? `${state.user.firstName} ${state.user.lastName}` : ""
+		state.seller ? `${state.seller.firstName} ${state.seller.lastName}` : ""
 	);
 
 export const useSellerEmail = () =>
-	useSellerAuthStore((state) => state.user?.email || "");
+	useSellerAuthStore((state) => state.seller?.email || "");
 
 export const useSellerProfilePic = () =>
-	useSellerAuthStore((state) => state.user?.profilePic || "");
+	useSellerAuthStore((state) => state.seller?.profilePic || "");
 
 export const useIsSellerAuthenticated = () =>
-	useSellerAuthStore((state) => !!state.user);
+	useSellerAuthStore((state) => !!state.seller);

@@ -16,14 +16,14 @@ import { useAuthStore } from "@/store/authStore";
 
 export function LogoutPopup({ open, onOpenChange }) {
 	const { clearAdminUser } = useAdminAuthStore();
-	const { clearSellerUser } = useSellerAuthStore();
+	const { clearSeller } = useSellerAuthStore();
 	const { clearUser } = useAuthStore();
 	const handleLogout = () => {
 		// Handle logout logic here
 		console.log("Logging out...");
 		clearUser();
 		clearAdminUser();
-		clearSellerUser();
+		clearSeller();
 		onOpenChange(false);
 	};
 
