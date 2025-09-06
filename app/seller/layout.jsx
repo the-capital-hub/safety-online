@@ -2,11 +2,11 @@
 
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
-import SellerHeader from "@/components/SellerPanel/Header.jsx";
-import SellerFooter from "@/components/SellerPanel/Footer.jsx";
-import SellerHeader2 from "@/components/SellerPanel/SellerHeader.jsx";
-import SellerSidebar from "@/components/SellerPanel/SellerSidebar.jsx";
-import LoadingSpinner from "@/components/SellerPanel/LoadingSpinner.jsx";
+import SellerHeader from "@/components/SellerPanel/Layout/Header.jsx";
+import SellerFooter from "@/components/SellerPanel/Layout/Footer.jsx";
+import SellerHeader2 from "@/components/SellerPanel/Layout/SellerHeader.jsx";
+import SellerSidebar from "@/components/SellerPanel/Layout/SellerSidebar.jsx";
+import LoadingSpinner from "@/components/SellerPanel/Layout/LoadingSpinner.jsx";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
 export default function SellerLayout({ children }) {

@@ -1,4 +1,4 @@
-import LoadingSpinner from "@/components/SellerPanel/LoadingSpinner.jsx";
+import LoadingSpinner from "@/components/SellerPanel/Layout/LoadingSpinner.jsx";
 
 export default function Loading() {
 	return (

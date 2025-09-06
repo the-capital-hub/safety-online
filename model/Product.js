@@ -7,12 +7,12 @@ const ProductSchema = new mongoose.Schema(
 		longDescription: { type: String, required: true },
 		images: [{ type: String }],
 		category: { type: String, required: true },
-		published: { type: Boolean, default: true },
 		stocks: { type: Number, required: true },
-		price: { type: Number, required: true },
+		price: { type: Number, required: true }, // Treat this as the regular price / MRP
 		salePrice: { type: Number, default: 0 },
 		discount: { type: Number, default: 0 },
 
+		published: { type: Boolean, default: true },
 		inStock: { type: Boolean, default: true },
 
 		// Auto-generated status based on stock levels
@@ -54,8 +54,21 @@ const ProductSchema = new mongoose.Schema(
 			},
 		],
 
-		// Add more fields as needed
-		// Product SKU, Barcode, Slug, Tags
+		// More fields as needed
+		sellerId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+		subCategory: { type: String },
+		mainImage: { type: String },
+		hsnCode: { type: String },
+		brand: { type: String },
+
+		// Product Specifications
+		length: { type: Number },
+		width: { type: Number },
+		height: { type: Number },
+		weight: { type: Number },
+		colour: { type: String },
+		material: { type: String },
+		size: { type: String },
 	},
 	{
 		timestamps: true,

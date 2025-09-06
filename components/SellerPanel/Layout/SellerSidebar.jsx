@@ -1,9 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
-import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
 import {
 	Sidebar,
@@ -27,31 +26,15 @@ import { Button } from "@/components/ui/button";
 import {
 	LayoutDashboard,
 	Package,
-	Users,
 	ShoppingCart,
-	UserCheck,
-	Settings,
-	Globe,
-	Store,
-	HelpCircle,
 	ChevronDown,
+	Settings,
 	Sun,
 	Moon,
-	FolderOpen,
-	Tags,
-	Layers,
-	Ticket,
-	Languages,
-	DollarSign,
-	Eye,
-	Palette,
-	Cog,
 	ChartColumn,
 	Undo2,
-	Handbag,
 } from "lucide-react";
 import Logo from "@/public/SafetyLogo.png";
-// import { useIsAuthenticated } from "@/store/adminAuthStore.js";
 
 const menuItems = [
 	{
@@ -59,19 +42,9 @@ const menuItems = [
 		icon: LayoutDashboard,
 		href: "/seller/dashboard",
 	},
-	// {
-	// 	title: "Catalog",
-	// 	icon: Package,
-	// 	items: [
-	// 		{ title: "Products", href: "/seller/catalog/products", icon: FolderOpen },
-	// 		{ title: "Categories", href: "/seller/catalog/categories", icon: Tags },
-	// 		// { title: "Attributes", href: "/seller/catalog/attributes", icon: Layers },
-	// 		{ title: "Coupons", href: "/seller/catalog/coupons", icon: Ticket },
-	// 	],
-	// },
 	{
 		title: "Products",
-		icon: FolderOpen,
+		icon: Package,
 		href: "/seller/products",
 	},
 	{
@@ -89,32 +62,20 @@ const menuItems = [
 		icon: ChartColumn,
 		href: "/seller/analytics-report",
 	},
-	// {
-	// 	title: "Account Settings",
-	// 	icon: Settings,
-	// 	href: "/seller/account-settings",
-	// },
+	{
+		title: "Account Settings",
+		icon: Settings,
+		href: "/seller/account-settings",
+	},
 ];
 
 export default function SellerSidebar() {
 	const pathname = usePathname();
 	const [theme, setTheme] = useState("light");
-	// const isAuthenticated = useIsAuthenticated();
-	// const router = useRouter();
 
 	const toggleTheme = () => {
 		setTheme(theme === "light" ? "dark" : "light");
 	};
-
-	// useEffect(() => {
-	// 	if (!isAuthenticated) {
-	// 		router.push("/seller/login");
-	// 	}
-	// }, [isAuthenticated, router]);
-
-	// if (!isAuthenticated) {
-	// 	return null;
-	// }
 
 	return (
 		<Sidebar className="border-none bg-white">
@@ -197,6 +158,7 @@ export default function SellerSidebar() {
 				</SidebarMenu>
 			</SidebarContent>
 
+			{/* Theme Toggle */}
 			<SidebarFooter className="p-4">
 				<div className="flex gap-2">
 					<Button

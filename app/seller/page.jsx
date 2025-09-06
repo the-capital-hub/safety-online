@@ -1,33 +1,35 @@
+"use client";
+
 import { lazy, Suspense } from "react";
-import LoadingSpinner from "@/components/SellerPanel/LoadingSpinner.jsx";
+import LoadingSpinner from "@/components/SellerPanel/Layout/LoadingSpinner.jsx";
 
 // Lazy load components for better performance
 const HeroSection = lazy(() =>
-	import("@/components/SellerPanel/HomePage/HeroSection.jsx")
+	import("@/components/SellerPanel/LandingPage/HeroSection.jsx")
 );
 const SellerJourney = lazy(() =>
-	import("@/components/SellerPanel/HomePage/SellerJourney.jsx")
+	import("@/components/SellerPanel/LandingPage/SellerJourney.jsx")
 );
 const SellerFeatures = lazy(() =>
-	import("@/components/SellerPanel/HomePage/SellerFeatures.jsx")
+	import("@/components/SellerPanel/LandingPage/SellerFeatures.jsx")
 );
 const ProductCategoriesSearch = lazy(() =>
-	import("@/components/SellerPanel/HomePage/ProductCategoriesSearch.jsx")
+	import("@/components/SellerPanel/LandingPage/ProductCategoriesSearch.jsx")
 );
 const FeaturedSellerCarousel = lazy(() =>
-	import("@/components/SellerPanel/HomePage/FeaturedSellerCarousel.jsx")
+	import("@/components/SellerPanel/LandingPage/FeaturedSellerCarousel.jsx")
 );
 const SellerStorefrontShowcase = lazy(() =>
-	import("@/components/SellerPanel/HomePage/SellerStorefrontShowcase.jsx")
+	import("@/components/SellerPanel/LandingPage/SellerStorefrontShowcase.jsx")
 );
 const ProductDetailSection = lazy(() =>
-	import("@/components/SellerPanel/HomePage/ProductDetailSection.jsx")
+	import("@/components/SellerPanel/LandingPage/ProductDetailSection.jsx")
 );
 const SellerBenefits = lazy(() =>
-	import("@/components/SellerPanel/HomePage/SellerBenefits.jsx")
+	import("@/components/SellerPanel/LandingPage/SellerBenefits.jsx")
 );
 const TrustSection = lazy(() =>
-	import("@/components/SellerPanel/HomePage/TrustSection.jsx")
+	import("@/components/SellerPanel/LandingPage/TrustSection.jsx")
 );
 
 export default function SellerLandingPage() {
