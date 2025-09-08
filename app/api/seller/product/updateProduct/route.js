@@ -40,7 +40,7 @@ export async function PUT(request) {
 			sellerId: userId,
 		});
 
-		if (!product || product.sellerId !== userId) {
+		if (!product || product.sellerId.toString() !== userId) {
 			return NextResponse.json(
 				{ success: false, message: "Product not found" },
 				{ status: 404 }

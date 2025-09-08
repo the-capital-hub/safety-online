@@ -55,6 +55,7 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 		description: "",
 		longDescription: "",
 		category: "",
+		subCategory: "",
 		price: "",
 		salePrice: "",
 		stocks: "",
@@ -62,6 +63,15 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 		type: "featured",
 		published: true,
 		images: [],
+		hsnCode: "",
+		brand: "",
+		length: "",
+		width: "",
+		height: "",
+		weight: "",
+		colour: "",
+		material: "",
+		size: "",
 	});
 
 	// Helper function to convert URL to base64
@@ -107,6 +117,7 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 					description: product.description || "",
 					longDescription: product.longDescription || "",
 					category: product.category || "",
+					subCategory: product.subCategory || "",
 					price: product.price?.toString() || "",
 					salePrice: product.salePrice?.toString() || "",
 					stocks: product.stocks?.toString() || "",
@@ -114,6 +125,15 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 					type: product.type || "featured",
 					published: product.published !== undefined ? product.published : true,
 					images: convertedImages,
+					hsnCode: product.hsnCode || "",
+					brand: product.brand || "",
+					length: product.length?.toString() || "",
+					width: product.width?.toString() || "",
+					height: product.height?.toString() || "",
+					weight: product.weight?.toString() || "",
+					colour: product.colour || "",
+					material: product.material || "",
+					size: product.size || "",
 				});
 			};
 
@@ -140,6 +160,7 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 				description: formData.description,
 				longDescription: formData.longDescription || formData.description,
 				category: formData.category,
+				subCategory: formData.subCategory,
 				price: parseFloat(formData.price),
 				salePrice: formData.salePrice ? parseFloat(formData.salePrice) : 0,
 				stocks: parseInt(formData.stocks),
@@ -148,6 +169,15 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 				published: formData.published,
 				features: features.filter((f) => f.title && f.description),
 				images: formData.images, // Pass the base64 images array
+				hsnCode: formData.hsnCode,
+				brand: formData.brand,
+				length: formData.length ? parseFloat(formData.length) : null,
+				width: formData.width ? parseFloat(formData.width) : null,
+				height: formData.height ? parseFloat(formData.height) : null,
+				weight: formData.weight ? parseFloat(formData.weight) : null,
+				colour: formData.colour,
+				material: formData.material,
+				size: formData.size,
 			};
 
 			console.log("Update Data:", updateData);
@@ -276,6 +306,18 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 							</div>
 
 							<div>
+								<Label>Sub Category</Label>
+								<Input
+									placeholder="Enter sub category"
+									value={formData.subCategory}
+									onChange={(e) =>
+										setFormData({ ...formData, subCategory: e.target.value })
+									}
+									className="mt-1"
+								/>
+							</div>
+
+							<div>
 								<Label>Product Type</Label>
 								<Select
 									value={formData.type}
@@ -354,6 +396,104 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 									className="mt-1"
 									type="number"
 									max="100"
+								/>
+							</div>
+
+							<div>
+								<Label>HSN Code</Label>
+								<Input 
+									placeholder="HSN Code" 
+									value={formData.hsnCode} 
+									onChange={(e) => setFormData({ ...formData, hsnCode: e.target.value })} 
+									className="mt-1" 
+								/>
+							</div>
+
+							<div>
+								<Label>Brand</Label>
+								<Input 
+									placeholder="Brand" 
+									value={formData.brand} 
+									onChange={(e) => setFormData({ ...formData, brand: e.target.value })} 
+									className="mt-1" 
+								/>
+							</div>
+
+							<div>
+								<Label>Length</Label>
+								<Input 
+									placeholder="Length" 
+									value={formData.length} 
+									onChange={(e) => setFormData({ ...formData, length: e.target.value })} 
+									className="mt-1" 
+									type="number" 
+									step="0.01" 
+								/>
+							</div>
+
+							<div>
+								<Label>Width</Label>
+								<Input 
+									placeholder="Width" 
+									value={formData.width} 
+									onChange={(e) => setFormData({ ...formData, width: e.target.value })} 
+									className="mt-1" 
+									type="number" 
+									step="0.01" 
+								/>
+							</div>
+
+							<div>
+								<Label>Height</Label>
+								<Input 
+									placeholder="Height" 
+									value={formData.height} 
+									onChange={(e) => setFormData({ ...formData, height: e.target.value })} 
+									className="mt-1" 
+									type="number" 
+									step="0.01" 
+								/>
+							</div>
+
+							<div>
+								<Label>Weight</Label>
+								<Input 
+									placeholder="Weight" 
+									value={formData.weight} 
+									onChange={(e) => setFormData({ ...formData, weight: e.target.value })} 
+									className="mt-1" 
+									type="number" 
+									step="0.01" 
+								/>
+							</div>
+
+							<div>
+								<Label>Colour</Label>
+								<Input 
+									placeholder="Colour" 
+									value={formData.colour} 
+									onChange={(e) => setFormData({ ...formData, colour: e.target.value })} 
+									className="mt-1" 
+								/>
+							</div>
+
+							<div>
+								<Label>Material</Label>
+								<Input 
+									placeholder="Material" 
+									value={formData.material} 
+									onChange={(e) => setFormData({ ...formData, material: e.target.value })} 
+									className="mt-1" 
+								/>
+							</div>
+
+							<div>
+								<Label>Size</Label>
+								<Input 
+									placeholder="Size" 
+									value={formData.size} 
+									onChange={(e) => setFormData({ ...formData, size: e.target.value })} 
+									className="mt-1" 
 								/>
 							</div>
 						</div>

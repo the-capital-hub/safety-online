@@ -1,8 +1,25 @@
+// api/seller/product/getAllProducts/route.js
+
 import { dbConnect } from "@/lib/dbConnect.js";
 import Product from "@/model/Product.js";
+import jwt from "jsonwebtoken";
 
 export async function GET(request) {
 	await dbConnect();
+
+	// Get token from cookies
+	const token = request.cookies.get("admin_token")?.value;
+
+	if (!token) {
+		return NextResponse.json(
+			{ success: false, message: "Unauthorized" },
+			{ status: 401 }
+		);
+	}
+
+	// Verify token
+	const decoded = jwt.verify(token, process.env.JWT_SECRET);
+	const userId = decoded.id;
 
 	try {
 		const { searchParams } = new URL(request.url);
@@ -22,6 +39,9 @@ export async function GET(request) {
 
 		// Build query
 		const query = {};
+		// if (userId) {
+		// 	query["sellerId"] = userId;
+		// }
 
 		// Search filter
 		if (search) {
@@ -129,7 +149,7 @@ export async function GET(request) {
 			},
 		});
 	} catch (error) {
-		console.error("Admin products fetch error:", error);
+		console.error("Seller products fetch error:", error);
 		return Response.json(
 			{ success: false, message: "Failed to fetch products" },
 			{ status: 500 }

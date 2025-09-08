@@ -4,6 +4,20 @@ import Product from "@/model/Product.js";
 export async function DELETE(request) {
 	await dbConnect();
 
+	// Get token from cookies
+	const token = request.cookies.get("admin_token")?.value;
+
+	if (!token) {
+		return NextResponse.json(
+			{ success: false, message: "Unauthorized" },
+			{ status: 401 }
+		);
+	}
+
+	// Verify token
+	const decoded = jwt.verify(token, process.env.JWT_SECRET);
+	const userId = decoded.id;
+
 	try {
 		const { productId } = await request.json();
 
@@ -14,7 +28,10 @@ export async function DELETE(request) {
 			);
 		}
 
-		const product = await Product.findByIdAndDelete(productId);
+		const product = await Product.findOneAndDelete({
+			_id: productId,
+			sellerId: userId,
+		});
 
 		if (!product) {
 			return Response.json(
