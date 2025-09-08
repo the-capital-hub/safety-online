@@ -16,7 +16,7 @@ export async function DELETE(request) {
 
   // Verify token
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
-  const userId = decoded.id;
+  // const userId = decoded.id;
 
   try {
     const { productIds } = await request.json();
@@ -30,7 +30,7 @@ export async function DELETE(request) {
 
     const result = await Product.deleteMany({
       _id: { $in: productIds },
-      sellerId: userId,
+    
     });
 
     return Response.json({
