@@ -2,6 +2,7 @@ import { dbConnect } from "@/lib/dbConnect.js";
 import Product from "@/model/Product.js";
 import cloudinary from "@/lib/cloudinary.js";
 import jwt from "jsonwebtoken";
+import { NextResponse } from "next/server";
 
 export async function POST(request) {
 	await dbConnect();
@@ -27,8 +28,8 @@ export async function POST(request) {
 		// Extract product data from formData
 		const title = formData.get("title");
 		const description = formData.get("description");
-		const price = parseFloat(formData.get("price"));
-		const stocks = parseInt(formData.get("stocks"));
+		const price = Number.parseFloat(formData.get("price"));
+		const stocks = Number.parseInt(formData.get("stocks"));
 		const category = formData.get("category");
 		const imageFiles = formData.getAll("images");
 
@@ -50,7 +51,7 @@ export async function POST(request) {
 			!category ||
 			!imageFiles.length
 		) {
-			return Response.json(
+			return NextResponse.json(
 				{
 					success: false,
 					message: "Missing required fields",
@@ -131,27 +132,46 @@ export async function POST(request) {
 			stocks: stocks,
 			price: price,
 			salePrice: formData.get("salePrice")
-				? parseFloat(formData.get("salePrice"))
+				? Number.parseFloat(formData.get("salePrice"))
 				: 0,
 			discount: formData.get("discount")
-				? parseFloat(formData.get("discount"))
+				? Number.parseFloat(formData.get("discount"))
 				: 0,
 			type: formData.get("type") || "featured",
 			features: features,
+			subCategory: formData.get("subCategory") || "",
+			mainImage: imageUrls.length > 0 ? imageUrls[0] : "",
+			hsnCode: formData.get("hsnCode") || "",
+			brand: formData.get("brand") || "",
+			length: formData.get("length")
+				? Number.parseFloat(formData.get("length"))
+				: null,
+			width: formData.get("width")
+				? Number.parseFloat(formData.get("width"))
+				: null,
+			height: formData.get("height")
+				? Number.parseFloat(formData.get("height"))
+				: null,
+			weight: formData.get("weight")
+				? Number.parseFloat(formData.get("weight"))
+				: null,
+			colour: formData.get("colour") || "",
+			material: formData.get("material") || "",
+			size: formData.get("size") || "",
 		});
 
 		await product.save();
 
 		console.log("Product saved successfully:", product._id);
 
-		return Response.json({
+		return NextResponse.json({
 			success: true,
 			message: "Product added successfully",
 			product,
 		});
 	} catch (error) {
 		console.error("Add product error:", error);
-		return Response.json(
+		return NextResponse.json(
 			{
 				success: false,
 				message: "Failed to add product",

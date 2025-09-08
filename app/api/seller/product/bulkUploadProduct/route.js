@@ -1,7 +1,7 @@
-// api/admin/product/bulkUploadPrduct/route.js
-
 import { dbConnect } from "@/lib/dbConnect";
 import Product from "@/model/Product";
+import jwt from "jsonwebtoken";
+import { NextResponse } from "next/server";
 
 export async function POST(request) {
 	await dbConnect();
@@ -24,7 +24,7 @@ export async function POST(request) {
 		const { products } = await request.json();
 
 		if (!Array.isArray(products) || products.length === 0) {
-			return Response.json(
+			return NextResponse.json(
 				{ success: false, message: "Invalid products data" },
 				{ status: 400 }
 			);
@@ -48,7 +48,7 @@ export async function POST(request) {
 					continue;
 				}
 
-				let imageUrls = [];
+				const imageUrls = [];
 
 				// Create new product
 				const product = new Product({
@@ -70,6 +70,25 @@ export async function POST(request) {
 						: 0,
 					type: productData.type || "featured",
 					features: productData.features || [],
+					subCategory: productData.subCategory || "",
+					mainImage: productData.mainImage || "",
+					hsnCode: productData.hsnCode || "",
+					brand: productData.brand || "",
+					length: productData.length
+						? Number.parseFloat(productData.length)
+						: null,
+					width: productData.width
+						? Number.parseFloat(productData.width)
+						: null,
+					height: productData.height
+						? Number.parseFloat(productData.height)
+						: null,
+					weight: productData.weight
+						? Number.parseFloat(productData.weight)
+						: null,
+					colour: productData.colour || "",
+					material: productData.material || "",
+					size: productData.size || "",
 				});
 
 				await product.save();
@@ -82,14 +101,14 @@ export async function POST(request) {
 			}
 		}
 
-		return Response.json({
+		return NextResponse.json({
 			success: true,
 			message: `Bulk upload completed. ${results.success.length} products added, ${results.failed.length} failed.`,
 			results,
 		});
 	} catch (error) {
 		console.error("Bulk upload error:", error);
-		return Response.json(
+		return NextResponse.json(
 			{ success: false, message: "Failed to bulk upload products" },
 			{ status: 500 }
 		);

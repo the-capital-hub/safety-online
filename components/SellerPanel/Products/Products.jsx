@@ -48,28 +48,17 @@ import { toast } from "react-hot-toast";
 import { useIsSellerAuthenticated } from "@/store/sellerAuthStore.js";
 import { useRouter } from "next/navigation";
 
-const categories = [
-	{ value: "all", label: "All Categories" },
-	{ value: "personal-safety", label: "Personal Safety" },
-	{ value: "road-safety", label: "Road Safety" },
-	{ value: "signage", label: "Signage" },
-	{ value: "industrial-safety", label: "Industrial Safety" },
-	{ value: "queue-management", label: "Queue Management" },
-	{ value: "fire-safety", label: "Fire Safety" },
-	{ value: "first-aid", label: "First Aid" },
-	{ value: "water-safety", label: "Water Safety" },
-	{ value: "emergency-kit", label: "Emergency Kit" },
-];
-
 export default function SellerProductsPage() {
 	const {
 		products,
+		categories,
 		isLoading,
 		error,
 		filters,
 		pagination,
 		selectedProducts,
 		fetchProducts,
+		fetchCategories,
 		setFilters,
 		resetFilters,
 		setPage,
@@ -105,8 +94,20 @@ export default function SellerProductsPage() {
 	}, [isAuthenticated, router]);
 
 	useEffect(() => {
-		fetchProducts();
-	}, [fetchProducts]);
+		if (isAuthenticated) {
+			fetchProducts();
+			fetchCategories();
+		}
+	}, [fetchProducts, fetchCategories, isAuthenticated]);
+
+	const categoryOptions = [
+		{ value: "all", label: "All Categories", productCount: 0 },
+		...categories.map((category) => ({
+			value: category.name.toLowerCase().replace(/\s+/g, "-"), // Convert to slug format
+			label: category.name,
+			productCount: category.productCount || 0,
+		})),
+	];
 
 	if (!isAuthenticated) {
 		return (
@@ -218,6 +219,25 @@ export default function SellerProductsPage() {
 		console.log("Link copied to clipboard:", shareLink);
 	};
 
+	// Helper function to get category display name
+	const getCategoryDisplayName = (categorySlug) => {
+		if (categorySlug === "all") return "All Categories";
+		const category = categories.find(
+			(cat) => cat.name.toLowerCase().replace(/\s+/g, "-") === categorySlug
+		);
+		return category ? category.name : categorySlug.replace("-", " ");
+	};
+
+	function toSentenceCase(str) {
+		if (!str) return "";
+
+		return str
+			.toLowerCase()
+			.split(" ")
+			.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+			.join(" ");
+	}
+
 	if (error) {
 		return (
 			<div className="flex items-center justify-center min-h-[400px]">
@@ -322,9 +342,16 @@ export default function SellerProductsPage() {
 										<SelectValue placeholder="Category" />
 									</SelectTrigger>
 									<SelectContent>
-										{categories.map((category) => (
+										{categoryOptions.map((category) => (
 											<SelectItem key={category.value} value={category.value}>
-												{category.label}
+												<div className="flex items-center justify-between w-full">
+													<span>{toSentenceCase(category.label)}</span>
+													{category.productCount > 0 && (
+														<Badge variant="secondary" className="ml-2 text-xs">
+															{category.productCount}
+														</Badge>
+													)}
+												</div>
 											</SelectItem>
 										))}
 									</SelectContent>
