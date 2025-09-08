@@ -39,6 +39,13 @@ const UserSchema = new mongoose.Schema(
 			enum: ["customer", "seller", "admin"],
 			default: "customer",
 		},
+		company: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "Company",
+			required: function () {
+				return this.userType === "seller"; 
+			},
+		},
 		status: {
 			type: String,
 			enum: ["active", "inactive", "suspended"],
