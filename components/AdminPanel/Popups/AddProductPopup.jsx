@@ -55,6 +55,7 @@ export function AddProductPopup({ open, onOpenChange }) {
 		description: "",
 		longDescription: "",
 		category: "",
+		subCategory: "",
 		price: "",
 		salePrice: "",
 		stocks: "",
@@ -62,32 +63,48 @@ export function AddProductPopup({ open, onOpenChange }) {
 		type: "featured",
 		published: true,
 		images: [],
+		hsnCode: "",
+		brand: "",
+		length: "",
+		width: "",
+		height: "",
+		weight: "",
+		colour: "",
+		material: "",
+		size: "",
 	});
 
+	// Update handleSubmit
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		setIsSubmitting(true);
 
 		try {
-			// Prepare product data with proper types
 			const productData = {
 				title: formData.title,
 				description: formData.description,
 				longDescription: formData.longDescription || formData.description,
 				category: formData.category,
+				subCategory: formData.subCategory,
 				price: parseFloat(formData.price),
 				salePrice: formData.salePrice ? parseFloat(formData.salePrice) : 0,
 				stocks: parseInt(formData.stocks),
 				discount: formData.discount ? parseFloat(formData.discount) : 0,
 				type: formData.type,
 				published: formData.published,
-				features: features.filter((f) => f.title && f.description),
 				images: formData.images,
+				hsnCode: formData.hsnCode,
+				brand: formData.brand,
+				length: formData.length ? parseFloat(formData.length) : null,
+				width: formData.width ? parseFloat(formData.width) : null,
+				height: formData.height ? parseFloat(formData.height) : null,
+				weight: formData.weight ? parseFloat(formData.weight) : null,
+				colour: formData.colour,
+				material: formData.material,
+				size: formData.size,
+				features: features.filter(f => f.title && f.description),
 			};
 
-			console.log("Product Data:", productData);
-
-			// Use the store method which handles FormData internally
 			const success = await addProduct(productData);
 
 			if (success) {
@@ -108,6 +125,7 @@ export function AddProductPopup({ open, onOpenChange }) {
 			description: "",
 			longDescription: "",
 			category: "",
+			subCategory: "",
 			price: "",
 			salePrice: "",
 			stocks: "",
@@ -115,6 +133,15 @@ export function AddProductPopup({ open, onOpenChange }) {
 			type: "featured",
 			published: true,
 			images: [],
+			hsnCode: "",
+			brand: "",
+			length: "",
+			width: "",
+			height: "",
+			weight: "",
+			colour: "",
+			material: "",
+			size: "",
 		});
 		setFeatures([{ title: "", description: "" }]);
 	};
@@ -232,6 +259,18 @@ export function AddProductPopup({ open, onOpenChange }) {
 							</div>
 
 							<div>
+								<Label>Sub Category</Label>
+								<Input
+									placeholder="Enter sub category"
+									value={formData.subCategory}
+									onChange={(e) =>
+										setFormData({ ...formData, subCategory: e.target.value })
+									}
+									className="mt-1"
+								/>
+							</div>
+
+							<div>
 								<Label>Product Type</Label>
 								<Select
 									value={formData.type}
@@ -312,46 +351,134 @@ export function AddProductPopup({ open, onOpenChange }) {
 									max="100"
 								/>
 							</div>
+
+							<div>
+								<Label>HSN Code</Label>
+								<Input 
+									placeholder="HSN Code" 
+									value={formData.hsnCode} 
+									onChange={(e) => setFormData({ ...formData, hsnCode: e.target.value })} 
+									className="mt-1" 
+								/>
+							</div>
+
+							<div>
+								<Label>Brand</Label>
+								<Input 
+									placeholder="Brand" 
+									value={formData.brand} 
+									onChange={(e) => setFormData({ ...formData, brand: e.target.value })} 
+									className="mt-1" 
+								/>
+							</div>
+
+							<div>
+								<Label>Length</Label>
+								<Input 
+									placeholder="Length" 
+									value={formData.length} 
+									onChange={(e) => setFormData({ ...formData, length: e.target.value })} 
+									className="mt-1" 
+									type="number" 
+									step="0.01" 
+								/>
+							</div>
+
+							<div>
+								<Label>Width</Label>
+								<Input 
+									placeholder="Width" 
+									value={formData.width} 
+									onChange={(e) => setFormData({ ...formData, width: e.target.value })} 
+									className="mt-1" 
+									type="number" 
+									step="0.01" 
+								/>
+							</div>
+
+							<div>
+								<Label>Height</Label>
+								<Input 
+									placeholder="Height" 
+									value={formData.height} 
+									onChange={(e) => setFormData({ ...formData, height: e.target.value })} 
+									className="mt-1" 
+									type="number" 
+									step="0.01" 
+								/>
+							</div>
+
+							<div>
+								<Label>Weight</Label>
+								<Input 
+									placeholder="Weight" 
+									value={formData.weight} 
+									onChange={(e) => setFormData({ ...formData, weight: e.target.value })} 
+									className="mt-1" 
+									type="number" 
+									step="0.01" 
+								/>
+							</div>
+
+							<div>
+								<Label>Colour</Label>
+								<Input 
+									placeholder="Colour" 
+									value={formData.colour} 
+									onChange={(e) => setFormData({ ...formData, colour: e.target.value })} 
+									className="mt-1" 
+								/>
+							</div>
+
+							<div>
+								<Label>Material</Label>
+								<Input 
+									placeholder="Material" 
+									value={formData.material} 
+									onChange={(e) => setFormData({ ...formData, material: e.target.value })} 
+									className="mt-1" 
+								/>
+							</div>
+
+							<div>
+								<Label>Size</Label>
+								<Input 
+									placeholder="Size" 
+									value={formData.size} 
+									onChange={(e) => setFormData({ ...formData, size: e.target.value })} 
+									className="mt-1" 
+								/>
+							</div>
 						</div>
 
-						{/* Features Section */}
+						{/* Features */}
 						<div>
 							<div className="flex items-center justify-between mb-3">
 								<Label>Product Features</Label>
-								<Button
-									type="button"
-									variant="outline"
-									size="sm"
-									onClick={addFeature}
-								>
-									<Plus className="w-4 h-4 mr-1" />
-									Add Feature
+								<Button type="button" variant="outline" size="sm" onClick={addFeature}>
+									<Plus className="w-4 h-4 mr-1" /> Add Feature
 								</Button>
 							</div>
 							<div className="space-y-3">
 								{features.map((feature, index) => (
 									<div key={index} className="flex gap-3 items-start">
-										<Input
-											placeholder="Feature title"
-											value={feature.title}
-											onChange={(e) =>
-												updateFeature(index, "title", e.target.value)
-											}
-											className="flex-1"
+										<Input 
+											placeholder="Feature title" 
+											value={feature.title} 
+											onChange={(e) => updateFeature(index, "title", e.target.value)} 
+											className="flex-1" 
 										/>
-										<Input
-											placeholder="Feature description"
-											value={feature.description}
-											onChange={(e) =>
-												updateFeature(index, "description", e.target.value)
-											}
-											className="flex-1"
+										<Input 
+											placeholder="Feature description" 
+											value={feature.description} 
+											onChange={(e) => updateFeature(index, "description", e.target.value)} 
+											className="flex-1" 
 										/>
 										{features.length > 1 && (
-											<Button
-												type="button"
-												variant="outline"
-												size="icon"
+											<Button 
+												type="button" 
+												variant="outline" 
+												size="icon" 
 												onClick={() => removeFeature(index)}
 											>
 												<X className="w-4 h-4" />
@@ -366,30 +493,26 @@ export function AddProductPopup({ open, onOpenChange }) {
 						<div className="flex items-center justify-between">
 							<div>
 								<Label>Publish Product</Label>
-								<p className="text-sm text-gray-500">
-									Make this product visible to customers
-								</p>
+								<p className="text-sm text-gray-500">Make this product visible to customers</p>
 							</div>
-							<Switch
-								checked={formData.published}
-								onCheckedChange={(checked) =>
-									setFormData({ ...formData, published: checked })
-								}
+							<Switch 
+								checked={formData.published} 
+								onCheckedChange={(checked) => setFormData({ ...formData, published: checked })} 
 							/>
 						</div>
 
 						<DialogFooter className="flex gap-3">
-							<Button
-								type="button"
-								variant="outline"
-								onClick={() => onOpenChange(false)}
+							<Button 
+								type="button" 
+								variant="outline" 
+								onClick={() => onOpenChange(false)} 
 								className="flex-1"
 							>
 								Cancel
 							</Button>
-							<Button
-								type="submit"
-								disabled={isSubmitting}
+							<Button 
+								type="submit" 
+								disabled={isSubmitting} 
 								className="flex-1 bg-green-600 hover:bg-green-700"
 							>
 								{isSubmitting ? "Adding..." : "Add Product"}

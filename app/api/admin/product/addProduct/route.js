@@ -1,9 +1,26 @@
 import { dbConnect } from "@/lib/dbConnect.js";
 import Product from "@/model/Product.js";
 import cloudinary from "@/lib/cloudinary.js";
+import jwt from "jsonwebtoken";
+import { NextResponse } from "next/server";
 
 export async function POST(request) {
 	await dbConnect();
+
+	// Get token from cookies
+	const token = request.cookies.get("admin_token")?.value;
+
+	if (!token) {
+		return NextResponse.json(
+			{ success: false, message: "Unauthorized" },
+			{ status: 401 }
+		);
+	}
+
+	// Verify token
+	const decoded = jwt.verify(token, process.env.JWT_SECRET);
+	const userId = decoded.id;
+	console.log("Seller ID:", userId);
 
 	try {
 		const formData = await request.formData();
@@ -11,19 +28,19 @@ export async function POST(request) {
 		// Extract product data from formData
 		const title = formData.get("title");
 		const description = formData.get("description");
-		const price = parseFloat(formData.get("price"));
-		const stocks = parseInt(formData.get("stocks"));
+		const price = Number.parseFloat(formData.get("price"));
+		const stocks = Number.parseInt(formData.get("stocks"));
 		const category = formData.get("category");
 		const imageFiles = formData.getAll("images");
 
-		console.log("Received data:", {
-			title,
-			description,
-			price,
-			stocks,
-			category,
-			imageCount: imageFiles.length,
-		});
+		// console.log("Received data:", {
+		// 	title,
+		// 	description,
+		// 	price,
+		// 	stocks,
+		// 	category,
+		// 	imageCount: imageFiles.length,
+		// });
 
 		// Validate required fields
 		if (
@@ -34,7 +51,7 @@ export async function POST(request) {
 			!category ||
 			!imageFiles.length
 		) {
-			return Response.json(
+			return NextResponse.json(
 				{
 					success: false,
 					message: "Missing required fields",
@@ -89,7 +106,7 @@ export async function POST(request) {
 
 		const imageUrls = await Promise.all(uploadPromises);
 
-		console.log("Images uploaded successfully:", imageUrls.length);
+		// console.log("Images uploaded successfully:", imageUrls.length);
 
 		// Parse features safely
 		let features = [];
@@ -105,6 +122,7 @@ export async function POST(request) {
 
 		// Create new product
 		const product = new Product({
+			sellerId: userId,
 			title,
 			description,
 			longDescription: formData.get("longDescription") || description,
@@ -114,27 +132,46 @@ export async function POST(request) {
 			stocks: stocks,
 			price: price,
 			salePrice: formData.get("salePrice")
-				? parseFloat(formData.get("salePrice"))
+				? Number.parseFloat(formData.get("salePrice"))
 				: 0,
 			discount: formData.get("discount")
-				? parseFloat(formData.get("discount"))
+				? Number.parseFloat(formData.get("discount"))
 				: 0,
 			type: formData.get("type") || "featured",
 			features: features,
+			subCategory: formData.get("subCategory") || "",
+			mainImage: imageUrls.length > 0 ? imageUrls[0] : "",
+			hsnCode: formData.get("hsnCode") || "",
+			brand: formData.get("brand") || "",
+			length: formData.get("length")
+				? Number.parseFloat(formData.get("length"))
+				: null,
+			width: formData.get("width")
+				? Number.parseFloat(formData.get("width"))
+				: null,
+			height: formData.get("height")
+				? Number.parseFloat(formData.get("height"))
+				: null,
+			weight: formData.get("weight")
+				? Number.parseFloat(formData.get("weight"))
+				: null,
+			colour: formData.get("colour") || "",
+			material: formData.get("material") || "",
+			size: formData.get("size") || "",
 		});
 
 		await product.save();
 
 		console.log("Product saved successfully:", product._id);
 
-		return Response.json({
+		return NextResponse.json({
 			success: true,
 			message: "Product added successfully",
 			product,
 		});
 	} catch (error) {
 		console.error("Add product error:", error);
-		return Response.json(
+		return NextResponse.json(
 			{
 				success: false,
 				message: "Failed to add product",
