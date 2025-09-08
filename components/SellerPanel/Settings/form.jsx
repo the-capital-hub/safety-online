@@ -7,7 +7,7 @@ const ShopForm = () => {
       <div className="bg-white dark:bg-gray-800 shadow-md rounded-2xl p-8 w-full ">
         <form className="space-y-5">
           {/* Shop name */}
-          <div>
+          {/* <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Shop name
             </label>
@@ -16,7 +16,7 @@ const ShopForm = () => {
               placeholder="Shop name"
               className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm dark:bg-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-black"
             />
-          </div>
+          </div> */}
 
           {/* Company Name */}
           <div>
@@ -43,7 +43,7 @@ const ShopForm = () => {
           </div>
 
           {/* Address */}
-          <div>
+          {/* <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Address
             </label>
@@ -52,10 +52,10 @@ const ShopForm = () => {
               placeholder="Address"
               className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm dark:bg-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-black"
             />
-          </div>
+          </div> */}
 
           {/* Post Code */}
-          <div>
+          {/* <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Post Code
             </label>
@@ -64,8 +64,8 @@ const ShopForm = () => {
               placeholder="Post Code"
               className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm dark:bg-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-black"
             />
-          </div>
-
+          </div> */}
+          
           {/* Contact */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
