@@ -28,6 +28,7 @@ const CategorySchema = new mongoose.Schema(
 			type: Boolean,
 			default: true,
 		},
+		// Number of products in this category and its subcategories
 		productCount: {
 			type: Number,
 			default: 0,

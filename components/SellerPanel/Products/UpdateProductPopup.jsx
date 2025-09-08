@@ -26,17 +26,17 @@ import { Plus, X } from "lucide-react";
 import { useSellerProductStore } from "@/store/sellerProductStore.js";
 import { ImageUpload } from "@/components/AdminPanel/ImageUpload.jsx";
 
-const categories = [
-	{ value: "personal-safety", label: "Personal Safety" },
-	{ value: "road-safety", label: "Road Safety" },
-	{ value: "signage", label: "Signage" },
-	{ value: "industrial-safety", label: "Industrial Safety" },
-	{ value: "queue-management", label: "Queue Management" },
-	{ value: "fire-safety", label: "Fire Safety" },
-	{ value: "first-aid", label: "First Aid" },
-	{ value: "water-safety", label: "Water Safety" },
-	{ value: "emergency-kit", label: "Emergency Kit" },
-];
+// const categories = [
+// 	{ value: "personal-safety", label: "Personal Safety" },
+// 	{ value: "road-safety", label: "Road Safety" },
+// 	{ value: "signage", label: "Signage" },
+// 	{ value: "industrial-safety", label: "Industrial Safety" },
+// 	{ value: "queue-management", label: "Queue Management" },
+// 	{ value: "fire-safety", label: "Fire Safety" },
+// 	{ value: "first-aid", label: "First Aid" },
+// 	{ value: "water-safety", label: "Water Safety" },
+// 	{ value: "emergency-kit", label: "Emergency Kit" },
+// ];
 
 const productTypes = [
 	{ value: "featured", label: "Featured" },
@@ -46,9 +46,11 @@ const productTypes = [
 ];
 
 export function UpdateProductPopup({ open, onOpenChange, product }) {
-	const { updateProduct } = useSellerProductStore();
+	const { updateProduct, categories, fetchCategories } =
+		useSellerProductStore();
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [features, setFeatures] = useState([{ title: "", description: "" }]);
+	const [selectedCategory, setSelectedCategory] = useState(null);
 
 	const [formData, setFormData] = useState({
 		title: "",
@@ -62,6 +64,16 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 		type: "featured",
 		published: true,
 		images: [],
+		subCategory: "",
+		hsnCode: "",
+		brand: "",
+		length: "",
+		width: "",
+		height: "",
+		weight: "",
+		colour: "",
+		material: "",
+		size: "",
 	});
 
 	// Helper function to convert URL to base64
@@ -80,6 +92,19 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 			return url; // Return original URL if conversion fails
 		}
 	};
+
+	useEffect(() => {
+		if (open) {
+			fetchCategories();
+		}
+	}, [open, fetchCategories]);
+
+	useEffect(() => {
+		if (formData.category) {
+			const category = categories.find((cat) => cat.name === formData.category);
+			setSelectedCategory(category);
+		}
+	}, [formData.category, categories]);
 
 	useEffect(() => {
 		if (product) {
@@ -114,6 +139,16 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 					type: product.type || "featured",
 					published: product.published !== undefined ? product.published : true,
 					images: convertedImages,
+					subCategory: product.subCategory || "",
+					hsnCode: product.hsnCode || "",
+					brand: product.brand || "",
+					length: product.length?.toString() || "",
+					width: product.width?.toString() || "",
+					height: product.height?.toString() || "",
+					weight: product.weight?.toString() || "",
+					colour: product.colour || "",
+					material: product.material || "",
+					size: product.size || "",
 				});
 			};
 
@@ -140,14 +175,26 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 				description: formData.description,
 				longDescription: formData.longDescription || formData.description,
 				category: formData.category,
-				price: parseFloat(formData.price),
-				salePrice: formData.salePrice ? parseFloat(formData.salePrice) : 0,
-				stocks: parseInt(formData.stocks),
-				discount: formData.discount ? parseFloat(formData.discount) : 0,
+				price: Number.parseFloat(formData.price),
+				salePrice: formData.salePrice
+					? Number.parseFloat(formData.salePrice)
+					: 0,
+				stocks: Number.parseInt(formData.stocks),
+				discount: formData.discount ? Number.parseFloat(formData.discount) : 0,
 				type: formData.type,
 				published: formData.published,
 				features: features.filter((f) => f.title && f.description),
 				images: formData.images, // Pass the base64 images array
+				subCategory: formData.subCategory,
+				hsnCode: formData.hsnCode,
+				brand: formData.brand,
+				length: formData.length ? Number.parseFloat(formData.length) : null,
+				width: formData.width ? Number.parseFloat(formData.width) : null,
+				height: formData.height ? Number.parseFloat(formData.height) : null,
+				weight: formData.weight ? Number.parseFloat(formData.weight) : null,
+				colour: formData.colour,
+				material: formData.material,
+				size: formData.size,
 			};
 
 			console.log("Update Data:", updateData);
@@ -249,7 +296,7 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 										setFormData({ ...formData, images })
 									}
 									maxImages={5}
-									label="Product Images"
+									label="Product Images (First image will be used as product thumbnail)"
 									required={false}
 								/>
 							</div>
@@ -266,11 +313,39 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 										<SelectValue placeholder="Select category" />
 									</SelectTrigger>
 									<SelectContent>
-										{categories.map((category) => (
-											<SelectItem key={category.value} value={category.value}>
-												{category.label}
-											</SelectItem>
-										))}
+										{categories
+											.filter((cat) => cat.published)
+											.map((category) => (
+												<SelectItem key={category._id} value={category.name}>
+													{category.name}
+												</SelectItem>
+											))}
+									</SelectContent>
+								</Select>
+							</div>
+
+							<div>
+								<Label>Sub Category</Label>
+								<Select
+									value={formData.subCategory}
+									onValueChange={(value) =>
+										setFormData({ ...formData, subCategory: value })
+									}
+									disabled={
+										!selectedCategory || !selectedCategory.subCategories?.length
+									}
+								>
+									<SelectTrigger className="mt-1">
+										<SelectValue placeholder="Select sub category" />
+									</SelectTrigger>
+									<SelectContent>
+										{selectedCategory?.subCategories?.map(
+											(subCategory, index) => (
+												<SelectItem key={index} value={subCategory.name}>
+													{subCategory.name}
+												</SelectItem>
+											)
+										)}
 									</SelectContent>
 								</Select>
 							</div>
@@ -294,6 +369,19 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 										))}
 									</SelectContent>
 								</Select>
+							</div>
+
+							<div>
+								<Label htmlFor="brand">Brand</Label>
+								<Input
+									id="brand"
+									placeholder="Enter brand name"
+									value={formData.brand}
+									onChange={(e) =>
+										setFormData({ ...formData, brand: e.target.value })
+									}
+									className="mt-1"
+								/>
 							</div>
 
 							<div>
@@ -356,9 +444,140 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 									max="100"
 								/>
 							</div>
+
+							<div>
+								<Label htmlFor="hsnCode">HSN Code</Label>
+								<Input
+									id="hsnCode"
+									placeholder="Enter HSN code"
+									value={formData.hsnCode}
+									onChange={(e) =>
+										setFormData({ ...formData, hsnCode: e.target.value })
+									}
+									className="mt-1"
+								/>
+							</div>
+
+							{/* <div>
+								<Label htmlFor="mainImage">Main Image URL</Label>
+								<Input
+									id="mainImage"
+									placeholder="Enter main image URL"
+									value={formData.mainImage}
+									onChange={(e) =>
+										setFormData({ ...formData, mainImage: e.target.value })
+									}
+									className="mt-1"
+								/>
+							</div> */}
 						</div>
 
-						{/* Features Section */}
+						<div>
+							<Label className="text-lg font-medium">
+								Product Specifications
+							</Label>
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+								<div>
+									<Label htmlFor="length">Length (cm)</Label>
+									<Input
+										id="length"
+										placeholder="0"
+										value={formData.length}
+										onChange={(e) =>
+											setFormData({ ...formData, length: e.target.value })
+										}
+										className="mt-1"
+										type="number"
+										step="0.01"
+									/>
+								</div>
+
+								<div>
+									<Label htmlFor="width">Width (cm)</Label>
+									<Input
+										id="width"
+										placeholder="0"
+										value={formData.width}
+										onChange={(e) =>
+											setFormData({ ...formData, width: e.target.value })
+										}
+										className="mt-1"
+										type="number"
+										step="0.01"
+									/>
+								</div>
+
+								<div>
+									<Label htmlFor="height">Height (cm)</Label>
+									<Input
+										id="height"
+										placeholder="0"
+										value={formData.height}
+										onChange={(e) =>
+											setFormData({ ...formData, height: e.target.value })
+										}
+										className="mt-1"
+										type="number"
+										step="0.01"
+									/>
+								</div>
+
+								<div>
+									<Label htmlFor="weight">Weight (kg)</Label>
+									<Input
+										id="weight"
+										placeholder="0"
+										value={formData.weight}
+										onChange={(e) =>
+											setFormData({ ...formData, weight: e.target.value })
+										}
+										className="mt-1"
+										type="number"
+										step="0.01"
+									/>
+								</div>
+
+								<div>
+									<Label htmlFor="colour">Colour</Label>
+									<Input
+										id="colour"
+										placeholder="Enter colour"
+										value={formData.colour}
+										onChange={(e) =>
+											setFormData({ ...formData, colour: e.target.value })
+										}
+										className="mt-1"
+									/>
+								</div>
+
+								<div>
+									<Label htmlFor="material">Material</Label>
+									<Input
+										id="material"
+										placeholder="Enter material"
+										value={formData.material}
+										onChange={(e) =>
+											setFormData({ ...formData, material: e.target.value })
+										}
+										className="mt-1"
+									/>
+								</div>
+
+								<div>
+									<Label htmlFor="size">Size</Label>
+									<Input
+										id="size"
+										placeholder="Enter size"
+										value={formData.size}
+										onChange={(e) =>
+											setFormData({ ...formData, size: e.target.value })
+										}
+										className="mt-1"
+									/>
+								</div>
+							</div>
+						</div>
+
 						<div>
 							<div className="flex items-center justify-between mb-3">
 								<Label>Product Features</Label>
@@ -406,7 +625,6 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 							</div>
 						</div>
 
-						{/* Published Toggle */}
 						<div className="flex items-center justify-between">
 							<div>
 								<Label>Publish Product</Label>

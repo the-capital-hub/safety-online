@@ -10,6 +10,7 @@ export const useSellerProductStore = create(
 			(set, get) => ({
 				// State
 				products: [],
+				categories: [],
 				isLoading: false,
 				error: null,
 				filters: {
@@ -108,6 +109,25 @@ export const useSellerProductStore = create(
 						formData.append("type", productData.type);
 						formData.append("published", productData.published);
 
+						if (productData.subCategory)
+							formData.append("subCategory", productData.subCategory);
+						if (productData.hsnCode)
+							formData.append("hsnCode", productData.hsnCode);
+						if (productData.brand) formData.append("brand", productData.brand);
+						if (productData.length)
+							formData.append("length", productData.length.toString());
+						if (productData.width)
+							formData.append("width", productData.width.toString());
+						if (productData.height)
+							formData.append("height", productData.height.toString());
+						if (productData.weight)
+							formData.append("weight", productData.weight.toString());
+						if (productData.colour)
+							formData.append("colour", productData.colour);
+						if (productData.material)
+							formData.append("material", productData.material);
+						if (productData.size) formData.append("size", productData.size);
+
 						// Add features as JSON string
 						formData.append(
 							"features",
@@ -190,6 +210,24 @@ export const useSellerProductStore = create(
 						formData.append("discount", (updateData.discount || 0).toString());
 						formData.append("type", updateData.type);
 						formData.append("published", updateData.published);
+
+						if (updateData.subCategory)
+							formData.append("subCategory", updateData.subCategory);
+						if (updateData.hsnCode)
+							formData.append("hsnCode", updateData.hsnCode);
+						if (updateData.brand) formData.append("brand", updateData.brand);
+						if (updateData.length)
+							formData.append("length", updateData.length.toString());
+						if (updateData.width)
+							formData.append("width", updateData.width.toString());
+						if (updateData.height)
+							formData.append("height", updateData.height.toString());
+						if (updateData.weight)
+							formData.append("weight", updateData.weight.toString());
+						if (updateData.colour) formData.append("colour", updateData.colour);
+						if (updateData.material)
+							formData.append("material", updateData.material);
+						if (updateData.size) formData.append("size", updateData.size);
 
 						// Add features as JSON string
 						formData.append(
@@ -340,6 +378,23 @@ export const useSellerProductStore = create(
 					} catch (error) {
 						toast.error("Failed to bulk upload products");
 						return null;
+					}
+				},
+
+				// Fetch categories action
+				fetchCategories: async () => {
+					try {
+						const response = await fetch("/api/categories", {
+							method: "GET",
+							headers: { "Content-Type": "application/json" },
+						});
+						const data = await response.json();
+
+						if (data.success) {
+							set({ categories: data.categories });
+						}
+					} catch (error) {
+						console.error("Failed to fetch categories:", error);
 					}
 				},
 

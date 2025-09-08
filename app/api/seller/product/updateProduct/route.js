@@ -1,6 +1,8 @@
 import { dbConnect } from "@/lib/dbConnect";
 import Product from "@/model/Product";
 import cloudinary from "@/lib/cloudinary.js";
+import jwt from "jsonwebtoken";
+import { NextResponse } from "next/server";
 
 export async function PUT(request) {
 	await dbConnect();
@@ -26,7 +28,7 @@ export async function PUT(request) {
 		const productId = formData.get("productId");
 
 		if (!productId) {
-			return Response.json(
+			return NextResponse.json(
 				{ success: false, message: "Product ID is required" },
 				{ status: 400 }
 			);
@@ -39,7 +41,7 @@ export async function PUT(request) {
 		});
 
 		if (!product || product.sellerId !== userId) {
-			return Response.json(
+			return NextResponse.json(
 				{ success: false, message: "Product not found" },
 				{ status: 404 }
 			);
@@ -50,13 +52,13 @@ export async function PUT(request) {
 		const description = formData.get("description");
 		const longDescription = formData.get("longDescription");
 		const category = formData.get("category");
-		const price = parseFloat(formData.get("price"));
+		const price = Number.parseFloat(formData.get("price"));
 		const salePrice = formData.get("salePrice")
-			? parseFloat(formData.get("salePrice"))
+			? Number.parseFloat(formData.get("salePrice"))
 			: 0;
-		const stocks = parseInt(formData.get("stocks"));
+		const stocks = Number.parseInt(formData.get("stocks"));
 		const discount = formData.get("discount")
-			? parseFloat(formData.get("discount"))
+			? Number.parseFloat(formData.get("discount"))
 			: 0;
 		const type = formData.get("type");
 		const published = formData.get("published") === "true";
@@ -127,7 +129,7 @@ export async function PUT(request) {
 				console.log("New images uploaded successfully:", newImageUrls.length);
 			} catch (error) {
 				console.error("Image upload error:", error);
-				return Response.json(
+				return NextResponse.json(
 					{
 						success: false,
 						message: "Failed to upload images",
@@ -150,19 +152,38 @@ export async function PUT(request) {
 		product.published = published;
 		product.features = features;
 		product.images = imageUrls;
+		product.mainImage = imageUrls.length > 0 ? imageUrls[0] : "";
+		product.subCategory = formData.get("subCategory") || "";
+		product.hsnCode = formData.get("hsnCode") || "";
+		product.brand = formData.get("brand") || "";
+		product.length = formData.get("length")
+			? Number.parseFloat(formData.get("length"))
+			: null;
+		product.width = formData.get("width")
+			? Number.parseFloat(formData.get("width"))
+			: null;
+		product.height = formData.get("height")
+			? Number.parseFloat(formData.get("height"))
+			: null;
+		product.weight = formData.get("weight")
+			? Number.parseFloat(formData.get("weight"))
+			: null;
+		product.colour = formData.get("colour") || "";
+		product.material = formData.get("material") || "";
+		product.size = formData.get("size") || "";
 
 		await product.save();
 
 		console.log("Product updated successfully:", product._id);
 
-		return Response.json({
+		return NextResponse.json({
 			success: true,
 			message: "Product updated successfully",
 			product,
 		});
 	} catch (error) {
 		console.error("Update product error:", error);
-		return Response.json(
+		return NextResponse.json(
 			{ success: false, message: "Failed to update product" },
 			{ status: 500 }
 		);
