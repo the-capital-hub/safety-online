@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { dbConnect } from "@/lib/dbConnect.js";
-import Order from "@/model/Order.js";
+import SubOrder from "@/model/SubOrder.js";
 import jwt from "jsonwebtoken";
 
 export async function PUT(request, { params }) {
@@ -21,12 +21,15 @@ export async function PUT(request, { params }) {
 		const decoded = jwt.verify(token, process.env.JWT_SECRET);
 		const sellerId = decoded.userId;
 
-		const order = await Order.findOneAndUpdate(
+		const order = await SubOrder.findOneAndUpdate(
 			{ _id: params.id, sellerId },
 			{ status: "processing" },
 			{ new: true, runValidators: true }
 		)
-			.populate("userId", "firstName lastName email")
+			.populate(
+				"orderId",
+				"orderNumber orderDate paymentMethod customerName customerEmail"
+			)
 			.populate("products.productId", "name images price");
 
 		if (!order) {

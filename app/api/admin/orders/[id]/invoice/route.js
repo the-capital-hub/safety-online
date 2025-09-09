@@ -10,10 +10,15 @@ export async function GET(request, { params }) {
 
 		await dbConnect();
 
-		// Populate the productId to get product details
-		const order = await Order.findById(resolvedParams.id).populate(
-			"products.productId"
-		);
+		// Populate the subOrders and their products to get complete order details
+		const order = await Order.findById(resolvedParams.id).populate({
+			path: "subOrders",
+			populate: {
+				path: "products.productId",
+				model: "Product",
+				select: "title mainImage price description",
+			},
+		});
 
 		if (!order) {
 			return NextResponse.json(
@@ -22,20 +27,95 @@ export async function GET(request, { params }) {
 			);
 		}
 
+		// Aggregate all products from all subOrders
+		const allProducts = [];
+		let totalSubOrderAmount = 0;
+
+		order.subOrders.forEach((subOrder) => {
+			subOrder.products.forEach((product) => {
+				allProducts.push({
+					productId: product.productId._id,
+					productName: product.productName || product.productId.title,
+					productImage: product.productImage || product.productId.mainImage,
+					quantity: product.quantity,
+					price: product.price,
+					totalPrice: product.totalPrice,
+					description: product.productId.description,
+				});
+			});
+			totalSubOrderAmount += subOrder.totalAmount || 0;
+		});
+
+		// Create order object for PDF generation
 		const orderForPDF = {
-			...order.toObject(),
+			_id: order._id,
+			orderNumber: order.orderNumber,
+			orderDate: order.orderDate,
+
+			// Customer information
 			customerName: order.customerName,
 			customerEmail: order.customerEmail,
 			customerMobile: order.customerMobile,
-			products: order.products.map((product) => ({
-				productName: product.productName,
-				quantity: product.quantity,
-				price: product.price,
-				totalPrice: product.totalPrice,
+
+			// Delivery address
+			deliveryAddress: order.deliveryAddress,
+
+			// Payment information
+			paymentMethod: order.paymentMethod,
+			paymentStatus: order.paymentStatus,
+			transactionId: order.transactionId,
+
+			// Pricing information
+			subtotal: order.subtotal,
+			tax: order.tax,
+			shippingCost: order.shippingCost,
+			discount: order.discount,
+			totalAmount: order.totalAmount,
+
+			// Coupon information
+			couponApplied: order.couponApplied,
+
+			// Order status
+			status: order.status,
+
+			// All products from subOrders
+			products: allProducts,
+
+			// SubOrder details (if needed for invoice)
+			subOrders: order.subOrders.map((subOrder) => ({
+				_id: subOrder._id,
+				sellerId: subOrder.sellerId,
+				status: subOrder.status,
+				trackingNumber: subOrder.trackingNumber,
+				estimatedDelivery: subOrder.estimatedDelivery,
+				actualDelivery: subOrder.actualDelivery,
+				subtotal: subOrder.subtotal,
+				tax: subOrder.tax,
+				shippingCost: subOrder.shippingCost,
+				discount: subOrder.discount,
+				totalAmount: subOrder.totalAmount,
+				products: subOrder.products.map((product) => ({
+					productName: product.productName || product.productId.name,
+					quantity: product.quantity,
+					price: product.price,
+					totalPrice: product.totalPrice,
+					productImage:
+						product.productImage ||
+						(product.productId.images && product.productId.images[0]),
+				})),
 			})),
+
+			// Timestamps
+			createdAt: order.createdAt,
+			updatedAt: order.updatedAt,
 		};
 
-		console.log("Order for PDF:", orderForPDF);
+		console.log("Order for PDF:", {
+			orderNumber: orderForPDF.orderNumber,
+			totalProducts: orderForPDF.products.length,
+			totalSubOrders: orderForPDF.subOrders.length,
+			totalAmount: orderForPDF.totalAmount,
+		});
 
 		const pdfBuffer = await generateInvoicePDF(orderForPDF);
 
