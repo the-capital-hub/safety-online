@@ -10,81 +10,30 @@ const OrderSchema = new mongoose.Schema(
 				`ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
 		},
 
-		// New field
-		sellerId: {
-			type: mongoose.Schema.Types.ObjectId,
-			ref: "User",
-			// required: true,
-		},
-
-		// Customer Information
+		// Customer
 		userId: {
 			type: mongoose.Schema.Types.ObjectId,
 			ref: "User",
 			required: true,
 		},
-		customerName: {
+		customerName: String,
+		customerEmail: String,
+		customerMobile: String,
+
+		// Pricing (combined totals)
+		subtotal: Number,
+		tax: Number,
+		shippingCost: Number,
+		discount: Number,
+		totalAmount: Number,
+
+		// Coupon/Promo
+		couponApplied: {
 			type: String,
-			required: true,
-		},
-		customerEmail: {
-			type: String,
-			required: true,
-		},
-		customerMobile: {
-			type: String,
-			required: true,
+			default: null,
 		},
 
-		// Order Details
-		products: [
-			{
-				productId: {
-					type: mongoose.Schema.Types.ObjectId,
-					ref: "Product",
-					required: true,
-				},
-				productName: String,
-				productImage: String,
-				quantity: {
-					type: Number,
-					required: true,
-					min: 1,
-				},
-				price: {
-					type: Number,
-					required: true,
-				},
-				totalPrice: {
-					type: Number,
-					required: true,
-				},
-			},
-		],
-
-		// Pricing
-		subtotal: {
-			type: Number,
-			required: true,
-		},
-		tax: {
-			type: Number,
-			default: 0,
-		},
-		shippingCost: {
-			type: Number,
-			default: 0,
-		},
-		discount: {
-			type: Number,
-			default: 0,
-		},
-		totalAmount: {
-			type: Number,
-			required: true,
-		},
-
-		// Payment Information
+		// Payment
 		paymentMethod: {
 			type: String,
 			enum: [
@@ -105,7 +54,27 @@ const OrderSchema = new mongoose.Schema(
 		},
 		transactionId: String,
 
-		// Order Status
+		// Delivery Info (shared if same address)
+		deliveryAddress: {
+			street: String,
+			city: String,
+			state: String,
+			zipCode: String,
+			country: String,
+			fullAddress: String,
+			name: String,
+			tag: String,
+		},
+
+		// Sub-orders reference
+		subOrders: [
+			{
+				type: mongoose.Schema.Types.ObjectId,
+				ref: "SubOrder",
+			},
+		],
+
+		// Tracking buyer-level
 		status: {
 			type: String,
 			enum: [
@@ -120,47 +89,9 @@ const OrderSchema = new mongoose.Schema(
 			default: "pending",
 		},
 
-		// Delivery Information
-		deliveryAddress: {
-			street: String,
-			city: String,
-			state: String,
-			zipCode: String,
-			country: String,
-			fullAddress: String,
-			name: String,
-			tag: String,
-		},
-
-		// Coupon Information
-		couponApplied: {
-			couponId: {
-				type: mongoose.Schema.Types.ObjectId,
-				ref: "Coupon",
-			},
-			couponCode: String,
-			discountAmount: Number,
-			discountType: String,
-		},
-
-		// Tracking
-		trackingNumber: String,
-		estimatedDelivery: Date,
-		actualDelivery: Date,
-
-		// Notes
-		orderNotes: String,
-		adminNotes: String,
-
-		// Timestamps
-		orderDate: {
-			type: Date,
-			default: Date.now,
-		},
+		orderDate: { type: Date, default: Date.now },
 	},
-	{
-		timestamps: true,
-	}
+	{ timestamps: true }
 );
 
 // Indexes for better query performance

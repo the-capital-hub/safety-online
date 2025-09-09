@@ -25,7 +25,6 @@ import { useOrderStore } from "@/store/orderStore.js";
 import { toast } from "react-hot-toast";
 import { OrderDetailPopup } from "../../popups/OrderDetailPopup";
 
-
 const getStatusColor = (status) => {
 	const colors = {
 		delivered: "bg-green-100 text-green-800",
@@ -92,30 +91,30 @@ export function OrderHistory({ userId }) {
 	}, [fetchOrders]);
 
 	const handleViewOrder = async (orderId) => {
-	try {
-		setLoadingOrderDetails(true);
-		const result = await fetchOrder(orderId);
-		
-		if (result && (result.success !== false)) {
-			const orderData = result.data?.order || result.order || result.data || result;
-			
-			if (orderData) {
-				setSelectedOrder(orderData);
-				setIsPopupOpen(true);
+		try {
+			setLoadingOrderDetails(true);
+			const result = await fetchOrder(orderId);
+
+			if (result && result.success !== false) {
+				const orderData =
+					result.data?.order || result.order || result.data || result;
+
+				if (orderData) {
+					setSelectedOrder(orderData);
+					setIsPopupOpen(true);
+				} else {
+					toast.error("Order details not found");
+				}
 			} else {
-				toast.error("Order details not found");
+				toast.error(result?.message || "Failed to fetch order details");
 			}
-		} else {
-			
-			toast.error(result?.message || "Failed to fetch order details");
+		} catch (error) {
+			console.error("Error fetching order details:", error);
+			toast.error("Failed to fetch order details");
+		} finally {
+			setLoadingOrderDetails(false);
 		}
-	} catch (error) {
-		console.error("Error fetching order details:", error);
-		toast.error("Failed to fetch order details");
-	} finally {
-		setLoadingOrderDetails(false);
-	}
-};
+	};
 
 	const handleClosePopup = () => {
 		setIsPopupOpen(false);
@@ -162,6 +161,8 @@ export function OrderHistory({ userId }) {
 			</Card>
 		);
 	}
+
+	console.log("orders", orders);
 
 	if (error) {
 		return (
@@ -241,29 +242,30 @@ export function OrderHistory({ userId }) {
 											</TableCell>
 											<TableCell>
 												<div>
-													{order.products.length === 1 ? (
+													{order.subOrders.products.length === 1 ? (
 														<>
 															<div className="font-medium">
-																{order.products[0].productName}
+																{order.subOrders.products[0].productName}
 															</div>
 															<div className="text-sm text-muted-foreground">
-																Qty: {order.products[0].quantity}
+																Qty: {order.subOrders.products[0].quantity}
 															</div>
 														</>
 													) : (
 														<>
 															<div className="font-medium">
-																{order.products[0].productName}
+																{order.subOrders.products[0].productName}
 															</div>
 															<div className="text-sm text-muted-foreground">
-																+{order.products.length - 1} more items
+																+{order.subOrders.products.length - 1} more
+																items
 															</div>
 														</>
 													)}
 												</div>
 											</TableCell>
 											<TableCell>
-												{order.products.reduce(
+												{order.subOrders.products.reduce(
 													(total, product) => total + product.quantity,
 													0
 												)}
@@ -294,7 +296,10 @@ export function OrderHistory({ userId }) {
 														variant="ghost"
 														size="sm"
 														onClick={() =>
-															handleDownloadInvoice(order._id, order.orderNumber)
+															handleDownloadInvoice(
+																order._id,
+																order.orderNumber
+															)
 														}
 														disabled={downloadingInvoices.has(order._id)}
 													>
