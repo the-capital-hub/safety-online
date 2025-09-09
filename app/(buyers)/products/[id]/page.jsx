@@ -66,6 +66,7 @@ export default async function ProductPage({ params }) {
 		<ProductDetail
 			product={data.product}
 			relatedProducts={data.relatedProducts}
+			seller= {data.companyDetails}
 		/>
 	);
 }
