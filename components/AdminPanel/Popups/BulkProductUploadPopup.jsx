@@ -144,7 +144,9 @@ export function BulkUploadPopup({ open, onOpenChange }) {
                                 "",
                                 "",
                                 "",
+
                                 "keyword1,keyword2",
+
                                 "10",
                                 "5",
                                 "2",
@@ -192,10 +194,12 @@ export function BulkUploadPopup({ open, onOpenChange }) {
                         : url;
         };
 
+
         const parseNumber = (value) => {
                 const num = parseFloat(value);
                 return Number.isNaN(num) ? 0 : num;
         };
+
 
         const mapRowToProduct = (row) => {
                 const images = [
@@ -216,6 +220,7 @@ export function BulkUploadPopup({ open, onOpenChange }) {
                         row["Bullet Point 5"],
                 ].filter(Boolean);
 
+
                const features = bullets.map((b) => ({ title: b, description: b }));
 
                 const keywords = row["Generic Keywords"]
@@ -224,6 +229,7 @@ export function BulkUploadPopup({ open, onOpenChange }) {
 
                 const salePrice = parseNumber(row["Sale Price"]);
                 const price = parseNumber(row["MRP"]);
+
                 const discount = price && salePrice ? ((price - salePrice) / price) * 100 : 0;
 
                 return {
@@ -239,11 +245,13 @@ export function BulkUploadPopup({ open, onOpenChange }) {
                         images,
                         mainImage: images[0] || "",
                         features,
+
                         keywords,
                         length: parseNumber(row["Length (cm)"] || 0),
                         width: parseNumber(row["Width (cm)"] || 0),
                         height: parseNumber(row["height (cm)"] || 0),
                         weight: parseNumber(row["Weight (Kg)"] || 0),
+
                         colour: row["Colour"] || "",
                         material: row["Material used / Made Of"] || "",
                         brand: row["brand"] || "",
@@ -393,6 +401,7 @@ export function BulkUploadPopup({ open, onOpenChange }) {
                                                                                 />
                                                                                 <p className="text-xs text-gray-500 mt-1">
                                                                                         Paste your JSON array of products here.
+
                                                                                         Missing fields will receive default
                                                                                         values during upload
                                                                                 </p>
@@ -416,6 +425,7 @@ export function BulkUploadPopup({ open, onOpenChange }) {
                                                                         </div>
                                                                 )}
                                                         </div>
+
 
                                                         <DialogFooter className="flex gap-3">
                                                                 <Button
