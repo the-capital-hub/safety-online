@@ -485,7 +485,7 @@ function OrderPage() {
 												<TableCell>
 													<div className="flex items-center gap-1">
 														<Package className="w-4 h-4" />
-														<span>{order.products.length} items</span>
+														<span>{order.subOrders.length} items</span>
 													</div>
 												</TableCell>
 												<TableCell>
@@ -498,7 +498,7 @@ function OrderPage() {
 															{order.paymentStatus}
 														</Badge>
 														<p className="text-xs text-gray-500">
-															{order.paymentMethod.replace("_", " ")}
+															{order.paymentMethod}
 														</p>
 													</div>
 												</TableCell>
@@ -577,14 +577,8 @@ function OrderPage() {
 
 								{/* Pagination */}
 								<div className="flex items-center justify-between mt-4">
-									<p className="text-sm text-gray-600">
-										Showing {(pagination.currentPage - 1) * filters.limit + 1}{" "}
-										to{" "}
-										{Math.min(
-											pagination.currentPage * filters.limit,
-											pagination.totalOrders
-										)}{" "}
-										of {pagination.totalOrders} orders
+									<p className="text-md text-gray-700">
+										{pagination.totalOrders} orders
 									</p>
 									<div className="flex gap-2">
 										<Button

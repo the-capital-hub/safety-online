@@ -218,9 +218,9 @@ function SellerOrdersPage() {
 						<div className="flex items-center">
 							<CheckCircle className="h-8 w-8 text-green-600" />
 							<div className="ml-4">
-								<p className="text-sm font-medium">Accepted</p>
+								<p className="text-sm font-medium">Processing Orders</p>
 								<p className="text-2xl font-bold text-gray-900">
-									{stats.acceptedOrders}
+									{stats.processingOrders}
 								</p>
 							</div>
 						</div>
@@ -338,13 +338,15 @@ function SellerOrdersPage() {
 											transition={{ duration: 0.2 }}
 										>
 											<TableCell className="font-medium">
-												{order.orderNumber}
+												{order.orderId.orderNumber}
 											</TableCell>
 											<TableCell>
-												{new Date(order.orderDate).toLocaleDateString()}
+												{new Date(order.orderId.orderDate).toLocaleDateString()}
 												<br />
 												<span className="text-xs text-gray-500">
-													{new Date(order.orderDate).toLocaleTimeString()}
+													{new Date(
+														order.orderId.orderDate
+													).toLocaleTimeString()}
 												</span>
 											</TableCell>
 											<TableCell>
@@ -381,7 +383,7 @@ function SellerOrdersPage() {
 											</TableCell>
 											<TableCell>
 												<Badge className="bg-blue-100 text-blue-800">
-													{getPaymentMethodDisplay(order.paymentMethod)}
+													{getPaymentMethodDisplay(order.orderId.paymentMethod)}
 												</Badge>
 											</TableCell>
 											<TableCell className="font-medium text-green-600">
@@ -436,8 +438,7 @@ function SellerOrdersPage() {
 
 							{/* Pagination */}
 							<div className="flex items-center justify-between mt-4">
-								<p className="text-sm text-gray-600">
-									Showing {(pagination.currentPage - 1) * filters.limit} of{" "}
+								<p className="text-md text-gray-700">
 									{pagination.totalOrders} orders
 								</p>
 								<div className="flex gap-2">

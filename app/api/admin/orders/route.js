@@ -44,8 +44,7 @@ export async function GET(request) {
 		const skip = (page - 1) * limit;
 
 		const orders = await Order.find(query)
-			.populate("userId", "firstName lastName email")
-			.populate("products.productId", "name images")
+			// .populate("subOrders", "products")
 			.sort({ orderDate: -1 })
 			.skip(skip)
 			.limit(limit);
