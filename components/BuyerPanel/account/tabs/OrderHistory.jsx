@@ -68,6 +68,12 @@ const rowVariants = {
 	visible: { opacity: 1, y: 0 },
 };
 
+// ✅ helper: flatten all products from nested subOrders
+const getAllProducts = (order) => {
+	if (!Array.isArray(order.subOrders)) return [];
+	return order.subOrders.flatMap((sub) => sub.products || []);
+};
+
 export function OrderHistory({ userId }) {
 	const {
 		orders,
@@ -80,13 +86,11 @@ export function OrderHistory({ userId }) {
 	} = useOrderStore();
 
 	const [downloadingInvoices, setDownloadingInvoices] = useState(new Set());
-	// State for popup
 	const [selectedOrder, setSelectedOrder] = useState(null);
 	const [isPopupOpen, setIsPopupOpen] = useState(false);
 	const [loadingOrderDetails, setLoadingOrderDetails] = useState(false);
 
 	useEffect(() => {
-		// Fetch orders when component mounts
 		fetchOrders();
 	}, [fetchOrders]);
 
@@ -143,7 +147,6 @@ export function OrderHistory({ userId }) {
 	};
 
 	const handleExportAll = () => {
-		// Implement export all orders functionality
 		console.log("Export all orders");
 		toast.success("Export functionality coming soon");
 	};
@@ -161,8 +164,6 @@ export function OrderHistory({ userId }) {
 			</Card>
 		);
 	}
-
-	console.log("orders", orders);
 
 	if (error) {
 		return (
@@ -200,12 +201,6 @@ export function OrderHistory({ userId }) {
 								: "No orders found"}
 						</CardDescription>
 					</div>
-					{/* {orders.length > 0 && (
-						<Button variant="outline" size="sm" onClick={handleExportAll}>
-							<Download className="h-4 w-4 mr-2" />
-							Export
-						</Button>
-					)} */}
 				</CardHeader>
 				<CardContent>
 					{orders.length === 0 ? (
@@ -231,94 +226,107 @@ export function OrderHistory({ userId }) {
 									</TableRow>
 								</TableHeader>
 								<TableBody>
-									{orders.map((order, index) => (
-										<motion.tr
-											key={order._id}
-											variants={rowVariants}
-											className="hover:bg-muted/50 transition-colors"
-										>
-											<TableCell className="font-medium">
-												{order.orderNumber}
-											</TableCell>
-											<TableCell>
-												<div>
-													{order.subOrders.products.length === 1 ? (
-														<>
-															<div className="font-medium">
-																{order.subOrders.products[0].productName}
-															</div>
-															<div className="text-sm text-muted-foreground">
-																Qty: {order.subOrders.products[0].quantity}
-															</div>
-														</>
-													) : (
-														<>
-															<div className="font-medium">
-																{order.subOrders.products[0].productName}
-															</div>
-															<div className="text-sm text-muted-foreground">
-																+{order.subOrders.products.length - 1} more
-																items
-															</div>
-														</>
-													)}
-												</div>
-											</TableCell>
-											<TableCell>
-												{order.subOrders.products.reduce(
-													(total, product) => total + product.quantity,
-													0
-												)}
-											</TableCell>
-											<TableCell>
-												{formatDate(order.orderDate || order.createdAt)}
-											</TableCell>
-											<TableCell className="font-medium">
-												{formatPrice(order.totalAmount)}
-											</TableCell>
-											<TableCell>
-												<Badge className={getStatusColor(order.status)}>
-													{order.status.charAt(0).toUpperCase() +
-														order.status.slice(1)}
-												</Badge>
-											</TableCell>
-											<TableCell>
-												<div className="flex items-center gap-2">
-													<Button
-														variant="ghost"
-														size="sm"
-														onClick={() => handleViewOrder(order._id)}
-														disabled={loading}
-													>
-														<Eye className="h-4 w-4" />
-													</Button>
-													<Button
-														variant="ghost"
-														size="sm"
-														onClick={() =>
-															handleDownloadInvoice(
-																order._id,
-																order.orderNumber
-															)
-														}
-														disabled={downloadingInvoices.has(order._id)}
-													>
-														{downloadingInvoices.has(order._id) ? (
-															<Loader2 className="h-4 w-4 animate-spin" />
+									{orders.map((order) => {
+										const products = getAllProducts(order);
+
+										return (
+											<motion.tr
+												key={order._id}
+												variants={rowVariants}
+												className="hover:bg-muted/50 transition-colors"
+											>
+												<TableCell className="font-medium">
+													{order.orderNumber}
+												</TableCell>
+
+												{/* Products Preview */}
+												<TableCell>
+													<div>
+														{products.length === 0 ? (
+															<span className="text-sm text-muted-foreground">
+																No products
+															</span>
+														) : products.length === 1 ? (
+															<>
+																<div className="font-medium">
+																	{products[0].productName}
+																</div>
+																<div className="text-sm text-muted-foreground">
+																	Qty: {products[0].quantity}
+																</div>
+															</>
 														) : (
-															<Download className="h-4 w-4" />
+															<>
+																<div className="font-medium">
+																	{products[0].productName}
+																</div>
+																<div className="text-sm text-muted-foreground">
+																	+{products.length - 1} more items
+																</div>
+															</>
 														)}
-													</Button>
-													<Link
-														href={`/reviews/${order._id}`}
-														className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition-colors hover:bg-muted"
-													>
-														Rate & Review
-													</Link>
-												</div>
-											</TableCell>
-										</motion.tr>
-									))}
+													</div>
+												</TableCell>
+
+												{/* Total Items */}
+												<TableCell>
+													{products.reduce(
+														(total, product) =>
+															total + (product.quantity || 0),
+														0
+													)}
+												</TableCell>
+
+												<TableCell>
+													{formatDate(order.orderDate || order.createdAt)}
+												</TableCell>
+												<TableCell className="font-medium">
+													{formatPrice(order.totalAmount)}
+												</TableCell>
+												<TableCell>
+													<Badge className={getStatusColor(order.status)}>
+														{order.status.charAt(0).toUpperCase() +
+															order.status.slice(1)}
+													</Badge>
+												</TableCell>
+												<TableCell>
+													<div className="flex items-center gap-2">
+														<Button
+															variant="ghost"
+															size="sm"
+															onClick={() => handleViewOrder(order._id)}
+															disabled={loadingOrderDetails}
+														>
+															<Eye className="h-4 w-4" />
+														</Button>
+														<Button
+															variant="ghost"
+															size="sm"
+															onClick={() =>
+																handleDownloadInvoice(
+																	order._id,
+																	order.orderNumber
+																)
+															}
+															disabled={downloadingInvoices.has(order._id)}
+														>
+															{downloadingInvoices.has(order._id) ? (
+																<Loader2 className="h-4 w-4 animate-spin" />
+															) : (
+																<Download className="h-4 w-4" />
+															)}
+														</Button>
+														<Link
+															href={`/reviews/${order._id}`}
+															className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition-colors hover:bg-muted"
+														>
+															Rate & Review
+														</Link>
+													</div>
+												</TableCell>
+											</motion.tr>
+										);
+									})}
 								</TableBody>
 							</Table>
 
@@ -334,7 +342,6 @@ export function OrderHistory({ userId }) {
 											size="sm"
 											disabled={!pagination.hasPrev || loading}
 											onClick={() => {
-												// Implement previous page logic
 												console.log("Previous page");
 											}}
 										>
@@ -345,7 +352,6 @@ export function OrderHistory({ userId }) {
 											size="sm"
 											disabled={!pagination.hasNext || loading}
 											onClick={() => {
-												// Implement next page logic
 												console.log("Next page");
 											}}
 										>

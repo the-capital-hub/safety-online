@@ -8,7 +8,7 @@ const ShopForm = () => {
   const [companyLogo, setCompanyLogo] = useState("");
   const [gstinNumber, setGstinNumber] = useState("");
   const [addresses, setAddresses] = useState([
-    { tag: "", building: "", street: "", city: "", state: "", pincode: "", country: "" },
+    { tagName: "", building: "", street: "", city: "", state: "", pincode: "", country: "" },
   ]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -22,7 +22,7 @@ const ShopForm = () => {
   const addAddress = () => {
     setAddresses([
       ...addresses,
-      { tag: "", building: "", street: "", city: "", state: "", pincode: "", country: "" },
+      { tagName: "", building: "", street: "", city: "", state: "", pincode: "", country: "" },
     ]);
   };
 
@@ -150,10 +150,10 @@ const ShopForm = () => {
               <div key={index} className="border p-4 rounded-lg space-y-2 mb-3">
                 <input
                   type="text"
-                  placeholder="Tag (Home/Office)"
+                  placeholder="Tag Name (Home/Office)"
                   value={addr.tag}
                   onChange={(e) =>
-                    handleAddressChange(index, "tag", e.target.value)
+                    handleAddressChange(index, "tagName", e.target.value)
                   }
                   required
                   className="w-full rounded-md border px-3 py-2 text-sm dark:bg-gray-700 dark:text-gray-200"
