@@ -94,6 +94,7 @@ export async function POST(request) {
                                         size: productData.size || "",
                                 });
 
+
                                 await product.save();
                                 results.success.push(product);
                         } catch (error) {
@@ -103,6 +104,7 @@ export async function POST(request) {
                                 });
                         }
                 }
+
 
 		return NextResponse.json({
 			success: true,
