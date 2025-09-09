@@ -31,7 +31,11 @@ import ProductCard from "@/components/BuyerPanel/products/ProductCard.jsx";
 import { toast } from "react-hot-toast";
 import Image from "next/image";
 
-export default function ProductDetail({ product, relatedProducts = [], seller }) {
+export default function ProductDetail({
+	product,
+	relatedProducts = [],
+	seller,
+}) {
 	const [selectedImage, setSelectedImage] = useState(0);
 	const [quantity, setQuantity] = useState(1);
 	const router = useRouter();
@@ -77,8 +81,9 @@ export default function ProductDetail({ product, relatedProducts = [], seller })
 		return Array.from({ length: 5 }, (_, i) => (
 			<Star
 				key={i}
-				className={`w-4 h-4 ${i < rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
-					}`}
+				className={`w-4 h-4 ${
+					i < rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+				}`}
 			/>
 		));
 	};
@@ -149,10 +154,11 @@ export default function ProductDetail({ product, relatedProducts = [], seller })
 									<button
 										key={index}
 										onClick={() => setSelectedImage(index)}
-										className={`relative w-20 h-20 border-2 rounded-lg overflow-hidden flex-shrink-0 ${selectedImage === index
+										className={`relative w-20 h-20 border-2 rounded-lg overflow-hidden flex-shrink-0 ${
+											selectedImage === index
 												? "border-black"
 												: "border-gray-200 hover:border-gray-400"
-											}`}
+										}`}
 									>
 										<Image
 											src={
@@ -257,8 +263,9 @@ export default function ProductDetail({ product, relatedProducts = [], seller })
 								{/* Stock Status */}
 								<div className="flex items-center space-x-2">
 									<div
-										className={`w-3 h-3 rounded-full ${product.inStock ? "bg-green-500" : "bg-red-500"
-											}`}
+										className={`w-3 h-3 rounded-full ${
+											product.inStock ? "bg-green-500" : "bg-red-500"
+										}`}
 									/>
 									<span
 										className={
@@ -368,8 +375,12 @@ export default function ProductDetail({ product, relatedProducts = [], seller })
 											<Truck className="h-6 w-6 text-white" />
 										</div>
 										<div>
-											<h3 className="font-semibold text-green-600 text-lg">Free Delivery</h3>
-											<p className="text-gray-600">No shipping charges on orders above Rs. 500.</p>
+											<h3 className="font-semibold text-green-600 text-lg">
+												Free Delivery
+											</h3>
+											<p className="text-gray-600">
+												No shipping charges on orders above Rs. 500.
+											</p>
 										</div>
 									</div>
 
@@ -378,8 +389,12 @@ export default function ProductDetail({ product, relatedProducts = [], seller })
 											<CreditCard className="h-6 w-6 text-white" />
 										</div>
 										<div>
-											<h3 className="font-semibold text-green-600 text-lg">COD Available</h3>
-											<p className="text-gray-600">You can pay at the time of delivery</p>
+											<h3 className="font-semibold text-green-600 text-lg">
+												COD Available
+											</h3>
+											<p className="text-gray-600">
+												You can pay at the time of delivery
+											</p>
 										</div>
 									</div>
 								</div>
@@ -389,56 +404,61 @@ export default function ProductDetail({ product, relatedProducts = [], seller })
 
 					{/* grid grid-cols-1 lg:grid-cols-2 gap-12 mb-10 */}
 					{/* Owner Details Section */}
-					<motion.div
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.5, delay: 0.4 }}
-						className="flex-1"
-					>
-						<Card className="bg-green-50 border-green-200 h-full min-h-[150px]">
-							<CardContent className="p-6 h-full flex flex-col justify-between">
-								<h2 className="text-2xl font-bold mb-6">Seller Details</h2>
 
-								<div className="space-y-4">
-									{/* Company Name */}
-									<div className="flex items-center gap-3">
-										<span className="text-black-900 text-xl font-bold">{seller.companyName}</span>
-									</div>
+					{seller && (
+						<motion.div
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ duration: 0.5, delay: 0.4 }}
+							className="flex-1"
+						>
+							<Card className="bg-green-50 border-green-200 h-full min-h-[150px]">
+								<CardContent className="p-6 h-full flex flex-col justify-between">
+									<h2 className="text-2xl font-bold mb-6">Seller Details</h2>
 
-									{/* Company Address */}
-									<div className="flex items-start gap-2">
-										<span className="text-gray-600 whitespace-pre-line">
-											{seller.companyAddress
-												?.filter((addr) => addr.tagName?.toLowerCase() === "head office")
-												.map((addr, idx) => (
-													<div key={idx} className="mb-2">
-														<div className="text-black text-lg font-semibold">
-															{addr.tagName}
+									<div className="space-y-4">
+										{/* Company Name */}
+										<div className="flex items-center gap-3">
+											<span className="text-black-900 text-xl font-bold">
+												{seller.companyName}
+											</span>
+										</div>
+
+										{/* Company Address */}
+										<div className="flex items-start gap-2">
+											<span className="text-gray-600 whitespace-pre-line">
+												{seller.companyAddress
+													?.filter(
+														(addr) =>
+															addr.tagName?.toLowerCase() === "head office"
+													)
+													.map((addr, idx) => (
+														<div key={idx} className="mb-2">
+															<div className="text-black text-lg font-semibold">
+																{addr.tagName}
+															</div>
+															<div className="text-base">
+																{[
+																	addr.building,
+																	addr.street,
+																	addr.city,
+																	addr.state,
+																	addr.pincode,
+																	addr.country,
+																]
+																	.filter(Boolean)
+																	.join(", ")}
+															</div>
 														</div>
-														<div className="text-base">
-															{[
-																addr.building,
-																addr.street,
-																addr.city,
-																addr.state,
-																addr.pincode,
-																addr.country,
-															]
-																.filter(Boolean)
-																.join(", ")}
-														</div>
-													</div>
-												))}
-										</span>
+													))}
+											</span>
+										</div>
 									</div>
-
-								</div>
-							</CardContent>
-						</Card>
-					</motion.div>
-
+								</CardContent>
+							</Card>
+						</motion.div>
+					)}
 				</div>
-
 
 				{/* Reviews & Ratings Section */}
 				<motion.div
