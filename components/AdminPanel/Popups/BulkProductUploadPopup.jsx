@@ -170,16 +170,49 @@ export function BulkUploadPopup({ open, onOpenChange }) {
         };
 
         const parseCSV = (text) => {
-                const lines = text.trim().split(/\r?\n/);
-                const headers = lines[0].split(",").map((h) => h.trim());
-                return lines
-                        .slice(1)
-                        .filter((line) => line.trim())
-                        .map((line) => {
-                                const values = line.split(",");
+
+                const rows = [];
+                let current = "";
+                let row = [];
+                let inQuotes = false;
+
+                for (let i = 0; i < text.length; i++) {
+                        const char = text[i];
+
+                        if (char === "\"") {
+                                if (inQuotes && text[i + 1] === "\"") {
+                                        current += "\"";
+                                        i++;
+                                } else {
+                                        inQuotes = !inQuotes;
+                                }
+                        } else if (char === "," && !inQuotes) {
+                                row.push(current.trim());
+                                current = "";
+                        } else if ((char === "\n" || char === "\r") && !inQuotes) {
+                                if (char === "\r" && text[i + 1] === "\n") i++;
+                                row.push(current.trim());
+                                rows.push(row);
+                                row = [];
+                                current = "";
+                        } else {
+                                current += char;
+                        }
+                }
+
+                if (current || row.length) {
+                        row.push(current.trim());
+                        rows.push(row);
+                }
+
+                const headers = rows.shift().map((h) => h.trim());
+                return rows
+                        .filter((r) => r.some((cell) => cell !== ""))
+                        .map((r) => {
                                 const obj = {};
                                 headers.forEach((h, i) => {
-                                        obj[h] = values[i] ? values[i].trim() : "";
+                                        obj[h] = r[i] ? r[i].trim() : "";
+
                                 });
                                 return obj;
                         });
@@ -193,7 +226,6 @@ export function BulkUploadPopup({ open, onOpenChange }) {
                         ? `https://lh3.googleusercontent.com/d/${idMatch[1]}`
                         : url;
         };
-
 
         const parseNumber = (value) => {
                 const num = parseFloat(value);

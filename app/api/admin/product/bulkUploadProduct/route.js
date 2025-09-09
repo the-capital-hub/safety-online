@@ -51,6 +51,7 @@ export async function POST(request) {
                         try {
                                 const imageUrls = (productData.images || []).map(toGoogleUrl);
 
+
                                 // Map incoming data with safe defaults so that rows with
                                 // missing fields still create products instead of failing
                                 const product = new Product({
@@ -91,6 +92,7 @@ export async function POST(request) {
                                         material: productData.material || "",
                                         size: productData.size || "",
                                 });
+
 
                                 await product.save();
                                 results.success.push(product);
