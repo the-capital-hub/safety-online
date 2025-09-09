@@ -48,20 +48,20 @@ export async function POST(request) {
 					continue;
 				}
 
-				const imageUrls = [];
+                                const imageUrls = productData.images || [];
 
-				// Create new product
-				const product = new Product({
-					sellerId: userId,
-					title,
-					description,
-					longDescription: productData.longDescription || description,
-					images: imageUrls,
-					category,
-					published:
-						productData.published !== undefined ? productData.published : true,
-					stocks: Number.parseInt(stocks),
-					price: Number.parseFloat(price),
+                                // Create new product
+                                const product = new Product({
+                                        sellerId: userId,
+                                        title,
+                                        description,
+                                        longDescription: productData.longDescription || description,
+                                        images: imageUrls,
+                                        category,
+                                        published:
+                                                productData.published !== undefined ? productData.published : true,
+                                        stocks: Number.parseInt(stocks),
+                                        price: Number.parseFloat(price),
 					salePrice: productData.salePrice
 						? Number.parseFloat(productData.salePrice)
 						: 0,
@@ -71,9 +71,10 @@ export async function POST(request) {
 					type: productData.type || "featured",
 					features: productData.features || [],
 					subCategory: productData.subCategory || "",
-					mainImage: productData.mainImage || "",
-					hsnCode: productData.hsnCode || "",
-					brand: productData.brand || "",
+                                        mainImage:
+                                                productData.mainImage || imageUrls[0] || "",
+                                        hsnCode: productData.hsnCode || "",
+                                        brand: productData.brand || "",
 					length: productData.length
 						? Number.parseFloat(productData.length)
 						: null,
