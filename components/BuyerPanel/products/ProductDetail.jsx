@@ -353,174 +353,77 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 
 				{/* Delivery Details and Offers */}
 				<div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-10">
-					{/* Delivery Details Section */}
-					<motion.div
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.5, delay: 0.3 }}
-						className="flex-1"
-					>
-						<Card className="bg-green-50 border-green-200">
-							<CardContent className="p-6">
-								<h2 className="text-2xl font-bold mb-6">Delivery Details</h2>
+	{/* Delivery Details Section */}
+	<motion.div
+		initial={{ opacity: 0, y: 20 }}
+		animate={{ opacity: 1, y: 0 }}
+		transition={{ duration: 0.5, delay: 0.3 }}
+		className="flex-1"
+	>
+		<Card className="bg-green-50 border-green-200">
+			<CardContent className="p-6">
+				<h2 className="text-2xl font-bold mb-6">Delivery Details</h2>
 
-								{/* Location Check
-								<div className="bg-white rounded-lg p-4 mb-6 flex items-center justify-between">
-									<div className="flex items-center space-x-3">
-										<MapPin className="h-6 w-6 text-gray-600" />
-										<span className="text-gray-600">Enter your pincode</span>
-									</div>
-									<Button className="bg-black text-white hover:bg-gray-800 rounded-full px-6">
-										CHECK
-									</Button>
-								</div> */}
-								{/* 
-								<p className="text-gray-700 mb-6">
-									Check serviceability at your location
-								</p> */}
+				{/* Delivery Options */}
+				<div className="space-y-4">
+					<div className="flex items-center space-x-4">
+						<div className="bg-green-600 p-2 rounded-lg">
+							<Truck className="h-6 w-6 text-white" />
+						</div>
+						<div>
+							<h3 className="font-semibold text-green-600 text-lg">Free Delivery</h3>
+							<p className="text-gray-600">No shipping charges on orders above Rs. 500.</p>
+						</div>
+					</div>
 
-								{/* Delivery Options */}
-								<div className="space-y-4">
-									<div className="flex items-center space-x-4">
-										<div className="bg-green-600 p-2 rounded-lg">
-											<Truck className="h-6 w-6 text-white" />
-										</div>
-										<div>
-											<h3 className="font-semibold text-green-600 text-lg">
-												Free Delivery
-											</h3>
-											<p className="text-gray-600">
-												No shipping charges on orders above Rs. 500.
-											</p>
-										</div>
-									</div>
-
-									<div className="flex items-center space-x-4">
-										<div className="bg-green-600 p-2 rounded-lg">
-											<CreditCard className="h-6 w-6 text-white" />
-										</div>
-										<div>
-											<h3 className="font-semibold text-green-600 text-lg">
-												COD Available
-											</h3>
-											<p className="text-gray-600">
-												You can pay at the time of delivery
-											</p>
-										</div>
-									</div>
-								</div>
-							</CardContent>
-						</Card>
-					</motion.div>
-
-					{/* Offers and Coupons Section */}
-					{/* Offers List */}
-					{/* Buy More & Save More */}
-					{/* <motion.div
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.5, delay: 0.4 }}
-						className="flex-1"
-					>
-						<Card className="bg-green-50 border-green-200">
-							<CardContent className="p-6">
-								<h2 className="text-2xl font-bold mb-6">Offers and Coupons</h2>
-
-								<div className="space-y-4 mb-8">
-									<div className="flex items-start space-x-3">
-										<div className="bg-green-600 p-1 rounded">
-											<div className="w-4 h-4 bg-white rounded-sm flex items-center justify-center">
-												<div className="w-2 h-2 bg-green-600 rounded-sm"></div>
-											</div>
-										</div>
-										<div>
-											<h3 className="font-semibold text-green-600">
-												Save instantly 5% with online payment.
-											</h3>
-											<p className="text-sm text-gray-600">
-												via UPI, EMI, Credit/Debit Card, Net Banking, Wallets.
-											</p>
-										</div>
-									</div>
-
-									<div className="flex items-start space-x-3">
-										<div className="bg-green-600 p-1 rounded">
-											<div className="w-4 h-4 bg-white rounded-sm flex items-center justify-center">
-												<div className="w-2 h-2 bg-green-600 rounded-sm"></div>
-											</div>
-										</div>
-										<div className="flex-1">
-											<div className="flex items-center justify-between">
-												<div>
-													<h3 className="font-semibold text-green-600">
-														Get flat ₹1000 OFF on app
-													</h3>
-													<p className="text-sm text-gray-600">
-														Min cart value ₹2,000
-													</p>
-												</div>
-												<Badge
-													variant="outline"
-													className="border-green-600 text-green-600 border-dashed"
-												>
-													SAFETY ₹1000
-												</Badge>
-											</div>
-										</div>
-									</div>
-
-									<div className="flex items-start space-x-3">
-										<div className="bg-green-600 p-1 rounded">
-											<div className="w-4 h-4 bg-white rounded-sm flex items-center justify-center">
-												<div className="w-2 h-2 bg-green-600 rounded-sm"></div>
-											</div>
-										</div>
-										<div>
-											<h3 className="font-semibold text-green-600">
-												Get GST invoice and save up to 18% on business purchases
-											</h3>
-										</div>
-									</div>
-								</div>
-
-								<div>
-									<h3 className="text-xl font-bold mb-4">
-										Buy More & Save More
-									</h3>
-									<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-										{quantityOffers.map((offer, index) => (
-											<div
-												key={index}
-												className={`border-2 rounded-lg p-4 cursor-pointer transition-colors ${
-													selectedQuantityOffer === index
-														? "border-green-600 bg-green-50"
-														: "border-gray-200 bg-white hover:border-green-300"
-												}`}
-												onClick={() => setSelectedQuantityOffer(index)}
-											>
-												<div className="text-center">
-													<h4 className="font-semibold text-lg">
-														{offer.label}
-													</h4>
-													<p className="text-xl font-bold">
-														₹{offer.price.toLocaleString()}{" "}
-														<span className="text-sm font-normal">/ pc</span>
-													</p>
-													<Badge
-														variant="secondary"
-														className="text-green-600 bg-green-100"
-													>
-														{offer.discount}% OFF
-													</Badge>
-												</div>
-											</div>
-										))}
-									</div>
-								</div>
-							</CardContent>
-						</Card>
-					</motion.div> */}
+					<div className="flex items-center space-x-4">
+						<div className="bg-green-600 p-2 rounded-lg">
+							<CreditCard className="h-6 w-6 text-white" />
+						</div>
+						<div>
+							<h3 className="font-semibold text-green-600 text-lg">COD Available</h3>
+							<p className="text-gray-600">You can pay at the time of delivery</p>
+						</div>
+					</div>
 				</div>
+			</CardContent>
+		</Card>
+	</motion.div>
+
+	{/* grid grid-cols-1 lg:grid-cols-2 gap-12 mb-10 */}
+	{/* Owner Details Section */}
+	<motion.div
+  initial={{ opacity: 0, y: 20 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.5, delay: 0.4 }}
+  className="flex-1"
+>
+  <Card className="bg-green-50 border-green-200 h-full min-h-[150px]"> 
+    <CardContent className="p-6 h-full flex flex-col justify-between">
+      <h2 className="text-2xl font-bold mb-6">Seller Details</h2>
+
+      <div className="space-y-6">
+        {/* Company Name */}
+        <div className="flex items-center gap-3">
+          <span className="text-black-900 text-xl font-medium">Ladwa Partners</span>
+        </div>
+
+        {/* Company Address */}
+        <div className="flex items-start gap-4">
+          <span className="text-gray-600 text-lg whitespace-pre-line">
+            <div>
+              Mahon Building, First Street, <br />
+              New Delhi, Delhi - 5700001, India
+            </div>
+          </span>
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+</motion.div>
+
+</div>
+
 
 				{/* Reviews & Ratings Section */}
 				<motion.div
