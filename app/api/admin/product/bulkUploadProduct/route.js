@@ -35,6 +35,7 @@ export async function POST(request) {
                         failed: [],
                 };
 
+
                 const toNumber = (val) => {
                         const num = Number.parseFloat(val);
                         return Number.isNaN(num) ? 0 : num;
@@ -49,6 +50,7 @@ export async function POST(request) {
                 for (const productData of products) {
                         try {
                                 const imageUrls = (productData.images || []).map(toGoogleUrl);
+
 
                                 // Map incoming data with safe defaults so that rows with
                                 // missing fields still create products instead of failing
@@ -91,6 +93,7 @@ export async function POST(request) {
                                         size: productData.size || "",
                                 });
 
+
                                 await product.save();
                                 results.success.push(product);
                         } catch (error) {
@@ -100,6 +103,7 @@ export async function POST(request) {
                                 });
                         }
                 }
+
 
 		return NextResponse.json({
 			success: true,
