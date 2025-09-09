@@ -30,77 +30,81 @@ export async function POST(request) {
 			);
 		}
 
-		const results = {
-			success: [],
-			failed: [],
-		};
+                const results = {
+                        success: [],
+                        failed: [],
+                };
 
-		for (const productData of products) {
-			try {
-				// Validate required fields
-				const { title, description, price, stocks, category } = productData;
-
-				if (!title || !description || !price || !stocks || !category) {
-					results.failed.push({
-						data: productData,
-						error: "Missing required fields",
-					});
-					continue;
-				}
-
+                for (const productData of products) {
+                        try {
                                 const imageUrls = productData.images || [];
 
-                                // Create new product
+                                // Map incoming data with safe defaults so that rows with
+                                // missing fields still create products instead of failing
                                 const product = new Product({
                                         sellerId: userId,
-                                        title,
-                                        description,
-                                        longDescription: productData.longDescription || description,
+                                        title: productData.title || "Untitled Product",
+                                        description:
+                                                productData.description ||
+                                                "No description provided",
+                                        longDescription:
+                                                productData.longDescription ||
+                                                productData.description ||
+                                                "No description provided",
                                         images: imageUrls,
-                                        category,
+                                        category: productData.category || "misc",
                                         published:
-                                                productData.published !== undefined ? productData.published : true,
-                                        stocks: Number.parseInt(stocks),
-                                        price: Number.parseFloat(price),
-					salePrice: productData.salePrice
-						? Number.parseFloat(productData.salePrice)
-						: 0,
-					discount: productData.discount
-						? Number.parseFloat(productData.discount)
-						: 0,
-					type: productData.type || "featured",
-					features: productData.features || [],
-					subCategory: productData.subCategory || "",
-                                        mainImage:
-                                                productData.mainImage || imageUrls[0] || "",
+                                                productData.published !== undefined
+                                                        ? productData.published
+                                                        : true,
+                                        stocks:
+                                                productData.stocks !== undefined
+                                                        ? Number.parseInt(productData.stocks)
+                                                        : 0,
+                                        price:
+                                                productData.price !== undefined
+                                                        ? Number.parseFloat(productData.price)
+                                                        : 0,
+                                        salePrice: productData.salePrice
+                                                ? Number.parseFloat(productData.salePrice)
+                                                : 0,
+                                        discount: productData.discount
+                                                ? Number.parseFloat(productData.discount)
+                                                : 0,
+                                        type: productData.type || "featured",
+                                        features: productData.features || [],
+                                        subCategory: productData.subCategory || "",
+                                        mainImage: productData.mainImage || imageUrls[0] || "",
                                         hsnCode: productData.hsnCode || "",
                                         brand: productData.brand || "",
-					length: productData.length
-						? Number.parseFloat(productData.length)
-						: null,
-					width: productData.width
-						? Number.parseFloat(productData.width)
-						: null,
-					height: productData.height
-						? Number.parseFloat(productData.height)
-						: null,
-					weight: productData.weight
-						? Number.parseFloat(productData.weight)
-						: null,
-					colour: productData.colour || "",
-					material: productData.material || "",
-					size: productData.size || "",
-				});
+                                        length: productData.length
+                                                ? Number.parseFloat(productData.length)
+                                                : null,
+                                        width: productData.width
+                                                ? Number.parseFloat(productData.width)
+                                                : null,
+                                        height: productData.height
+                                                ? Number.parseFloat(productData.height)
+                                                : null,
+                                        weight: productData.weight
+                                                ? Number.parseFloat(productData.weight)
+                                                : null,
+                                        colour: productData.colour || "",
+                                        material: productData.material || "",
+                                        size: productData.size || "",
+                                });
 
-				await product.save();
-				results.success.push(product);
-			} catch (error) {
-				results.failed.push({
-					data: productData,
-					error: error.message,
-				});
-			}
-		}
+
+                                await product.save();
+                                results.success.push(product);
+                        } catch (error) {
+                                results.failed.push({
+                                        data: productData,
+                                        error: error.message,
+                                });
+                        }
+                }
+
 
 		return NextResponse.json({
 			success: true,

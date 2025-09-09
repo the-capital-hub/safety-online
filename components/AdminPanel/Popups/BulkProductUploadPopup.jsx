@@ -383,8 +383,10 @@ export function BulkUploadPopup({ open, onOpenChange }) {
                                                                                 />
                                                                                 <p className="text-xs text-gray-500 mt-1">
                                                                                         Paste your JSON array of products here.
-                                                                                        Required fields: title, description,
-                                                                                        category, price, stocks
+
+                                                                                        Missing fields will receive default
+                                                                                        values during upload
+
                                                                                 </p>
                                                                         </div>
                                                                 ) : (
