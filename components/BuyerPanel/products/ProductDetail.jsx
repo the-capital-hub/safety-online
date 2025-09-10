@@ -19,12 +19,17 @@ import {
 	Receipt,
 	Lock,
 	HelpCircle,
+	Heart,
+	Share,
+	ChevronLeft,
+	ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/cartStore";
 import ProductCard from "@/components/BuyerPanel/products/ProductCard.jsx";
 import Image from "next/image";
+import { toast } from "react-hot-toast";
 
 export default function ProductDetail({
 	product,
@@ -149,6 +154,35 @@ export default function ProductDetail({
 			.join(" ");
 	};
 
+	const handlePrevImage = () => {
+		setSelectedImage(
+			(selectedImage + product.images.length - 1) % product.images.length
+		);
+	};
+
+	const handleNextImage = () => {
+		setSelectedImage((selectedImage + 1) % product.images.length);
+	};
+
+	const handleShare = async () => {
+		const url = window?.location?.href || "";
+
+		try {
+			if (navigator.share) {
+				await navigator.share({ title: product.name, url });
+			} else {
+				await navigator.clipboard?.writeText(url);
+				toast.success("Link copied to clipboard");
+			}
+		} catch {
+			toast.error("Failed to share");
+		}
+	};
+
+	const handleWishlist = () => {
+		toast.success("Wishlist functionality coming soon");
+	};
+
 	console.log("product", product);
 
 	return (
@@ -168,7 +202,7 @@ export default function ProductDetail({
 			</div>
 
 			<div className="px-10 py-8">
-				<div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-10">
+				<div className="grid grid-cols-1 lg:grid-cols-10 gap-8 mb-10">
 					{/* Left Column - Product Images */}
 					<div className="lg:col-span-3 space-y-6">
 						<motion.div
@@ -190,6 +224,37 @@ export default function ProductDetail({
 									className="object-contain p-8"
 									priority
 								/>
+
+								{/* Need to add Share, Wishlist and Image toggle(next, prev) buttons on the right side of the image */}
+								<div className="absolute top-4 right-4 flex flex-col space-y-4">
+									<button
+										className="bg-gray-200 p-2 rounded-lg"
+										onClick={handleShare}
+									>
+										<Share className="h-6 w-6" />
+									</button>
+									<button
+										className="bg-gray-200 p-2 rounded-lg"
+										onClick={handleWishlist}
+									>
+										<Heart className="h-6 w-6" />
+									</button>
+								</div>
+
+								<div className="absolute bottom-4 right-4 flex flex-col space-y-4">
+									<button
+										onClick={handlePrevImage}
+										className="bg-gray-200 p-2 rounded-lg"
+									>
+										<ChevronLeft className="h-6 w-6" />
+									</button>
+									<button
+										onClick={handleNextImage}
+										className="bg-gray-200 p-2 rounded-lg"
+									>
+										<ChevronRight className="h-6 w-6" />
+									</button>
+								</div>
 							</div>
 						</motion.div>
 
@@ -223,7 +288,7 @@ export default function ProductDetail({
 					</div>
 
 					{/* Middle Column - Scrollable Content */}
-					<div className="lg:col-span-6 space-y-6 lg:max-h-screen lg:overflow-y-auto hide-scrollbar">
+					<div className="lg:col-span-5 space-y-6 lg:max-h-screen lg:overflow-y-auto hide-scrollbar">
 						{/* Brand and Title */}
 						<div>
 							<p className="text-sm text-gray-600 mb-2">Ladwa</p>
@@ -238,6 +303,24 @@ export default function ProductDetail({
 								</span>
 								<span className="ml-2 text-gray-600 text-sm">
 									{product?.reviews?.length || 0} ratings
+								</span>
+							</div>
+						</div>
+
+						{/* Price */}
+						<div className="mb-4">
+							<div className="flex items-baseline space-x-2 mb-2">
+								<span className="text-2xl font-bold">
+									₹ {product.price?.toLocaleString() || "1,544"}
+								</span>
+							</div>
+							<div className="flex items-center space-x-2 text-sm">
+								<span className="text-gray-500">MRP</span>
+								<span className="text-gray-500 line-through">
+									₹ {product.originalPrice?.toLocaleString()}
+								</span>
+								<span className="text-green-600 font-medium">
+									{product.discountPercentage?.toLocaleString()}% OFF
 								</span>
 							</div>
 						</div>
@@ -382,7 +465,7 @@ export default function ProductDetail({
 					</div>
 
 					{/* Right Column - Sticky Purchase Card */}
-					<div className="lg:col-span-3">
+					<div className="lg:col-span-2">
 						<div
 							className={`h-fit ${
 								isSticky ? "sticky top-4" : ""
@@ -398,9 +481,12 @@ export default function ProductDetail({
 											</span>
 										</div>
 										<div className="flex items-center space-x-2 text-sm">
-											<span className="text-gray-500 line-through">₹2999</span>
+											{/* <span className="text-gray-500">MRP</span> */}
+											<span className="text-gray-500 line-through">
+												₹ {product.originalPrice?.toLocaleString()}
+											</span>
 											<span className="text-green-600 font-medium">
-												50% OFF
+												{product.discountPercentage?.toLocaleString()}% OFF
 											</span>
 										</div>
 									</div>
