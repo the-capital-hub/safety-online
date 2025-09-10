@@ -1,5 +1,6 @@
 import { dbConnect } from "@/lib/dbConnect";
 import Product from "@/model/Product";
+import Category from "@/model/Categories.js";
 import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 
@@ -47,10 +48,39 @@ export async function POST(request) {
                         return idMatch ? `https://lh3.googleusercontent.com/d/${idMatch[1]}` : url;
                 };
 
+                const slugify = (str = "") =>
+                        str.toLowerCase().trim().replace(/\s+/g, "-");
+
+                const slugToName = (slug = "") =>
+                        slug
+                                .replace(/-/g, " ")
+                                .replace(/\b\w/g, (char) => char.toUpperCase());
+
+                const categoryCache = new Map();
+
                 for (const productData of products) {
                         try {
                                 const imageUrls = (productData.images || []).map(toGoogleUrl);
 
+                                const rawCategory = productData.category || "misc";
+                                const categorySlug = slugify(rawCategory);
+
+                                let categoryDoc = categoryCache.get(categorySlug);
+                                if (!categoryDoc) {
+                                        const categoryName = slugToName(categorySlug);
+                                        categoryDoc = await Category.findOne({
+                                                name: new RegExp(`^${categoryName}$`, "i"),
+                                        });
+                                        if (!categoryDoc) {
+                                                categoryDoc = await Category.create({
+                                                        name: categoryName,
+                                                        subCategories: [],
+                                                        published: true,
+                                                        productCount: 0,
+                                                });
+                                        }
+                                        categoryCache.set(categorySlug, categoryDoc);
+                                }
 
                                 // Map incoming data with safe defaults so that rows with
                                 // missing fields still create products instead of failing
@@ -65,7 +95,7 @@ export async function POST(request) {
                                                 productData.description ||
                                                 "No description provided",
                                         images: imageUrls,
-                                        category: productData.category || "misc",
+                                        category: categorySlug,
                                         published:
                                                 productData.published !== undefined
                                                         ? productData.published
@@ -93,8 +123,10 @@ export async function POST(request) {
                                         size: productData.size || "",
                                 });
 
-
                                 await product.save();
+                                await Category.findByIdAndUpdate(categoryDoc._id, {
+                                        $inc: { productCount: 1 },
+                                });
                                 results.success.push(product);
                         } catch (error) {
                                 results.failed.push({
