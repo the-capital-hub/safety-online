@@ -1,5 +1,6 @@
 import { dbConnect } from "@/lib/dbConnect";
 import Product from "@/model/Product";
+import Category from "@/model/Categories.js";
 import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 
@@ -30,76 +31,108 @@ export async function POST(request) {
 			);
 		}
 
-		const results = {
-			success: [],
-			failed: [],
-		};
+                const results = {
+                        success: [],
+                        failed: [],
+                };
 
-		for (const productData of products) {
-			try {
-				// Validate required fields
-				const { title, description, price, stocks, category } = productData;
+                const slugify = (str = "") =>
+                        str.toLowerCase().trim().replace(/\s+/g, "-");
 
-				if (!title || !description || !price || !stocks || !category) {
-					results.failed.push({
-						data: productData,
-						error: "Missing required fields",
-					});
-					continue;
-				}
+                const slugToName = (slug = "") =>
+                        slug
+                                .replace(/-/g, " ")
+                                .replace(/\b\w/g, (char) => char.toUpperCase());
 
-				const imageUrls = [];
+                const categoryCache = new Map();
 
-				// Create new product
-				const product = new Product({
-					sellerId: userId,
-					title,
-					description,
-					longDescription: productData.longDescription || description,
-					images: imageUrls,
-					category,
-					published:
-						productData.published !== undefined ? productData.published : true,
-					stocks: Number.parseInt(stocks),
-					price: Number.parseFloat(price),
-					salePrice: productData.salePrice
-						? Number.parseFloat(productData.salePrice)
-						: 0,
-					discount: productData.discount
-						? Number.parseFloat(productData.discount)
-						: 0,
-					type: productData.type || "featured",
-					features: productData.features || [],
-					subCategory: productData.subCategory || "",
-					mainImage: productData.mainImage || "",
-					hsnCode: productData.hsnCode || "",
-					brand: productData.brand || "",
-					length: productData.length
-						? Number.parseFloat(productData.length)
-						: null,
-					width: productData.width
-						? Number.parseFloat(productData.width)
-						: null,
-					height: productData.height
-						? Number.parseFloat(productData.height)
-						: null,
-					weight: productData.weight
-						? Number.parseFloat(productData.weight)
-						: null,
-					colour: productData.colour || "",
-					material: productData.material || "",
-					size: productData.size || "",
-				});
+                for (const productData of products) {
+                        try {
+                                // Validate required fields
+                                const { title, description, price, stocks, category } = productData;
 
-				await product.save();
-				results.success.push(product);
-			} catch (error) {
-				results.failed.push({
-					data: productData,
-					error: error.message,
-				});
-			}
-		}
+                                if (!title || !description || !price || !stocks || !category) {
+                                        results.failed.push({
+                                                data: productData,
+                                                error: "Missing required fields",
+                                        });
+                                        continue;
+                                }
+
+                                const imageUrls = [];
+
+                                const categorySlug = slugify(category);
+
+                                let categoryDoc = categoryCache.get(categorySlug);
+                                if (!categoryDoc) {
+                                        const categoryName = slugToName(categorySlug);
+                                        categoryDoc = await Category.findOne({
+                                                name: new RegExp(`^${categoryName}$`, "i"),
+                                        });
+                                        if (!categoryDoc) {
+                                                categoryDoc = await Category.create({
+                                                        name: categoryName,
+                                                        subCategories: [],
+                                                        published: true,
+                                                        productCount: 0,
+                                                });
+                                        }
+                                        categoryCache.set(categorySlug, categoryDoc);
+                                }
+
+                                // Create new product
+                                const product = new Product({
+                                        sellerId: userId,
+                                        title,
+                                        description,
+                                        longDescription: productData.longDescription || description,
+                                        images: imageUrls,
+                                        category: categorySlug,
+                                        published:
+                                                productData.published !== undefined ? productData.published : true,
+                                        stocks: Number.parseInt(stocks),
+                                        price: Number.parseFloat(price),
+                                        salePrice: productData.salePrice
+                                                ? Number.parseFloat(productData.salePrice)
+                                                : 0,
+                                        discount: productData.discount
+                                                ? Number.parseFloat(productData.discount)
+                                                : 0,
+                                        type: productData.type || "featured",
+                                        features: productData.features || [],
+                                        subCategory: productData.subCategory || "",
+                                        mainImage: productData.mainImage || "",
+                                        hsnCode: productData.hsnCode || "",
+                                        brand: productData.brand || "",
+                                        length: productData.length
+                                                ? Number.parseFloat(productData.length)
+                                                : null,
+                                        width: productData.width
+                                                ? Number.parseFloat(productData.width)
+                                                : null,
+                                        height: productData.height
+                                                ? Number.parseFloat(productData.height)
+                                                : null,
+                                        weight: productData.weight
+                                                ? Number.parseFloat(productData.weight)
+                                                : null,
+                                        colour: productData.colour || "",
+                                        material: productData.material || "",
+                                        size: productData.size || "",
+                                });
+
+                                await product.save();
+                                await Category.findByIdAndUpdate(categoryDoc._id, {
+                                        $inc: { productCount: 1 },
+                                });
+                                results.success.push(product);
+                        } catch (error) {
+                                results.failed.push({
+                                        data: productData,
+                                        error: error.message,
+                                });
+                        }
+                }
 
 		return NextResponse.json({
 			success: true,
