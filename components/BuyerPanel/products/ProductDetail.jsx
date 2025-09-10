@@ -223,7 +223,7 @@ export default function ProductDetail({
 					</div>
 
 					{/* Middle Column - Scrollable Content */}
-					<div className="lg:col-span-6 space-y-6 max-h-screen overflow-y-auto hide-scrollbar">
+					<div className="lg:col-span-6 space-y-6 lg:max-h-screen lg:overflow-y-auto hide-scrollbar">
 						{/* Brand and Title */}
 						<div>
 							<p className="text-sm text-gray-600 mb-2">Ladwa</p>
