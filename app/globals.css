@@ -192,3 +192,7 @@
 	-webkit-text-stroke: 2px white;
 	text-stroke: 2px white;
 }
+
+.custom-scrollbar::-webkit-scrollbar-button {
+	display: none;
+}
