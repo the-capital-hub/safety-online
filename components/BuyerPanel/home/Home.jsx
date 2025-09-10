@@ -5,7 +5,6 @@ import { useHomeData } from "@/hooks/useHomeData";
 import NavigationBar from "@/components/BuyerPanel/NavigationBar.jsx";
 import HeroSection from "@/components/BuyerPanel/home/HeroSection.jsx";
 import ProductShowcase from "@/components/BuyerPanel/home/ProductShowcase.jsx";
-import TrustedCompanies from "@/components/BuyerPanel/home/TrustedCompanies.jsx";
 import CategorySection from "@/components/BuyerPanel/home/CategorySection.jsx";
 import SupportSection from "@/components/BuyerPanel/home/SupportSection.jsx";
 import FeaturedSection from "@/components/BuyerPanel/home/FeaturedSection.jsx";
@@ -71,7 +70,6 @@ export default function HomePage() {
 			<NavigationBar />
 			<HeroSection />
 			<ProductShowcase products={discountedProducts} />
-			<TrustedCompanies />
 
 			<CategorySection
 				products={categoryProducts}
