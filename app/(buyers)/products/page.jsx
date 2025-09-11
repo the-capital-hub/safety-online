@@ -10,16 +10,26 @@ import { useSearchParams } from "next/navigation";
 export default function ProductsPage() {
 	const searchParams = useSearchParams();
 
-	const { error, fetchProducts, setCurrentCategory, setSearchQuery } =
-		useProductStore();
+	const {
+		error,
+		fetchProducts,
+		setCurrentCategory,
+		setCurrentSubCategory,
+		setSearchQuery,
+	} = useProductStore();
 
 	// Handle URL parameters
 	useEffect(() => {
 		const category = searchParams.get("category");
+		const subCategory = searchParams.get("subCategory");
 		const search = searchParams.get("search");
 
 		if (category) {
-			setCurrentCategory(category);
+			setCurrentCategory(category.replace(/-/g, " "));
+		}
+
+		if (subCategory) {
+			setCurrentSubCategory(subCategory.replace(/-/g, " "));
 		}
 
 		if (search) {
@@ -49,8 +59,8 @@ export default function ProductsPage() {
 	return (
 		<div className="h-screen bg-gray-50">
 			{/* Featured Banner */}
-			<FeaturedBanner />
-			<div className="container mx-auto px-4 py-8">
+			{/* <FeaturedBanner /> */}
+			<div className="p-10">
 				<div className="flex flex-col lg:flex-row gap-8">
 					{/* Filters Sidebar */}
 					<div className="lg:w-80 flex-shrink-0">

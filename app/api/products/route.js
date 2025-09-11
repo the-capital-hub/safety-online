@@ -18,15 +18,28 @@ export async function GET(request) {
 		const category = searchParams.get("category");
 		const search = searchParams.get("search");
 		const type = searchParams.get("type");
-		const page = Number.parseInt(searchParams.get("page") || "1");
-		const limit = Number.parseInt(searchParams.get("limit") || "12");
+		const page = parseInt(searchParams.get("page") || "1");
+		const limit = parseInt(searchParams.get("limit") || "12");
 		const sort = searchParams.get("sort") || "createdAt";
 		const order = searchParams.get("order") || "desc";
+
+		console.log("API Route - Received params:", {
+			category,
+			minPrice,
+			maxPrice,
+			inStock,
+			discount,
+			search,
+			type,
+			page,
+			sort,
+			order,
+		});
 
 		// Build query
 		const query = { published: true };
 
-		// Category filter
+		// Category filter - Fixed: handle "all" category properly
 		if (category && category !== "all") {
 			query.category = category;
 		}
@@ -40,21 +53,26 @@ export async function GET(request) {
 			];
 		}
 
-		// Price range filter
+		// Price range filter - Fixed: Better price handling
 		if (minPrice || maxPrice) {
-			query.$and = query.$and || [];
 			const priceQuery = {};
 
 			if (minPrice) {
-				priceQuery.$gte = Number.parseInt(minPrice);
+				priceQuery.$gte = parseInt(minPrice);
 			}
 			if (maxPrice) {
-				priceQuery.$lte = Number.parseInt(maxPrice);
+				priceQuery.$lte = parseInt(maxPrice);
 			}
 
 			// Check both regular price and sale price
+			query.$and = query.$and || [];
 			query.$and.push({
-				$or: [{ price: priceQuery }, { salePrice: { ...priceQuery, $gt: 0 } }],
+				$or: [
+					{ price: priceQuery },
+					{
+						$and: [{ salePrice: { $gt: 0 } }, { salePrice: priceQuery }],
+					},
+				],
 			});
 		}
 
@@ -64,36 +82,49 @@ export async function GET(request) {
 			query.stocks = { $gt: 0 };
 		}
 
-		// Discount filter
-		if (discount) {
-			const discountValue = Number.parseInt(discount);
-			query.$or = [
-				{ discount: { $gte: discountValue } },
-				{
-					$expr: {
-						$gte: [
-							{
-								$multiply: [
-									{
-										$divide: [
-											{ $subtract: ["$price", "$salePrice"] },
-											"$price",
-										],
-									},
-									100,
-								],
-							},
-							discountValue,
-						],
+		// Discount filter - Fixed: Better discount calculation
+		if (discount && parseInt(discount) > 0) {
+			const discountValue = parseInt(discount);
+			query.$and = query.$and || [];
+
+			query.$and.push({
+				$or: [
+					// Products with explicit discount field
+					{ discount: { $gte: discountValue } },
+					// Products with sale price (calculated discount)
+					{
+						$expr: {
+							$and: [
+								{ $gt: ["$salePrice", 0] },
+								{
+									$gte: [
+										{
+											$multiply: [
+												{
+													$divide: [
+														{ $subtract: ["$price", "$salePrice"] },
+														"$price",
+													],
+												},
+												100,
+											],
+										},
+										discountValue,
+									],
+								},
+							],
+						},
 					},
-				},
-			];
+				],
+			});
 		}
 
 		// Type filter
 		if (type) {
 			query.type = type;
 		}
+
+		console.log("Final MongoDB query:", JSON.stringify(query, null, 2));
 
 		// Build sort object
 		const sortObj = {};
@@ -110,35 +141,42 @@ export async function GET(request) {
 		const total = await Product.countDocuments(query);
 		const totalPages = Math.ceil(total / limit);
 
+		console.log(`Found ${products.length} products out of ${total} total`);
+
 		// Transform products for frontend
-		const transformedProducts = products.map((product) => ({
-			id: product._id.toString(),
-			name: product.title,
-			description: product.description,
-			longDescription: product.longDescription,
-			price: product.salePrice > 0 ? product.salePrice : product.price,
-			originalPrice: product.price,
-			salePrice: product.salePrice,
-			discount: product.discount,
-			discountPercentage:
+		const transformedProducts = products.map((product) => {
+			const discountPercentage =
 				product.salePrice > 0
 					? Math.round(
 							((product.price - product.salePrice) / product.price) * 100
 					  )
-					: product.discount,
-			image:
-				product.images?.[0] ||
-				"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png",
-			images: product.images || [],
-			category: product.category,
-			inStock: product.inStock,
-			stocks: product.stocks,
-			status: product.status,
-			type: product.type,
-			features: product.features || [],
-			createdAt: product.createdAt,
-			updatedAt: product.updatedAt,
-		}));
+					: product.discount || 0;
+
+			return {
+				id: product._id.toString(),
+				title: product.title,
+				description: product.description,
+				longDescription: product.longDescription,
+				price: product.salePrice > 0 ? product.salePrice : product.price,
+				originalPrice: product.price,
+				salePrice: product.salePrice,
+				discount: product.discount,
+				discountPercentage,
+				image:
+					product.images?.[0] ||
+					"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png",
+				images: product.images || [],
+				category: product.category,
+				subCategory: product.subCategory,
+				inStock: product.inStock,
+				stocks: product.stocks,
+				status: product.status,
+				type: product.type,
+				features: product.features || [],
+				createdAt: product.createdAt,
+				updatedAt: product.updatedAt,
+			};
+		});
 
 		return Response.json({
 			success: true,

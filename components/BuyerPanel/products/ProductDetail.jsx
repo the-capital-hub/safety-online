@@ -299,7 +299,7 @@ export default function ProductDetail({
 							{/* Rating */}
 							<div className="flex items-center mb-4">
 								<span className="flex items-center gap-1 bg-green-600 text-white px-2 py-1 rounded text-sm">
-									★ {product.rating || 4.4}
+									{product.rating === 0 ? "★" : "★ ".repeat(product.rating)}
 								</span>
 								<span className="ml-2 text-gray-600 text-sm">
 									{product?.reviews?.length || 0} ratings

@@ -301,6 +301,11 @@ export default function CheckoutPage() {
 												{address.isDefault && (
 													<Badge variant="default">Default</Badge>
 												)}
+												{address.addressType && (
+													<Badge variant="default" className="capitalize">
+														{address.addressType}
+													</Badge>
+												)}
 											</div>
 											<p className="font-medium">{address.name}</p>
 											<p className="text-sm text-gray-600">
@@ -349,9 +354,21 @@ export default function CheckoutPage() {
 								</Button>
 							</div>
 
+							<div>
+								<Label htmlFor="addressName">Contact Name</Label>
+								<Input
+									id="addressName"
+									value={newAddress.name}
+									onChange={(e) =>
+										handleNewAddressChange("name", e.target.value)
+									}
+									placeholder="Full name"
+								/>
+							</div>
+
 							<div className="grid grid-cols-2 gap-4">
 								<div>
-									<Label htmlFor="addressTag">Address Type</Label>
+									<Label htmlFor="addressTag">Address Tag</Label>
 									<Select
 										value={newAddress.tag}
 										onValueChange={(value) =>
@@ -369,15 +386,21 @@ export default function CheckoutPage() {
 									</Select>
 								</div>
 								<div>
-									<Label htmlFor="addressName">Contact Name</Label>
-									<Input
-										id="addressName"
-										value={newAddress.name}
-										onChange={(e) =>
-											handleNewAddressChange("name", e.target.value)
+									<Label htmlFor="addressType">Address Type</Label>
+									<Select
+										value={newAddress.addressType}
+										onValueChange={(value) =>
+											handleNewAddressChange("addressType", value)
 										}
-										placeholder="Full name"
-									/>
+									>
+										<SelectTrigger>
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="shipTo">Ship To</SelectItem>
+											<SelectItem value="billTo">Bill To</SelectItem>
+										</SelectContent>
+									</Select>
 								</div>
 							</div>
 

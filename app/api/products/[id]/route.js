@@ -23,6 +23,18 @@ export async function GET(req, { params }) {
 			},
 		});
 
+		// Calculate average rating
+		const total = product.reviews.reduce(
+			(acc, review) => acc + review.rating,
+			0
+		);
+		const averageRating =
+			product.reviews.length > 0
+				? (total / product.reviews.length).toFixed(0)
+				: 0;
+
+		console.log("Average rating:", averageRating);
+
 		if (!product) {
 			return Response.json({ message: "Product not found" }, { status: 404 });
 		}
@@ -71,7 +83,7 @@ export async function GET(req, { params }) {
 			type: product.type,
 			published: product.published,
 			features: product.features || [],
-			rating: 4.5,
+			rating: averageRating || 0,
 			reviews: product.reviews || [],
 			keywords: product.keywords || [],
 			specifications: productSpecifications || {},

@@ -86,6 +86,7 @@ export async function POST(request) {
 
 		const {
 			tag,
+			addressType,
 			name,
 			street,
 			city,
@@ -120,6 +121,7 @@ export async function POST(request) {
 		// Add new address
 		const newAddress = {
 			tag,
+			addressType,
 			name,
 			street,
 			city,

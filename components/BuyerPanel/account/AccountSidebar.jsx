@@ -64,7 +64,7 @@ export function AccountSidebar({ activeTab, onTabChange }) {
 	const handleTabClick = (item) => {
 		onTabChange(item.id);
 		router.push(item.href);
-		setMobileOpen(false); 
+		setMobileOpen(false);
 	};
 
 	const isActive = (item) => {
@@ -82,7 +82,8 @@ export function AccountSidebar({ activeTab, onTabChange }) {
 				<button
 					onClick={() => setMobileOpen(true)}
 					className="p-2  bg-white rounded-xl flex gap-3 hover:bg-gray-100"
-				>Menu
+				>
+					Menu
 					<Menu className="h-6 w-6" />
 				</button>
 			</div>
@@ -101,38 +102,44 @@ export function AccountSidebar({ activeTab, onTabChange }) {
 							>
 								<button
 									onClick={() => handleTabClick(item)}
-									className={`w-full text-left p-4 rounded-lg transition-all duration-200 group ${isActive(item)
-										? "bg-yellow-50 border-l-4 border-l-yellow-600"
-										: "hover:bg-gray-50"
-										}`}
+									className={`w-full text-left p-4 rounded-lg transition-all duration-200 group ${
+										isActive(item)
+											? "bg-yellow-50 border-l-4 border-l-yellow-600"
+											: "hover:bg-gray-50"
+									}`}
 								>
 									<div className="flex items-center gap-3 mb-1">
 										<item.icon
-											className={`h-5 w-5 transition-colors ${isActive(item)
-												? "text-yellow-600"
-												: "text-gray-500 group-hover:text-gray-700"
-												}`}
+											className={`h-5 w-5 transition-colors ${
+												isActive(item)
+													? "text-yellow-600"
+													: "text-gray-500 group-hover:text-gray-700"
+											}`}
 										/>
 										<span
-											className={`font-medium transition-colors ${isActive(item)
-												? "text-yellow-900"
-												: "text-gray-900 group-hover:text-gray-900"
-												}`}
+											className={`font-medium transition-colors ${
+												isActive(item)
+													? "text-yellow-900"
+													: "text-gray-900 group-hover:text-gray-900"
+											}`}
 										>
 											{item.title}
 										</span>
 									</div>
 									<p
-										className={`text-sm ml-8 transition-colors ${isActive(item)
-											? "text-yellow-700"
-											: "text-gray-500 group-hover:text-gray-600"
-											}`}
+										className={`text-sm ml-8 transition-colors ${
+											isActive(item)
+												? "text-yellow-700"
+												: "text-gray-500 group-hover:text-gray-600"
+										}`}
 									>
 										{item.description}
 									</p>
 								</button>
 							</motion.div>
 						))}
+
+						{/* Logout Button */}
 					</nav>
 				</div>
 			</div>
@@ -176,32 +183,36 @@ export function AccountSidebar({ activeTab, onTabChange }) {
 									>
 										<button
 											onClick={() => handleTabClick(item)}
-											className={`w-full text-left p-4 rounded-lg transition-all duration-200 group ${isActive(item)
-												? "bg-yellow-50 border-l-4 border-l-yellow-600"
-												: "hover:bg-gray-50"
-												}`}
+											className={`w-full text-left p-4 rounded-lg transition-all duration-200 group ${
+												isActive(item)
+													? "bg-yellow-50 border-l-4 border-l-yellow-600"
+													: "hover:bg-gray-50"
+											}`}
 										>
 											<div className="flex items-center gap-3 mb-1">
 												<item.icon
-													className={`h-5 w-5 transition-colors ${isActive(item)
-														? "text-yellow-600"
-														: "text-gray-500 group-hover:text-gray-700"
-														}`}
+													className={`h-5 w-5 transition-colors ${
+														isActive(item)
+															? "text-yellow-600"
+															: "text-gray-500 group-hover:text-gray-700"
+													}`}
 												/>
 												<span
-													className={`font-medium transition-colors ${isActive(item)
-														? "text-yellow-900"
-														: "text-gray-900 group-hover:text-gray-900"
-														}`}
+													className={`font-medium transition-colors ${
+														isActive(item)
+															? "text-yellow-900"
+															: "text-gray-900 group-hover:text-gray-900"
+													}`}
 												>
 													{item.title}
 												</span>
 											</div>
 											<p
-												className={`text-sm ml-8 transition-colors ${isActive(item)
-													? "text-yellow-700"
-													: "text-gray-500 group-hover:text-gray-600"
-													}`}
+												className={`text-sm ml-8 transition-colors ${
+													isActive(item)
+														? "text-yellow-700"
+														: "text-gray-500 group-hover:text-gray-600"
+												}`}
 											>
 												{item.description}
 											</p>
