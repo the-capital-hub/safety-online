@@ -12,6 +12,7 @@ import {
 	NextButton,
 } from "@/components/BuyerPanel/home/ProductShowcaseCarousel/carouselArrowButtons.jsx";
 import { Product16 } from "@/public/images/home/index.js";
+import ProductImg from "@/public/images/products/IS-P2.png";
 
 export default function ProductShowcase({ products = [] }) {
 	const [emblaRef, emblaApi] = useEmblaCarousel({
@@ -94,11 +95,11 @@ export default function ProductShowcase({ products = [] }) {
 						<div className="mt-6 lg:mt-8 flex justify-center lg:justify-start">
 							<div className="relative w-full max-w-xs sm:max-w-sm">
 								<Image
-									src={Product16.src}
+									src={ProductImg.src}
 									alt="Product 16"
 									width={400}
-									height={200}
-									className="w-full h-auto max-h-[150px] rounded-lg object-contain"
+									height={300}
+									className="w-full h-auto max-h-[300px] rounded-lg object-contain"
 									sizes="(max-width: 640px) 300px, (max-width: 1024px) 400px, 250px"
 								/>
 							</div>

@@ -267,7 +267,7 @@ export default function CheckoutPage() {
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
 						<MapPin className="h-5 w-5" />
-						Delivery Address
+						Shipping Address
 					</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-4">
@@ -275,60 +275,64 @@ export default function CheckoutPage() {
 					{savedAddresses.length > 0 && (
 						<div className="space-y-3">
 							<h4 className="font-medium">Saved Addresses</h4>
-							{savedAddresses.map((address) => (
-								<div
-									key={address._id}
-									className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-										selectedAddressId === address._id
-											? "border-blue-500 bg-blue-50"
-											: "border-gray-200 hover:border-gray-300"
-									}`}
-									onClick={() => handleAddressSelect(address._id)}
-								>
-									<div className="flex items-start justify-between">
-										<div className="flex-1">
-											<div className="flex items-center gap-2 mb-2">
-												{address.tag === "home" && <Home className="h-4 w-4" />}
-												{address.tag === "office" && (
-													<Building className="h-4 w-4" />
-												)}
-												{address.tag === "other" && (
-													<MapPinIcon className="h-4 w-4" />
-												)}
-												<Badge variant="secondary" className="capitalize">
-													{address.tag}
-												</Badge>
-												{address.isDefault && (
-													<Badge variant="default">Default</Badge>
-												)}
-												{address.addressType && (
-													<Badge variant="default" className="capitalize">
-														{address.addressType}
+							{savedAddresses
+								.filter((address) => address.addressType !== "billTo")
+								.map((address) => (
+									<div
+										key={address._id}
+										className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+											selectedAddressId === address._id
+												? "border-blue-500 bg-blue-50"
+												: "border-gray-200 hover:border-gray-300"
+										}`}
+										onClick={() => handleAddressSelect(address._id)}
+									>
+										<div className="flex items-start justify-between">
+											<div className="flex-1">
+												<div className="flex items-center gap-2 mb-2">
+													{address.tag === "home" && (
+														<Home className="h-4 w-4" />
+													)}
+													{address.tag === "office" && (
+														<Building className="h-4 w-4" />
+													)}
+													{address.tag === "other" && (
+														<MapPinIcon className="h-4 w-4" />
+													)}
+													<Badge variant="secondary" className="capitalize">
+														{address.tag}
 													</Badge>
-												)}
+													{address.isDefault && (
+														<Badge variant="default">Default</Badge>
+													)}
+													{address.addressType && (
+														<Badge variant="default" className="capitalize">
+															{address.addressType}
+														</Badge>
+													)}
+												</div>
+												<p className="font-medium">{address.name}</p>
+												<p className="text-sm text-gray-600">
+													{address.street}, {address.city}, {address.state} -{" "}
+													{address.zipCode}
+												</p>
 											</div>
-											<p className="font-medium">{address.name}</p>
-											<p className="text-sm text-gray-600">
-												{address.street}, {address.city}, {address.state} -{" "}
-												{address.zipCode}
-											</p>
-										</div>
-										<div className="ml-4">
-											<div
-												className={`w-4 h-4 rounded-full border-2 ${
-													selectedAddressId === address._id
-														? "border-blue-500 bg-blue-500"
-														: "border-gray-300"
-												}`}
-											>
-												{selectedAddressId === address._id && (
-													<div className="w-2 h-2 bg-white rounded-full m-0.5" />
-												)}
+											<div className="ml-4">
+												<div
+													className={`w-4 h-4 rounded-full border-2 ${
+														selectedAddressId === address._id
+															? "border-blue-500 bg-blue-500"
+															: "border-gray-300"
+													}`}
+												>
+													{selectedAddressId === address._id && (
+														<div className="w-2 h-2 bg-white rounded-full m-0.5" />
+													)}
+												</div>
 											</div>
 										</div>
 									</div>
-								</div>
-							))}
+								))}
 						</div>
 					)}
 

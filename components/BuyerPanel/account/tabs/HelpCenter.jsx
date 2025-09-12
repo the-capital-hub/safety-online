@@ -24,7 +24,8 @@ import {
 	DialogHeader,
 	DialogTitle,
 	DialogDescription,
-} from "@/components/ui/dialog";4
+} from "@/components/ui/dialog";
+4;
 import {
 	DropdownMenu,
 	DropdownMenuTrigger,
@@ -80,30 +81,6 @@ const faqs = [
 		question: "What payment methods do you accept?",
 		answer:
 			"We accept all major credit cards, PayPal, Apple Pay, Google Pay, and various UPI methods. You can manage your payment methods in the Payment Options section.",
-	},
-];
-
-const contactMethods = [
-	// {
-	// 	icon: MessageCircle,
-	// 	title: "Live Chat",
-	// 	description: "Chat with our support team",
-	// 	action: "Start Chat",
-	// 	available: "24/7",
-	// },
-	{
-		icon: Phone,
-		title: "Phone Support",
-		description: "Call us on +919945234161 for immediate assistance",
-		action: "Call Now",
-		available: "Mon-Fri 9AM-6PM",
-	},
-	{
-		icon: Mail,
-		title: "Email Support",
-		description: "Send us a detailed message on hello@safetyonline.in",
-		action: "Send Email",
-		available: "Response within 24hrs",
 	},
 ];
 
@@ -172,6 +149,24 @@ export function HelpCenter() {
 		}
 	};
 
+	const handleSendEmail = () => {
+		toast.success("Opening email client...");
+		const subject = encodeURIComponent("Need Help");
+		const body = encodeURIComponent(
+			"Hello,\n\nThis is the message body.\n\nThanks"
+		);
+
+		// Construct mailto link
+		const mailtoLink = `mailto:help@safetyonline.in?subject=${subject}&body=${body}`;
+
+		// Open default mail client
+		window.location.href = mailtoLink;
+	};
+
+	const handleCallNow = () => {
+		toast.success("Call functionality coming soon");
+	};
+
 	return (
 		<div className="space-y-6">
 			{/* Search Help */}
@@ -183,10 +178,8 @@ export function HelpCenter() {
 			>
 				<Card>
 					<CardHeader>
-						<CardTitle>How can we help you?</CardTitle>
-						{/* <CardDescription>
-							Search our help center or browse frequently asked questions
-						</CardDescription> */}
+						<CardTitle>Help Center</CardTitle>
+						<CardDescription>How can we help you?</CardDescription>
 					</CardHeader>
 					{/* <CardContent>
 						<div className="relative">
@@ -216,24 +209,45 @@ export function HelpCenter() {
 					</CardHeader>
 					<CardContent>
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-							{contactMethods.map((method) => (
-								<div
-									key={method.title}
-									className="border rounded-lg p-4 text-center"
+							{/* Phone Support */}
+							<div className="border rounded-lg p-4 text-center shadow-sm">
+								<Phone className="h-8 w-8 mx-auto mb-3 text-primary" />
+								<h3 className="font-medium mb-1">Phone Support</h3>
+								<p className="text-sm text-muted-foreground mb-2">
+									Call us on +919945234161 for immediate assistance
+								</p>
+								<p className="text-xs text-muted-foreground mb-3">
+									Mon-Fri 9AM-6PM
+								</p>
+								<Button
+									variant="outline"
+									size="sm"
+									className="w-full"
+									onClick={handleCallNow}
 								>
-									<method.icon className="h-8 w-8 mx-auto mb-3 text-primary" />
-									<h3 className="font-medium mb-1">{method.title}</h3>
-									<p className="text-sm text-muted-foreground mb-2">
-										{method.description}
-									</p>
-									<p className="text-xs text-muted-foreground mb-3">
-										{method.available}
-									</p>
-									<Button variant="outline" size="sm" className="w-full">
-										{method.action}
-									</Button>
-								</div>
-							))}
+									Call Now
+								</Button>
+							</div>
+
+							{/* Email Support */}
+							<div className="border rounded-lg p-4 text-center shadow-sm">
+								<Mail className="h-8 w-8 mx-auto mb-3 text-primary" />
+								<h3 className="font-medium mb-1">Email Support</h3>
+								<p className="text-sm text-muted-foreground mb-2">
+									Send us a detailed message on hello@safetyonline.in
+								</p>
+								<p className="text-xs text-muted-foreground mb-3">
+									Response within 24hrs
+								</p>
+								<Button
+									variant="outline"
+									size="sm"
+									className="w-full"
+									onClick={handleSendEmail}
+								>
+									Send Email
+								</Button>
+							</div>
 						</div>
 					</CardContent>
 				</Card>
@@ -265,7 +279,7 @@ export function HelpCenter() {
 			</motion.div>
 
 			{/* Contact Form */}
-			<motion.div
+			{/* <motion.div
 				custom={3}
 				initial="hidden"
 				animate="visible"
@@ -298,7 +312,9 @@ export function HelpCenter() {
 											className="w-full justify-between"
 											id="category"
 										>
-											{category ? category.charAt(0).toUpperCase() + category.slice(1) : "Select a category"}
+											{category
+												? category.charAt(0).toUpperCase() + category.slice(1)
+												: "Select a category"}
 										</Button>
 									</DropdownMenuTrigger>
 									<DropdownMenuContent>
@@ -331,15 +347,19 @@ export function HelpCenter() {
 								onChange={(e) => setMessage(e.target.value)}
 							/>
 						</div>
-						<Button className="w-full" onClick={handleSubmit} disabled={loading}>
+						<Button
+							className="w-full"
+							onClick={handleSubmit}
+							disabled={loading}
+						>
 							{loading ? "Sending..." : "Send Message"}
 						</Button>
 					</CardContent>
 				</Card>
-			</motion.div>
+			</motion.div> */}
 
 			{/* Sent Messages */}
-			<motion.div
+			{/* <motion.div
 				custom={4}
 				initial="hidden"
 				animate="visible"
@@ -367,7 +387,8 @@ export function HelpCenter() {
 										<div>
 											<p className="font-medium">{msg.subject}</p>
 											<p className="text-sm text-muted-foreground">
-												{msg.category} • {new Date(msg.createdAt).toLocaleString()}
+												{msg.category} •{" "}
+												{new Date(msg.createdAt).toLocaleString()}
 											</p>
 											<p className="text-xs text-muted-foreground">
 												Status: {msg.status || "pending"}
@@ -389,7 +410,7 @@ export function HelpCenter() {
 						)}
 					</CardContent>
 				</Card>
-			</motion.div>
+			</motion.div> */}
 
 			{/* Quick Links */}
 			<motion.div

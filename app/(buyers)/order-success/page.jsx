@@ -23,7 +23,7 @@ export default function OrderSuccessPage() {
 
 	const orderId = searchParams.get("orderId");
 	const orderNumber = searchParams.get("orderNumber");
-	const { loading, error, fetchOrder } = useOrderStore();
+	const { fetchOrder } = useOrderStore();
 
 	useEffect(() => {
 		if (!orderId || !orderNumber) {
@@ -35,18 +35,34 @@ export default function OrderSuccessPage() {
 			try {
 				const orderData = await fetchOrder(orderId);
 
+				// console.log("Order data:", orderData);
+
+				// Flatten products from subOrders
+				const products =
+					orderData?.subOrders?.flatMap((sub) => sub.products) || [];
+
 				setOrderDetails({
 					orderId,
 					orderNumber,
 					estimatedDelivery: new Date(
 						Date.now() + 7 * 24 * 60 * 60 * 1000
-					).toLocaleDateString(),
-					productName: orderData?.products[0]?.productName,
-					productImage: orderData?.products[0]?.productImage,
+					).toLocaleDateString("en-IN", {
+						year: "numeric",
+						month: "short",
+						day: "numeric",
+					}),
+					products, // save all products
 					amount: orderData?.totalAmount,
 					discount: orderData?.discount,
 					paymentMethod: orderData?.paymentMethod,
 					orderDate: orderData?.orderDate,
+					customer: {
+						name: orderData?.customerName,
+						email: orderData?.customerEmail,
+						mobile: orderData?.customerMobile,
+					},
+					address: orderData?.deliveryAddress,
+					status: orderData?.status,
 				});
 			} catch (err) {
 				console.error("Failed to fetch order details", err);
@@ -116,26 +132,28 @@ export default function OrderSuccessPage() {
 						<CardHeader>
 							<CardTitle>Order Details</CardTitle>
 						</CardHeader>
-						<CardContent className="space-y-4">
+						<CardContent className="space-y-4 text-left">
 							<div className="flex justify-between items-center">
 								<span className="text-gray-600">Order Number:</span>
 								<Badge variant="secondary" className="font-mono">
 									{orderDetails.orderNumber}
 								</Badge>
 							</div>
-							<div className="flex justify-between items-center">
+							{/* <div className="flex justify-between items-center">
 								<span className="text-gray-600">Order ID:</span>
 								<span className="font-medium">{orderDetails.orderId}</span>
-							</div>
+							</div> */}
 							<div className="flex justify-between items-center">
 								<span className="text-gray-600">Order Date:</span>
-								<span className="font-medium">{new Date(orderDetails.orderDate).toLocaleString("en-IN", {
-									year: "numeric",
-									month: "short",
-									day: "numeric",
-									hour: "2-digit",
-									minute: "2-digit",
-								})}</span>
+								<span className="font-medium">
+									{new Date(orderDetails.orderDate).toLocaleString("en-IN", {
+										year: "numeric",
+										month: "short",
+										day: "numeric",
+										hour: "2-digit",
+										minute: "2-digit",
+									})}
+								</span>
 							</div>
 							<div className="flex justify-between items-center">
 								<span className="text-gray-600">Estimated Delivery:</span>
@@ -143,35 +161,78 @@ export default function OrderSuccessPage() {
 									{orderDetails.estimatedDelivery}
 								</span>
 							</div>
-							<div className="flex justify-between items-center">
-								<span className="text-gray-600">Product Name:</span>
-								<span className="font-medium max-w-[200px] truncate text-right">
-									{orderDetails.productName}
-								</span>
+
+							{/* Customer Info */}
+							<div className="border-t pt-3">
+								<div className="flex justify-between items-center">
+									<span className="text-gray-600">Customer:</span>
+									<span className="font-medium">
+										{orderDetails.customer.name}
+									</span>
+								</div>
+								<div className="flex justify-between items-center">
+									<span className="text-gray-600">Email:</span>
+									<span className="font-medium">
+										{orderDetails.customer.email}
+									</span>
+								</div>
+								<div className="flex justify-between items-center">
+									<span className="text-gray-600">Mobile:</span>
+									<span className="font-medium">
+										{orderDetails.customer.mobile}
+									</span>
+								</div>
 							</div>
-							<div className="flex justify-between items-center">
-								<span className="text-gray-600">Product Image:</span>
-								{orderDetails.productImage && (
-									<Image
-										width={200}
-										height={250}
-										src={orderDetails.productImage}
-										alt={orderDetails.productName || "Product"}
-										className="w-12 h-12 rounded object-cover"
-									/>
-								)}
+
+							{/* Address */}
+							<div className="border-t pt-3">
+								<span className="text-gray-600">Delivery Address:</span>
+								<p className="font-medium text-sm mt-1">
+									{orderDetails.address.fullAddress}
+								</p>
 							</div>
-							<div className="flex justify-between items-center">
-								<span className="text-gray-600">Order Amount:</span>
-								<span className="font-medium">₹{orderDetails.amount}</span>
+
+							{/* Products */}
+							<div className="border-t pt-3">
+								<span className="text-gray-600">Products:</span>
+								<div className="space-y-2 mt-2">
+									{orderDetails.products.map((p, idx) => (
+										<div
+											key={idx}
+											className="flex items-center justify-between gap-3"
+										>
+											<Image
+												width={60}
+												height={60}
+												src={p.productImage}
+												alt={p.productName}
+												className="w-12 h-12 rounded object-cover"
+											/>
+											<span className="flex-1 text-right truncate">
+												{p.productName}
+											</span>
+											<span className="font-medium">₹{p.price}</span>
+										</div>
+									))}
+								</div>
 							</div>
-							<div className="flex justify-between items-center">
-								<span className="text-gray-600">Discount:</span>
-								<span className="font-medium">₹{orderDetails.discount}</span>
-							</div>
-							<div className="flex justify-between items-center">
-								<span className="text-gray-600">Payment Method:</span>
-								<Badge className="font-medium bg-blue-300 text-blue-600 rounded-xl">{orderDetails.paymentMethod}</Badge>
+
+							{/* Order summary */}
+							<div className="border-t pt-3 space-y-2">
+								<div className="flex justify-between items-center">
+									<span className="text-gray-600">Order Amount:</span>
+									<span className="font-medium">₹{orderDetails.amount}</span>
+								</div>
+								<div className="flex justify-between items-center">
+									<span className="text-gray-600">Discount:</span>
+									<span className="font-medium">₹{orderDetails.discount}</span>
+								</div>
+								<div className="flex justify-between items-center">
+									<span className="text-gray-600">Payment Method:</span>
+									<Badge className="font-medium bg-blue-300 text-blue-600 rounded-xl">
+										{orderDetails.paymentMethod}
+									</Badge>
+								</div>
 							</div>
 						</CardContent>
 					</Card>

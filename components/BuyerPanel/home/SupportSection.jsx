@@ -1,28 +1,28 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Truck, Headphones, Heart, Shield } from "lucide-react";
+import { Truck, ShieldCheck, PhoneCall, MailCheck } from "lucide-react";
 
 export default function SupportSection() {
 	const supportItems = [
 		{
 			icon: Truck,
-			title: "FAST & FREE SHIPPING",
-			description: "All Over India",
+			title: "FAST SHIPPING",
+			description: "We offer fast and reliable delivery",
 		},
 		{
-			icon: Headphones,
-			title: "Give Us A Call",
+			icon: PhoneCall,
+			title: "GIVE US A CALL",
 			description: "+91 9945234161",
 		},
 		{
-			icon: Heart,
-			title: "Email Us",
-			description: "hello@safetyonline.in",
+			icon: MailCheck,
+			title: "EMAIL SUPPORT",
+			description: "help@safetyonline.in",
 		},
 		{
-			icon: Shield,
-			title: "Locations",
+			icon: ShieldCheck,
+			title: "LOCATIONS COVERED",
 			description: "Pan India Delivery",
 		},
 	];

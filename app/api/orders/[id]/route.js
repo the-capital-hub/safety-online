@@ -9,7 +9,9 @@ export async function GET(request, { params }) {
 		const resolvedParams = await params;
 		await dbConnect();
 
-		const order = await Order.findById(resolvedParams.id).lean();
+		const order = await Order.findById(resolvedParams.id)
+			.populate("subOrders")
+			.lean();
 
 		if (!order) {
 			return NextResponse.json(

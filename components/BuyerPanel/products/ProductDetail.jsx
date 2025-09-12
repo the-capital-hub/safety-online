@@ -30,6 +30,7 @@ import { useCartStore } from "@/store/cartStore";
 import ProductCard from "@/components/BuyerPanel/products/ProductCard.jsx";
 import Image from "next/image";
 import { toast } from "react-hot-toast";
+import { useWishlistStore } from "@/store/wishlistStore";
 
 export default function ProductDetail({
 	product,
@@ -41,6 +42,14 @@ export default function ProductDetail({
 	const [isSticky, setIsSticky] = useState(true);
 	const router = useRouter();
 	const { addItem, updateQuantity, isLoading } = useCartStore();
+	const {
+		isItemInWishlist,
+		toggleItem,
+		isLoading: wishlistLoading,
+	} = useWishlistStore();
+
+	const isInWishlist = isItemInWishlist(product.id || product._id);
+
 	const relatedProductsRef = useRef(null);
 
 	useEffect(() => {
@@ -179,8 +188,10 @@ export default function ProductDetail({
 		}
 	};
 
-	const handleWishlist = () => {
-		toast.success("Wishlist functionality coming soon");
+	const handleWishlist = async (e) => {
+		e.preventDefault();
+		e.stopPropagation();
+		await toggleItem(product);
 	};
 
 	console.log("product", product);
@@ -234,10 +245,21 @@ export default function ProductDetail({
 										<Share className="h-6 w-6" />
 									</button>
 									<button
-										className="bg-gray-200 p-2 rounded-lg"
+										className={
+											isInWishlist
+												? "text-red-500 border-red-500 hover:text-red-600 hover:border-red-600 bg-gray-200 p-2 rounded-lg"
+												: "bg-gray-200 p-2 rounded-lg"
+										}
 										onClick={handleWishlist}
+										disabled={wishlistLoading}
 									>
-										<Heart className="h-6 w-6" />
+										<Heart
+											className={`h-6 w-6 ${
+												isInWishlist
+													? "text-red-500 fill-current hover:text-red-600"
+													: ""
+											}`}
+										/>
 									</button>
 								</div>
 
