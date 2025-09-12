@@ -6,14 +6,15 @@ import { Input } from "@/components/ui/input";
 import { ArrowRight, Facebook, Instagram, Linkedin } from "lucide-react";
 import { Barcode, AppStore, GooglePlay } from "@/public/images/home/index.js";
 import Link from "next/link";
+import Logo from "@/public/LogoSeller1.png";
 
 export default function Footer() {
 	const footerSections = {
 		support: {
 			title: "Support",
-			items: ["hello@safetyonline.in", "9945234161"],
+			items: ["help@safetyonline.in", "+91-9945234161"],
 		},
-			account: {
+		account: {
 			title: "Account",
 			items: [
 				{ label: "My Account", href: "/account/profile" },
@@ -42,6 +43,14 @@ export default function Footer() {
 				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8">
 					{/* Newsletter */}
 					<div className="lg:col-span-1">
+						{/* Logo Image */}
+						<Image
+							src={Logo}
+							width={200}
+							height={200}
+							alt="Logo"
+							className="mb-4"
+						/>
 						<h3 className="text-xl font-bold mb-4">Exclusive</h3>
 						<h4 className="text-lg mb-4">Subscribe</h4>
 						<p className="text-gray-400 mb-6">
@@ -87,7 +96,7 @@ export default function Footer() {
 						<div className="space-y-3 text-gray-400">
 							{footerSections.account.items.map((item, index) => (
 								<Link
-								href={item.href}
+									href={item.href}
 									key={index}
 									className="hover:text-white flex flex-col cursor-pointer transition-colors"
 								>
@@ -105,7 +114,7 @@ export default function Footer() {
 						<div className="space-y-3 text-gray-400">
 							{footerSections.quickLinks.items.map((item, index) => (
 								<Link
-								href={item.href}
+									href={item.href}
 									key={index}
 									className="flex flex-col hover:text-white cursor-pointer transition-colors"
 								>
@@ -153,7 +162,7 @@ export default function Footer() {
 				</div>
 
 				<div className="border-t border-white/20 mt-8 md:mt-12 pt-8 text-center text-gray-400">
-					<p>© Copyright Rimel 2022. All right reserved</p>
+					<p>© Copyright Safety Online 2025. All right reserved</p>
 				</div>
 			</div>
 		</footer>

@@ -39,26 +39,26 @@ const ProductSchema = new mongoose.Schema(
 		reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: "Review" }],
 
 		// Features array to handle product features
-                features: [
-                        {
-                                title: {
-                                        type: String,
-                                        required: true,
-                                        trim: true,
-                                },
-                                description: {
-                                        type: String,
-                                        required: true,
-                                        trim: true,
-                                },
-                        },
-                ],
+		features: [
+			{
+				title: {
+					type: String,
+					required: true,
+					trim: true,
+				},
+				description: {
+					type: String,
+					required: true,
+					trim: true,
+				},
+			},
+		],
 
-                // Generic keywords for search optimization
-                keywords: [{ type: String }],
+		// Generic keywords for search optimization
+		keywords: [{ type: String }],
 
-                // More fields as needed
-                sellerId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+		// More fields as needed
+		sellerId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
 		subCategory: { type: String },
 		mainImage: { type: String },
 		hsnCode: { type: String },

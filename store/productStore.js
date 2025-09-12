@@ -19,6 +19,7 @@ export const useProductStore = create(
 				},
 				availableFilters: null,
 				currentCategory: "all",
+				currentSubCategory: "",
 				currentPage: 1,
 				totalPages: 1,
 				searchQuery: "",
@@ -34,6 +35,7 @@ export const useProductStore = create(
 					try {
 						const {
 							currentCategory,
+							currentSubCategory,
 							searchQuery,
 							filters,
 							currentPage,
@@ -48,7 +50,12 @@ export const useProductStore = create(
 							order: sortOrder,
 						});
 
-						if (currentCategory !== "all") {
+						// Handle category and subcategory logic
+						if (currentSubCategory && currentSubCategory !== "") {
+							// If subcategory is selected, use it (and the backend should handle the parent category)
+							params.append("subCategory", currentSubCategory);
+						} else if (currentCategory && currentCategory !== "all") {
+							// Only use main category if no subcategory is selected
 							params.append("category", currentCategory);
 						}
 
@@ -56,11 +63,16 @@ export const useProductStore = create(
 							params.append("search", searchQuery);
 						}
 
-						if (filters.priceRange[0] > 0) {
+						// Price range filters
+						const { availableFilters } = get();
+						const defaultMinPrice = availableFilters?.priceRange?.min || 0;
+						const defaultMaxPrice = availableFilters?.priceRange?.max || 10000;
+
+						if (filters.priceRange[0] > defaultMinPrice) {
 							params.append("minPrice", filters.priceRange[0].toString());
 						}
 
-						if (filters.priceRange[1] < 10000) {
+						if (filters.priceRange[1] < defaultMaxPrice) {
 							params.append("maxPrice", filters.priceRange[1].toString());
 						}
 
@@ -76,6 +88,8 @@ export const useProductStore = create(
 							params.append("type", filters.type);
 						}
 
+						console.log("Fetching products with params:", params.toString());
+
 						const response = await fetch(`/api/products?${params}`);
 						const data = await response.json();
 
@@ -90,6 +104,7 @@ export const useProductStore = create(
 							set({ error: data.message, isLoading: false });
 						}
 					} catch (error) {
+						console.error("Fetch products error:", error);
 						set({
 							error: "Failed to fetch products",
 							isLoading: false,
@@ -103,16 +118,17 @@ export const useProductStore = create(
 						const data = await response.json();
 
 						if (data.success) {
-							set({
+							set((state) => ({
 								availableFilters: data.filters,
+								// Update filters with actual min/max from backend
 								filters: {
-									...get().filters,
+									...state.filters,
 									priceRange: [
 										data.filters.priceRange.min,
 										data.filters.priceRange.max,
 									],
 								},
-							});
+							}));
 						}
 					} catch (error) {
 						console.error("Failed to fetch filters:", error);
@@ -120,10 +136,40 @@ export const useProductStore = create(
 				},
 
 				setCurrentCategory: (category) => {
+					console.log("Setting current category to:", category);
 					set({
 						currentCategory: category,
+						currentSubCategory: "", // Clear subcategory when changing main category
 						currentPage: 1,
 					});
+					// Automatically fetch products when category changes
+					setTimeout(() => get().fetchProducts(), 0);
+				},
+
+				setCurrentSubCategory: (subCategory) => {
+					console.log("Setting current subcategory to:", subCategory);
+
+					// If setting a subcategory, find and set the parent category
+					if (subCategory && subCategory !== "") {
+						const { availableFilters } = get();
+						const parentCategory = availableFilters?.categories?.find((cat) =>
+							cat.subCategories?.some((subCat) => subCat.id === subCategory)
+						);
+
+						if (parentCategory) {
+							set({
+								currentCategory: parentCategory.id,
+								currentSubCategory: subCategory,
+								currentPage: 1,
+							});
+						} else {
+							set({ currentSubCategory: subCategory, currentPage: 1 });
+						}
+					} else {
+						// Clearing subcategory
+						set({ currentSubCategory: "", currentPage: 1 });
+					}
+
 					get().fetchProducts();
 				},
 
@@ -157,6 +203,34 @@ export const useProductStore = create(
 					await get().fetchProducts();
 				},
 
+				// Reset filters properly
+				resetFilters: () => {
+					const { availableFilters } = get();
+					const defaultFilters = {
+						categories: [],
+						priceRange: availableFilters
+							? [
+									availableFilters.priceRange.min,
+									availableFilters.priceRange.max,
+							  ]
+							: [0, 10000],
+						inStock: false,
+						discount: 0,
+						type: "",
+					};
+
+					set({
+						filters: defaultFilters,
+						currentCategory: "all",
+						currentSubCategory: "",
+						currentPage: 1,
+						searchQuery: "",
+					});
+
+					// Fetch products after reset
+					setTimeout(() => get().fetchProducts(), 0);
+				},
+
 				getProductById: async (id) => {
 					try {
 						const response = await fetch(`/api/product/${id}`, {
@@ -164,7 +238,6 @@ export const useProductStore = create(
 						});
 
 						const data = await response.json();
-						// console.log("Product data(productStore):", data.product);
 
 						if (data.success) {
 							return data.product;
@@ -175,7 +248,6 @@ export const useProductStore = create(
 						console.error("Failed to fetch product:", error);
 						return null;
 					}
-					// return get().products.find((product) => product.id === id);
 				},
 
 				addToCart: async (productId, quantity = 1) => {
@@ -226,6 +298,7 @@ export const useProductStore = create(
 				name: "product-store",
 				partialize: (state) => ({
 					currentCategory: state.currentCategory,
+					currentSubCategory: state.currentSubCategory,
 					filters: state.filters,
 					sortBy: state.sortBy,
 					sortOrder: state.sortOrder,

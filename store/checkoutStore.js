@@ -64,7 +64,7 @@ const paymentAPI = {
 
 	async getUserAddresses() {
 		const response = await fetch("/api/user/addresses", {
-			method: "GET", // Changed from POST to GET
+			method: "GET",
 			headers: { "Content-Type": "application/json" },
 			credentials: "include",
 		});
@@ -111,6 +111,7 @@ export const useCheckoutStore = create(
 				selectedAddressId: null,
 				newAddress: {
 					tag: "home",
+					addressType: "shipTo",
 					name: "",
 					street: "",
 					city: "",

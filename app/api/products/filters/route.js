@@ -1,17 +1,6 @@
 import { dbConnect } from "@/lib/dbConnect.js";
 import Product from "@/model/Product.js";
-
-const categories = [
-	"personal-safety",
-	"road-safety",
-	"signage",
-	"industrial-safety",
-	"queue-management",
-	"fire-safety",
-	"first-aid",
-	"water-safety",
-	"emergency-kit",
-];
+import Categories from "@/model/Categories";
 
 export async function GET() {
 	await dbConnect();
@@ -28,23 +17,114 @@ export async function GET() {
 							$cond: [{ $gt: ["$salePrice", 0] }, "$salePrice", "$price"],
 						},
 					},
-					maxPrice: { $max: "$price" },
+					maxPrice: { $max: "$salePrice" },
 				},
 			},
 		]);
 
 		const { minPrice = 0, maxPrice = 10000 } = priceStats[0] || {};
 
-		// Get category counts
-		const categoryCounts = await Product.aggregate([
+		// Get product counts by category and subcategory
+		const productCounts = await Product.aggregate([
 			{ $match: { published: true } },
-			{ $group: { _id: "$category", count: { $sum: 1 } } },
+			{
+				$group: {
+					_id: {
+						category: "$category",
+						subCategory: "$subCategory",
+					},
+					count: { $sum: 1 },
+				},
+			},
 		]);
 
-		const categoryMap = categoryCounts.reduce((acc, item) => {
-			acc[item._id] = item.count;
-			return acc;
-		}, {});
+		console.log("Top Product Counts:", productCounts);
+
+		// Create maps for easy lookup
+		const categoryCountMap = {};
+		const subCategoryCountMap = {};
+
+		productCounts.forEach((item) => {
+			const { category, subCategory } = item._id;
+			const cat = category.toLowerCase();
+			const subCat = subCategory.toLowerCase();
+			const count = item.count;
+
+			// Update category count
+			if (cat) {
+				categoryCountMap[cat] = (categoryCountMap[cat] || 0) + count;
+			}
+
+			// Update subcategory count
+			if (cat && subCat) {
+				if (!subCategoryCountMap[cat]) {
+					subCategoryCountMap[cat] = {};
+				}
+				subCategoryCountMap[cat][subCat] = count;
+			}
+		});
+
+		console.log("Bottom Product Counts:", productCounts);
+
+		// Get all categories from database
+		const dbCategories = await Categories.find({ published: true }).lean();
+		console.log(
+			"Database categories:",
+			dbCategories.map((cat) => cat.name)
+		);
+
+		// Update category and subcategory counts in database
+		const categoryUpdatePromises = dbCategories.map(async (category) => {
+			// Use lowercase for matching
+			const normalizedCategoryName = category.name.toLowerCase();
+			const categoryCount = categoryCountMap[normalizedCategoryName] || 0;
+			console.log(
+				`Category "${category.name}" (normalized: "${normalizedCategoryName}") has ${categoryCount} products`
+			);
+
+			// Update subcategory counts
+			const updatedSubCategories = category.subCategories.map((subCat) => {
+				const normalizedSubCatName = subCat.name.toLowerCase();
+				const subCatCount =
+					subCategoryCountMap[normalizedCategoryName]?.[normalizedSubCatName] ||
+					0;
+				return {
+					...subCat,
+					productCount: subCatCount,
+				};
+			});
+
+			// Update the category document
+			return Categories.findByIdAndUpdate(
+				category._id,
+				{
+					productCount: categoryCount,
+					subCategories: updatedSubCategories,
+				},
+				{ new: true }
+			);
+		});
+
+		// Execute all category updates
+		const updatedCategories = await Promise.all(categoryUpdatePromises);
+
+		// Format categories for response
+		const formattedCategories = updatedCategories.map((cat) => ({
+			id: cat.name,
+			label: cat.name
+				.split("-")
+				.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+				.join(" "),
+			count: cat.productCount,
+			subCategories: cat.subCategories.map((subCat) => ({
+				id: subCat.name,
+				label: subCat.name
+					.split("-")
+					.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+					.join(" "),
+				count: subCat.productCount,
+			})),
+		}));
 
 		// Get discount range
 		const discountStats = await Product.aggregate([
@@ -110,14 +190,7 @@ export async function GET() {
 					min: Math.floor(minPrice),
 					max: Math.ceil(maxPrice),
 				},
-				categories: categories.map((cat) => ({
-					id: cat,
-					label: cat
-						.split("-")
-						.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-						.join(" "),
-					count: categoryMap[cat] || 0,
-				})),
+				categories: formattedCategories,
 				discount: {
 					min: Math.floor(minDiscount),
 					max: Math.ceil(maxDiscount),

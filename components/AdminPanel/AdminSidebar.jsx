@@ -225,7 +225,7 @@ export function AdminSidebar() {
 				</SidebarMenu>
 			</SidebarContent>
 
-			<SidebarFooter className="p-4">
+			{/* <SidebarFooter className="p-4">
 				<div className="flex gap-2">
 					<Button
 						variant={theme === "light" ? "default" : "outline"}
@@ -246,7 +246,7 @@ export function AdminSidebar() {
 						Dark
 					</Button>
 				</div>
-			</SidebarFooter>
+			</SidebarFooter> */}
 			<SidebarRail />
 		</Sidebar>
 	);

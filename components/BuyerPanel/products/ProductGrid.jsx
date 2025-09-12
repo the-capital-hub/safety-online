@@ -45,7 +45,7 @@ export default function ProductGrid() {
 	};
 
 	const getSortValue = () => {
-		return `${sortBy}-${sortOrder}`;
+		return `${sortBy}-${sortOrder}` || "createdAt-desc";
 	};
 
 	return (
@@ -72,10 +72,14 @@ export default function ProductGrid() {
 							<SelectContent>
 								<SelectItem value="createdAt-desc">Newest First</SelectItem>
 								<SelectItem value="createdAt-asc">Oldest First</SelectItem>
-								<SelectItem value="price-asc">Price: Low to High</SelectItem>
-								<SelectItem value="price-desc">Price: High to Low</SelectItem>
-								<SelectItem value="name-asc">Name: A to Z</SelectItem>
-								<SelectItem value="name-desc">Name: Z to A</SelectItem>
+								<SelectItem value="salePrice-asc">
+									Price: Low to High
+								</SelectItem>
+								<SelectItem value="salePrice-desc">
+									Price: High to Low
+								</SelectItem>
+								<SelectItem value="title-asc">Name: A to Z</SelectItem>
+								<SelectItem value="title-desc">Name: Z to A</SelectItem>
 							</SelectContent>
 						</Select>
 

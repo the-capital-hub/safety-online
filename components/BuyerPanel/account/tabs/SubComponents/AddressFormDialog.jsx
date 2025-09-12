@@ -20,11 +20,13 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { addressSchema } from "@/zodSchema/addressSchema.js";
 
 export default function AddressFormDialog({ trigger, initial, onSave }) {
 	const [open, setOpen] = useState(false);
 	const [form, setForm] = useState({
 		tag: "home",
+		addressType: "shipTo",
 		name: "",
 		street: "",
 		city: "",
@@ -42,6 +44,7 @@ export default function AddressFormDialog({ trigger, initial, onSave }) {
 			// Reset form when adding new address
 			setForm({
 				tag: "home",
+				addressType: "shipTo",
 				name: "",
 				street: "",
 				city: "",
@@ -63,26 +66,18 @@ export default function AddressFormDialog({ trigger, initial, onSave }) {
 		}
 	}
 
-	function validateForm() {
-		const newErrors = {};
-
-		if (!form.name.trim()) newErrors.name = "Name is required";
-		if (!form.street.trim()) newErrors.street = "Street address is required";
-		if (!form.city.trim()) newErrors.city = "City is required";
-		if (!form.state.trim()) newErrors.state = "State is required";
-		if (!form.zipCode.trim()) newErrors.zipCode = "ZIP code is required";
-
-		// Validate ZIP code format (basic validation)
-		if (form.zipCode && !/^\d{5,6}$/.test(form.zipCode.trim())) {
-			newErrors.zipCode = "ZIP code must be 5-6 digits";
-		}
-
-		setErrors(newErrors);
-		return Object.keys(newErrors).length === 0;
-	}
-
 	function submit() {
-		if (!validateForm()) return;
+		const result = addressSchema.safeParse(form);
+
+		if (!result.success) {
+			// Collect errors in { fieldName: message } format
+			const fieldErrors = {};
+			result.error.errors.forEach((err) => {
+				fieldErrors[err.path[0]] = err.message;
+			});
+			setErrors(fieldErrors);
+			return;
+		}
 
 		onSave?.(form);
 		setOpen(false);
@@ -124,7 +119,7 @@ export default function AddressFormDialog({ trigger, initial, onSave }) {
 					{/* Tag and Name */}
 					<div className="grid grid-cols-2 gap-3">
 						<div className="space-y-2">
-							<Label htmlFor="tag">Address Type</Label>
+							<Label htmlFor="tag">Address Tag</Label>
 							<Select
 								value={form.tag}
 								onValueChange={(value) => set("tag", value)}
@@ -152,6 +147,26 @@ export default function AddressFormDialog({ trigger, initial, onSave }) {
 								<p className="text-xs text-red-500">{errors.name}</p>
 							)}
 						</div>
+					</div>
+
+					{/* Address Type */}
+					<div className="space-y-2">
+						<Label htmlFor="addressType">Address Type </Label>
+						<Select
+							value={form.addressType}
+							onValueChange={(value) => set("addressType", value)}
+						>
+							<SelectTrigger>
+								<SelectValue placeholder="Select address type" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="billTo">Bill To</SelectItem>
+								<SelectItem value="shipTo">Ship To</SelectItem>
+							</SelectContent>
+						</Select>
+						{errors.addressType && (
+							<p className="text-xs text-red-500">{errors.addressType}</p>
+						)}
 					</div>
 
 					{/* Street Address */}
