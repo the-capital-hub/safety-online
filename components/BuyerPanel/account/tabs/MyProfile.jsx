@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -36,8 +37,19 @@ const cardVariants = {
 
 export function MyProfile() {
 	const isAuthed = useIsAuthenticated();
+	const router = useRouter();
 	const user = useLoggedInUser();
 	const setUser = useAuthStore((s) => s.setUser);
+
+	useEffect(() => {
+		if (!isAuthed) {
+			const timer = setTimeout(() => {
+				router.push("/login");
+			}, 5000);
+
+			return () => clearTimeout(timer);
+		}
+	}, [isAuthed, router]);
 
 	const [form, setForm] = useState({
 		firstName: "",

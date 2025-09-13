@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { persist, devtools } from "zustand/middleware";
 import { toast } from "react-hot-toast";
+import { generateInvoicePDFAsBase64 } from "@/lib/invoicePDF.js";
 
 // Payment API functions
 const paymentAPI = {
@@ -88,6 +89,30 @@ const paymentAPI = {
 		}
 		return response.json();
 	},
+
+	async sendOrderConfirmation(orderData, userId, pdfBase64 = null) {
+		const response = await fetch("/api/orders/send-confirmation", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			credentials: "include",
+			body: JSON.stringify({ orderData, userId, pdfBase64 }), // Include pdfBase64
+		});
+		if (!response.ok) {
+			const error = await response.json();
+			throw new Error(error.message || "Failed to send confirmation email");
+		}
+		return response.json();
+	},
+};
+
+// Helper function to generate PDF client-side
+const generateClientSidePDF = async (orderData) => {
+	try {
+		return await generateInvoicePDFAsBase64(orderData);
+	} catch (error) {
+		console.error("Client-side PDF generation failed:", error);
+		return null;
+	}
 };
 
 export const useCheckoutStore = create(
@@ -562,6 +587,24 @@ export const useCheckoutStore = create(
 												clearCartCallback();
 											}
 
+											console.log("orderData:", orderData);
+
+											// Send confirmation email (don't block on this)
+											try {
+												const pdfBase64 = await generateClientSidePDF(
+													orderData
+												);
+
+												await paymentAPI.sendOrderConfirmation(
+													orderData,
+													userId,
+													pdfBase64
+												);
+											} catch (emailError) {
+												console.error("Email sending failed:", emailError);
+												// Don't stop the flow if email fails
+											}
+
 											// Reset checkout
 											get().resetCheckout();
 
@@ -617,6 +660,56 @@ export const useCheckoutStore = create(
 								// Clear cart if it was a cart checkout
 								if (checkoutType === "cart" && clearCartCallback) {
 									clearCartCallback();
+								}
+
+								// Send confirmation email (don't block on this)
+								try {
+									const order = result.order;
+									// Extract all products from subOrders if they exist
+									const allProducts = Array.isArray(order.subOrders)
+										? order.subOrders.flatMap((sub) =>
+												Array.isArray(sub.products)
+													? sub.products.map((p) => ({
+															productName:
+																p.productId?.productName ||
+																p.productId?.name ||
+																p.productId?.title ||
+																"Unknown",
+															quantity: p.quantity || 0,
+															price: p.price || p.productId?.price || 0,
+															totalPrice:
+																(p.price || p.productId?.price || 0) *
+																(p.quantity || 0),
+													  }))
+													: []
+										  )
+										: order.products || [];
+
+									const orderForPDF = {
+										...order,
+										customerName: order.customerName,
+										customerEmail: order.customerEmail,
+										customerMobile: order.customerMobile,
+										products: allProducts,
+									};
+
+									const pdfBase64 = await generateClientSidePDF(orderForPDF);
+
+									console.log("pdfBase64", !!pdfBase64 ? "generated" : "null");
+									if (!pdfBase64) {
+										throw new Error("PDF generation failed");
+									}
+
+									const emailResult = await paymentAPI.sendOrderConfirmation(
+										orderForPDF,
+										userId,
+										pdfBase64
+									);
+									// console.log("emailResult", emailResult);
+								} catch (emailError) {
+									console.error("Email sending failed:", emailError);
+									// Don't stop the flow if email fails
+									// return { success: false, paymentMethod: "cod" };
 								}
 
 								// Reset checkout

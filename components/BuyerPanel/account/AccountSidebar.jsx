@@ -2,8 +2,9 @@
 
 import { motion } from "framer-motion";
 import { useRouter, usePathname } from "next/navigation";
-import { Package, User, HelpCircle, Menu, X } from "lucide-react";
+import { Package, User, HelpCircle, Menu, X, LogOut } from "lucide-react";
 import { useState } from "react";
+import { LogoutPopup } from "@/components/Shared/Popups/LogoutPopup.jsx";
 
 const sidebarItems = [
 	{
@@ -60,6 +61,7 @@ export function AccountSidebar({ activeTab, onTabChange }) {
 	const router = useRouter();
 	const pathname = usePathname();
 	const [mobileOpen, setMobileOpen] = useState(false);
+	const [logoutOpen, setLogoutOpen] = useState(false);
 
 	const handleTabClick = (item) => {
 		onTabChange(item.id);
@@ -141,6 +143,21 @@ export function AccountSidebar({ activeTab, onTabChange }) {
 
 						{/* Logout Button */}
 					</nav>
+
+					{/* Logout Button */}
+					<div className="border-t">
+						<button
+							onClick={() => setLogoutOpen(true)}
+							className="w-full text-left p-4 rounded-lg transition-all duration-200 group hover:bg-gray-50"
+						>
+							<div className="flex items-center gap-3">
+								<LogOut className="h-5 w-5 text-gray-500 group-hover:text-gray-700" />
+								<span className="font-medium text-gray-900 group-hover:text-gray-900">
+									Logout
+								</span>
+							</div>
+						</button>
+					</div>
 				</div>
 			</div>
 
@@ -224,6 +241,8 @@ export function AccountSidebar({ activeTab, onTabChange }) {
 					</div>
 				</motion.div>
 			)}
+
+			<LogoutPopup open={logoutOpen} onOpenChange={setLogoutOpen} />
 		</>
 	);
 }
