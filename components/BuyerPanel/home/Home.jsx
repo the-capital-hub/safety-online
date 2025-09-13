@@ -82,13 +82,17 @@ export default function HomePage() {
 				onLoadMore={handleLoadMore}
 				isLoading={isLoading}
 			/>
-			<SupportSection />
+                        <SupportSection />
 
-			<FeaturedSection
-				topSellingProducts={topSellingProducts}
-				bestSellingProduct={bestSellingProduct}
-				featuredProducts={featuredProducts}
-			/>
+                        {(topSellingProducts?.length > 0 ||
+                                bestSellingProduct ||
+                                featuredProducts?.length > 0) && (
+                                <FeaturedSection
+                                        topSellingProducts={topSellingProducts}
+                                        bestSellingProduct={bestSellingProduct}
+                                        featuredProducts={featuredProducts}
+                                />
+                        )}
 
 			{/* <SearchSection
 				searchQuery={searchQuery}
