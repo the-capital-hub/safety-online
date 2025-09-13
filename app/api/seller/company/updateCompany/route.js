@@ -9,8 +9,8 @@ export async function PUT(req) {
   try {
     await dbConnect();
 
-    const cookieStore = cookies();
-    const token = await cookieStore.get("seller-auth-token")?.value;
+    const cookieStore = await cookies();
+    const token = cookieStore.get("seller-auth-token")?.value;
 
     if (!token) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

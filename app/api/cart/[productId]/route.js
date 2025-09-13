@@ -9,7 +9,7 @@ export async function PUT(req, { params }) {
   await dbConnect();
 
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get("auth_token")?.value;
 
     if (!token) {
@@ -64,7 +64,7 @@ export async function DELETE(req, { params }) {
   await dbConnect();
 
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get("auth_token")?.value;
 
     if (!token) {
