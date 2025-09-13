@@ -132,20 +132,21 @@ export const useCheckoutStore = create(
 				},
 
 				// Delivery Address Management
-				savedAddresses: [],
-				selectedAddressId: null,
-				newAddress: {
-					tag: "home",
-					addressType: "shipTo",
-					name: "",
-					street: "",
-					city: "",
-					state: "",
-					zipCode: "",
-					country: "India",
-					isDefault: false,
-				},
-				isAddingNewAddress: false,
+                                savedAddresses: [],
+                                selectedAddressId: null,
+                                newAddress: {
+                                        tag: "home",
+                                        addressType: "shipTo",
+                                        name: "",
+                                        street: "",
+                                        city: "",
+                                        state: "",
+                                        zipCode: "",
+                                        country: "India",
+                                        isDefault: false,
+                                },
+                                isAddingNewAddress: false,
+                                hasBillToAddress: false,
 
 				// Order Summary
 				orderSummary: {
@@ -257,28 +258,40 @@ export const useCheckoutStore = create(
 				},
 
 				// Load user addresses
-				loadUserAddresses: async () => {
-					set({ isLoading: true });
-					try {
-						const data = await paymentAPI.getUserAddresses();
-						if (data.success) {
-							set({ savedAddresses: data.addresses });
+                                loadUserAddresses: async () => {
+                                        set({ isLoading: true });
+                                        try {
+                                                const data = await paymentAPI.getUserAddresses();
+                                                if (data.success) {
+                                                        const hasBillTo = data.addresses.some(
+                                                                (addr) => addr.addressType === "billTo"
+                                                        );
+                                                        set({
+                                                                savedAddresses: data.addresses,
+                                                                hasBillToAddress: hasBillTo,
+                                                        });
 
-							// Auto-select default address if available
-							const defaultAddress = data.addresses.find(
-								(addr) => addr.isDefault
-							);
-							if (defaultAddress) {
-								set({ selectedAddressId: defaultAddress._id });
-							}
-						}
-					} catch (error) {
-						console.error("Failed to load addresses:", error);
-						toast.error("Failed to load saved addresses");
-					} finally {
-						set({ isLoading: false });
-					}
-				},
+                                                        if (!hasBillTo) {
+                                                                toast.error(
+                                                                        "Please add a billing address to continue checkout"
+                                                                );
+                                                        }
+
+                                                        // Auto-select default address if available
+                                                        const defaultAddress = data.addresses.find(
+                                                                (addr) => addr.isDefault
+                                                        );
+                                                        if (defaultAddress) {
+                                                                set({ selectedAddressId: defaultAddress._id });
+                                                        }
+                                                }
+                                        } catch (error) {
+                                                console.error("Failed to load addresses:", error);
+                                                toast.error("Failed to load saved addresses");
+                                        } finally {
+                                                set({ isLoading: false });
+                                        }
+                                },
 
 				// Add new address
 				addNewAddress: async () => {
@@ -303,19 +316,20 @@ export const useCheckoutStore = create(
 							await get().loadUserAddresses();
 
 							// Reset new address form
-							set({
-								newAddress: {
-									tag: "home",
-									name: "",
-									street: "",
-									city: "",
-									state: "",
-									zipCode: "",
-									country: "India",
-									isDefault: false,
-								},
-								isAddingNewAddress: false,
-							});
+                                                        set({
+                                                                newAddress: {
+                                                                        tag: "home",
+                                                                        addressType: "shipTo",
+                                                                        name: "",
+                                                                        street: "",
+                                                                        city: "",
+                                                                        state: "",
+                                                                        zipCode: "",
+                                                                        country: "India",
+                                                                        isDefault: false,
+                                                                },
+                                                                isAddingNewAddress: false,
+                                                        });
 
 							toast.success("Address added successfully");
 							return true;
@@ -342,9 +356,46 @@ export const useCheckoutStore = create(
 				},
 
 				// Toggle add new address form
-				toggleAddNewAddress: () => {
-					set((state) => ({ isAddingNewAddress: !state.isAddingNewAddress }));
-				},
+                                toggleAddNewAddress: () => {
+                                        set((state) => ({ isAddingNewAddress: !state.isAddingNewAddress }));
+                                },
+
+                                // Copy selected shipping address as billing address
+                                copyShippingToBillTo: async () => {
+                                        const { selectedAddressId, savedAddresses, loadUserAddresses } = get();
+                                        if (!selectedAddressId) {
+                                                toast.error("Select a shipping address first");
+                                                return;
+                                        }
+                                        const shipAddress = savedAddresses.find(
+                                                (addr) => addr._id === selectedAddressId
+                                        );
+                                        if (!shipAddress || shipAddress.addressType !== "shipTo") {
+                                                toast.error("Selected address must be a shipping address");
+                                                return;
+                                        }
+
+                                        set({ isLoading: true });
+                                        try {
+                                                const { _id, addressType, ...addressData } = shipAddress;
+                                                const data = await paymentAPI.addUserAddress({
+                                                        ...addressData,
+                                                        addressType: "billTo",
+                                                        isDefault: false,
+                                                });
+                                                if (data.success) {
+                                                        await loadUserAddresses();
+                                                        toast.success(
+                                                                "Billing address copied from shipping address"
+                                                        );
+                                                }
+                                        } catch (error) {
+                                                console.error("Failed to copy address:", error);
+                                                toast.error(error.message || "Failed to copy address");
+                                        } finally {
+                                                set({ isLoading: false });
+                                        }
+                                },
 
 				// Apply coupon (only for buyNow flow)
 				applyCoupon: async (couponCode) => {

@@ -7,9 +7,9 @@ import { cookies } from "next/headers";
 export async function POST(req, { params }) {
 	await dbConnect();
 
-	try {
-		const cookieStore = cookies();
-		const token = cookieStore.get("auth_token")?.value;
+        try {
+                const cookieStore = await cookies();
+                const token = cookieStore.get("auth_token")?.value;
 
 		if (!token) {
 			return Response.json(

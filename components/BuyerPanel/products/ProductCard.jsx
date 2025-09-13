@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingCart, Heart, Eye, ArrowRight, Star } from "lucide-react";
+import { ShoppingCart, Heart, Eye, ArrowRight, Star, StarHalf } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/cartStore";
 import { toast } from "react-hot-toast";
@@ -23,9 +23,9 @@ export default function ProductCard({ product, viewMode = "grid" }) {
 
 	const isInWishlist = isItemInWishlist(product.id);
 
-	const handleViewProduct = () => {
-		router.push(`/products/${product.id}`);
-	};
+        const handleViewProduct = () => {
+                router.push(`/products/${product.id}`);
+        };
 
 	const handleAddToCart = async (e) => {
 		e.stopPropagation();
@@ -55,7 +55,36 @@ export default function ProductCard({ product, viewMode = "grid" }) {
 		router.push(`/checkout?buyNow=true&id=${product.id}&qty=1`);
 	};
 
-	if (viewMode === "list") {
+        const renderStars = (rating, size = "h-4 w-4") => {
+                const fullStars = Math.floor(rating || 0);
+                const hasHalfStar = (rating || 0) - fullStars >= 0.5;
+                const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+                return (
+                        <>
+                                {Array.from({ length: fullStars }).map((_, i) => (
+                                        <Star
+                                                key={`full-${i}`}
+                                                className={`${size} fill-yellow-400 text-yellow-400`}
+                                        />
+                                ))}
+                                {hasHalfStar && (
+                                        <StarHalf
+                                                key="half"
+                                                className={`${size} fill-yellow-400 text-yellow-400`}
+                                        />
+                                )}
+                                {Array.from({ length: emptyStars }).map((_, i) => (
+                                        <Star
+                                                key={`empty-${i}`}
+                                                className={`${size} text-gray-300`}
+                                        />
+                                ))}
+                        </>
+                );
+        };
+
+        if (viewMode === "list") {
 		return (
 			<Card
 				onClick={handleViewProduct}
@@ -95,17 +124,14 @@ export default function ProductCard({ product, viewMode = "grid" }) {
 								<p className="text-gray-600 mt-2 line-clamp-2">
 									{product.description}
 								</p>
-								<div className="flex items-center gap-2 mt-2">
-									<div className="flex items-center">
-										{[...Array(5)].map((_, i) => (
-											<Star
-												key={i}
-												className="h-4 w-4 fill-yellow-400 text-yellow-400"
-											/>
-										))}
-									</div>
-									<span className="text-sm text-gray-500">(4.5)</span>
-								</div>
+                                                                <div className="flex items-center gap-2 mt-2">
+                                                                        <div className="flex items-center">
+                                                                                {renderStars(product.rating, "h-4 w-4")}
+                                                                        </div>
+                                                                        <span className="text-sm text-gray-500">
+                                                                                ({product.rating?.toFixed(1) || 0})
+                                                                        </span>
+                                                                </div>
 							</div>
 
 							<div className="flex items-center justify-between">
@@ -236,17 +262,14 @@ export default function ProductCard({ product, viewMode = "grid" }) {
 							</p>
 
 							{/* Rating */}
-							<div className="flex items-center gap-2 mb-3">
-								<div className="flex items-center">
-									{[...Array(5)].map((_, i) => (
-										<Star
-											key={i}
-											className="h-3 w-3 fill-yellow-400 text-yellow-400"
-										/>
-									))}
-								</div>
-								<span className="text-xs text-gray-500">(4.5)</span>
-							</div>
+                                                        <div className="flex items-center gap-2 mb-3">
+                                                                <div className="flex items-center">
+                                                                        {renderStars(product.rating, "h-3 w-3")}
+                                                                </div>
+                                                                <span className="text-xs text-gray-500">
+                                                                        ({product.rating?.toFixed(1) || 0})
+                                                                </span>
+                                                        </div>
 						</div>
 
 						{/* Price */}

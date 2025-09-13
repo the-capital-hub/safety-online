@@ -9,7 +9,7 @@ export async function PUT(req, { params }) {
   await dbConnect();
 
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get("auth_token")?.value;
 
     if (!token) {
@@ -47,7 +47,11 @@ export async function PUT(req, { params }) {
 
     // Recalculate total price
     cart.totalPrice = cart.products.reduce((total, item) => {
-      const price = product.salePrice > 0 ? product.salePrice : product.price;
+      const product = item.product;
+      const price =
+        product && product.salePrice > 0
+          ? product.salePrice
+          : product?.price || 0;
       return total + price * item.quantity;
     }, 0);
 
@@ -64,7 +68,7 @@ export async function DELETE(req, { params }) {
   await dbConnect();
 
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get("auth_token")?.value;
 
     if (!token) {
@@ -83,13 +87,18 @@ export async function DELETE(req, { params }) {
       return Response.json({ message: "Cart not found" }, { status: 404 });
     }
 
-    cart.products = cart.products.filter(
-      (item) => item.product._id.toString() !== params.productId
-    );
+    cart.products = cart.products.filter((item) => {
+      const productId = item.product?._id?.toString();
+      return productId && productId !== params.productId;
+    });
 
     // Recalculate total price
     cart.totalPrice = cart.products.reduce((total, item) => {
-      const price = item.product.salePrice || item.product.price;
+      const product = item.product;
+      const price =
+        product && product.salePrice > 0
+          ? product.salePrice
+          : product?.price || 0;
       return total + price * item.quantity;
     }, 0);
 

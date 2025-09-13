@@ -8,7 +8,7 @@ export async function GET(req, { params }) {
   const { id } = params;
 
   try {
-    const product = await Product.findById(id);
+    const product = await Product.findById(id).populate("reviews", "rating");
 
     if (!product) {
       return Response.json({ message: "Product not found" }, { status: 404 });
@@ -38,7 +38,15 @@ export async function GET(req, { params }) {
       type: product.type,
       published: product.published,
       features: product.features || [],
-      rating: 4.5,
+      rating:
+        product.reviews && product.reviews.length > 0
+          ? Number(
+              (
+                product.reviews.reduce((acc, r) => acc + r.rating, 0) /
+                product.reviews.length
+              ).toFixed(1)
+            )
+          : 0,
       reviews: product.reviews || [],
       createdAt: product.createdAt,
       updatedAt: product.updatedAt,

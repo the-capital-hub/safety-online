@@ -3,7 +3,8 @@ import { NextResponse } from "next/server";
 
 export async function POST() {
   // Delete cookie
-  cookies().delete("seller-auth-token");
+  const cookieStore = await cookies();
+  cookieStore.delete("seller-auth-token");
 
   return NextResponse.json({ message: "Logged out successfully" });
 }
