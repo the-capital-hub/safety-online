@@ -1,24 +1,24 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Truck, Headphones, Shield } from "lucide-react";
+import { Truck, ShieldCheck, Headset } from "lucide-react";
 
 export default function ServiceGuarantees() {
 	const services = [
 		{
 			icon: Truck,
-			title: "FREE AND FAST DELIVERY",
-			description: "Free delivery for all orders",
+			title: "FAST DELIVERY",
+			description: "We offer fast and reliable delivery",
 		},
 		{
-			icon: Headphones,
-			title: "24/7 CUSTOMER SERVICE",
-			description: "Friendly 24/7 customer support",
+			icon: Headset,
+			title: "24/7 CUSTOMER SUPPORT",
+			description: "Our customer support team is available 24/7",
 		},
 		{
-			icon: Shield,
-			title: "MONEY BACK GUARANTEE",
-			description: "We return money within 30 days",
+			icon: ShieldCheck,
+			title: "SECURE PAYMENTS",
+			description: "Secure payment options for your convenience",
 		},
 	];
 

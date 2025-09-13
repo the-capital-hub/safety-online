@@ -277,8 +277,8 @@ function FilterContent({
 												htmlFor={category.id}
 												className="text-sm font-medium leading-none cursor-pointer flex-1 select-none"
 											>
-												{category.label}
-												{category.count && (
+												{category.label}{" "}
+												{category.count > 0 && (
 													<span className="ml-1 text-xs text-gray-500">
 														({category.count})
 													</span>

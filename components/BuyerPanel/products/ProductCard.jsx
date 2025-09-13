@@ -9,13 +9,22 @@ import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/cartStore";
 import { toast } from "react-hot-toast";
 import Image from "next/image";
+import { useWishlistStore } from "@/store/wishlistStore";
 
 export default function ProductCard({ product, viewMode = "grid" }) {
+	// console.log("product", product);
 	const router = useRouter();
-	const { addItem, isLoading } = useCartStore();
+	const { addItem, isLoading: CartLoading } = useCartStore();
+	const {
+		isItemInWishlist,
+		toggleItem,
+		isLoading: wishlistLoading,
+	} = useWishlistStore();
+
+	const isInWishlist = isItemInWishlist(product.id);
 
 	const handleViewProduct = () => {
-		router.push(`/products/${product.id || product._id}`);
+		router.push(`/products/${product.id}`);
 	};
 
 	const handleAddToCart = async (e) => {
@@ -23,7 +32,7 @@ export default function ProductCard({ product, viewMode = "grid" }) {
 
 		// Use the unified addItem function
 		await addItem({
-			id: product.id || product._id,
+			id: product.id,
 			name: product.title,
 			description: product.description,
 			price: product.salePrice || product.price,
@@ -33,11 +42,17 @@ export default function ProductCard({ product, viewMode = "grid" }) {
 		});
 	};
 
+	const handleWishlist = async (e) => {
+		e.preventDefault();
+		e.stopPropagation();
+		await toggleItem(product);
+	};
+
 	const handleBuyNow = async (e) => {
 		e.stopPropagation();
 
 		// Redirect to checkout with buy now parameters
-		router.push(`/checkout?buyNow=true&id=${product.id || product._id}&qty=1`);
+		router.push(`/checkout?buyNow=true&id=${product.id}&qty=1`);
 	};
 
 	if (viewMode === "list") {
@@ -118,13 +133,25 @@ export default function ProductCard({ product, viewMode = "grid" }) {
 									<Button
 										variant="outline"
 										size="icon"
-										className="rounded-full bg-transparent"
+										className={
+											isInWishlist
+												? "text-red-500 border-red-500 hover:text-red-600 hover:border-red-600 rounded-full"
+												: "rounded-full bg-transparent"
+										}
+										onClick={handleWishlist}
+										disabled={wishlistLoading}
 									>
-										<Heart className="h-4 w-4" />
+										<Heart
+											className={`h-4 w-4 ${
+												isInWishlist
+													? "text-red-500 fill-current hover:text-red-600"
+													: ""
+											}`}
+										/>
 									</Button>
 									<Button
 										onClick={handleAddToCart}
-										disabled={!product.inStock || isLoading}
+										disabled={!product.inStock || CartLoading}
 										variant="outline"
 										className="rounded-full bg-transparent"
 									>
@@ -133,7 +160,7 @@ export default function ProductCard({ product, viewMode = "grid" }) {
 									</Button>
 									<Button
 										onClick={handleBuyNow}
-										disabled={!product.inStock || isLoading}
+										disabled={!product.inStock || CartLoading}
 										className="bg-black text-white hover:bg-gray-800 rounded-full"
 									>
 										Buy Now
@@ -249,15 +276,28 @@ export default function ProductCard({ product, viewMode = "grid" }) {
 								<Button
 									variant="outline"
 									size="icon"
-									className="rounded-full border-gray-300 hover:border-gray-400 bg-transparent"
+									className={
+										isInWishlist
+											? "border-red-500 hover:border-red-600 rounded-full"
+											: "rounded-full border-gray-300 hover:border-gray-400 bg-transparent"
+									}
+									onClick={handleWishlist}
+									disabled={wishlistLoading}
 								>
-									<Heart className="h-4 w-4" />
+									<Heart
+										className={`h-4 w-4 ${
+											isInWishlist
+												? "text-red-500 fill-current hover:text-red-600"
+												: ""
+										}`}
+									/>
 								</Button>
+
 								<Button
 									variant="outline"
 									size="icon"
 									onClick={handleAddToCart}
-									disabled={!product.inStock || isLoading}
+									disabled={!product.inStock || CartLoading}
 									className="rounded-full border-gray-300 hover:border-gray-400 bg-transparent"
 								>
 									<ShoppingCart className="h-4 w-4" />
@@ -266,7 +306,7 @@ export default function ProductCard({ product, viewMode = "grid" }) {
 
 							<Button
 								onClick={handleBuyNow}
-								disabled={!product.inStock || isLoading}
+								disabled={!product.inStock || CartLoading}
 								className="bg-black text-white hover:bg-gray-800 rounded-full flex-1 max-w-[120px]"
 								size="sm"
 							>

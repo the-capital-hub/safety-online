@@ -23,7 +23,7 @@ import {
 import { Eye, Download, Loader2, AlertCircle } from "lucide-react";
 import { useOrderStore } from "@/store/orderStore.js";
 import { toast } from "react-hot-toast";
-import { OrderDetailPopup } from "../../popups/OrderDetailPopup";
+import { OrderDetailPopup } from "./SubComponents/OrderDetailPopup";
 
 const getStatusColor = (status) => {
 	const colors = {
