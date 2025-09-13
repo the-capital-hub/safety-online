@@ -46,21 +46,8 @@ import { BulkUploadPopup } from "@/components/AdminPanel/Popups/BulkProductUploa
 import { useIsAuthenticated } from "@/store/adminAuthStore.js";
 import { useRouter } from "next/navigation";
 
-const categories = [
-	{ value: "all", label: "All Categories" },
-	{ value: "personal-safety", label: "Personal Safety" },
-	{ value: "road-safety", label: "Road Safety" },
-	{ value: "signage", label: "Signage" },
-	{ value: "industrial-safety", label: "Industrial Safety" },
-	{ value: "queue-management", label: "Queue Management" },
-	{ value: "fire-safety", label: "Fire Safety" },
-	{ value: "first-aid", label: "First Aid" },
-	{ value: "water-safety", label: "Water Safety" },
-	{ value: "emergency-kit", label: "Emergency Kit" },
-];
-
 export default function AdminProductsPage() {
-	const {
+        const {
 		products,
 		isLoading,
 		error,
@@ -77,31 +64,47 @@ export default function AdminProductsPage() {
 		toggleProductSelection,
 		deleteProduct,
 		deleteMultipleProducts,
-		updateProduct,
-	} = useAdminProductStore();
+                updateProduct,
+        } = useAdminProductStore();
 
-	const [popups, setPopups] = useState({
-		delete: { open: false, product: null },
-		add: false,
-		update: { open: false, product: null },
-		bulkUpload: false,
-	});
-	const isAuthenticated = useIsAuthenticated();
-	const [isRedirecting, setIsRedirecting] = useState(false);
-	const router = useRouter();
+        const [popups, setPopups] = useState({
+                delete: { open: false, product: null },
+                add: false,
+                update: { open: false, product: null },
+                bulkUpload: false,
+        });
+        const [categories, setCategories] = useState([]);
+        const isAuthenticated = useIsAuthenticated();
+        const [isRedirecting, setIsRedirecting] = useState(false);
+        const router = useRouter();
 	useEffect(() => {
 		fetchProducts();
 	}, [fetchProducts]);
 	useEffect(() => {
-		if (!isAuthenticated) {
-			setIsRedirecting(true);
+                if (!isAuthenticated) {
+                        setIsRedirecting(true);
 			const timer = setTimeout(() => {
 				router.push("/admin/login");
 			}, 3);
 
 			return () => clearTimeout(timer);
 		}
-	}, [isAuthenticated, router]);
+        }, [isAuthenticated, router]);
+
+        useEffect(() => {
+                const fetchCategories = async () => {
+                        try {
+                                const res = await fetch("/api/categories");
+                                const data = await res.json();
+                                if (data.success) {
+                                        setCategories(data.categories);
+                                }
+                        } catch (error) {
+                                console.error("Failed to fetch categories:", error);
+                        }
+                };
+                fetchCategories();
+        }, []);
 
 	// Show redirecting message if not authenticated
 	const handleSearch = (value) => {
@@ -309,14 +312,15 @@ export default function AdminProductsPage() {
 									<SelectTrigger className="w-48">
 										<SelectValue placeholder="Category" />
 									</SelectTrigger>
-									<SelectContent>
-										{categories.map((category) => (
-											<SelectItem key={category.value} value={category.value}>
-												{category.label}
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
+                                                                        <SelectContent>
+                                                                                <SelectItem value="all">All Categories</SelectItem>
+                                                                                {categories.map((category) => (
+                                                                                        <SelectItem key={category._id} value={category.name}>
+                                                                                                {category.name}
+                                                                                        </SelectItem>
+                                                                                ))}
+                                                                        </SelectContent>
+                                                                </Select>
 
 								<div className="flex gap-2">
 									<Input

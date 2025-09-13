@@ -149,7 +149,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
 	Dialog,
@@ -173,18 +173,6 @@ import {
 import { ImageUpload } from "@/components/AdminPanel/ImageUpload.jsx";
 import { useAdminProductStore } from "@/store/adminProductStore.js";
 
-const categories = [
-	{ value: "personal-safety", label: "Personal Safety" },
-	{ value: "road-safety", label: "Road Safety" },
-	{ value: "signage", label: "Signage" },
-	{ value: "industrial-safety", label: "Industrial Safety" },
-	{ value: "queue-management", label: "Queue Management" },
-	{ value: "fire-safety", label: "Fire Safety" },
-	{ value: "first-aid", label: "First Aid" },
-	{ value: "water-safety", label: "Water Safety" },
-	{ value: "emergency-kit", label: "Emergency Kit" },
-];
-
 const productTypes = [
 	{ value: "featured", label: "Featured" },
 	{ value: "top-selling", label: "Top Selling" },
@@ -193,22 +181,40 @@ const productTypes = [
 ];
 
 export function BulkUpdateProductsPopup({
-	open,
-	onOpenChange,
-	selectedProducts = [],
+        open,
+        onOpenChange,
+        selectedProducts = [],
 }) {
-	const { bulkUpdateProducts } = useAdminProductStore();
-	const [isSubmitting, setIsSubmitting] = useState(false);
+        const { bulkUpdateProducts } = useAdminProductStore();
+        const [isSubmitting, setIsSubmitting] = useState(false);
+        const [categories, setCategories] = useState([]);
 
-	const [formData, setFormData] = useState({
-		category: "",
-		type: "",
-		published: true,
-		discount: "",
-		salePrice: "",
-		images: [],
-		updateImages: false, // Whether to update images
-	});
+        const [formData, setFormData] = useState({
+                category: "",
+                type: "",
+                published: true,
+                discount: "",
+                salePrice: "",
+                images: [],
+                updateImages: false, // Whether to update images
+        });
+
+        useEffect(() => {
+                if (open) {
+                        const fetchCategories = async () => {
+                                try {
+                                        const res = await fetch("/api/categories");
+                                        const data = await res.json();
+                                        if (data.success) {
+                                                setCategories(data.categories);
+                                        }
+                                } catch (error) {
+                                        console.error("Failed to fetch categories:", error);
+                                }
+                        };
+                        fetchCategories();
+                }
+        }, [open]);
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
@@ -282,15 +288,15 @@ export function BulkUpdateProductsPopup({
 									<SelectTrigger className="mt-1">
 										<SelectValue placeholder="Select category (optional)" />
 									</SelectTrigger>
-									<SelectContent>
-										{categories.map((category) => (
-											<SelectItem key={category.value} value={category.value}>
-												{category.label}
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
-							</div>
+                                                                        <SelectContent>
+                                                                                {categories.map((category) => (
+                                                                                        <SelectItem key={category._id} value={category.name}>
+                                                                                                {category.name}
+                                                                                        </SelectItem>
+                                                                                ))}
+                                                                        </SelectContent>
+                                                                 </Select>
+                                                         </div>
 
 							<div>
 								<Label>Product Type</Label>
