@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowRight, Facebook, Instagram, Linkedin } from "lucide-react";
-import { Barcode, AppStore, GooglePlay } from "@/public/images/home/index.js";
+// import { Barcode, AppStore, GooglePlay } from "@/public/images/home/index.js";
 import Link from "next/link";
 import Logo from "@/public/LogoSeller1.png";
 
@@ -12,7 +12,7 @@ export default function Footer() {
 	const footerSections = {
 		support: {
 			title: "Support",
-			items: ["help@safetyonline.in", "+91-9945234161"],
+			items: ["help@safetyonline.in", "+91 9945234161"],
 		},
 		account: {
 			title: "Account",
@@ -20,7 +20,7 @@ export default function Footer() {
 				{ label: "My Account", href: "/account/profile" },
 				{ label: "Login / Register", href: "/login" },
 				{ label: "Cart", href: "/cart" },
-				// { label: "Wishlist", href: "/wishlist" },
+				{ label: "Wishlist", href: "/wishlist" },
 				{ label: "Shop", href: "/products" },
 			],
 		},
@@ -51,23 +51,13 @@ export default function Footer() {
 							alt="Logo"
 							className="mb-4"
 						/>
-						<h3 className="text-xl font-bold mb-4">Exclusive</h3>
-						<h4 className="text-lg mb-4">Subscribe</h4>
-						<p className="text-gray-400 mb-6">
-							Get 10% off on your first order
-						</p>
-						<div className="flex">
-							<Input
-								placeholder="Enter your email"
-								className="bg-transparent border-white/20  border-r-0 text-white placeholder-gray-400 rounded-r-none"
-							/>
-							<Button
-								variant="ghost"
-								size="icon"
-								className="text-white border border-l-0 border-white/20 rounded-l-none"
-							>
-								<ArrowRight className="h-4 w-4" />
-							</Button>
+
+						<h3 className="text-lg mb-4">Find us on</h3>
+
+						<div className="flex space-x-4">
+							<Facebook className="h-6 w-6 hover:text-blue-400 cursor-pointer transition-colors" />
+							<Instagram className="h-6 w-6 hover:text-pink-400 cursor-pointer transition-colors" />
+							<Linkedin className="h-6 w-6 hover:text-blue-600 cursor-pointer transition-colors" />
 						</div>
 					</div>
 
@@ -124,9 +114,27 @@ export default function Footer() {
 						</div>
 					</div>
 
-					{/* Download App */}
+					{/* Newsletter */}
 					<div>
-						<h3 className="text-xl font-bold mb-4">Download App</h3>
+						<h3 className="text-xl font-bold mb-4">Subscribe</h3>
+
+						<p className="text-gray-400 mb-6">
+							Subscribe to our newsletter to get exclusive offers
+						</p>
+						<div className="flex">
+							<Input
+								placeholder="Enter your email"
+								className="bg-transparent border-white/20  border-r-0 text-white placeholder-gray-400 rounded-r-none"
+							/>
+							<Button
+								variant="ghost"
+								size="icon"
+								className="text-white border border-l-0 border-white/20 rounded-l-none"
+							>
+								<ArrowRight className="h-4 w-4" />
+							</Button>
+						</div>
+						{/* <h3 className="text-xl font-bold mb-4">Download App</h3>
 						<p className="text-gray-400 mb-4">Save $3 with App New User Only</p>
 						<div className="flex flex-col sm:flex-row lg:flex-col xl:flex-row space-y-4 sm:space-y-0 sm:space-x-4 lg:space-x-0 lg:space-y-4 xl:space-y-0 xl:space-x-4 mb-6">
 							<Image
@@ -152,12 +160,7 @@ export default function Footer() {
 									className="w-32 h-10 object-cover border rounded-lg cursor-pointer"
 								/>
 							</div>
-						</div>
-						<div className="flex space-x-4">
-							<Facebook className="h-6 w-6 hover:text-blue-400 cursor-pointer transition-colors" />
-							<Instagram className="h-6 w-6 hover:text-pink-400 cursor-pointer transition-colors" />
-							<Linkedin className="h-6 w-6 hover:text-blue-600 cursor-pointer transition-colors" />
-						</div>
+						</div> */}
 					</div>
 				</div>
 

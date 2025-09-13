@@ -7,11 +7,28 @@ import Order from "@/model/Order.js";
 export async function GET(request, { params }) {
 	try {
 		const resolvedParams = await params;
+		const { searchParams } = new URL(request.url);
+		const populate = searchParams.get("populate");
+
 		await dbConnect();
 
-		const order = await Order.findById(resolvedParams.id)
-			.populate("subOrders")
-			.lean();
+		let query = Order.findById(resolvedParams.id);
+
+		// If populate=products is requested, populate the subOrders with product details
+		if (populate === "products") {
+			query = query.populate({
+				path: "subOrders",
+				populate: {
+					path: "products.productId",
+					model: "Product",
+				},
+			});
+		} else {
+			// Default population
+			query = query.populate("subOrders");
+		}
+
+		const order = await query.lean();
 
 		if (!order) {
 			return NextResponse.json(

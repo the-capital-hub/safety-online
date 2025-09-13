@@ -43,7 +43,7 @@ export async function POST(req) {
 			throw new Error("User  ID is required");
 		}
 
-		console.log("Starting order creation process...");
+		// console.log("Starting order creation process...");
 
 		// 1️⃣ Create Parent Order
 		const orderPayload = {
@@ -69,7 +69,7 @@ export async function POST(req) {
 		};
 
 		const [order] = await Order.create([orderPayload], { session });
-		console.log("Parent Order created with ID:", order._id);
+		// console.log("Parent Order created with ID:", order._id);
 
 		// 2️⃣ Group products by sellerId and validate stock
 		const productsBySeller = {};
@@ -112,9 +112,9 @@ export async function POST(req) {
 			});
 		}
 
-		console.log(
-			`Products grouped by ${Object.keys(productsBySeller).length} sellers`
-		);
+		// console.log(
+		// 	`Products grouped by ${Object.keys(productsBySeller).length} sellers`
+		// );
 
 		// 3️⃣ Update product stocks
 		const bulkOps = stockUpdates.map((update) => ({
@@ -126,7 +126,7 @@ export async function POST(req) {
 
 		if (bulkOps.length > 0) {
 			await Product.bulkWrite(bulkOps, { session });
-			console.log("Product stocks updated");
+			// console.log("Product stocks updated");
 		}
 
 		// 4️⃣ Create SubOrders for each seller
@@ -166,10 +166,10 @@ export async function POST(req) {
 			subOrderIds.push(new mongoose.Types.ObjectId(subOrder._id));
 		});
 
-		console.log(
-			`${createdSubOrders.length} SubOrders created. IDs:`,
-			subOrderIds
-		);
+		// console.log(
+		// 	`${createdSubOrders.length} SubOrders created. IDs:`,
+		// 	subOrderIds
+		// );
 
 		// 5️⃣ Update parent order with subOrder IDs
 		if (subOrderIds.length > 0) {
@@ -182,14 +182,14 @@ export async function POST(req) {
 					session,
 				}
 			);
-			console.log(
-				"Parent order updated with subOrders. Count:",
-				updatedOrder.subOrders.length
-			);
-			console.log(
-				"Updated parent order's subOrders array:",
-				updatedOrder.subOrders
-			);
+			// console.log(
+			// 	"Parent order updated with subOrders. Count:",
+			// 	updatedOrder.subOrders.length
+			// );
+			// console.log(
+			// 	"Updated parent order's subOrders array:",
+			// 	updatedOrder.subOrders
+			// );
 		} else {
 			console.log("No subOrders to update in parent order.");
 		}
@@ -210,21 +210,19 @@ export async function POST(req) {
 
 		// Commit transaction
 		await session.commitTransaction();
-		console.log("Order creation completed successfully");
+		// console.log("Order creation completed successfully");
 
 		// Fetch the final order to ensure subOrders are populated for the response
 		const finalOrder = await Order.findById(order._id)
-			.populate({
-				path: "subOrders",
-				select: "_id", // Only fetch _id for subOrders in this context
-			})
+			.populate("subOrders")
 			.session(session);
+
+		console.log("Final order data:", finalOrder);
 
 		return NextResponse.json({
 			success: true,
 			orderId: finalOrder._id,
 			orderNumber: finalOrder.orderNumber,
-			subOrdersCount: finalOrder.subOrders?.length || 0,
 			order: {
 				...finalOrder.toObject(),
 				subOrderIds: finalOrder.subOrders?.map((sub) => sub._id) || [],

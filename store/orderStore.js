@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 import { useAuthStore } from "@/store/authStore.js";
+import { generateInvoicePDF } from "@/lib/invoicePDF.js";
 
 export const useOrderStore = create(
 	devtools(
@@ -111,7 +112,7 @@ export const useOrderStore = create(
 					}
 				},
 
-				// Fetch single order
+				// Fetch single order with populated products for invoice generation
 				fetchOrder: async (id) => {
 					set({ loading: true, error: null });
 
@@ -148,38 +149,125 @@ export const useOrderStore = create(
 					}
 				},
 
-				// Download invoice
-				downloadInvoice: async (orderId, orderNumber) => {
+				// Fetch order with full product details for invoice generation
+				fetchOrderForInvoice: async (orderId) => {
 					try {
-						const response = await fetch(`/api/orders/${orderId}/invoice`);
+						const response = await fetch(
+							`/api/orders/${orderId}?populate=products`
+						);
 
 						if (!response.ok) {
 							throw new Error(`HTTP error! status: ${response.status}`);
 						}
 
-						if (response.ok) {
-							const blob = await response.blob();
-							const url = window.URL.createObjectURL(blob);
-							const a = document.createElement("a");
-							a.href = url;
-							a.download = `invoice-${orderNumber}.pdf`;
-							document.body.appendChild(a);
-							a.click();
-							window.URL.revokeObjectURL(url);
-							document.body.removeChild(a);
-							return { success: true };
-						} else {
-							const errorData = await response.json();
-							return {
-								success: false,
-								message: errorData.message || "Failed to download invoice",
+						const data = await response.json();
+
+						if (data.success) {
+							const order = data.order;
+							// Extract all products from subOrders if they exist
+							const allProducts = Array.isArray(order.subOrders)
+								? order.subOrders.flatMap((sub) =>
+										Array.isArray(sub.products)
+											? sub.products.map((p) => ({
+													productName:
+														p.productId?.productName ||
+														p.productId?.name ||
+														p.productId?.title ||
+														"Unknown",
+													quantity: p.quantity || 0,
+													price: p.price || p.productId?.price || 0,
+													totalPrice:
+														(p.price || p.productId?.price || 0) *
+														(p.quantity || 0),
+											  }))
+											: []
+								  )
+								: order.products || [];
+
+							const orderForPDF = {
+								...order,
+								customerName: order.customerName,
+								customerEmail: order.customerEmail,
+								customerMobile: order.customerMobile,
+								products: allProducts,
 							};
+
+							return orderForPDF;
+						} else {
+							throw new Error(
+								data.message || "Failed to fetch order for invoice"
+							);
 						}
 					} catch (error) {
+						console.error("Fetch order for invoice error:", error);
+						throw error;
+					}
+				},
+
+				// Download invoice - now generates client-side
+				downloadInvoice: async (orderId, orderNumber) => {
+					try {
+						// Set loading state for download
+						set({ loading: true, error: null });
+
+						// Fetch order data with populated products
+						const orderData = await get().fetchOrderForInvoice(orderId);
+
+						// Generate PDF on client side
+						const pdfBlob = await generateInvoicePDF(orderData);
+
+						// Create download link and trigger download
+						const url = window.URL.createObjectURL(pdfBlob);
+						const a = document.createElement("a");
+						a.href = url;
+						a.download = `invoice-${orderNumber}.pdf`;
+						document.body.appendChild(a);
+						a.click();
+
+						// Cleanup
+						window.URL.revokeObjectURL(url);
+						document.body.removeChild(a);
+
+						set({ loading: false });
+						return { success: true };
+					} catch (error) {
 						console.error("Download invoice error:", error);
+						set({
+							loading: false,
+							error: error.message || "Failed to download invoice",
+						});
 						return {
 							success: false,
 							message: error.message || "Failed to download invoice",
+						};
+					}
+				},
+
+				// Alternative method to preview invoice without downloading
+				previewInvoice: async (orderId) => {
+					try {
+						set({ loading: true, error: null });
+
+						// Fetch order data with populated products
+						const orderData = await get().fetchOrderForInvoice(orderId);
+
+						// Generate PDF on client side
+						const pdfBlob = await generateInvoicePDF(orderData);
+
+						// Create blob URL for preview
+						const url = window.URL.createObjectURL(pdfBlob);
+
+						set({ loading: false });
+						return { success: true, url };
+					} catch (error) {
+						console.error("Preview invoice error:", error);
+						set({
+							loading: false,
+							error: error.message || "Failed to preview invoice",
+						});
+						return {
+							success: false,
+							message: error.message || "Failed to preview invoice",
 						};
 					}
 				},
