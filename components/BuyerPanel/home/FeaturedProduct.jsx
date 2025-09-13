@@ -108,26 +108,24 @@ export default function FeaturedProduct({ product }) {
 			<Card className="bg-white">
 				<CardContent className="p-6 md:p-8">
 					<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 items-center">
-						<div
-							className="relative order-1 lg:order-2 cursor-pointer"
-							onClick={handleViewProduct}
-						>
-							{product.discountPercentage > 0 && (
-								<Badge className="absolute top-4 left-4 bg-black text-white z-10">
-									{product.discountPercentage}% OFF
-								</Badge>
-							)}
-							<Image
-								src={
-									product.image ||
-									"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"
-								}
-								alt={product.title || "Product Image"}
-								width={400}
-								height={400}
-								className="w-full h-auto rounded max-h-[400px] object-contain"
-							/>
-						</div>
+                                                <div
+                                                        className="relative order-1 lg:order-2 cursor-pointer"
+                                                        onClick={handleViewProduct}
+                                                >
+                                                        <Badge className="absolute top-4 left-4 bg-black text-white z-10">
+                                                                25% OFF
+                                                        </Badge>
+                                                        <Image
+                                                                src={
+                                                                        product.image ||
+                                                                        "https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"
+                                                                }
+                                                                alt={product.title || "Product Image"}
+                                                                width={400}
+                                                                height={400}
+                                                                className="w-full h-auto rounded max-h-[400px] object-contain"
+                                                        />
+                                                </div>
 						<div className="order-2 lg:order-1">
 							<h3
 								className="text-xl md:text-2xl lg:text-4xl font-bold mb-4 cursor-pointer hover:text-blue-600"
@@ -144,16 +142,14 @@ export default function FeaturedProduct({ product }) {
 								₹{product.price.toLocaleString()}
 							</p>
 
-							{product.originalPrice > product.price && (
-								<div className="flex items-center mb-6">
-									<span className="text-gray-500 line-through mr-2">
-										₹{product.originalPrice.toLocaleString()}
-									</span>
-									<span className="text-green-500">
-										{product.discountPercentage}% off
-									</span>
-								</div>
-							)}
+                                                        {product.originalPrice > product.price && (
+                                                                <div className="flex items-center mb-6">
+                                                                        <span className="text-gray-500 line-through mr-2">
+                                                                                ₹{product.originalPrice.toLocaleString()}
+                                                                        </span>
+                                                                        <span className="text-green-500">25% off</span>
+                                                                </div>
+                                                        )}
 
 							<div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 mt-4">
 								<Button
