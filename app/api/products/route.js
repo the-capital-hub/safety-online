@@ -2,7 +2,6 @@
 
 import { dbConnect } from "@/lib/dbConnect.js";
 import Product from "@/model/Product.js";
-import Reviews from "@/model/Review.js";
 
 export async function GET(request) {
 	await dbConnect();
@@ -130,53 +129,67 @@ export async function GET(request) {
 		const sortObj = {};
 		sortObj[sort] = order === "desc" ? -1 : 1;
 
-		// Execute query with pagination
-		const skip = (page - 1) * limit;
-		const products = await Product.find(query)
-			.sort(sortObj)
-			.skip(skip)
-			.limit(limit)
-			.lean();
+                // Execute query with pagination
+                const skip = (page - 1) * limit;
+                const products = await Product.find(query)
+                        .sort(sortObj)
+                        .skip(skip)
+                        .limit(limit)
+                        .populate("reviews", "rating")
+                        .lean();
 
-		const total = await Product.countDocuments(query);
-		const totalPages = Math.ceil(total / limit);
+                const total = await Product.countDocuments(query);
+                const totalPages = Math.ceil(total / limit);
 
-		console.log(`Found ${products.length} products out of ${total} total`);
+                console.log(`Found ${products.length} products out of ${total} total`);
 
-		// Transform products for frontend
-		const transformedProducts = products.map((product) => {
-			const discountPercentage =
-				product.salePrice > 0
-					? Math.round(
-							((product.price - product.salePrice) / product.price) * 100
-					  )
-					: product.discount || 0;
+                // Transform products for frontend
+                const transformedProducts = products.map((product) => {
+                        const discountPercentage =
+                                product.salePrice > 0
+                                        ? Math.round(
+                                                        ((product.price - product.salePrice) / product.price) * 100
+                                          )
+                                        : product.discount || 0;
 
-			return {
-				id: product._id.toString(),
-				title: product.title,
-				description: product.description,
-				longDescription: product.longDescription,
-				price: product.salePrice > 0 ? product.salePrice : product.price,
-				originalPrice: product.price,
-				salePrice: product.salePrice,
-				discount: product.discount,
-				discountPercentage,
-				image:
-					product.images?.[0] ||
-					"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png",
-				images: product.images || [],
-				category: product.category,
-				subCategory: product.subCategory,
-				inStock: product.inStock,
-				stocks: product.stocks,
-				status: product.status,
-				type: product.type,
-				features: product.features || [],
-				createdAt: product.createdAt,
-				updatedAt: product.updatedAt,
-			};
-		});
+                        const rating =
+                                product.reviews && product.reviews.length > 0
+                                        ? Number(
+                                                  (
+                                                          product.reviews.reduce(
+                                                                  (acc, r) => acc + r.rating,
+                                                                  0
+                                                          ) / product.reviews.length
+                                                  ).toFixed(1)
+                                          )
+                                        : 0;
+
+                        return {
+                                id: product._id.toString(),
+                                title: product.title,
+                                description: product.description,
+                                longDescription: product.longDescription,
+                                price: product.salePrice > 0 ? product.salePrice : product.price,
+                                originalPrice: product.price,
+                                salePrice: product.salePrice,
+                                discount: product.discount,
+                                discountPercentage,
+                                image:
+                                        product.images?.[0] ||
+                                        "https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png",
+                                images: product.images || [],
+                                category: product.category,
+                                subCategory: product.subCategory,
+                                inStock: product.inStock,
+                                stocks: product.stocks,
+                                status: product.status,
+                                type: product.type,
+                                features: product.features || [],
+                                rating,
+                                createdAt: product.createdAt,
+                                updatedAt: product.updatedAt,
+                        };
+                });
 
 		return Response.json({
 			success: true,
