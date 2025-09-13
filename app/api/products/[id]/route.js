@@ -28,10 +28,14 @@ export async function GET(req, { params }) {
 			(acc, review) => acc + review.rating,
 			0
 		);
-		const averageRating =
-			product.reviews.length > 0
-				? (total / product.reviews.length).toFixed(0)
-				: 0;
+                const averageRating =
+                        product.reviews.length > 0
+                                ? Number(
+                                          (
+                                                  total / product.reviews.length
+                                          ).toFixed(1)
+                                  )
+                                : 0;
 
 		console.log("Average rating:", averageRating);
 
