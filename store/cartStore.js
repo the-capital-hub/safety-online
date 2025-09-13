@@ -94,17 +94,34 @@ const cartAPI = {
 		return response.json();
 	},
 
-	async clearCart() {
-		const response = await fetch("/api/cart/clear", {
-			method: "DELETE",
-		});
-		if (!response.ok) {
-			const error = await response.json();
-			throw new Error(error.message || "Failed to clear cart");
-		}
-		return response.json();
-	},
+        async clearCart() {
+                const response = await fetch("/api/cart/clear", {
+                        method: "DELETE",
+                });
+                if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.message || "Failed to clear cart");
+                }
+                return response.json();
+        },
 };
+
+// Helper to transform server cart products to local items
+const transformCartProducts = (products = []) =>
+        products
+                .filter((item) => item && item.product)
+                .map((item) => ({
+                        id: item.product._id,
+                        name: item.product.title,
+                        description: item.product.description,
+                        price: item.product.salePrice || item.product.price,
+                        originalPrice: item.product.price,
+                        image:
+                                item.product.images?.[0] ||
+                                "https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png",
+                        quantity: item.quantity,
+                        inStock: item.product.inStock,
+                }));
 
 export const useCartStore = create(
 	devtools(
@@ -140,19 +157,10 @@ export const useCartStore = create(
 							try {
 								const data = await cartAPI.addToCart(product.id, quantity);
 
-								// Update local state with server response
-								const serverItems = data.cart.products.map((item) => ({
-									id: item.product._id,
-									name: item.product.title,
-									description: item.product.description,
-									price: item.product.salePrice || item.product.price,
-									originalPrice: item.product.price,
-									image:
-										item.product.images?.[0] ||
-										"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png",
-									quantity: item.quantity,
-									inStock: item.product.inStock,
-								}));
+                                                                // Update local state with server response
+                                                                const serverItems = transformCartProducts(
+                                                                        data.cart?.products || []
+                                                                );
 
 								set({
 									items: serverItems,
@@ -209,19 +217,10 @@ export const useCartStore = create(
 							try {
 								const data = await cartAPI.updateQuantity(productId, quantity);
 
-								// Update local state with server response
-								const serverItems = data.cart.products.map((item) => ({
-									id: item.product._id,
-									name: item.product.title,
-									description: item.product.description,
-									price: item.product.salePrice || item.product.price,
-									originalPrice: item.product.price,
-									image:
-										item.product.images?.[0] ||
-										"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png",
-									quantity: item.quantity,
-									inStock: item.product.inStock,
-								}));
+                                                                // Update local state with server response
+                                                                const serverItems = transformCartProducts(
+                                                                        data.cart?.products || []
+                                                                );
 
 								set({
 									items: serverItems,
@@ -260,19 +259,10 @@ export const useCartStore = create(
 							try {
 								const data = await cartAPI.removeItem(productId);
 
-								// Update local state with server response
-								const serverItems = data.cart.products.map((item) => ({
-									id: item.product._id,
-									name: item.product.title,
-									description: item.product.description,
-									price: item.product.salePrice || item.product.price,
-									originalPrice: item.product.price,
-									image:
-										item.product.images?.[0] ||
-										"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png",
-									quantity: item.quantity,
-									inStock: item.product.inStock,
-								}));
+                                                                // Update local state with server response
+                                                                const serverItems = transformCartProducts(
+                                                                        data.cart?.products || []
+                                                                );
 
 								set({
 									items: serverItems,
@@ -349,19 +339,10 @@ export const useCartStore = create(
 						set({ isLoading: true, syncError: null });
 
 						try {
-							const data = await cartAPI.fetchCart();
-							const serverItems = data.cart.products.map((item) => ({
-								id: item.product._id,
-								name: item.product.title,
-								description: item.product.description,
-								price: item.product.salePrice || item.product.price,
-								originalPrice: item.product.price,
-								image:
-									item.product.images?.[0] ||
-									"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png",
-								quantity: item.quantity,
-								inStock: item.product.inStock,
-							}));
+                                                        const data = await cartAPI.fetchCart();
+                                                        const serverItems = transformCartProducts(
+                                                                data.cart?.products || []
+                                                        );
 
 							set({
 								items: serverItems,
