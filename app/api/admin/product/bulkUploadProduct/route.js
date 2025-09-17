@@ -48,7 +48,7 @@ export async function POST(request) {
 				: url;
 		};
 
-		const slugify = (str = "") => str.toLowerCase().trim().replace(/\s+/g, "-");
+		const slugify = (str = "") => str.toLowerCase().trim().replace(/\s+/g, " ");
 
 		const slugToName = (slug = "") =>
 			slug.replace(/-/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
