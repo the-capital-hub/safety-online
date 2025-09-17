@@ -188,16 +188,51 @@ export default function ProductDetail({
 		}
 	};
 
-	const handleWishlist = async (e) => {
-		e.preventDefault();
-		e.stopPropagation();
-		await toggleItem(product);
-	};
+        const handleWishlist = async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                await toggleItem(product);
+        };
 
-	console.log("product", product);
+        const salePrice = product.salePrice ?? product.price;
+        const originalPrice = product.originalPrice ?? product.price;
+        const formattedSalePrice =
+                typeof salePrice === "number" ? salePrice.toLocaleString() : "0";
+        const formattedOriginalPrice =
+                typeof originalPrice === "number"
+                        ? originalPrice.toLocaleString()
+                        : null;
+        const discountPercentage =
+                product.discountPercentage ??
+                (typeof originalPrice === "number" &&
+                typeof salePrice === "number" &&
+                originalPrice > 0
+                        ? Math.round(((originalPrice - salePrice) / originalPrice) * 100)
+                        : null);
+        const showOriginalPrice =
+                typeof formattedOriginalPrice === "string" && originalPrice !== salePrice;
+        const displayDiscount =
+                typeof discountPercentage === "number" && discountPercentage > 0;
+        const ratingCount = product?.reviews?.length || 0;
+        const averageRating =
+                typeof product?.rating === "number"
+                        ? product.rating
+                        : Number(product?.rating) || 0;
+        const specificationRows = product?.specifications
+                ? [
+                                { label: "Brand", value: product.specifications.brand },
+                                { label: "Length (cm)", value: product.specifications.length },
+                                { label: "Height (cm)", value: product.specifications.height },
+                                { label: "Width (cm)", value: product.specifications.width },
+                                { label: "Weight (kg)", value: product.specifications.weight },
+                                { label: "Colour", value: product.specifications.color },
+                                { label: "Material", value: product.specifications.material },
+                                { label: "Size", value: product.specifications.size },
+                        ]
+                : [];
 
-	return (
-		<div className="min-h-screen bg-gray-50">
+        return (
+                <div className="min-h-screen bg-gray-50">
 			<div className="px-10 py-4">
 				<div className="flex items-center space-x-2 text-sm text-gray-600">
 					<Link href="/" className="hover:text-gray-900">
@@ -310,51 +345,59 @@ export default function ProductDetail({
 					</div>
 
 					{/* Middle Column - Scrollable Content */}
-					<div className="lg:col-span-5 space-y-6 lg:max-h-screen lg:overflow-y-auto hide-scrollbar">
-						{/* Brand and Title */}
-						<div>
-							<p className="text-sm text-gray-600 mb-2">Ladwa</p>
-							<h1 className="text-2xl lg:text-3xl font-bold mb-4">
-								{product.name}
-							</h1>
+                                        <div className="lg:col-span-5 space-y-4 lg:space-y-5 lg:max-h-screen lg:overflow-y-auto hide-scrollbar">
+                                                {/* Brand, Title & Pricing */}
+                                                <div className="space-y-3">
+                                                        <p className="text-sm uppercase tracking-wide text-gray-500">
+                                                                {product.specifications?.brand || product.brand || "Brand"}
+                                                        </p>
+                                                        <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
+                                                                {product.name}
+                                                        </h1>
+                                                        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+                                                                <div className="flex items-baseline gap-2">
+                                                                        <span className="uppercase text-xs font-semibold tracking-wide text-gray-500">
+                                                                                Sale
+                                                                        </span>
+                                                                        <span className="text-3xl font-semibold text-gray-900">
+                                                                                ₹ {formattedSalePrice}
+                                                                        </span>
+                                                                </div>
+                                                                {showOriginalPrice && (
+                                                                        <div className="flex items-baseline gap-2 text-gray-500">
+                                                                                <span className="uppercase text-xs font-semibold tracking-wide">
+                                                                                        MRP
+                                                                                </span>
+                                                                                <span className="line-through text-gray-400">
+                                                                                        ₹ {formattedOriginalPrice}
+                                                                                </span>
+                                                                        </div>
+                                                                )}
+                                                                {displayDiscount && (
+                                                                        <Badge className="bg-green-50 text-green-600 border border-green-200 px-3 py-1 font-semibold">
+                                                                                {discountPercentage}% OFF
+                                                                        </Badge>
+                                                                )}
+                                                                <div className="flex items-center gap-1 text-gray-600">
+                                                                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                                                                        <span className="font-semibold text-gray-900">
+                                                                                {averageRating > 0 ? averageRating.toFixed(1) : "0.0"}
+                                                                        </span>
+                                                                        <span className="text-xs uppercase tracking-wide text-gray-500">
+                                                                                ({ratingCount} ratings)
+                                                                        </span>
+                                                                </div>
+                                                        </div>
+                                                </div>
 
-							{/* Rating */}
-							<div className="flex items-center mb-4">
-								<span className="flex items-center gap-1 bg-green-600 text-white px-2 py-1 rounded text-sm">
-									{product.rating === 0 ? "★" : "★ ".repeat(product.rating)}
-								</span>
-								<span className="ml-2 text-gray-600 text-sm">
-									{product?.reviews?.length || 0} ratings
-								</span>
-							</div>
-						</div>
-
-						{/* Price */}
-						<div className="mb-4">
-							<div className="flex items-baseline space-x-2 mb-2">
-								<span className="text-2xl font-bold">
-									₹ {product.price?.toLocaleString() || "1,544"}
-								</span>
-							</div>
-							<div className="flex items-center space-x-2 text-sm">
-								<span className="text-gray-500">MRP</span>
-								<span className="text-gray-500 line-through">
-									₹ {product.originalPrice?.toLocaleString()}
-								</span>
-								<span className="text-green-600 font-medium">
-									{product.discountPercentage?.toLocaleString()}% OFF
-								</span>
-							</div>
-						</div>
-
-						{/* Key Features */}
-						{product.features && product.features.length > 0 && (
-							<div>
-								<h3 className="font-semibold text-lg mb-3">Key Features</h3>
-								<ul className="space-y-2">
-									{product.features.map((feature, index) => (
-										<li key={index} className="flex items-start space-x-2">
-											<span className="w-1.5 h-1.5 bg-gray-400 rounded-full mt-2 flex-shrink-0"></span>
+                                                {/* Key Features */}
+                                                {product.features && product.features.length > 0 && (
+                                                        <div>
+                                                                <h3 className="font-semibold text-lg mb-2">Key Features</h3>
+                                                                <ul className="space-y-2">
+                                                                        {product.features.map((feature, index) => (
+                                                                                <li key={index} className="flex items-start space-x-2">
+                                                                                        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full mt-2 flex-shrink-0"></span>
 											<span className="text-sm text-gray-600">
 												{feature.description}
 											</span>
@@ -364,77 +407,47 @@ export default function ProductDetail({
 							</div>
 						)}
 
-						{/* Product Specifications */}
-						{product.specifications && (
-							<div>
-								<h3 className="font-semibold text-lg mb-3">
-									Product Specifications
-								</h3>
-								<div className="border border-gray-400 border-dashed rounded-lg p-4">
-									<div className="flex justify-between py-2 border-b border-gray-100">
-										<span className="text-gray-600 font-semibold">Brand</span>
-										<span className="text-orange-500 font-medium">
-											{product.specifications.brand}
-										</span>
-									</div>
-									<div className="flex justify-between py-2 border-b border-gray-100">
-										<span className="text-gray-600 font-semibold">
-											Length (cm)
-										</span>
-										<span>{product.specifications.length}</span>
-									</div>
-									<div className="flex justify-between py-2 border-b border-gray-100">
-										<span className="text-gray-600 font-semibold">
-											Height (cm)
-										</span>
-										<span>{product.specifications.height}</span>
-									</div>
-									<div className="flex justify-between py-2 border-b border-gray-100">
-										<span className="text-gray-600 font-semibold">
-											Width (cm)
-										</span>
-										<span>{product.specifications.width}</span>
-									</div>
-									<div className="flex justify-between py-2 border-b border-gray-100">
-										<span className="text-gray-600 font-semibold">
-											Weight (kg)
-										</span>
-										<span>{product.specifications.weight}</span>
-									</div>
-									<div className="flex justify-between py-2 border-b border-gray-100">
-										<span className="text-gray-600 font-semibold">Colour</span>
-										<span>{product.specifications.color}</span>
-									</div>
-									<div className="flex justify-between py-2 border-b border-gray-100">
-										<span className="text-gray-600 font-semibold">
-											Material
-										</span>
-										<span>{product.specifications.material}</span>
-									</div>
-									<div className="flex justify-between py-2 border-b border-gray-100">
-										<span className="text-gray-600 font-semibold">Size</span>
-										<span>{product.specifications.size}</span>
-									</div>
-								</div>
-							</div>
-						)}
+                                                {/* Product Specifications */}
+                                                {specificationRows.length > 0 && (
+                                                        <div>
+                                                                <h3 className="font-semibold text-lg mb-2">
+                                                                        Product Specifications
+                                                                </h3>
+                                                                <div className="overflow-hidden rounded-lg border border-gray-200">
+                                                                        <table className="w-full text-center text-sm">
+                                                                                <tbody>
+                                                                                        {specificationRows.map((spec) => (
+                                                                                                <tr key={spec.label} className="odd:bg-gray-50">
+                                                                                                        <th className="border border-gray-200 px-4 py-2 font-semibold text-gray-600">
+                                                                                                                {spec.label}
+                                                                                                        </th>
+                                                                                                        <td className="border border-gray-200 px-4 py-2 text-gray-700">
+                                                                                                                {spec.value ?? "--"}
+                                                                                                        </td>
+                                                                                                </tr>
+                                                                                        ))}
+                                                                                </tbody>
+                                                                        </table>
+                                                                </div>
+                                                        </div>
+                                                )}
 
 						{/* Product Details */}
-						{product.longDescription && (
-							<div>
-								<h3 className="font-semibold text-lg mb-3">Product Details</h3>
-								<p className="text-gray-600 text-sm leading-relaxed">
-									{product.longDescription}
-								</p>
+                                                {product.longDescription && (
+                                                        <div>
+                                                                <h3 className="font-semibold text-lg mb-2">Product Details</h3>
+                                                                <p className="text-gray-600 text-sm leading-relaxed">
+                                                                        {product.longDescription}
+                                                                </p>
 							</div>
 						)}
 
-						{product.keywords && product.keywords.length > 0 && (
-							<div>
-								<h3 className="font-semibold text-lg mb-3">Keywords</h3>
-								<div className="flex flex-wrap gap-2">
-									{product.keywords.map((keyword, index) => (
-										<div
+                                                {product.keywords && product.keywords.length > 0 && (
+                                                        <div>
+                                                                <h3 className="font-semibold text-lg mb-2">Keywords</h3>
+                                                                <div className="flex flex-wrap gap-2">
+                                                                        {product.keywords.map((keyword, index) => (
+                                                                                <div
 											key={index}
 											className="text-sm bg-white border border-orange-500 rounded-lg px-3 py-2"
 										>
@@ -445,12 +458,12 @@ export default function ProductDetail({
 							</div>
 						)}
 
-						{/* Ladwa Benefits */}
-						<div>
-							<h3 className="font-semibold text-lg mb-3">Ladwa Benefits</h3>
-							<div className="flex flex-wrap gap-2">
-								<div className="flex items-center space-x-2 bg-white border border-orange-500 rounded-lg px-3 py-2">
-									<Receipt className="h-4 w-4" />
+                                                {/* Ladwa Benefits */}
+                                                <div>
+                                                        <h3 className="font-semibold text-lg mb-2">Ladwa Benefits</h3>
+                                                        <div className="flex flex-wrap gap-2">
+                                                                <div className="flex items-center space-x-2 bg-white border border-orange-500 rounded-lg px-3 py-2">
+                                                                        <Receipt className="h-4 w-4" />
 									<span className="text-sm">GST Invoice Available</span>
 								</div>
 								<div className="flex items-center space-x-2 border border-orange-500 rounded-lg px-3 py-2">
@@ -464,11 +477,11 @@ export default function ProductDetail({
 							</div>
 						</div>
 
-						{/* Return & Warranty Policy */}
-						<div>
-							<h3 className="font-semibold text-lg mb-3">
-								Return & Warranty Policy
-							</h3>
+                                                {/* Return & Warranty Policy */}
+                                                <div>
+                                                        <h3 className="font-semibold text-lg mb-2">
+                                                                Return & Warranty Policy
+                                                        </h3>
 							<div className="flex flex-wrap gap-2">
 								<div className="flex items-center space-x-2 bg-white border border-orange-500 rounded-lg px-3 py-2">
 									<RotateCcw className="h-4 w-4" />
@@ -496,22 +509,32 @@ export default function ProductDetail({
 							<Card className="bg-white shadow-md mb-10">
 								<CardContent className="p-6">
 									{/* Price */}
-									<div className="mb-4">
-										<div className="flex items-baseline space-x-2 mb-2">
-											<span className="text-2xl font-bold">
-												₹ {product.price?.toLocaleString() || "1,544"}
-											</span>
-										</div>
-										<div className="flex items-center space-x-2 text-sm">
-											{/* <span className="text-gray-500">MRP</span> */}
-											<span className="text-gray-500 line-through">
-												₹ {product.originalPrice?.toLocaleString()}
-											</span>
-											<span className="text-green-600 font-medium">
-												{product.discountPercentage?.toLocaleString()}% OFF
-											</span>
-										</div>
-									</div>
+                                                                        <div className="mb-4 space-y-2">
+                                                                                <div className="flex flex-wrap items-center gap-3 text-sm">
+                                                                                        <span className="text-2xl font-bold text-gray-900">
+                                                                                                ₹ {formattedSalePrice}
+                                                                                        </span>
+                                                                                        {showOriginalPrice && (
+                                                                                                <span className="text-base text-gray-400 line-through">
+                                                                                                        ₹ {formattedOriginalPrice}
+                                                                                                </span>
+                                                                                        )}
+                                                                                        {displayDiscount && (
+                                                                                                <Badge className="bg-green-50 text-green-600 border border-green-200 px-3 py-1 font-semibold">
+                                                                                                        {discountPercentage}% OFF
+                                                                                                </Badge>
+                                                                                        )}
+                                                                                </div>
+                                                                                <div className="flex items-center gap-1 text-sm text-gray-600">
+                                                                                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                                                                                        <span className="font-semibold text-gray-900">
+                                                                                                {averageRating > 0 ? averageRating.toFixed(1) : "0.0"}
+                                                                                        </span>
+                                                                                        <span className="text-xs uppercase tracking-wide text-gray-500">
+                                                                                                ({ratingCount} ratings)
+                                                                                        </span>
+                                                                                </div>
+                                                                        </div>
 
 									{/* Quantity Selector */}
 									<div className="mb-4">
