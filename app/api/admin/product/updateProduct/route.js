@@ -19,14 +19,14 @@ export async function PUT(request) {
 
 	// Verify token
 	const decoded = jwt.verify(token, process.env.JWT_SECRET);
-	const userId = decoded.id;
+	const adminId = decoded.id;
 
 	try {
 		const formData = await request.formData();
 
 		// Get productId from formData
 		const productId = formData.get("productId");
-console.log(productId)
+		console.log(productId);
 		if (!productId) {
 			return NextResponse.json(
 				{ success: false, message: "Product ID is required" },
@@ -61,6 +61,7 @@ console.log(productId)
 			: 0;
 		const type = formData.get("type");
 		const published = formData.get("published") === "true";
+		const sellerId = formData.get("sellerId"); // Get sellerId from form
 
 		// Parse features
 		let features = [];
@@ -170,6 +171,11 @@ console.log(productId)
 		product.colour = formData.get("colour") || "";
 		product.material = formData.get("material") || "";
 		product.size = formData.get("size") || "";
+
+		// Update sellerId if provided
+		if (sellerId) {
+			product.sellerId = sellerId;
+		}
 
 		await product.save();
 

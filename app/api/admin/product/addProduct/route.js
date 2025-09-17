@@ -19,8 +19,7 @@ export async function POST(request) {
 
 	// Verify token
 	const decoded = jwt.verify(token, process.env.JWT_SECRET);
-	const userId = decoded.id;
-	console.log("Seller ID:", userId);
+	const adminId = decoded.id;
 
 	try {
 		const formData = await request.formData();
@@ -31,16 +30,8 @@ export async function POST(request) {
 		const price = Number.parseFloat(formData.get("price"));
 		const stocks = Number.parseInt(formData.get("stocks"));
 		const category = formData.get("category");
+		const sellerId = formData.get("sellerId"); // Get sellerId from form
 		const imageFiles = formData.getAll("images");
-
-		// console.log("Received data:", {
-		// 	title,
-		// 	description,
-		// 	price,
-		// 	stocks,
-		// 	category,
-		// 	imageCount: imageFiles.length,
-		// });
 
 		// Validate required fields
 		if (
@@ -49,6 +40,7 @@ export async function POST(request) {
 			!price ||
 			!stocks ||
 			!category ||
+			!sellerId ||
 			!imageFiles.length
 		) {
 			return NextResponse.json(
@@ -61,6 +53,7 @@ export async function POST(request) {
 						price: !!price,
 						stocks: !!stocks,
 						category: !!category,
+						sellerId: !!sellerId,
 						images: imageFiles.length,
 					},
 				},
@@ -106,8 +99,6 @@ export async function POST(request) {
 
 		const imageUrls = await Promise.all(uploadPromises);
 
-		// console.log("Images uploaded successfully:", imageUrls.length);
-
 		// Parse features safely
 		let features = [];
 		try {
@@ -122,7 +113,7 @@ export async function POST(request) {
 
 		// Create new product
 		const product = new Product({
-			sellerId: userId,
+			sellerId: sellerId, // Use the sellerId from form
 			title,
 			description,
 			longDescription: formData.get("longDescription") || description,

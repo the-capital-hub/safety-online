@@ -47,7 +47,7 @@ import { useIsAuthenticated } from "@/store/adminAuthStore.js";
 import { useRouter } from "next/navigation";
 
 export default function AdminProductsPage() {
-        const {
+	const {
 		products,
 		isLoading,
 		error,
@@ -64,47 +64,47 @@ export default function AdminProductsPage() {
 		toggleProductSelection,
 		deleteProduct,
 		deleteMultipleProducts,
-                updateProduct,
-        } = useAdminProductStore();
+		updateProduct,
+	} = useAdminProductStore();
 
-        const [popups, setPopups] = useState({
-                delete: { open: false, product: null },
-                add: false,
-                update: { open: false, product: null },
-                bulkUpload: false,
-        });
-        const [categories, setCategories] = useState([]);
-        const isAuthenticated = useIsAuthenticated();
-        const [isRedirecting, setIsRedirecting] = useState(false);
-        const router = useRouter();
+	const [popups, setPopups] = useState({
+		delete: { open: false, product: null },
+		add: false,
+		update: { open: false, product: null },
+		bulkUpload: false,
+	});
+	const [categories, setCategories] = useState([]);
+	const isAuthenticated = useIsAuthenticated();
+	const [isRedirecting, setIsRedirecting] = useState(false);
+	const router = useRouter();
 	useEffect(() => {
 		fetchProducts();
 	}, [fetchProducts]);
 	useEffect(() => {
-                if (!isAuthenticated) {
-                        setIsRedirecting(true);
+		if (!isAuthenticated) {
+			setIsRedirecting(true);
 			const timer = setTimeout(() => {
 				router.push("/admin/login");
 			}, 3);
 
 			return () => clearTimeout(timer);
 		}
-        }, [isAuthenticated, router]);
+	}, [isAuthenticated, router]);
 
-        useEffect(() => {
-                const fetchCategories = async () => {
-                        try {
-                                const res = await fetch("/api/categories");
-                                const data = await res.json();
-                                if (data.success) {
-                                        setCategories(data.categories);
-                                }
-                        } catch (error) {
-                                console.error("Failed to fetch categories:", error);
-                        }
-                };
-                fetchCategories();
-        }, []);
+	useEffect(() => {
+		const fetchCategories = async () => {
+			try {
+				const res = await fetch("/api/categories");
+				const data = await res.json();
+				if (data.success) {
+					setCategories(data.categories);
+				}
+			} catch (error) {
+				console.error("Failed to fetch categories:", error);
+			}
+		};
+		fetchCategories();
+	}, []);
 
 	// Show redirecting message if not authenticated
 	const handleSearch = (value) => {
@@ -150,8 +150,8 @@ export default function AdminProductsPage() {
 	const handlePublishToggle = async (productId, published) => {
 		await updateProduct(productId, { published });
 	};
-
 	const handleSort = (field) => {
+		// console.log("filters", filters);
 		const currentOrder = filters.sortOrder === "desc" ? "asc" : "desc";
 		setSorting(field, currentOrder);
 	};
@@ -312,15 +312,15 @@ export default function AdminProductsPage() {
 									<SelectTrigger className="w-48">
 										<SelectValue placeholder="Category" />
 									</SelectTrigger>
-                                                                        <SelectContent>
-                                                                                <SelectItem value="all">All Categories</SelectItem>
-                                                                                {categories.map((category) => (
-                                                                                        <SelectItem key={category._id} value={category.name}>
-                                                                                                {category.name}
-                                                                                        </SelectItem>
-                                                                                ))}
-                                                                        </SelectContent>
-                                                                </Select>
+									<SelectContent>
+										<SelectItem value="all">All Categories</SelectItem>
+										{categories.map((category) => (
+											<SelectItem key={category._id} value={category.name}>
+												{category.name}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
 
 								<div className="flex gap-2">
 									<Input
@@ -408,6 +408,7 @@ export default function AdminProductsPage() {
 												</Button>
 											</TableHead>
 											<TableHead>Category</TableHead>
+											<TableHead>Sub Category</TableHead>
 											<TableHead>
 												<Button
 													variant="ghost"
@@ -429,7 +430,7 @@ export default function AdminProductsPage() {
 													<ArrowUpDown className="ml-2 h-4 w-4" />
 												</Button>
 											</TableHead>
-											<TableHead>Status</TableHead>
+											{/* <TableHead>Status</TableHead> */}
 											<TableHead>Published</TableHead>
 											<TableHead>Actions</TableHead>
 										</TableRow>
@@ -481,6 +482,11 @@ export default function AdminProductsPage() {
 														{product.category.replace("-", " ")}
 													</Badge>
 												</TableCell>
+												<TableCell>
+													<Badge variant="outline" className="capitalize">
+														{product.subCategory.replace("-", " ") || "N/A"}
+													</Badge>
+												</TableCell>
 												<TableCell className="font-medium">
 													₹{product.price.toLocaleString()}
 												</TableCell>
@@ -499,7 +505,7 @@ export default function AdminProductsPage() {
 														/>
 													</div>
 												</TableCell>
-												<TableCell>
+												{/* <TableCell>
 													<Badge
 														className={
 															product.inStock
@@ -509,7 +515,7 @@ export default function AdminProductsPage() {
 													>
 														{product.inStock ? "In Stock" : "Out of Stock"}
 													</Badge>
-												</TableCell>
+												</TableCell> */}
 												<TableCell>
 													<Switch
 														checked={product.published}

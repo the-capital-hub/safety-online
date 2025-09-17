@@ -88,7 +88,7 @@ export const useProductStore = create(
 							params.append("type", filters.type);
 						}
 
-						console.log("Fetching products with params:", params.toString());
+						// console.log("Fetching products with params:", params.toString());
 
 						const response = await fetch(`/api/products?${params}`);
 						const data = await response.json();
