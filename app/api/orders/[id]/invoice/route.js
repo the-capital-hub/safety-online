@@ -5,7 +5,7 @@ import { generateInvoicePDF } from "@/lib/generateInvoicePDF.js";
 
 export async function GET(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     await dbConnect();
 
     const order = await Order.findById(id).populate({

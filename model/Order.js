@@ -47,12 +47,20 @@ const OrderSchema = new mongoose.Schema(
 			],
 			required: true,
 		},
-		paymentStatus: {
-			type: String,
-			enum: ["pending", "paid", "failed", "refunded"],
-			default: "pending",
-		},
-		transactionId: String,
+                paymentStatus: {
+                        type: String,
+                        enum: ["pending", "paid", "failed", "refunded"],
+                        default: "pending",
+                },
+                transactionId: String,
+                paymentGatewayOrderId: {
+                        type: String,
+                        default: null,
+                },
+                paymentFailureReason: {
+                        type: String,
+                        default: null,
+                },
 
 		// Delivery Info (shared if same address)
 		deliveryAddress: {
@@ -99,5 +107,6 @@ OrderSchema.index({ userId: 1 });
 OrderSchema.index({ status: 1 });
 OrderSchema.index({ orderDate: -1 });
 OrderSchema.index({ customerEmail: 1 });
+OrderSchema.index({ paymentGatewayOrderId: 1 });
 
 export default mongoose.models.Order || mongoose.model("Order", OrderSchema);
