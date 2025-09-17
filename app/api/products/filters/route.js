@@ -38,7 +38,7 @@ export async function GET() {
 			},
 		]);
 
-		console.log("Top Product Counts:", productCounts);
+		// console.log("Top Product Counts:", productCounts);
 
 		// Create maps for easy lookup
 		const categoryCountMap = {};
@@ -64,23 +64,23 @@ export async function GET() {
 			}
 		});
 
-		console.log("Bottom Product Counts:", productCounts);
+		// console.log("Bottom Product Counts:", productCounts);
 
 		// Get all categories from database
 		const dbCategories = await Categories.find({ published: true }).lean();
-		console.log(
-			"Database categories:",
-			dbCategories.map((cat) => cat.name)
-		);
+		// console.log(
+		// 	"Database categories:",
+		// 	dbCategories.map((cat) => cat.name)
+		// );
 
 		// Update category and subcategory counts in database
 		const categoryUpdatePromises = dbCategories.map(async (category) => {
 			// Use lowercase for matching
 			const normalizedCategoryName = category.name.toLowerCase();
 			const categoryCount = categoryCountMap[normalizedCategoryName] || 0;
-			console.log(
-				`Category "${category.name}" (normalized: "${normalizedCategoryName}") has ${categoryCount} products`
-			);
+			// console.log(
+			// 	`Category "${category.name}" (normalized: "${normalizedCategoryName}") has ${categoryCount} products`
+			// );
 
 			// Update subcategory counts
 			const updatedSubCategories = category.subCategories.map((subCat) => {

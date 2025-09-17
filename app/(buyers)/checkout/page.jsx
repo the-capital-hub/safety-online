@@ -68,13 +68,13 @@ export default function CheckoutPage() {
 		isAddingNewAddress,
 		orderSummary,
 		appliedCoupon,
-                cartAppliedCoupon,
-                currentStep,
-                isLoading,
-                paymentLoading,
-                paymentMethod,
-                hasBillToAddress,
-        } = useCheckoutStore();
+		cartAppliedCoupon,
+		currentStep,
+		isLoading,
+		paymentLoading,
+		paymentMethod,
+		hasBillToAddress,
+	} = useCheckoutStore();
 
 	// Checkout store actions
 	const setCheckoutType = useCheckoutStore((state) => state.setCheckoutType);
@@ -90,12 +90,12 @@ export default function CheckoutPage() {
 	const addNewAddress = useCheckoutStore((state) => state.addNewAddress);
 	const updateNewAddress = useCheckoutStore((state) => state.updateNewAddress);
 	const selectAddress = useCheckoutStore((state) => state.selectAddress);
-        const toggleAddNewAddress = useCheckoutStore(
-                (state) => state.toggleAddNewAddress
-        );
-        const copyShippingToBillTo = useCheckoutStore(
-                (state) => state.copyShippingToBillTo
-        );
+	const toggleAddNewAddress = useCheckoutStore(
+		(state) => state.toggleAddNewAddress
+	);
+	const copyShippingToBillTo = useCheckoutStore(
+		(state) => state.copyShippingToBillTo
+	);
 	const applyCoupon = useCheckoutStore((state) => state.applyCoupon);
 	const removeCoupon = useCheckoutStore((state) => state.removeCoupon);
 	const processPayment = useCheckoutStore((state) => state.processPayment);
@@ -136,7 +136,6 @@ export default function CheckoutPage() {
 	}, [user, loadUserAddresses]);
 
 	// Initialize checkout based on URL params
-	// Replace this useEffect in your checkout page:
 	useEffect(() => {
 		const initializeBuyNow = async () => {
 			const buyNow = searchParams.get("buyNow");
@@ -265,33 +264,33 @@ export default function CheckoutPage() {
 	]);
 
 	// Address Step Component
-        const AddressStep = useMemo(
-                () => (
-                        <Card>
-                                <CardHeader>
-                                        <CardTitle className="flex items-center gap-2">
-                                                <MapPin className="h-5 w-5" />
-                                                Shipping Address
-                                        </CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                        {!hasBillToAddress && (
-                                                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md text-sm text-yellow-800">
-                                                        No billing address found. Please add one to continue.
-                                                        {selectedAddressId && (
-                                                                <Button
-                                                                        size="sm"
-                                                                        className="mt-2"
-                                                                        onClick={copyShippingToBillTo}
-                                                                        disabled={isLoading}
-                                                                >
-                                                                        Use selected shipping address
-                                                                </Button>
-                                                        )}
-                                                </div>
-                                        )}
-                                        {/* Saved Addresses */}
-                                        {savedAddresses.length > 0 && (
+	const AddressStep = useMemo(
+		() => (
+			<Card>
+				<CardHeader>
+					<CardTitle className="flex items-center gap-2">
+						<MapPin className="h-5 w-5" />
+						Shipping Address
+					</CardTitle>
+				</CardHeader>
+				<CardContent className="space-y-4">
+					{!hasBillToAddress && (
+						<div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md text-sm text-yellow-800">
+							No billing address found. Please add one to continue.
+							{selectedAddressId && (
+								<Button
+									size="sm"
+									className="mt-2"
+									onClick={copyShippingToBillTo}
+									disabled={isLoading}
+								>
+									Use selected shipping address
+								</Button>
+							)}
+						</div>
+					)}
+					{/* Saved Addresses */}
+					{savedAddresses.length > 0 && (
 						<div className="space-y-3">
 							<h4 className="font-medium">Saved Addresses</h4>
 							{savedAddresses
@@ -527,33 +526,33 @@ export default function CheckoutPage() {
 						</div>
 					)}
 
-                                        {/* Continue Button */}
-                                        <Button
-                                                onClick={() => setCurrentStep(2)}
-                                                disabled={!selectedAddressId || !hasBillToAddress}
-                                                className="w-full"
-                                        >
-                                                Continue to Payment
-                                                <ArrowRight className="ml-2 h-4 w-4" />
-                                        </Button>
-                                </CardContent>
-                        </Card>
-                ),
-                [
-                        savedAddresses,
-                        selectedAddressId,
-                        isAddingNewAddress,
-                        newAddress,
-                        isLoading,
-                        hasBillToAddress,
-                        copyShippingToBillTo,
-                        handleAddressSelect,
-                        handleNewAddressChange,
-                        handleAddNewAddress,
-                        toggleAddNewAddress,
-                        setCurrentStep,
-                ]
-        );
+					{/* Continue Button */}
+					<Button
+						onClick={() => setCurrentStep(2)}
+						disabled={!selectedAddressId || !hasBillToAddress}
+						className="w-full"
+					>
+						Continue to Payment
+						<ArrowRight className="ml-2 h-4 w-4" />
+					</Button>
+				</CardContent>
+			</Card>
+		),
+		[
+			savedAddresses,
+			selectedAddressId,
+			isAddingNewAddress,
+			newAddress,
+			isLoading,
+			hasBillToAddress,
+			copyShippingToBillTo,
+			handleAddressSelect,
+			handleNewAddressChange,
+			handleAddNewAddress,
+			toggleAddNewAddress,
+			setCurrentStep,
+		]
+	);
 
 	// Payment Step Component
 	const PaymentStep = useMemo(
@@ -886,15 +885,27 @@ export default function CheckoutPage() {
 										: "Review your cart and complete your order"}
 								</p>
 							</div>
-							<div className="text-right">
+							{/* <div className="text-right">
 								<div className="flex items-center gap-2">
-									<User className="h-4 w-4" />
+									{user.profilePic ? (
+										<Image
+											src={user.profilePic}
+											alt={user.firstName + " " + user.lastName}
+											width={40}
+											height={40}
+											className="w-10 h-10 rounded-full object-cover"
+										/>
+									) : (
+										<User className="h-4 w-4" />
+									)}
 									<div>
 										<p className="text-sm text-gray-600">Welcome back,</p>
-										<p className="font-medium">{user.firstName || user.name}</p>
+										<p className="font-medium">
+											{user.firstName + " " + user.lastName}
+										</p>
 									</div>
 								</div>
-							</div>
+							</div> */}
 						</div>
 					</div>
 

@@ -502,12 +502,12 @@ export default function SellerProductsPage() {
 															)}
 														</div>
 														<div>
-															<div className="font-medium truncate">
+															<div className="font-medium max-w-xl truncate">
 																{product.title}
 															</div>
-															{/* <div className="text-sm text-gray-500 truncate">
-                                {product.description}
-                              </div> */}
+															<div className="text-sm text-gray-500 max-w-xl truncate">
+																{product.description}
+															</div>
 														</div>
 													</div>
 												</TableCell>

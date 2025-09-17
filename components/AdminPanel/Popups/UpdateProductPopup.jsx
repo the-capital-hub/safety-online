@@ -22,7 +22,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Plus, X } from "lucide-react";
+import { Plus, X, User } from "lucide-react";
 import { useAdminProductStore } from "@/store/adminProductStore.js";
 import { ImageUpload } from "@/components/AdminPanel/ImageUpload.jsx";
 
@@ -34,12 +34,14 @@ const productTypes = [
 ];
 
 export function UpdateProductPopup({ open, onOpenChange, product }) {
-        const { updateProduct } = useAdminProductStore();
-        const [isSubmitting, setIsSubmitting] = useState(false);
-        const [features, setFeatures] = useState([{ title: "", description: "" }]);
-        const [categories, setCategories] = useState([]);
+	const { updateProduct } = useAdminProductStore();
+	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [features, setFeatures] = useState([{ title: "", description: "" }]);
+	const [categories, setCategories] = useState([]);
+	const [sellers, setSellers] = useState([]);
+	const [loadingSellers, setLoadingSellers] = useState(false);
 
-        const [formData, setFormData] = useState({
+	const [formData, setFormData] = useState({
 		title: "",
 		description: "",
 		longDescription: "",
@@ -60,25 +62,45 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 		weight: "",
 		colour: "",
 		material: "",
-                size: "",
-        });
+		size: "",
+		sellerId: "",
+	});
 
-        useEffect(() => {
-                if (open) {
-                        const fetchCategories = async () => {
-                                try {
-                                        const res = await fetch("/api/categories");
-                                        const data = await res.json();
-                                        if (data.success) {
-                                                setCategories(data.categories);
-                                        }
-                                } catch (error) {
-                                        console.error("Failed to fetch categories:", error);
-                                }
-                        };
-                        fetchCategories();
-                }
-        }, [open]);
+	useEffect(() => {
+		if (open) {
+			// Fetch categories
+			const fetchCategories = async () => {
+				try {
+					const res = await fetch("/api/admin/categories");
+					const data = await res.json();
+					if (data.success) {
+						setCategories(data.categories);
+					}
+				} catch (error) {
+					console.error("Failed to fetch categories:", error);
+				}
+			};
+
+			// Fetch sellers
+			const fetchSellers = async () => {
+				setLoadingSellers(true);
+				try {
+					const res = await fetch("/api/admin/sellers?limit=1000"); // Get all sellers
+					const data = await res.json();
+					if (data.success) {
+						setSellers(data.data);
+					}
+				} catch (error) {
+					console.error("Failed to fetch sellers:", error);
+				} finally {
+					setLoadingSellers(false);
+				}
+			};
+
+			fetchCategories();
+			fetchSellers();
+		}
+	}, [open]);
 
 	// Helper function to convert URL to base64
 	const convertUrlToBase64 = async (url) => {
@@ -140,6 +162,7 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 					colour: product.colour || "",
 					material: product.material || "",
 					size: product.size || "",
+					sellerId: product.sellerId || "",
 				});
 			};
 
@@ -167,23 +190,26 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 				longDescription: formData.longDescription || formData.description,
 				category: formData.category,
 				subCategory: formData.subCategory,
-				price: parseFloat(formData.price),
-				salePrice: formData.salePrice ? parseFloat(formData.salePrice) : 0,
-				stocks: parseInt(formData.stocks),
-				discount: formData.discount ? parseFloat(formData.discount) : 0,
+				price: Number.parseFloat(formData.price),
+				salePrice: formData.salePrice
+					? Number.parseFloat(formData.salePrice)
+					: 0,
+				stocks: Number.parseInt(formData.stocks),
+				discount: formData.discount ? Number.parseFloat(formData.discount) : 0,
 				type: formData.type,
 				published: formData.published,
 				features: features.filter((f) => f.title && f.description),
 				images: formData.images, // Pass the base64 images array
 				hsnCode: formData.hsnCode,
 				brand: formData.brand,
-				length: formData.length ? parseFloat(formData.length) : null,
-				width: formData.width ? parseFloat(formData.width) : null,
-				height: formData.height ? parseFloat(formData.height) : null,
-				weight: formData.weight ? parseFloat(formData.weight) : null,
+				length: formData.length ? Number.parseFloat(formData.length) : null,
+				width: formData.width ? Number.parseFloat(formData.width) : null,
+				height: formData.height ? Number.parseFloat(formData.height) : null,
+				weight: formData.weight ? Number.parseFloat(formData.weight) : null,
 				colour: formData.colour,
 				material: formData.material,
 				size: formData.size,
+				sellerId: formData.sellerId,
 			};
 
 			console.log("Update Data:", updateData);
@@ -232,6 +258,60 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 
 					<form onSubmit={handleSubmit} className="space-y-6 mt-6">
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+							{/* Seller Selection */}
+							<div className="md:col-span-2">
+								<Label>Select Seller *</Label>
+								<Select
+									value={formData.sellerId}
+									onValueChange={(value) =>
+										setFormData({ ...formData, sellerId: value })
+									}
+									disabled={loadingSellers}
+								>
+									<SelectTrigger className="mt-1">
+										<SelectValue
+											placeholder={
+												loadingSellers ? "Loading sellers..." : "Select seller"
+											}
+										>
+											{formData.sellerId && (
+												<div className="flex items-center gap-2">
+													<User className="w-4 h-4" />
+													<span>
+														{
+															sellers.find((s) => s._id === formData.sellerId)
+																?.firstName
+														}{" "}
+														{
+															sellers.find((s) => s._id === formData.sellerId)
+																?.lastName
+														}{" "}
+														-{" "}
+														{
+															sellers.find((s) => s._id === formData.sellerId)
+																?.email
+														}
+													</span>
+												</div>
+											)}
+										</SelectValue>
+									</SelectTrigger>
+									<SelectContent>
+										{sellers.map((seller) => (
+											<SelectItem key={seller._id} value={seller._id}>
+												<div className="flex items-center gap-2">
+													<User className="w-4 h-4" />
+													<span>
+														{seller.firstName} {seller.lastName} -{" "}
+														{seller.email}
+													</span>
+												</div>
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+							</div>
+
 							<div className="md:col-span-2">
 								<Label htmlFor="title">Product Title *</Label>
 								<Input
@@ -301,15 +381,15 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 									<SelectTrigger className="mt-1">
 										<SelectValue placeholder="Select category" />
 									</SelectTrigger>
-                                                                        <SelectContent>
-                                                                                {categories.map((category) => (
-                                                                                        <SelectItem key={category._id} value={category.name}>
-                                                                                                {category.name}
-                                                                                        </SelectItem>
-                                                                                ))}
-                                                                        </SelectContent>
-                                                                 </Select>
-                                                         </div>
+									<SelectContent>
+										{categories.map((category) => (
+											<SelectItem key={category._id} value={category.name}>
+												{category.name}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+							</div>
 
 							<div>
 								<Label>Sub Category</Label>
@@ -407,99 +487,117 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 
 							<div>
 								<Label>HSN Code</Label>
-								<Input 
-									placeholder="HSN Code" 
-									value={formData.hsnCode} 
-									onChange={(e) => setFormData({ ...formData, hsnCode: e.target.value })} 
-									className="mt-1" 
+								<Input
+									placeholder="HSN Code"
+									value={formData.hsnCode}
+									onChange={(e) =>
+										setFormData({ ...formData, hsnCode: e.target.value })
+									}
+									className="mt-1"
 								/>
 							</div>
 
 							<div>
 								<Label>Brand</Label>
-								<Input 
-									placeholder="Brand" 
-									value={formData.brand} 
-									onChange={(e) => setFormData({ ...formData, brand: e.target.value })} 
-									className="mt-1" 
+								<Input
+									placeholder="Brand"
+									value={formData.brand}
+									onChange={(e) =>
+										setFormData({ ...formData, brand: e.target.value })
+									}
+									className="mt-1"
 								/>
 							</div>
 
 							<div>
 								<Label>Length</Label>
-								<Input 
-									placeholder="Length" 
-									value={formData.length} 
-									onChange={(e) => setFormData({ ...formData, length: e.target.value })} 
-									className="mt-1" 
-									type="number" 
-									step="0.01" 
+								<Input
+									placeholder="Length"
+									value={formData.length}
+									onChange={(e) =>
+										setFormData({ ...formData, length: e.target.value })
+									}
+									className="mt-1"
+									type="number"
+									step="0.01"
 								/>
 							</div>
 
 							<div>
 								<Label>Width</Label>
-								<Input 
-									placeholder="Width" 
-									value={formData.width} 
-									onChange={(e) => setFormData({ ...formData, width: e.target.value })} 
-									className="mt-1" 
-									type="number" 
-									step="0.01" 
+								<Input
+									placeholder="Width"
+									value={formData.width}
+									onChange={(e) =>
+										setFormData({ ...formData, width: e.target.value })
+									}
+									className="mt-1"
+									type="number"
+									step="0.01"
 								/>
 							</div>
 
 							<div>
 								<Label>Height</Label>
-								<Input 
-									placeholder="Height" 
-									value={formData.height} 
-									onChange={(e) => setFormData({ ...formData, height: e.target.value })} 
-									className="mt-1" 
-									type="number" 
-									step="0.01" 
+								<Input
+									placeholder="Height"
+									value={formData.height}
+									onChange={(e) =>
+										setFormData({ ...formData, height: e.target.value })
+									}
+									className="mt-1"
+									type="number"
+									step="0.01"
 								/>
 							</div>
 
 							<div>
 								<Label>Weight</Label>
-								<Input 
-									placeholder="Weight" 
-									value={formData.weight} 
-									onChange={(e) => setFormData({ ...formData, weight: e.target.value })} 
-									className="mt-1" 
-									type="number" 
-									step="0.01" 
+								<Input
+									placeholder="Weight"
+									value={formData.weight}
+									onChange={(e) =>
+										setFormData({ ...formData, weight: e.target.value })
+									}
+									className="mt-1"
+									type="number"
+									step="0.01"
 								/>
 							</div>
 
 							<div>
 								<Label>Colour</Label>
-								<Input 
-									placeholder="Colour" 
-									value={formData.colour} 
-									onChange={(e) => setFormData({ ...formData, colour: e.target.value })} 
-									className="mt-1" 
+								<Input
+									placeholder="Colour"
+									value={formData.colour}
+									onChange={(e) =>
+										setFormData({ ...formData, colour: e.target.value })
+									}
+									className="mt-1"
 								/>
 							</div>
 
 							<div>
 								<Label>Material</Label>
-								<Input 
-									placeholder="Material" 
-									value={formData.material} 
-									onChange={(e) => setFormData({ ...formData, material: e.target.value })} 
-									className="mt-1" 
+								<Input
+									placeholder="Material"
+									value={formData.material}
+									onChange={(e) =>
+										setFormData({ ...formData, material: e.target.value })
+									}
+									className="mt-1"
 								/>
 							</div>
 
 							<div>
 								<Label>Size</Label>
-								<Input 
-									placeholder="Size" 
-									value={formData.size} 
-									onChange={(e) => setFormData({ ...formData, size: e.target.value })} 
-									className="mt-1" 
+								<Input
+									placeholder="Size"
+									value={formData.size}
+									onChange={(e) =>
+										setFormData({ ...formData, size: e.target.value })
+									}
+									className="mt-1"
 								/>
 							</div>
 						</div>
@@ -579,7 +677,7 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 							</Button>
 							<Button
 								type="submit"
-								disabled={isSubmitting}
+								disabled={isSubmitting || !formData.sellerId}
 								className="flex-1 bg-orange-500 hover:bg-orange-600"
 							>
 								{isSubmitting ? "Updating..." : "Update Product"}
