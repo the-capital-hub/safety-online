@@ -21,6 +21,7 @@ import {
 	Truck,
 } from "lucide-react";
 import Image from "next/image";
+import { buildGstLineItems } from "@/lib/utils/gst.js";
 
 export function OrderDetailPopup({ open, onOpenChange, order }) {
 	if (!order) return null;
@@ -66,10 +67,11 @@ export function OrderDetailPopup({ open, onOpenChange, order }) {
 	const paymentMethod = order.paymentMethod || "N/A";
 	const transactionId = order.transactionId || null;
 	const subtotal = order.subtotal || 0;
-	const tax = order.tax || 0;
-	const shippingCost = order.shippingCost || order.shipping || 0;
-	const discount = order.discount || 0;
-	const totalAmount = order.totalAmount || order.total || 0;
+        const gstLines = buildGstLineItems(order.gst);
+        const gstMode = order?.gst?.mode || "igst";
+        const shippingCost = order.shippingCost || order.shipping || 0;
+        const discount = order.discount || 0;
+        const totalAmount = order.totalAmount || order.total || 0;
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -317,17 +319,17 @@ export function OrderDetailPopup({ open, onOpenChange, order }) {
 										<span>Subtotal</span>
 										<span>₹{subtotal.toFixed(2)}</span>
 									</div>
-									{tax > 0 && (
-										<div className="flex justify-between">
-											<span>Tax</span>
-											<span>₹{tax.toFixed(2)}</span>
-										</div>
-									)}
-									{shippingCost > 0 && (
-										<div className="flex justify-between">
-											<span>Shipping</span>
-											<span>₹{shippingCost.toFixed(2)}</span>
-										</div>
+                                                                        {gstLines.map((line) => (
+                                                                                <div className="flex justify-between" key={line.key}>
+                                                                                        <span>{line.label}</span>
+                                                                                        <span>₹{line.amount.toFixed(2)}</span>
+                                                                                </div>
+                                                                        ))}
+                                                                        {shippingCost > 0 && (
+                                                                                <div className="flex justify-between">
+                                                                                        <span>Shipping</span>
+                                                                                        <span>₹{shippingCost.toFixed(2)}</span>
+                                                                                </div>
 									)}
 									{discount > 0 && (
 										<div className="flex justify-between text-green-600">
@@ -343,14 +345,21 @@ export function OrderDetailPopup({ open, onOpenChange, order }) {
 											</span>
 										</div>
 									)}
-									<Separator />
-									<div className="flex justify-between text-lg font-bold">
-										<span>Total Amount</span>
-										<span>₹{totalAmount.toFixed(2)}</span>
-									</div>
-								</div>
-							</CardContent>
-						</Card>
+                                                                        <Separator />
+                                                                        <div className="flex justify-between text-lg font-bold">
+                                                                                <span>Total Amount</span>
+                                                                                <span>₹{totalAmount.toFixed(2)}</span>
+                                                                        </div>
+                                                                        {gstLines.length > 0 && (
+                                                                                <p className="text-xs text-gray-500">
+                                                                                        {gstMode === "cgst_sgst"
+                                                                                                ? "CGST & SGST applied for Bengaluru deliveries"
+                                                                                                : "IGST applied for this delivery"}
+                                                                                </p>
+                                                                        )}
+                                                                </div>
+                                                        </CardContent>
+                                                </Card>
 
 						{/* Tracking Information */}
 						{order.trackingNumber && (
