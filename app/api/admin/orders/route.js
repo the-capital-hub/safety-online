@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { dbConnect } from "@/lib/dbConnect.js";
+import { calculateGstTotals, determineGstMode, GST_RATE_PERCENT } from "@/lib/utils/gst.js";
 import Order from "@/model/Order.js";
 
 export async function GET(request) {
@@ -95,10 +96,10 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-	try {
-		await dbConnect();
+        try {
+                await dbConnect();
 
-		const orderData = await request.json();
+                const orderData = await request.json();
 
 		// Validate required fields
 		const requiredFields = [
@@ -118,22 +119,57 @@ export async function POST(request) {
 			}
 		}
 
-		// Calculate totals
-		let subtotal = 0;
-		for (const product of orderData.products) {
-			product.totalPrice = product.price * product.quantity;
-			subtotal += product.totalPrice;
-		}
+                const sanitizeAmount = (value) => {
+                        const numeric = Number(value);
+                        return Number.isFinite(numeric) ? numeric : 0;
+                };
 
-		orderData.subtotal = subtotal;
-		orderData.totalAmount =
-			subtotal +
-			(orderData.tax || 0) +
-			(orderData.shippingCost || 0) -
-			(orderData.discount || 0);
+                let subtotal = 0;
+                orderData.products = orderData.products.map((product) => {
+                        const quantity = sanitizeAmount(product.quantity);
+                        const price = sanitizeAmount(product.price);
+                        const totalPrice = price * quantity;
 
-		const order = new Order(orderData);
-		await order.save();
+                        subtotal += totalPrice;
+
+                        return {
+                                ...product,
+                                quantity,
+                                price,
+                                totalPrice,
+                        };
+                });
+
+                const discountValue = sanitizeAmount(orderData.discount);
+                const shippingCostValue = sanitizeAmount(orderData.shippingCost);
+                const gstRate = Number.isFinite(Number(orderData?.gst?.rate))
+                        ? Number(orderData.gst.rate)
+                        : GST_RATE_PERCENT;
+                const gstMode = orderData?.gst?.mode || determineGstMode(orderData.deliveryAddress);
+
+                const totals = calculateGstTotals({
+                        subtotal,
+                        discount: discountValue,
+                        shippingCost: shippingCostValue,
+                        address: orderData.deliveryAddress,
+                        gstMode,
+                        gstRatePercent: gstRate,
+                });
+
+                orderData.subtotal = totals.subtotal;
+                orderData.discount = totals.discount;
+                orderData.shippingCost = totals.shippingCost;
+                orderData.totalAmount = totals.total;
+                orderData.tax = totals.gst.total;
+                orderData.taxableAmount = totals.taxableAmount;
+                orderData.gst = {
+                        ...totals.gst,
+                        mode: gstMode,
+                        rate: gstRate,
+                };
+
+                const order = new Order(orderData);
+                await order.save();
 
 		await order.populate("userId", "firstName lastName email");
 		await order.populate("products.productId", "name images");

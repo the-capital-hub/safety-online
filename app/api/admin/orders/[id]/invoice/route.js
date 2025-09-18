@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { dbConnect } from "@/lib/dbConnect.js";
 import Order from "@/model/Order.js";
-import Product from "@/model/Product.js";
 import { generateInvoicePDF } from "@/lib/generateInvoicePDF.js";
 
 export async function GET(request, { params }) {
@@ -28,11 +27,10 @@ export async function GET(request, { params }) {
 		}
 
 		// Aggregate all products from all subOrders
-		const allProducts = [];
-		let totalSubOrderAmount = 0;
+                const allProducts = [];
 
-		order.subOrders.forEach((subOrder) => {
-			subOrder.products.forEach((product) => {
+                order.subOrders.forEach((subOrder) => {
+                        subOrder.products.forEach((product) => {
 				allProducts.push({
 					productId: product.productId._id,
 					productName: product.productName || product.productId.title,
@@ -43,8 +41,7 @@ export async function GET(request, { params }) {
 					description: product.productId.description,
 				});
 			});
-			totalSubOrderAmount += subOrder.totalAmount || 0;
-		});
+                });
 
 		// Create order object for PDF generation
 		const orderForPDF = {
@@ -66,11 +63,13 @@ export async function GET(request, { params }) {
 			transactionId: order.transactionId,
 
 			// Pricing information
-			subtotal: order.subtotal,
-			tax: order.tax,
-			shippingCost: order.shippingCost,
-			discount: order.discount,
-			totalAmount: order.totalAmount,
+                        subtotal: order.subtotal,
+                        tax: order.tax,
+                        shippingCost: order.shippingCost,
+                        discount: order.discount,
+                        taxableAmount: order.taxableAmount,
+                        totalAmount: order.totalAmount,
+                        gst: order.gst,
 
 			// Coupon information
 			couponApplied: order.couponApplied,
@@ -89,11 +88,13 @@ export async function GET(request, { params }) {
 				trackingNumber: subOrder.trackingNumber,
 				estimatedDelivery: subOrder.estimatedDelivery,
 				actualDelivery: subOrder.actualDelivery,
-				subtotal: subOrder.subtotal,
-				tax: subOrder.tax,
-				shippingCost: subOrder.shippingCost,
-				discount: subOrder.discount,
-				totalAmount: subOrder.totalAmount,
+                                subtotal: subOrder.subtotal,
+                                tax: subOrder.tax,
+                                shippingCost: subOrder.shippingCost,
+                                discount: subOrder.discount,
+                                totalAmount: subOrder.totalAmount,
+                                taxableAmount: subOrder.taxableAmount,
+                                gst: subOrder.gst,
 				products: subOrder.products.map((product) => ({
 					productName: product.productName || product.productId.name,
 					quantity: product.quantity,

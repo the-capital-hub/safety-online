@@ -8,13 +8,17 @@ import { Badge } from "@/components/ui/badge";
 import { Download, Printer } from "lucide-react";
 import { useAdminOrderStore } from "@/store/adminOrderStore.js";
 import { toast } from "sonner";
+import { buildGstLineItems } from "@/lib/utils/gst.js";
 
 export function InvoicePopup({ open, onOpenChange, order }) {
 	const { downloadInvoice } = useAdminOrderStore();
 
-	if (!order) return null;
+        if (!order) return null;
 
-	const handleDownload = async () => {
+        const gstLines = buildGstLineItems(order.gst);
+        const gstMode = order?.gst?.mode || "igst";
+
+        const handleDownload = async () => {
 		const result = await downloadInvoice(order._id, order.orderNumber);
 		if (result.success) {
 			toast.success("Invoice downloaded successfully");
@@ -183,17 +187,17 @@ export function InvoicePopup({ open, onOpenChange, order }) {
 							<span>Subtotal</span>
 							<span>${order.subtotal.toFixed(2)}</span>
 						</div>
-						{order.tax > 0 && (
-							<div className="flex justify-between">
-								<span>Tax</span>
-								<span>${order.tax.toFixed(2)}</span>
-							</div>
-						)}
-						{order.shippingCost > 0 && (
-							<div className="flex justify-between">
-								<span>Shipping</span>
-								<span>${order.shippingCost.toFixed(2)}</span>
-							</div>
+                                                {gstLines.map((line) => (
+                                                        <div className="flex justify-between" key={line.key}>
+                                                                <span>{line.label}</span>
+                                                                <span>${line.amount.toFixed(2)}</span>
+                                                        </div>
+                                                ))}
+                                                {order.shippingCost > 0 && (
+                                                        <div className="flex justify-between">
+                                                                <span>Shipping</span>
+                                                                <span>${order.shippingCost.toFixed(2)}</span>
+                                                        </div>
 						)}
 						{order.discount > 0 && (
 							<div className="flex justify-between text-green-600">
@@ -207,12 +211,19 @@ export function InvoicePopup({ open, onOpenChange, order }) {
 								<span>-${order.couponApplied.discountAmount.toFixed(2)}</span>
 							</div>
 						)}
-						<Separator />
-						<div className="flex justify-between font-bold text-lg">
-							<span>Total Amount</span>
-							<span>${order.totalAmount.toFixed(2)}</span>
-						</div>
-					</div>
+                                                <Separator />
+                                                <div className="flex justify-between font-bold text-lg">
+                                                        <span>Total Amount</span>
+                                                        <span>${order.totalAmount.toFixed(2)}</span>
+                                                </div>
+                                                {gstLines.length > 0 && (
+                                                        <p className="text-xs text-gray-500">
+                                                                {gstMode === "cgst_sgst"
+                                                                        ? "CGST & SGST applied for Bengaluru deliveries"
+                                                                        : "IGST applied for this delivery"}
+                                                        </p>
+                                                )}
+                                        </div>
 
 					<Separator />
 

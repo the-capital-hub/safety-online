@@ -39,6 +39,7 @@ import { useAuthStore, useLoggedInUser, useUserEmail } from "@/store/authStore";
 import { useProductStore } from "@/store/productStore.js";
 import { useCheckoutStore } from "@/store/checkoutStore.js";
 import Image from "next/image";
+import { buildGstLineItems } from "@/lib/utils/gst.js";
 
 export default function CheckoutPage() {
 	const router = useRouter();
@@ -765,12 +766,14 @@ export default function CheckoutPage() {
 		const currentCoupon =
 			checkoutType === "cart" ? cartAppliedCoupon : appliedCoupon;
 
-		return (
-			<Card className="sticky top-4">
-				<CardHeader>
-					<CardTitle>Order Summary</CardTitle>
-				</CardHeader>
-				<CardContent className="space-y-4">
+                const gstLines = buildGstLineItems(orderSummary.gst);
+
+                return (
+                        <Card className="sticky top-4">
+                                <CardHeader>
+                                        <CardTitle>Order Summary</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
 					{/* Items */}
 					<div className="space-y-3">
 						{orderSummary.items.map((item, index) => (
@@ -876,18 +879,31 @@ export default function CheckoutPage() {
 								)}
 							</span>
 						</div>
-						{orderSummary.discount > 0 && (
-							<div className="flex justify-between text-green-600">
-								<span>Discount</span>
-								<span>-₹{orderSummary.discount.toLocaleString()}</span>
-							</div>
-						)}
-						<Separator />
-						<div className="flex justify-between font-bold text-lg">
-							<span>Total</span>
-							<span>₹{orderSummary.total.toLocaleString()}</span>
-						</div>
-					</div>
+                                                {orderSummary.discount > 0 && (
+                                                        <div className="flex justify-between text-green-600">
+                                                                <span>Discount</span>
+                                                                <span>-₹{orderSummary.discount.toLocaleString()}</span>
+                                                        </div>
+                                                )}
+                                                {gstLines.map((line) => (
+                                                        <div className="flex justify-between" key={line.key}>
+                                                                <span>{line.label}</span>
+                                                                <span>₹{line.amount.toLocaleString()}</span>
+                                                        </div>
+                                                ))}
+                                                <Separator />
+                                                <div className="flex justify-between font-bold text-lg">
+                                                        <span>Total</span>
+                                                        <span>₹{orderSummary.total.toLocaleString()}</span>
+                                                </div>
+                                                {gstLines.length > 0 && (
+                                                        <p className="text-xs text-gray-500">
+                                                                {orderSummary.gst?.mode === "cgst_sgst"
+                                                                        ? "CGST & SGST applied for Bengaluru deliveries"
+                                                                        : "IGST applied for this delivery"}
+                                                        </p>
+                                                )}
+                                        </div>
 
 					{/* Free shipping message */}
 					{orderSummary.subtotal < 500 && (
