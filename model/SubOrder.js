@@ -1,5 +1,40 @@
 import mongoose from "mongoose";
 
+const GstBreakdownSchema = new mongoose.Schema(
+        {
+                mode: {
+                        type: String,
+                        enum: ["igst", "cgst_sgst"],
+                        default: "igst",
+                },
+                rate: {
+                        type: Number,
+                        default: 18,
+                },
+                cgst: {
+                        type: Number,
+                        default: 0,
+                },
+                sgst: {
+                        type: Number,
+                        default: 0,
+                },
+                igst: {
+                        type: Number,
+                        default: 0,
+                },
+                total: {
+                        type: Number,
+                        default: 0,
+                },
+                taxableAmount: {
+                        type: Number,
+                        default: 0,
+                },
+        },
+        { _id: false }
+);
+
 const SubOrderSchema = new mongoose.Schema(
 	{
 		orderId: {
@@ -30,11 +65,24 @@ const SubOrderSchema = new mongoose.Schema(
 		],
 
 		// Pricing for this seller
-		subtotal: Number,
-		tax: Number,
-		shippingCost: Number,
-		discount: Number,
-		totalAmount: Number,
+                subtotal: Number,
+                tax: Number,
+                shippingCost: Number,
+                discount: Number,
+                taxableAmount: Number,
+                totalAmount: Number,
+                gst: {
+                        type: GstBreakdownSchema,
+                        default: () => ({
+                                mode: "igst",
+                                rate: 18,
+                                cgst: 0,
+                                sgst: 0,
+                                igst: 0,
+                                total: 0,
+                                taxableAmount: 0,
+                        }),
+                },
 
 		// Coupon/Promo applied to this sub-order
 		couponApplied: {

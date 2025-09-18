@@ -23,19 +23,24 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useAdminOrderStore } from "@/store/adminOrderStore.js";
+import { GST_RATE_PERCENT } from "@/lib/utils/gst.js";
 
 export function UpdateOrderPopup({ open, onOpenChange, order, onUpdate }) {
-	const { updateOrder, loading } = useAdminOrderStore();
+        const { updateOrder, loading } = useAdminOrderStore();
 
-	const [formData, setFormData] = useState({
-		status: "",
-		paymentStatus: "",
-		trackingNumber: "",
-		estimatedDelivery: "",
-		adminNotes: "",
-		shippingCost: "",
-		tax: "",
-	});
+        const [formData, setFormData] = useState({
+                status: "",
+                paymentStatus: "",
+                trackingNumber: "",
+                estimatedDelivery: "",
+                adminNotes: "",
+                shippingCost: "",
+                tax: "",
+        });
+
+        const gstMode = order?.gst?.mode || "igst";
+        const gstRate = order?.gst?.rate ?? GST_RATE_PERCENT;
+        const gstLabel = gstMode === "cgst_sgst" ? "CGST + SGST (₹)" : "IGST (₹)";
 
 	useEffect(() => {
 		if (order) {
@@ -47,36 +52,65 @@ export function UpdateOrderPopup({ open, onOpenChange, order, onUpdate }) {
 					? new Date(order.estimatedDelivery).toISOString().split("T")[0]
 					: "",
 				adminNotes: order.adminNotes || "",
-				shippingCost: order.shippingCost?.toString() || "",
-				tax: order.tax?.toString() || "",
-			});
-		}
-	}, [order]);
+                                shippingCost: order.shippingCost?.toString() || "",
+                                tax:
+                                        order.gst?.total !== undefined && order.gst?.total !== null
+                                                ? order.gst.total.toString()
+                                                : order.tax?.toString() || "",
+                        });
+                }
+        }, [order]);
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 
 		if (!order) return;
 
-		const updateData = {
-			...formData,
-			shippingCost: Number.parseFloat(formData.shippingCost) || 0,
-			tax: Number.parseFloat(formData.tax) || 0,
-			estimatedDelivery: formData.estimatedDelivery
-				? new Date(formData.estimatedDelivery)
-				: null,
-		};
+                const roundToTwo = (value) => {
+                        const numeric = Number.parseFloat(value);
+                        return Number.isFinite(numeric) ? Math.round(numeric * 100) / 100 : 0;
+                };
 
-		// Recalculate total if shipping or tax changed
-		if (formData.shippingCost || formData.tax) {
-			updateData.totalAmount =
-				order.subtotal +
-				(Number.parseFloat(formData.tax) || 0) +
-				(Number.parseFloat(formData.shippingCost) || 0) -
-				(order.discount || 0);
-		}
+                const shippingCostValue = roundToTwo(formData.shippingCost);
+                const gstTotalValue = roundToTwo(formData.tax);
+                const discountValue = Number.isFinite(order?.discount)
+                        ? order.discount
+                        : Number.parseFloat(order?.discount) || 0;
+                const taxableAmount = Math.max((order.subtotal || 0) - discountValue, 0);
+                let cgst = 0;
+                let sgst = 0;
+                let igst = 0;
 
-		const result = await updateOrder(order._id, updateData);
+                if (gstMode === "cgst_sgst") {
+                        const half = Math.round((gstTotalValue / 2) * 100) / 100;
+                        cgst = half;
+                        sgst = Math.round((gstTotalValue - half) * 100) / 100;
+                } else {
+                        igst = gstTotalValue;
+                }
+
+                const updateData = {
+                        ...formData,
+                        shippingCost: shippingCostValue,
+                        tax: gstTotalValue,
+                        totalAmount:
+                                Math.round((taxableAmount + shippingCostValue + gstTotalValue) * 100) /
+                                100,
+                        gst: {
+                                mode: gstMode,
+                                rate: gstRate,
+                                cgst,
+                                sgst,
+                                igst,
+                                total: gstTotalValue,
+                                taxableAmount,
+                        },
+                        estimatedDelivery: formData.estimatedDelivery
+                                ? new Date(formData.estimatedDelivery)
+                                : null,
+                };
+
+                const result = await updateOrder(order._id, updateData);
 
 		if (result.success) {
 			toast.success("Order updated successfully");
@@ -181,8 +215,8 @@ export function UpdateOrderPopup({ open, onOpenChange, order, onUpdate }) {
 						</div>
 
 						<div className="grid grid-cols-2 gap-4">
-							<div>
-								<Label htmlFor="shippingCost">Shipping Cost ($)</Label>
+                                                        <div>
+                                                                <Label htmlFor="shippingCost">Shipping Cost (₹)</Label>
 								<Input
 									id="shippingCost"
 									type="number"
@@ -196,8 +230,8 @@ export function UpdateOrderPopup({ open, onOpenChange, order, onUpdate }) {
 								/>
 							</div>
 
-							<div>
-								<Label htmlFor="tax">Tax ($)</Label>
+                                                        <div>
+                                                                <Label htmlFor="tax">{gstLabel}</Label>
 								<Input
 									id="tax"
 									type="number"
