@@ -13,6 +13,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { Upload, Download } from "lucide-react";
 import { useSellerProductStore } from "@/store/sellerProductStore.js";
 
@@ -20,73 +28,271 @@ export function BulkUploadPopup({ open, onOpenChange }) {
 	const { bulkUploadProducts } = useSellerProductStore();
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [jsonData, setJsonData] = useState("");
+	const [csvData, setCsvData] = useState("");
+	const [mode, setMode] = useState("json");
 	const [uploadResults, setUploadResults] = useState(null);
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
-		if (!jsonData.trim()) return;
 
 		setIsSubmitting(true);
 		try {
-			const products = JSON.parse(jsonData);
+			let products = [];
+			if (mode === "json") {
+				if (!jsonData.trim()) {
+					setIsSubmitting(false);
+					return;
+				}
+				products = JSON.parse(jsonData);
+			} else {
+				if (!csvData.trim()) {
+					setIsSubmitting(false);
+					return;
+				}
+				const rows = parseCSV(csvData);
+				products = rows.map(mapRowToProduct);
+			}
+
 			const results = await bulkUploadProducts(products);
 			setUploadResults(results);
 			if (results) {
 				setJsonData("");
+				setCsvData("");
 			}
 		} catch (error) {
-			console.error("Invalid JSON format:", error);
+			console.error("Invalid data format:", error);
 		}
 		setIsSubmitting(false);
 	};
 
-	const downloadTemplate = () => {
-		const template = [
-			{
-				title: "Sample Product 1",
-				description: "This is a sample product description",
-				longDescription: "This is a detailed description of the sample product",
-				category: "personal-safety",
-				price: 99.99,
-				salePrice: 79.99,
-				stocks: 100,
-				discount: 20,
-				type: "featured",
-				published: true,
-				features: [
-					{
-						title: "High Quality",
-						description: "Made with premium materials",
-					},
-					{
-						title: "Durable",
-						description: "Long-lasting construction",
-					},
-				],
-			},
-			{
-				title: "Sample Product 2",
-				description: "Another sample product",
-				longDescription: "Detailed description for the second product",
-				category: "road-safety",
-				price: 149.99,
-				salePrice: 0,
-				stocks: 50,
-				discount: 0,
-				type: "top-selling",
-				published: true,
-				features: [],
-			},
-		];
+	const csvHeaders = [
+		"Product Category",
+		"HSN Code",
+		"Product title",
+		"Description",
+		"Sale Price",
+		"MRP",
+		"Feature Image URL link 1",
+		"Image URL link 2",
+		"Image URL link 3",
+		"Image URL link 4",
+		"Image URL link 5",
+		"Bullet Point 1",
+		"Bullet Point 2",
+		"Bullet Point 3",
+		"Bullet Point 4",
+		"Bullet Point 5",
+		"Generic Keywords",
+		"Length (cm)",
+		"Width (cm)",
+		"height (cm)",
+		"Weight (Kg)",
+		"Colour",
+		"Material used / Made Of",
+		"brand",
+		"size",
+	];
 
-		const jsonContent = JSON.stringify(template, null, 2);
-		const blob = new Blob([jsonContent], { type: "application/json" });
-		const url = window.URL.createObjectURL(blob);
-		const a = document.createElement("a");
-		a.href = url;
-		a.download = "bulk-upload-template.json";
-		a.click();
-		window.URL.revokeObjectURL(url);
+	const downloadTemplate = () => {
+		if (mode === "json") {
+			const template = [
+				{
+					title: "Sample Product 1",
+					description: "This is a sample product description",
+					longDescription:
+						"This is a detailed description of the sample product",
+					category: "personal-safety",
+					price: 99.99,
+					salePrice: 79.99,
+					stocks: 100,
+					discount: 20,
+					type: "featured",
+					published: true,
+					features: [
+						{
+							title: "High Quality",
+							description: "Made with premium materials",
+						},
+					],
+				},
+			];
+
+			const jsonContent = JSON.stringify(template, null, 2);
+			const blob = new Blob([jsonContent], {
+				type: "application/json",
+			});
+			const url = window.URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = "seller-bulk-upload-template.json";
+			a.click();
+			window.URL.revokeObjectURL(url);
+		} else {
+			const sample = [
+				"personal-safety",
+				"HSN001",
+				"Sample Product",
+				"Sample Description",
+				"79.99",
+				"99.99",
+				"https://drive.google.com/file/d/FILE_ID/view",
+				"",
+				"",
+				"",
+				"",
+				"Feature one",
+				"Feature two",
+				"",
+				"",
+				"",
+				"keyword1,keyword2",
+				"10",
+				"5",
+				"2",
+				"0.5",
+				"Red",
+				"Plastic",
+				"BrandX",
+				"M",
+			];
+			const csvContent = [csvHeaders.join(","), sample.join(",")].join("\n");
+			const blob = new Blob([csvContent], { type: "text/csv" });
+			const url = window.URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = "seller-bulk-upload-template.csv";
+			a.click();
+			window.URL.revokeObjectURL(url);
+		}
+	};
+
+	const parseCSV = (text) => {
+		const rows = [];
+		let current = "";
+		let row = [];
+		let inQuotes = false;
+
+		for (let i = 0; i < text.length; i++) {
+			const char = text[i];
+
+			if (char === '"') {
+				if (inQuotes && text[i + 1] === '"') {
+					current += '"';
+					i++;
+				} else {
+					inQuotes = !inQuotes;
+				}
+			} else if (char === "," && !inQuotes) {
+				row.push(current.trim());
+				current = "";
+			} else if ((char === "\n" || char === "\r") && !inQuotes) {
+				if (char === "\r" && text[i + 1] === "\n") i++;
+				row.push(current.trim());
+				rows.push(row);
+				row = [];
+				current = "";
+			} else {
+				current += char;
+			}
+		}
+
+		if (current || row.length) {
+			row.push(current.trim());
+			rows.push(row);
+		}
+
+		const headers = rows.shift().map((h) => h.trim());
+		return rows
+			.filter((r) => r.some((cell) => cell !== ""))
+			.map((r) => {
+				const obj = {};
+				headers.forEach((h, i) => {
+					obj[h] = r[i] ? r[i].trim() : "";
+				});
+				return obj;
+			});
+	};
+
+	const toGoogleUrl = (url) => {
+		if (!url) return "";
+		const idMatch = url.match(/\/d\/(.*?)(\/|$)/) || url.match(/id=([^&]+)/);
+		return idMatch ? `https://lh3.googleusercontent.com/d/${idMatch[1]}` : url;
+	};
+
+	const parseNumber = (value) => {
+		const num = Number.parseFloat(value);
+		return Number.isNaN(num) ? 0 : num;
+	};
+
+	const mapRowToProduct = (row) => {
+		const images = [
+			row["Feature Image URL link 1"],
+			row["Image URL link 2"],
+			row["Image URL link 3"],
+			row["Image URL link 4"],
+			row["Image URL link 5"],
+		]
+			.filter(Boolean)
+			.map((url) => toGoogleUrl(url));
+
+		const bullets = [
+			row["Bullet Point 1"],
+			row["Bullet Point 2"],
+			row["Bullet Point 3"],
+			row["Bullet Point 4"],
+			row["Bullet Point 5"],
+		].filter(Boolean);
+
+		const features = bullets.map((b) => ({ title: b, description: b }));
+
+		const keywords = row["Generic Keywords"]
+			? row["Generic Keywords"]
+					.split(/[,;]+/)
+					.map((k) => k.trim())
+					.filter(Boolean)
+			: [];
+
+		const salePrice = parseNumber(row["Sale Price"]);
+		const price = parseNumber(row["MRP"]);
+
+		const discount =
+			price && salePrice ? ((price - salePrice) / price) * 100 : 0;
+
+		return {
+			category: row["Product Category"] || "",
+			hsnCode: row["HSN Code"] || "",
+			title: row["Product title"] || "",
+			description: row["Description"] || "",
+			longDescription: row["Description"] || "",
+			salePrice,
+			price,
+			discount,
+			stocks: 10,
+			images,
+			mainImage: images[0] || "",
+			features,
+			keywords,
+			length: parseNumber(row["Length (cm)"] || 0),
+			width: parseNumber(row["Width (cm)"] || 0),
+			height: parseNumber(row["height (cm)"] || 0),
+			weight: parseNumber(row["Weight (Kg)"] || 0),
+			colour: row["Colour"] || "",
+			material: row["Material used / Made Of"] || "",
+			brand: row["brand"] || "",
+			size: row["size"] || "",
+			type: "featured",
+			published: true,
+		};
+	};
+
+	const handleCSVChange = (e) => {
+		const file = e.target.files?.[0];
+		if (!file) return;
+		const reader = new FileReader();
+		reader.onload = (event) => {
+			setCsvData(event.target.result);
+		};
+		reader.readAsText(file);
 	};
 
 	return (
@@ -102,7 +308,7 @@ export function BulkUploadPopup({ open, onOpenChange }) {
 							Bulk Upload Products
 						</DialogTitle>
 						<DialogDescription className="text-gray-600">
-							Upload multiple products at once using JSON format
+							Upload multiple products at once using JSON or CSV format
 						</DialogDescription>
 					</DialogHeader>
 
@@ -115,7 +321,7 @@ export function BulkUploadPopup({ open, onOpenChange }) {
 										Need a template?
 									</h4>
 									<p className="text-sm text-blue-700">
-										Download our JSON template to get started
+										Download our {mode.toUpperCase()} template to get started
 									</p>
 								</div>
 								<Button
@@ -171,11 +377,28 @@ export function BulkUploadPopup({ open, onOpenChange }) {
 						)}
 
 						<form onSubmit={handleSubmit} className="space-y-4">
-							<div>
-								<Label htmlFor="jsonData">Product Data (JSON Format) *</Label>
-								<Textarea
-									id="jsonData"
-									placeholder={`[
+							<div className="space-y-4">
+								<div className="max-w-xs">
+									<Label>Upload Mode</Label>
+									<Select value={mode} onValueChange={setMode}>
+										<SelectTrigger>
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="json">JSON</SelectItem>
+											<SelectItem value="csv">CSV</SelectItem>
+										</SelectContent>
+									</Select>
+								</div>
+
+								{mode === "json" ? (
+									<div>
+										<Label htmlFor="jsonData">
+											Product Data (JSON Format) *
+										</Label>
+										<Textarea
+											id="jsonData"
+											placeholder={`[
   {
     "title": "Product Name",
     "description": "Short description",
@@ -185,16 +408,32 @@ export function BulkUploadPopup({ open, onOpenChange }) {
     "published": true
   }
 ]`}
-									value={jsonData}
-									onChange={(e) => setJsonData(e.target.value)}
-									className="mt-1 font-mono text-sm"
-									rows={12}
-									required
-								/>
-								<p className="text-xs text-gray-500 mt-1">
-									Paste your JSON array of products here. Required fields:
-									title, description, category, price, stocks
-								</p>
+											value={jsonData}
+											onChange={(e) => setJsonData(e.target.value)}
+											className="mt-1 font-mono text-sm"
+											rows={12}
+											required={mode === "json"}
+										/>
+										<p className="text-xs text-gray-500 mt-1">
+											Paste your JSON array of products here. Missing fields
+											will receive default values during upload.
+										</p>
+									</div>
+								) : (
+									<div>
+										<Label htmlFor="csvData">Product Data (CSV File) *</Label>
+										<Input
+											id="csvData"
+											type="file"
+											accept=".csv"
+											onChange={handleCSVChange}
+											required={mode === "csv"}
+										/>
+										<p className="text-xs text-gray-500 mt-1">
+											Upload a CSV file with headers matching the template.
+										</p>
+									</div>
+								)}
 							</div>
 
 							<DialogFooter className="flex gap-3">
@@ -208,8 +447,11 @@ export function BulkUploadPopup({ open, onOpenChange }) {
 								</Button>
 								<Button
 									type="submit"
-									disabled={isSubmitting || !jsonData.trim()}
-									className="flex-1 bg-blue-600 hover:bg-blue-700"
+									disabled={
+										isSubmitting ||
+										(mode === "json" ? !jsonData.trim() : !csvData.trim())
+									}
+									className="flex-1 bg-orange-600 hover:bg-orange-700"
 								>
 									<Upload className="w-4 h-4 mr-2" />
 									{isSubmitting ? "Uploading..." : "Upload Products"}

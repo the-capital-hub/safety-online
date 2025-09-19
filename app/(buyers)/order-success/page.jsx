@@ -19,11 +19,11 @@ export default function OrderSuccessPage() {
 	const [isDownloading, setIsDownloading] = useState(false);
 
 	// Use the useOrder hook
-	const { downloadInvoice } = useOrder();
+	// const { downloadInvoice } = useOrder();
 
 	const orderId = searchParams.get("orderId");
 	const orderNumber = searchParams.get("orderNumber");
-	const { fetchOrder } = useOrderStore();
+	const { fetchOrder, downloadInvoice } = useOrderStore();
 
 	useEffect(() => {
 		if (!orderId || !orderNumber) {

@@ -1,5 +1,5 @@
 import { dbConnect } from "@/lib/dbConnect";
-import Product from "@/model/Product";
+import Product from "@/model/Product.js";
 import Category from "@/model/Categories.js";
 import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
@@ -19,7 +19,7 @@ export async function POST(request) {
 
 	// Verify token
 	const decoded = jwt.verify(token, process.env.JWT_SECRET);
-	const userId = decoded.userId;
+	const sellerId = decoded.userId;
 
 	try {
 		const { products } = await request.json();
@@ -48,7 +48,7 @@ export async function POST(request) {
 				: url;
 		};
 
-		const slugify = (str = "") => str.toLowerCase().trim().replace(/\s+/g, "-");
+		const slugify = (str = "") => str.toLowerCase().trim().replace(/\s+/g, " ");
 
 		const slugToName = (slug = "") =>
 			slug.replace(/-/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
@@ -57,18 +57,8 @@ export async function POST(request) {
 
 		for (const productData of products) {
 			try {
-				// Validate required fields
-				// const { title, description, price, stocks, category } = productData;
-
-				// if (!title || !description || !price || !stocks || !category) {
-				// 	results.failed.push({
-				// 		data: productData,
-				// 		error: "Missing required fields",
-				// 	});
-				// 	continue;
-				// }
-
 				const imageUrls = (productData.images || []).map(toGoogleUrl);
+
 				const rawCategory = productData.category || "misc";
 				const categorySlug = slugify(rawCategory);
 
@@ -89,11 +79,9 @@ export async function POST(request) {
 					categoryCache.set(categorySlug, categoryDoc);
 				}
 
-				// Create new product
-				// Map incoming data with safe defaults so that rows with
-				// missing fields still create products instead of failing
+				// Create new product with seller's ID
 				const product = new Product({
-					sellerId: userId,
+					sellerId: sellerId, // Use the authenticated seller's ID
 					title: productData.title || "Untitled Product",
 					description: productData.description || "No description provided",
 					longDescription:
