@@ -24,50 +24,52 @@ export const useAdminCouponStore = create((set, get) => ({
 	sortOrder: "desc",
 
 	// Actions
-	fetchCoupons: async () => {
-		set({ isLoading: true, error: null });
+        fetchCoupons: async () => {
+                set({ isLoading: true, error: null });
 
-		try {
-			const { filters, pagination, sortBy, sortOrder } = get();
+                try {
+                        const { filters, pagination, sortBy, sortOrder } = get();
 
-			const params = new URLSearchParams({
-				page: pagination.currentPage.toString(),
-				limit: pagination.limit.toString(),
-				sort: sortBy,
-				order: sortOrder,
-			});
+                        const params = new URLSearchParams({
+                                page: pagination.currentPage.toString(),
+                                limit: pagination.limit.toString(),
+                                sort: sortBy,
+                                order: sortOrder,
+                        });
 
-			// Add filters to params
-			Object.entries(filters).forEach(([key, value]) => {
-				if (
-					value !== null &&
-					value !== undefined &&
-					value !== "" &&
-					value !== "all"
-				) {
-					params.append(key, value.toString());
-				}
-			});
+                        // Add filters to params
+                        Object.entries(filters).forEach(([key, value]) => {
+                                if (
+                                        value !== null &&
+                                        value !== undefined &&
+                                        value !== "" &&
+                                        value !== "all"
+                                ) {
+                                        params.append(key, value.toString());
+                                }
+                        });
 
-			const response = await fetch(`/api/admin/coupons?${params}`);
-			const data = await response.json();
+                        const response = await fetch(`/api/admin/coupons?${params}`, {
+                                cache: "no-store",
+                        });
+                        const data = await response.json();
 
-			if (data.success) {
-				set({
-					coupons: data.coupons,
-					pagination: data.pagination,
-					isLoading: false,
-				});
-			} else {
-				set({ error: data.message, isLoading: false });
-			}
-		} catch (error) {
-			set({
-				error: "Failed to fetch coupons",
-				isLoading: false,
-			});
-		}
-	},
+                        if (data.success) {
+                                set({
+                                        coupons: data.coupons,
+                                        pagination: data.pagination,
+                                        isLoading: false,
+                                });
+                        } else {
+                                set({ error: data.message, isLoading: false });
+                        }
+                } catch (error) {
+                        set({
+                                error: "Failed to fetch coupons",
+                                isLoading: false,
+                        });
+                }
+        },
 
 	addCoupon: async (couponData) => {
 		try {
@@ -95,23 +97,32 @@ export const useAdminCouponStore = create((set, get) => ({
 		}
 	},
 
-	updateCoupon: async (couponId, updateData) => {
-		try {
-			const response = await fetch("/api/admin/coupons", {
-				method: "PUT",
-				headers: {
-					"Content-Type": "application/json",
+        updateCoupon: async (couponId, updateData) => {
+                try {
+                        const response = await fetch("/api/admin/coupons", {
+                                method: "PUT",
+                                headers: {
+                                        "Content-Type": "application/json",
 				},
 				body: JSON.stringify({ couponId, ...updateData }),
 			});
 
 			const data = await response.json();
 
-			if (data.success) {
-				toast.success("Coupon updated successfully");
-				get().fetchCoupons();
-				return true;
-			} else {
+                        if (data.success) {
+                                if (data.coupon) {
+                                        set((state) => ({
+                                                coupons: state.coupons.map((coupon) =>
+                                                        coupon._id === couponId
+                                                                ? { ...coupon, ...data.coupon }
+                                                                : coupon
+                                                ),
+                                        }));
+                                }
+                                toast.success("Coupon updated successfully");
+                                get().fetchCoupons();
+                                return true;
+                        } else {
 				toast.error(data.message);
 				return false;
 			}
