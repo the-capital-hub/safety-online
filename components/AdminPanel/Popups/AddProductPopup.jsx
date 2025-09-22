@@ -29,6 +29,8 @@ const productTypes = [
   { value: "discounted", label: "Discounted" },
 ]
 
+const NO_SUBCATEGORY_VALUE = "__no_subcategory__"
+
 export function AddProductPopup({ open, onOpenChange }) {
   const { addProduct } = useAdminProductStore()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -345,9 +347,12 @@ export function AddProductPopup({ open, onOpenChange }) {
               <div>
                 <Label>Sub Category</Label>
                 <Select
-                  value={formData.subCategory || ""}
+                  value={formData.subCategory || NO_SUBCATEGORY_VALUE}
                   onValueChange={(value) =>
-                    setFormData((prev) => ({ ...prev, subCategory: value }))
+                    setFormData((prev) => ({
+                      ...prev,
+                      subCategory: value === NO_SUBCATEGORY_VALUE ? "" : value,
+                    }))
                   }
                   disabled={!availableSubCategories.length}
                 >
@@ -361,7 +366,7 @@ export function AddProductPopup({ open, onOpenChange }) {
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No subcategory</SelectItem>
+                    <SelectItem value={NO_SUBCATEGORY_VALUE}>No subcategory</SelectItem>
                     {availableSubCategories.map((subCategory) => (
                       <SelectItem key={subCategory.name} value={subCategory.name}>
                         {subCategory.name}

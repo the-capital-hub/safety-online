@@ -29,11 +29,13 @@ import { ImageUpload } from "@/components/AdminPanel/ImageUpload.jsx";
 const normalizeValue = (value) => (typeof value === "string" ? value.trim().toLowerCase() : "");
 
 const productTypes = [
-	{ value: "featured", label: "Featured" },
-	{ value: "top-selling", label: "Top Selling" },
-	{ value: "best-selling", label: "Best Selling" },
-	{ value: "discounted", label: "Discounted" },
+        { value: "featured", label: "Featured" },
+        { value: "top-selling", label: "Top Selling" },
+        { value: "best-selling", label: "Best Selling" },
+        { value: "discounted", label: "Discounted" },
 ];
+
+const NO_SUBCATEGORY_VALUE = "__no_subcategory__";
 
 export function UpdateProductPopup({ open, onOpenChange, product }) {
 	const { updateProduct } = useAdminProductStore();
@@ -433,11 +435,14 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
                                                         <div>
                                                                 <Label>Sub Category</Label>
                                                                 <Select
-                                                                        value={formData.subCategory || ""}
+                                                                        value={formData.subCategory || NO_SUBCATEGORY_VALUE}
                                                                         onValueChange={(value) =>
                                                                                 setFormData((prev) => ({
                                                                                         ...prev,
-                                                                                        subCategory: value,
+                                                                                        subCategory:
+                                                                                                value === NO_SUBCATEGORY_VALUE
+                                                                                                        ? ""
+                                                                                                        : value,
                                                                                 }))
                                                                         }
                                                                         disabled={!availableSubCategories.length}
@@ -452,7 +457,9 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
                                                                                 />
                                                                         </SelectTrigger>
                                                                         <SelectContent>
-                                                                                <SelectItem value="">No subcategory</SelectItem>
+                                                                                <SelectItem value={NO_SUBCATEGORY_VALUE}>
+                                                                                        No subcategory
+                                                                                </SelectItem>
                                                                                 {availableSubCategories.map((subCategory) => (
                                                                                         <SelectItem key={subCategory.name} value={subCategory.name}>
                                                                                                 {subCategory.name}
