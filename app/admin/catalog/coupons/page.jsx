@@ -133,9 +133,13 @@ export default function AdminCouponsPage() {
 		}
 	};
 
-	const handlePublishToggle = async (couponId, published) => {
-		await updateCoupon(couponId, { published });
-	};
+        const handlePublishToggle = async (couponId, published) => {
+                await updateCoupon(couponId, { published });
+        };
+
+        const handleRecommendedToggle = async (couponId, recommended) => {
+                await updateCoupon(couponId, { recommended });
+        };
 
 	const handleSort = (field) => {
 		const currentOrder = filters.sortOrder === "desc" ? "asc" : "desc";
@@ -366,8 +370,9 @@ export default function AdminCouponsPage() {
 													<ArrowUpDown className="ml-2 h-4 w-4" />
 												</Button>
 											</TableHead>
-											<TableHead>Status</TableHead>
-											<TableHead>Published</TableHead>
+                                                                                        <TableHead>Status</TableHead>
+                                                                                        <TableHead>Recommended</TableHead>
+                                                                                        <TableHead>Published</TableHead>
 											<TableHead>Actions</TableHead>
 										</TableRow>
 									</TableHeader>
@@ -392,14 +397,21 @@ export default function AdminCouponsPage() {
 														<div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center text-white">
 															<Percent className="w-5 h-5" />
 														</div>
-														<div>
-															<div className="font-medium">{coupon.name}</div>
-															<div className="text-sm text-gray-500">
-																Campaign
-															</div>
-														</div>
-													</div>
-												</TableCell>
+                                                                                                                <div>
+                                                                                                                        <div className="flex items-center gap-2">
+                                                                                                                                <span className="font-medium">{coupon.name}</span>
+                                                                                                                                {coupon.recommended && (
+                                                                                                                                        <Badge className="bg-blue-50 text-blue-700 border border-blue-200">
+                                                                                                                                                Recommended
+                                                                                                                                        </Badge>
+                                                                                                                                )}
+                                                                                                                        </div>
+                                                                                                                        <div className="text-sm text-gray-500">
+                                                                                                                                Campaign
+                                                                                                                        </div>
+                                                                                                                </div>
+                                                                                                       </div>
+                                                                                               </TableCell>
 												<TableCell>
 													<div className="font-mono font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded text-sm inline-block">
 														{coupon.code}
@@ -429,16 +441,27 @@ export default function AdminCouponsPage() {
 														</span>
 													</div>
 												</TableCell>
-												<TableCell>
-													<Badge className={getStatusColor(coupon.status)}>
-														{coupon.status}
-													</Badge>
-												</TableCell>
-												<TableCell>
-													<Switch
-														checked={coupon.published}
-														onCheckedChange={(checked) =>
-															handlePublishToggle(coupon._id, checked)
+                                                                                                <TableCell>
+                                                                                                        <Badge className={getStatusColor(coupon.status)}>
+                                                                                                                {coupon.status}
+                                                                                                        </Badge>
+                                                                                                </TableCell>
+                                                                                                <TableCell>
+                                                                                                        <Switch
+                                                                                                                checked={coupon.recommended}
+                                                                                                                onCheckedChange={(checked) =>
+                                                                                                                        handleRecommendedToggle(
+                                                                                                                                coupon._id,
+                                                                                                                                checked
+                                                                                                                        )
+                                                                                                                }
+                                                                                                        />
+                                                                                                </TableCell>
+                                                                                                <TableCell>
+                                                                                                        <Switch
+                                                                                                                checked={coupon.published}
+                                                                                                                onCheckedChange={(checked) =>
+                                                                                                                        handlePublishToggle(coupon._id, checked)
 														}
 													/>
 												</TableCell>

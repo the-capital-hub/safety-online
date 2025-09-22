@@ -89,8 +89,8 @@ export async function POST(request) {
 	await dbConnect();
 
 	try {
-		const { name, code, discount, startDate, endDate, published } =
-			await request.json();
+        const { name, code, discount, startDate, endDate, published, recommended } =
+                await request.json();
 
 		if (!name || !code || !discount || !startDate || !endDate) {
 			return Response.json(
@@ -116,15 +116,16 @@ export async function POST(request) {
 			status = "Scheduled";
 		}
 
-		const coupon = new Promocode({
-			name,
-			code: code.toUpperCase(),
-			discount: Number.parseFloat(discount),
-			startDate: new Date(startDate),
-			endDate: new Date(endDate),
-			published: published !== undefined ? published : true,
-			status,
-		});
+                const coupon = new Promocode({
+                        name,
+                        code: code.toUpperCase(),
+                        discount: Number.parseFloat(discount),
+                        startDate: new Date(startDate),
+                        endDate: new Date(endDate),
+                        published: published !== undefined ? published : true,
+                        recommended: recommended !== undefined ? recommended : false,
+                        status,
+                });
 
 		await coupon.save();
 
@@ -172,28 +173,51 @@ export async function PUT(request) {
 		}
 
 		// Update status based on dates
-		if (updateData.startDate || updateData.endDate) {
-			const coupon = await Promocode.findById(couponId);
-			const startDate = updateData.startDate
-				? new Date(updateData.startDate)
-				: coupon.startDate;
-			const endDate = updateData.endDate
-				? new Date(updateData.endDate)
-				: coupon.endDate;
-			const now = new Date();
+                if (updateData.startDate || updateData.endDate) {
+                        const coupon = await Promocode.findById(couponId);
+                        const startDate = updateData.startDate
+                                ? new Date(updateData.startDate)
+                                : coupon.startDate;
+                        const endDate = updateData.endDate
+                                ? new Date(updateData.endDate)
+                                : coupon.endDate;
+                        const now = new Date();
 
-			let status = "Active";
-			if (endDate < now) {
-				status = "Expired";
-			} else if (startDate > now) {
-				status = "Scheduled";
-			}
-			updateData.status = status;
-		}
+                        let status = "Active";
+                        if (endDate < now) {
+                                status = "Expired";
+                        } else if (startDate > now) {
+                                status = "Scheduled";
+                        }
+                        updateData.status = status;
 
-		const coupon = await Promocode.findByIdAndUpdate(couponId, updateData, {
-			new: true,
-		});
+                        if (updateData.startDate) {
+                                updateData.startDate = startDate;
+                        }
+                        if (updateData.endDate) {
+                                updateData.endDate = endDate;
+                        }
+                }
+
+                if (updateData.code) {
+                        updateData.code = updateData.code.toUpperCase();
+                }
+
+                if (updateData.discount !== undefined) {
+                        updateData.discount = Number.parseFloat(updateData.discount);
+                }
+
+                if (updateData.published !== undefined) {
+                        updateData.published = Boolean(updateData.published);
+                }
+
+                if (updateData.recommended !== undefined) {
+                        updateData.recommended = Boolean(updateData.recommended);
+                }
+
+                const coupon = await Promocode.findByIdAndUpdate(couponId, updateData, {
+                        new: true,
+                });
 
 		if (!coupon) {
 			return Response.json(
