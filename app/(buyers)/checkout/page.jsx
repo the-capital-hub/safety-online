@@ -44,7 +44,7 @@ import { buildGstLineItems } from "@/lib/utils/gst.js";
 export default function CheckoutPage() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
-        const [isRazorpayLoaded, setIsRazorpayLoaded] = useState(false);
+	const [isRazorpayLoaded, setIsRazorpayLoaded] = useState(false);
 	const [couponCode, setCouponCode] = useState("");
 
 	// Auth store
@@ -192,62 +192,62 @@ export default function CheckoutPage() {
 		router,
 	]);
 
-        // Handle Razorpay script load
-        const handleRazorpayLoad = useCallback(() => {
-                setIsRazorpayLoaded(true);
-        }, []);
+	// Handle Razorpay script load
+	const handleRazorpayLoad = useCallback(() => {
+		setIsRazorpayLoaded(true);
+	}, []);
 
-        const handleRazorpayError = useCallback(() => {
-                toast.error(
-                        "We couldn't load Razorpay right now. Please refresh the page or choose Cash on Delivery."
-                );
-        }, []);
+	const handleRazorpayError = useCallback(() => {
+		toast.error(
+			"We couldn't load Razorpay right now. Please refresh the page or choose Cash on Delivery."
+		);
+	}, []);
 
-        useEffect(() => {
-                if (typeof window === "undefined") {
-                        return;
-                }
+	useEffect(() => {
+		if (typeof window === "undefined") {
+			return;
+		}
 
-                if (window.Razorpay) {
-                        setIsRazorpayLoaded(true);
-                        return;
-                }
+		if (window.Razorpay) {
+			setIsRazorpayLoaded(true);
+			return;
+		}
 
-                let intervalId = null;
-                let timeoutId = null;
+		let intervalId = null;
+		let timeoutId = null;
 
-                intervalId = setInterval(() => {
-                        if (window.Razorpay) {
-                                setIsRazorpayLoaded(true);
-                                if (intervalId) {
-                                        clearInterval(intervalId);
-                                }
-                                if (timeoutId) {
-                                        clearTimeout(timeoutId);
-                                }
-                        }
-                }, 300);
+		intervalId = setInterval(() => {
+			if (window.Razorpay) {
+				setIsRazorpayLoaded(true);
+				if (intervalId) {
+					clearInterval(intervalId);
+				}
+				if (timeoutId) {
+					clearTimeout(timeoutId);
+				}
+			}
+		}, 300);
 
-                timeoutId = setTimeout(() => {
-                        if (!window.Razorpay) {
-                                toast.error(
-                                        "Razorpay is taking longer than expected to load. Please refresh or select Cash on Delivery."
-                                );
-                        }
-                        if (intervalId) {
-                                clearInterval(intervalId);
-                        }
-                }, 10000);
+		timeoutId = setTimeout(() => {
+			if (!window.Razorpay) {
+				toast.error(
+					"Razorpay is taking longer than expected to load. Please refresh or select Cash on Delivery."
+				);
+			}
+			if (intervalId) {
+				clearInterval(intervalId);
+			}
+		}, 10000);
 
-                return () => {
-                        if (intervalId) {
-                                clearInterval(intervalId);
-                        }
-                        if (timeoutId) {
-                                clearTimeout(timeoutId);
-                        }
-                };
-        }, []);
+		return () => {
+			if (intervalId) {
+				clearInterval(intervalId);
+			}
+			if (timeoutId) {
+				clearTimeout(timeoutId);
+			}
+		};
+	}, []);
 
 	// Handle address selection
 	const handleAddressSelect = useCallback(
@@ -693,21 +693,21 @@ export default function CheckoutPage() {
 						</div>
 					</div>
 
-                                        {paymentMethod === "razorpay" && (
-                                                <>
-                                                        <div className="p-4 bg-blue-50 rounded-lg">
-                                                                <p className="text-sm text-blue-800">
-                                                                        You will be redirected to Razorpay for secure payment
-                                                                        processing.
-                                                                </p>
-                                                        </div>
-                                                        {!isRazorpayLoaded && (
-                                                                <p className="text-sm text-yellow-700 bg-yellow-50 border border-yellow-200 rounded-md p-3">
-                                                                        Initializing Razorpay checkout... Please wait a moment.
-                                                                </p>
-                                                        )}
-                                                </>
-                                        )}
+					{paymentMethod === "razorpay" && (
+						<>
+							<div className="p-4 bg-blue-50 rounded-lg">
+								<p className="text-sm text-blue-800">
+									You will be redirected to Razorpay for secure payment
+									processing.
+								</p>
+							</div>
+							{!isRazorpayLoaded && (
+								<p className="text-sm text-yellow-700 bg-yellow-50 border border-yellow-200 rounded-md p-3">
+									Initializing Razorpay checkout... Please wait a moment.
+								</p>
+							)}
+						</>
+					)}
 
 					<div className="flex gap-3">
 						<Button
@@ -718,28 +718,28 @@ export default function CheckoutPage() {
 							<ArrowLeft className="mr-2 h-4 w-4" />
 							Back
 						</Button>
-                                                {paymentMethod === "razorpay" && (
-                                                        <Button
-                                                                onClick={handlePayment}
-                                                                disabled={
-                                                                        paymentLoading ||
-                                                                        (paymentMethod === "razorpay" && !isRazorpayLoaded)
-                                                                }
-                                                                className="flex-1 bg-green-600 hover:bg-green-700"
-                                                        >
-                                                                {paymentLoading ? (
-                                                                        <>
-                                                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                                                Processing...
-                                                                        </>
-                                                                ) : (
-                                                                        <>
-                                                                                {`Pay ₹${orderSummary.total.toLocaleString()}`}
-                                                                                <ArrowRight className="ml-2 h-4 w-4" />
-                                                                        </>
-                                                                )}
-                                                        </Button>
-                                                )}
+						{paymentMethod === "razorpay" && (
+							<Button
+								onClick={handlePayment}
+								disabled={
+									paymentLoading ||
+									(paymentMethod === "razorpay" && !isRazorpayLoaded)
+								}
+								className="flex-1 bg-green-600 hover:bg-green-700"
+							>
+								{paymentLoading ? (
+									<>
+										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+										Processing...
+									</>
+								) : (
+									<>
+										{`Pay ₹${orderSummary.total.toLocaleString()}`}
+										<ArrowRight className="ml-2 h-4 w-4" />
+									</>
+								)}
+							</Button>
+						)}
 
 						{paymentMethod === "cod" && (
 							<Button
@@ -794,12 +794,12 @@ export default function CheckoutPage() {
 
                 const gstLines = buildGstLineItems(orderSummary.gst);
 
-                return (
-                        <Card className="sticky top-4">
-                                <CardHeader>
-                                        <CardTitle>Order Summary</CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
+		return (
+			<Card className="sticky top-4">
+				<CardHeader>
+					<CardTitle>Order Summary</CardTitle>
+				</CardHeader>
+				<CardContent className="space-y-4">
 					{/* Items */}
 					<div className="space-y-3">
 						{orderSummary.items.map((item, index) => (
@@ -1069,13 +1069,13 @@ export default function CheckoutPage() {
 
 	return (
 		<>
-                        <Script
-                                src="https://checkout.razorpay.com/v1/checkout.js"
-                                strategy="afterInteractive"
-                                onLoad={handleRazorpayLoad}
-                                onReady={handleRazorpayLoad}
-                                onError={handleRazorpayError}
-                        />
+			<Script
+				src="https://checkout.razorpay.com/v1/checkout.js"
+				strategy="afterInteractive"
+				onLoad={handleRazorpayLoad}
+				onReady={handleRazorpayLoad}
+				onError={handleRazorpayError}
+			/>
 
 			<div className="min-h-screen bg-gray-50 py-8">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
