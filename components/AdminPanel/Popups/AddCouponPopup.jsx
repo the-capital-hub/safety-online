@@ -21,23 +21,24 @@ export function AddCouponPopup({ open, onOpenChange }) {
 	const { addCoupon, generateCouponCode } = useAdminCouponStore();
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
-	const [formData, setFormData] = useState({
-		name: "",
-		code: "",
-		discount: "",
-		startDate: "",
-		endDate: "",
-		published: true,
-	});
+        const [formData, setFormData] = useState({
+                name: "",
+                code: "",
+                discount: "",
+                startDate: "",
+                endDate: "",
+                published: true,
+                recommended: false,
+        });
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		setIsSubmitting(true);
 
-		const couponData = {
-			...formData,
-			discount: Number.parseFloat(formData.discount),
-		};
+                const couponData = {
+                        ...formData,
+                        discount: Number.parseFloat(formData.discount),
+                };
 
 		const success = await addCoupon(couponData);
 		if (success) {
@@ -48,14 +49,15 @@ export function AddCouponPopup({ open, onOpenChange }) {
 	};
 
 	const resetForm = () => {
-		setFormData({
-			name: "",
-			code: "",
-			discount: "",
-			startDate: "",
-			endDate: "",
-			published: true,
-		});
+                setFormData({
+                        name: "",
+                        code: "",
+                        discount: "",
+                        startDate: "",
+                        endDate: "",
+                        published: true,
+                        recommended: false,
+                });
 	};
 
 	const handleGenerateCode = () => {
@@ -197,20 +199,35 @@ export function AddCouponPopup({ open, onOpenChange }) {
 							</div>
 						</div>
 
-						<div className="flex items-center justify-between">
-							<div>
-								<Label>Publish Coupon</Label>
-								<p className="text-sm text-gray-500">
-									Make this coupon available to customers
-								</p>
-							</div>
-							<Switch
-								checked={formData.published}
-								onCheckedChange={(checked) =>
-									setFormData({ ...formData, published: checked })
-								}
-							/>
-						</div>
+                                                <div className="flex items-center justify-between">
+                                                        <div>
+                                                                <Label>Publish Coupon</Label>
+                                                                <p className="text-sm text-gray-500">
+                                                                        Make this coupon available to customers
+                                                                </p>
+                                                        </div>
+                                                        <Switch
+                                                                checked={formData.published}
+                                                                onCheckedChange={(checked) =>
+                                                                        setFormData({ ...formData, published: checked })
+                                                                }
+                                                        />
+                                                </div>
+
+                                                <div className="flex items-center justify-between">
+                                                        <div>
+                                                                <Label>Recommend Coupon</Label>
+                                                                <p className="text-sm text-gray-500">
+                                                                        Highlight this coupon for shoppers
+                                                                </p>
+                                                        </div>
+                                                        <Switch
+                                                                checked={formData.recommended}
+                                                                onCheckedChange={(checked) =>
+                                                                        setFormData({ ...formData, recommended: checked })
+                                                                }
+                                                        />
+                                                </div>
 
 						<DialogFooter className="flex gap-3 mt-6">
 							<Button

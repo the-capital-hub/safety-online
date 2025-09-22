@@ -48,40 +48,89 @@ export async function POST(request) {
 				: url;
 		};
 
-		const slugify = (str = "") => str.toLowerCase().trim().replace(/\s+/g, " ");
+                const slugify = (str = "") =>
+                        str
+                                .toString()
+                                .toLowerCase()
+                                .trim()
+                                .replace(/\s+/g, "-")
+                                .replace(/-+/g, "-");
 
-		const slugToName = (slug = "") =>
-			slug.replace(/-/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
+                const slugToName = (slug = "") =>
+                        slug
+                                .replace(/-/g, " ")
+                                .replace(/\s+/g, " ")
+                                .trim()
+                                .replace(/\b\w/g, (char) => char.toUpperCase());
 
-		const categoryCache = new Map();
+                const escapeRegex = (str = "") =>
+                        str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-		for (const productData of products) {
-			try {
+                const categoryCache = new Map();
+
+                for (const productData of products) {
+                        try {
 				const imageUrls = (productData.images || []).map(toGoogleUrl);
 
-				const rawCategory = productData.category || "misc";
-				const categorySlug = slugify(rawCategory);
+                                const rawCategory = productData.category || "misc";
+                                const categorySlug = slugify(rawCategory) || "misc";
+                                const categoryName = slugToName(categorySlug);
 
-				let categoryDoc = categoryCache.get(categorySlug);
-				if (!categoryDoc) {
-					const categoryName = slugToName(categorySlug);
-					categoryDoc = await Category.findOne({
-						name: new RegExp(`^${categoryName}$`, "i"),
-					});
-					if (!categoryDoc) {
-						categoryDoc = await Category.create({
-							name: categoryName,
-							subCategories: [],
-							published: true,
-							productCount: 0,
-						});
-					}
-					categoryCache.set(categorySlug, categoryDoc);
-				}
+                                let categoryDoc = categoryCache.get(categorySlug);
+                                if (!categoryDoc) {
+                                        const categoryQuery = {
+                                                $or: [categoryName, categorySlug, categorySlug.replace(/-/g, " ")]
+                                                        .filter(Boolean)
+                                                        .map((value) => ({
+                                                                name: new RegExp(`^${escapeRegex(value)}$`, "i"),
+                                                        })),
+                                        };
 
-				// Create new product with seller's ID
-				const product = new Product({
-					sellerId: sellerId, // Use the authenticated seller's ID
+                                        categoryDoc = await Category.findOne(categoryQuery);
+
+                                        if (!categoryDoc) {
+                                                categoryDoc = await Category.create({
+                                                        name: categoryName,
+                                                        subCategories: [],
+                                                        published: true,
+                                                        productCount: 0,
+                                                });
+                                        }
+
+                                        categoryCache.set(categorySlug, categoryDoc);
+                                }
+
+                                if (!Array.isArray(categoryDoc.subCategories)) {
+                                        categoryDoc.subCategories = [];
+                                }
+
+                                const rawSubCategory = productData.subCategory || "";
+                                const subCategorySlug = slugify(rawSubCategory);
+                                const subCategoryName = subCategorySlug
+                                        ? slugToName(subCategorySlug)
+                                        : "";
+
+                                let subCategoryEntry = null;
+                                let subCategoriesModified = false;
+
+                                if (subCategorySlug) {
+                                        subCategoryEntry = categoryDoc.subCategories.find(
+                                                (sub) => slugify(sub.name) === subCategorySlug
+                                        );
+
+                                        if (!subCategoryEntry) {
+                                                subCategoryEntry = {
+                                                        name: subCategoryName,
+                                                        productCount: 0,
+                                                };
+                                                categoryDoc.subCategories.push(subCategoryEntry);
+                                                subCategoriesModified = true;
+                                        }
+                                }
+
+                                // Create new product with seller's ID
+                                const product = new Product({
+                                        sellerId: sellerId, // Use the authenticated seller's ID
 					title: productData.title || "Untitled Product",
 					description: productData.description || "No description provided",
 					longDescription:
@@ -89,34 +138,45 @@ export async function POST(request) {
 						productData.description ||
 						"No description provided",
 					images: imageUrls,
-					category: categorySlug,
-					published:
-						productData.published !== undefined ? productData.published : true,
-					stocks: toNumber(productData.stocks),
-					price: toNumber(productData.price),
-					salePrice: toNumber(productData.salePrice),
-					discount: toNumber(productData.discount),
-					type: productData.type || "featured",
-					features: productData.features || [],
-					keywords: productData.keywords || [],
-					subCategory: productData.subCategory || "",
-					mainImage: toGoogleUrl(productData.mainImage) || imageUrls[0] || "",
-					hsnCode: productData.hsnCode || "",
-					brand: productData.brand || "",
-					length: toNumber(productData.length),
+                                        category: categorySlug,
+                                        published:
+                                                productData.published !== undefined ? productData.published : true,
+                                        stocks: toNumber(productData.stocks),
+                                        price: toNumber(productData.price),
+                                        salePrice: toNumber(productData.salePrice),
+                                        discount: toNumber(productData.discount),
+                                        type: productData.type || "featured",
+                                        features: productData.features || [],
+                                        keywords: productData.keywords || [],
+                                        subCategory: subCategorySlug,
+                                        mainImage: toGoogleUrl(productData.mainImage) || imageUrls[0] || "",
+                                        hsnCode: productData.hsnCode || "",
+                                        brand: productData.brand || "",
+                                        length: toNumber(productData.length),
 					width: toNumber(productData.width),
 					height: toNumber(productData.height),
 					weight: toNumber(productData.weight),
 					colour: productData.colour || "",
 					material: productData.material || "",
 					size: productData.size || "",
-				});
+                                });
 
-				await product.save();
-				await Category.findByIdAndUpdate(categoryDoc._id, {
-					$inc: { productCount: 1 },
-				});
-				results.success.push(product);
+                                await product.save();
+                                categoryDoc.productCount = (categoryDoc.productCount || 0) + 1;
+
+                                if (subCategoryEntry) {
+                                        subCategoryEntry.productCount =
+                                                (subCategoryEntry.productCount || 0) + 1;
+                                        subCategoriesModified = true;
+                                }
+
+                                if (subCategoriesModified) {
+                                        categoryDoc.markModified("subCategories");
+                                }
+
+                                categoryDoc = await categoryDoc.save();
+                                categoryCache.set(categorySlug, categoryDoc);
+                                results.success.push(product);
 			} catch (error) {
 				results.failed.push({
 					data: productData,
