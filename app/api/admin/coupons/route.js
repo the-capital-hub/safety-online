@@ -17,6 +17,7 @@ const normalizeBoolean = (value, defaultValue = false) => {
                         return defaultValue;
                 }
 
+
                 if (["true", "1", "yes", "on"].includes(normalized)) {
                         return true;
                 }
