@@ -2,156 +2,73 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronDown } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useProductStore } from "@/store/productStore.js";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+
+const MENU_ITEMS = [
+        { label: "Home", slug: "home" },
+        { label: "Road Safety", slug: "road-safety" },
+        { label: "Industrial Safety", slug: "industrial-safety" },
+        { label: "Q-Manager", slug: "q-manager" },
+        { label: "Fire Safety", slug: "fire-safety" },
+        { label: "Road Sign", slug: "road-sign" },
+        { label: "Contact Us", slug: "contact-us" },
+];
 
 export default function NavigationBar({ isMenuOpen, onMenuClose }) {
-	const [searchQuery, setSearchQuery] = useState("");
-	const [navCategories, setNavCategories] = useState([]);
-	const router = useRouter();
-	const {
-		setSearchQuery: setGlobalSearch,
-		currentCategory,
-		setCurrentCategory,
-	} = useProductStore();
+        const router = useRouter();
+        const pathname = usePathname();
+        const searchParams = useSearchParams();
+        const [activeItem, setActiveItem] = useState(MENU_ITEMS[0]?.slug || "");
+        const sectionParam = searchParams.get("section");
 
-	useEffect(() => {
-		let active = true;
-		(async () => {
-			try {
-				const res = await fetch("/api/categories");
-				const data = await res.json();
-				if (!active) return;
-				if (data.success) {
-					setNavCategories(data.categories || []);
-				} else {
-					setNavCategories([]);
-				}
-			} catch (e) {
-				setNavCategories([]);
-			}
-		})();
-		return () => {
-			active = false;
-		};
-	}, []);
+        useEffect(() => {
+                if (pathname === "/coming-soon" && sectionParam) {
+                        setActiveItem(sectionParam);
+                        return;
+                }
 
-	const handleCategoryClick = (categoryName) => {
-		const formattedCategory = categoryName.replace(/\s+/g, "-"); // replace spaces with -
-		setCurrentCategory(formattedCategory);
-		router.push(`/products?category=${encodeURIComponent(formattedCategory)}`);
-		if (onMenuClose) onMenuClose();
-	};
+                if (pathname === "/") {
+                        setActiveItem("home");
+                }
+        }, [pathname, sectionParam]);
 
-	const handleSubcategoryClick = (categoryName, subName) => {
-		const formattedCategory = categoryName.replace(/\s+/g, "-");
-		const formattedSubName = subName.replace(/\s+/g, "-");
-		router.push(
-			`/products?category=${encodeURIComponent(
-				formattedCategory
-			)}&subCategory=${encodeURIComponent(formattedSubName)}`
-		);
-		if (onMenuClose) onMenuClose();
-	};
+        const handleNavigation = (item) => {
+                setActiveItem(item.slug);
+                router.push(
+                        `/coming-soon?section=${encodeURIComponent(
+                                item.slug
+                        )}&label=${encodeURIComponent(item.label)}`
+                );
+                if (onMenuClose) onMenuClose();
+        };
 
-	const handleSearch = (e) => {
-		e.preventDefault();
-		if (searchQuery.trim()) {
-			setGlobalSearch(searchQuery);
-			router.push(`/products?search=${encodeURIComponent(searchQuery)}`);
-		}
-	};
-
-	function toSentenceCase(str) {
-		if (!str) return "";
-
-		return str
-			.toLowerCase()
-			.split(" ")
-			.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-			.join(" ");
-	}
-
-	return (
-		<nav
-			className={`${
-				isMenuOpen ? "block" : "hidden"
-			} lg:block bg-white border-t shadow-sm`}
-		>
+        return (
+                <nav
+                        className={`${
+                                isMenuOpen ? "block" : "hidden"
+                        } lg:block bg-white border-t shadow-sm`}
+                >
 			<div className="px-4 lg:px-10 relative z-10">
 				<div className="flex flex-col lg:flex-row lg:items-center lg:justify-between py-4 space-y-4 lg:space-y-0 overflow-x-auto hide-scrollbar">
 					<div className="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0 lg:space-x-4">
-						<Button
-							variant="ghost"
-							className={`${
-								currentCategory === "all"
-									? "bg-black text-white"
-									: "hover:bg-gray-100"
-							} justify-start lg:justify-center`}
-							onClick={() => handleCategoryClick("all")}
-						>
-							All PRODUCTS
-						</Button>
+                                                {MENU_ITEMS.map((item) => (
+                                                        <Button
+                                                                key={item.slug}
+                                                                variant="ghost"
+                                                                className={`${
+                                                                        activeItem === item.slug
+                                                                                ? "bg-black text-white"
+                                                                                : "hover:bg-gray-100"
+                                                                } justify-start lg:justify-center whitespace-nowrap`}
+                                                                onClick={() => handleNavigation(item)}
+                                                        >
+                                                                {item.label}
+                                                        </Button>
+                                                ))}
+                                        </div>
 
-						{navCategories.map((cat) => {
-							const hasSubs = cat.subCategories || [];
-							if (hasSubs) {
-								return (
-									<DropdownMenu key={cat._id || cat.name}>
-										<DropdownMenuTrigger asChild>
-											<Button
-												variant="ghost"
-												className={`${
-													currentCategory === cat.name
-														? "bg-black text-white"
-														: "hover:bg-gray-100"
-												} justify-start lg:justify-center`}
-											>
-												{cat.name.toUpperCase()}
-												<ChevronDown className="ml-1 h-4 w-4" />
-											</Button>
-										</DropdownMenuTrigger>
-										<DropdownMenuContent align="start">
-											{(cat.subCategories || []).map((sub, i) => (
-												<DropdownMenuItem
-													key={i}
-													onClick={() =>
-														handleSubcategoryClick(cat.name, sub.name)
-													}
-												>
-													{toSentenceCase(sub.name)}
-												</DropdownMenuItem>
-											))}
-										</DropdownMenuContent>
-									</DropdownMenu>
-								);
-							}
-							return (
-								<Button
-									key={cat._id || cat.name}
-									variant="ghost"
-									className={`${
-										currentCategory === cat.name
-											? "bg-black text-white"
-											: "hover:bg-gray-100"
-									} justify-start lg:justify-center`}
-									onClick={() => handleCategoryClick(cat.name)}
-								>
-									{cat.name}
-								</Button>
-							);
-						})}
-					</div>
-
-					{/* Optional search (kept commented out as in original) */}
-					{/* <form onSubmit={handleSearch} className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                                        {/* Optional search (kept commented out as in original) */}
+                                        {/* <form onSubmit={handleSearch} className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
             <div className="relative">
               <Input
                 placeholder="Search products..."
