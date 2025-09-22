@@ -1,6 +1,30 @@
 import { dbConnect } from "@/lib/dbConnect.js";
 import Promocode from "@/model/Promocode.js";
 
+const normalizeBoolean = (value, defaultValue = false) => {
+        if (value === undefined || value === null) {
+                return defaultValue;
+        }
+
+        if (typeof value === "boolean") {
+                return value;
+        }
+
+        if (typeof value === "string") {
+                const normalized = value.trim().toLowerCase();
+
+                if (["true", "1", "yes", "on"].includes(normalized)) {
+                        return true;
+                }
+
+                if (["false", "0", "no", "off"].includes(normalized)) {
+                        return false;
+                }
+        }
+
+        return Boolean(value);
+};
+
 export async function GET(request) {
 	await dbConnect();
 
@@ -86,11 +110,18 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-	await dbConnect();
+        await dbConnect();
 
-	try {
-        const { name, code, discount, startDate, endDate, published, recommended } =
-                await request.json();
+        try {
+                const {
+                        name,
+                        code,
+                        discount,
+                        startDate,
+                        endDate,
+                        published,
+                        recommended,
+                } = await request.json();
 
 		if (!name || !code || !discount || !startDate || !endDate) {
 			return Response.json(
@@ -122,8 +153,8 @@ export async function POST(request) {
                         discount: Number.parseFloat(discount),
                         startDate: new Date(startDate),
                         endDate: new Date(endDate),
-                        published: published !== undefined ? published : true,
-                        recommended: recommended !== undefined ? recommended : false,
+                        published: normalizeBoolean(published, true),
+                        recommended: normalizeBoolean(recommended, false),
                         status,
                 });
 
@@ -208,11 +239,11 @@ export async function PUT(request) {
                 }
 
                 if (updateData.published !== undefined) {
-                        updateData.published = Boolean(updateData.published);
+                        updateData.published = normalizeBoolean(updateData.published);
                 }
 
                 if (updateData.recommended !== undefined) {
-                        updateData.recommended = Boolean(updateData.recommended);
+                        updateData.recommended = normalizeBoolean(updateData.recommended);
                 }
 
                 const coupon = await Promocode.findByIdAndUpdate(couponId, updateData, {
