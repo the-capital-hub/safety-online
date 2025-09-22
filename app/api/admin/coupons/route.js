@@ -1,6 +1,34 @@
 import { dbConnect } from "@/lib/dbConnect.js";
 import Promocode from "@/model/Promocode.js";
 
+const normalizeBoolean = (value, defaultValue = false) => {
+        if (value === undefined || value === null) {
+                return defaultValue;
+        }
+
+        if (typeof value === "boolean") {
+                return value;
+        }
+
+        if (typeof value === "string") {
+                const normalized = value.trim().toLowerCase();
+
+                if (normalized === "" || ["null", "undefined"].includes(normalized)) {
+                        return defaultValue;
+                }
+
+                if (["true", "1", "yes", "on"].includes(normalized)) {
+                        return true;
+                }
+
+                if (["false", "0", "no", "off"].includes(normalized)) {
+                        return false;
+                }
+        }
+
+        return Boolean(value);
+};
+
 export async function GET(request) {
 	await dbConnect();
 
@@ -47,19 +75,37 @@ export async function GET(request) {
 
 		// Update status based on dates
 		const now = new Date();
-		for (const coupon of coupons) {
-			let newStatus = "Active";
-			if (new Date(coupon.endDate) < now) {
-				newStatus = "Expired";
-			} else if (new Date(coupon.startDate) > now) {
-				newStatus = "Scheduled";
-			}
+                for (const coupon of coupons) {
+                        const update = {};
 
-			if (coupon.status !== newStatus) {
-				await Promocode.findByIdAndUpdate(coupon._id, { status: newStatus });
-				coupon.status = newStatus;
-			}
-		}
+                        let newStatus = "Active";
+                        if (new Date(coupon.endDate) < now) {
+                                newStatus = "Expired";
+                        } else if (new Date(coupon.startDate) > now) {
+                                newStatus = "Scheduled";
+                        }
+
+                        if (coupon.status !== newStatus) {
+                                update.status = newStatus;
+                                coupon.status = newStatus;
+                        }
+
+                        const normalizedPublished = normalizeBoolean(coupon.published, true);
+                        if (coupon.published !== normalizedPublished) {
+                                update.published = normalizedPublished;
+                                coupon.published = normalizedPublished;
+                        }
+
+                        const normalizedRecommended = normalizeBoolean(coupon.recommended, false);
+                        if (coupon.recommended !== normalizedRecommended) {
+                                update.recommended = normalizedRecommended;
+                                coupon.recommended = normalizedRecommended;
+                        }
+
+                        if (Object.keys(update).length > 0) {
+                                await Promocode.findByIdAndUpdate(coupon._id, update);
+                        }
+                }
 
 		const total = await Promocode.countDocuments(query);
 		const totalPages = Math.ceil(total / limit);
@@ -86,11 +132,18 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-	await dbConnect();
+        await dbConnect();
 
-	try {
-        const { name, code, discount, startDate, endDate, published, recommended } =
-                await request.json();
+        try {
+                const {
+                        name,
+                        code,
+                        discount,
+                        startDate,
+                        endDate,
+                        published,
+                        recommended,
+                } = await request.json();
 
 		if (!name || !code || !discount || !startDate || !endDate) {
 			return Response.json(
@@ -122,8 +175,8 @@ export async function POST(request) {
                         discount: Number.parseFloat(discount),
                         startDate: new Date(startDate),
                         endDate: new Date(endDate),
-                        published: published !== undefined ? published : true,
-                        recommended: recommended !== undefined ? recommended : false,
+                        published: normalizeBoolean(published, true),
+                        recommended: normalizeBoolean(recommended, false),
                         status,
                 });
 
@@ -208,11 +261,11 @@ export async function PUT(request) {
                 }
 
                 if (updateData.published !== undefined) {
-                        updateData.published = Boolean(updateData.published);
+                        updateData.published = normalizeBoolean(updateData.published);
                 }
 
                 if (updateData.recommended !== undefined) {
-                        updateData.recommended = Boolean(updateData.recommended);
+                        updateData.recommended = normalizeBoolean(updateData.recommended);
                 }
 
                 const coupon = await Promocode.findByIdAndUpdate(couponId, updateData, {
