@@ -1,4 +1,5 @@
 import Product from "@/model/Product.js";
+import Review from "@/model/Review.js";
 import companyDetails from "@/model/companyDetails.js";
 import { dbConnect } from "@/lib/dbConnect.js";
 
@@ -8,7 +9,11 @@ export async function GET(req, { params }) {
 	const { id } = await params;
 
 	try {
-		const product = await Product.findById(id).populate("reviews", "rating");
+                const product = await Product.findById(id).populate({
+                        path: "reviews",
+                        select: "rating",
+                        model: Review,
+                });
 
 		if (!product) {
 			return Response.json({ message: "Product not found" }, { status: 404 });
