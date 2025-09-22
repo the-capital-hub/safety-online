@@ -134,13 +134,15 @@ export const useCartStore = create(
 					isLoading: false,
 					isOpen: false,
 					appliedPromo: null,
-					totals: {
-						subtotal: 0,
-						discount: 0,
-						total: 0,
-					},
-					lastSyncTime: null,
-					syncError: null,
+                                        totals: {
+                                                subtotal: 0,
+                                                discount: 0,
+                                                total: 0,
+                                        },
+                                        lastSyncTime: null,
+                                        syncError: null,
+                                        recommendedCoupons: [],
+                                        recommendedLoading: false,
 
 					// Helper function to check if user is authenticated
 					isAuthenticated: () => {
@@ -369,27 +371,52 @@ export const useCartStore = create(
 						}
 					},
 
-					// Handle authentication state changes
-					handleAuthChange: (isAuth) => {
-						if (isAuth) {
-							// User just logged in - fetch their server cart
-							get().fetchCart();
-						} else {
-							// User logged out - clear server data but keep local cart
-							set({
-								serverCart: null,
-								appliedPromo: null,
-								lastSyncTime: null,
-								syncError: null,
-							});
-							// Recalculate totals for local cart
-							get().calculateTotals();
-						}
-					},
+                                        // Handle authentication state changes
+                                        handleAuthChange: (isAuth) => {
+                                                if (isAuth) {
+                                                        // User just logged in - fetch their server cart
+                                                        get().fetchCart();
+                                                } else {
+                                                        // User logged out - clear server data but keep local cart
+                                                        set({
+                                                                serverCart: null,
+                                                                appliedPromo: null,
+                                                                lastSyncTime: null,
+                                                                syncError: null,
+                                                        });
+                                                        // Recalculate totals for local cart
+                                                        get().calculateTotals();
+                                                }
+                                        },
 
-					// Promo code operations
-					applyPromoCode: async (promoCode) => {
-						const isAuth = get().isAuthenticated();
+                                        fetchRecommendedCoupons: async () => {
+                                                const { recommendedCoupons, recommendedLoading } = get();
+                                                if (recommendedLoading || recommendedCoupons.length > 0) {
+                                                        return;
+                                                }
+
+                                                set({ recommendedLoading: true });
+
+                                                try {
+                                                        const response = await fetch("/api/coupons/recommended");
+                                                        if (!response.ok) {
+                                                                throw new Error("Failed to fetch recommended coupons");
+                                                        }
+
+                                                        const data = await response.json();
+                                                        if (data.success) {
+                                                                set({ recommendedCoupons: data.coupons || [] });
+                                                        }
+                                                } catch (error) {
+                                                        console.error("Recommended coupons fetch error:", error);
+                                                } finally {
+                                                        set({ recommendedLoading: false });
+                                                }
+                                        },
+
+                                        // Promo code operations
+                                        applyPromoCode: async (promoCode) => {
+                                                const isAuth = get().isAuthenticated();
 
 						if (isAuth) {
 							// For authenticated users: Apply promo on server

@@ -21,14 +21,15 @@ export function UpdateCouponPopup({ open, onOpenChange, coupon }) {
 	const { updateCoupon } = useAdminCouponStore();
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
-	const [formData, setFormData] = useState({
-		name: "",
-		code: "",
-		discount: "",
-		startDate: "",
-		endDate: "",
-		published: true,
-	});
+        const [formData, setFormData] = useState({
+                name: "",
+                code: "",
+                discount: "",
+                startDate: "",
+                endDate: "",
+                published: true,
+                recommended: false,
+        });
 
 	useEffect(() => {
 		if (coupon) {
@@ -39,13 +40,15 @@ export function UpdateCouponPopup({ open, onOpenChange, coupon }) {
 				startDate: coupon.startDate
 					? new Date(coupon.startDate).toISOString().split("T")[0]
 					: "",
-				endDate: coupon.endDate
-					? new Date(coupon.endDate).toISOString().split("T")[0]
-					: "",
-				published: coupon.published !== undefined ? coupon.published : true,
-			});
-		}
-	}, [coupon]);
+                                endDate: coupon.endDate
+                                        ? new Date(coupon.endDate).toISOString().split("T")[0]
+                                        : "",
+                                published: coupon.published !== undefined ? coupon.published : true,
+                                recommended:
+                                        coupon.recommended !== undefined ? coupon.recommended : false,
+                        });
+                }
+        }, [coupon]);
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
@@ -53,10 +56,10 @@ export function UpdateCouponPopup({ open, onOpenChange, coupon }) {
 
 		setIsSubmitting(true);
 
-		const updateData = {
-			...formData,
-			discount: Number.parseFloat(formData.discount),
-		};
+                const updateData = {
+                        ...formData,
+                        discount: Number.parseFloat(formData.discount),
+                };
 
 		const success = await updateCoupon(coupon._id, updateData);
 		if (success) {
@@ -176,20 +179,35 @@ export function UpdateCouponPopup({ open, onOpenChange, coupon }) {
 							</div>
 						</div>
 
-						<div className="flex items-center justify-between">
-							<div>
-								<Label>Publish Coupon</Label>
-								<p className="text-sm text-gray-500">
-									Make this coupon available to customers
-								</p>
-							</div>
-							<Switch
-								checked={formData.published}
-								onCheckedChange={(checked) =>
-									setFormData({ ...formData, published: checked })
-								}
-							/>
-						</div>
+                                                <div className="flex items-center justify-between">
+                                                        <div>
+                                                                <Label>Publish Coupon</Label>
+                                                                <p className="text-sm text-gray-500">
+                                                                        Make this coupon available to customers
+                                                                </p>
+                                                        </div>
+                                                        <Switch
+                                                                checked={formData.published}
+                                                                onCheckedChange={(checked) =>
+                                                                        setFormData({ ...formData, published: checked })
+                                                                }
+                                                        />
+                                                </div>
+
+                                                <div className="flex items-center justify-between">
+                                                        <div>
+                                                                <Label>Recommend Coupon</Label>
+                                                                <p className="text-sm text-gray-500">
+                                                                        Highlight this coupon for shoppers
+                                                                </p>
+                                                        </div>
+                                                        <Switch
+                                                                checked={formData.recommended}
+                                                                onCheckedChange={(checked) =>
+                                                                        setFormData({ ...formData, recommended: checked })
+                                                                }
+                                                        />
+                                                </div>
 
 						<DialogFooter className="flex gap-3 mt-6">
 							<Button
