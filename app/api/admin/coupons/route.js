@@ -13,6 +13,11 @@ const normalizeBoolean = (value, defaultValue = false) => {
         if (typeof value === "string") {
                 const normalized = value.trim().toLowerCase();
 
+                if (normalized === "" || ["null", "undefined"].includes(normalized)) {
+                        return defaultValue;
+                }
+
+
                 if (["true", "1", "yes", "on"].includes(normalized)) {
                         return true;
                 }
@@ -71,19 +76,37 @@ export async function GET(request) {
 
 		// Update status based on dates
 		const now = new Date();
-		for (const coupon of coupons) {
-			let newStatus = "Active";
-			if (new Date(coupon.endDate) < now) {
-				newStatus = "Expired";
-			} else if (new Date(coupon.startDate) > now) {
-				newStatus = "Scheduled";
-			}
+                for (const coupon of coupons) {
+                        const update = {};
 
-			if (coupon.status !== newStatus) {
-				await Promocode.findByIdAndUpdate(coupon._id, { status: newStatus });
-				coupon.status = newStatus;
-			}
-		}
+                        let newStatus = "Active";
+                        if (new Date(coupon.endDate) < now) {
+                                newStatus = "Expired";
+                        } else if (new Date(coupon.startDate) > now) {
+                                newStatus = "Scheduled";
+                        }
+
+                        if (coupon.status !== newStatus) {
+                                update.status = newStatus;
+                                coupon.status = newStatus;
+                        }
+
+                        const normalizedPublished = normalizeBoolean(coupon.published, true);
+                        if (coupon.published !== normalizedPublished) {
+                                update.published = normalizedPublished;
+                                coupon.published = normalizedPublished;
+                        }
+
+                        const normalizedRecommended = normalizeBoolean(coupon.recommended, false);
+                        if (coupon.recommended !== normalizedRecommended) {
+                                update.recommended = normalizedRecommended;
+                                coupon.recommended = normalizedRecommended;
+                        }
+
+                        if (Object.keys(update).length > 0) {
+                                await Promocode.findByIdAndUpdate(coupon._id, update);
+                        }
+                }
 
 		const total = await Promocode.countDocuments(query);
 		const totalPages = Math.ceil(total / limit);
