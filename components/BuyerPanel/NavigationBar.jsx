@@ -14,6 +14,11 @@ const MENU_ITEMS = [
         { label: "Contact Us", slug: "contact-us" },
 ];
 
+const DIRECT_ROUTES = {
+        home: "/home",
+        "contact-us": "/contact",
+};
+
 export default function NavigationBar({ isMenuOpen, onMenuClose }) {
         const router = useRouter();
         const pathname = usePathname();
@@ -27,13 +32,26 @@ export default function NavigationBar({ isMenuOpen, onMenuClose }) {
                         return;
                 }
 
-                if (pathname === "/") {
+                if (pathname === "/" || pathname === DIRECT_ROUTES.home) {
                         setActiveItem("home");
+                        return;
+                }
+
+                if (pathname === DIRECT_ROUTES["contact-us"]) {
+                        setActiveItem("contact-us");
                 }
         }, [pathname, sectionParam]);
 
         const handleNavigation = (item) => {
                 setActiveItem(item.slug);
+
+                const directRoute = DIRECT_ROUTES[item.slug];
+                if (directRoute) {
+                        router.push(directRoute);
+                        if (onMenuClose) onMenuClose();
+                        return;
+                }
+
                 router.push(
                         `/coming-soon?section=${encodeURIComponent(
                                 item.slug
