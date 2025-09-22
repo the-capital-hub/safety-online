@@ -100,44 +100,46 @@ export function BulkUploadPopup({ open, onOpenChange }) {
 		setIsSubmitting(false);
 	};
 
-	const csvHeaders = [
-		"Product Category",
-		"HSN Code",
-		"Product title",
-		"Description",
-		"Sale Price",
-		"MRP",
-		"Feature Image URL link 1",
-		"Image URL link 2",
-		"Image URL link 3",
-		"Image URL link 4",
-		"Image URL link 5",
-		"Bullet Point 1",
-		"Bullet Point 2",
-		"Bullet Point 3",
-		"Bullet Point 4",
-		"Bullet Point 5",
-		"Generic Keywords",
-		"Length (cm)",
-		"Width (cm)",
-		"height (cm)",
-		"Weight (Kg)",
-		"Colour",
-		"Material used / Made Of",
-		"brand",
-		"size",
-	];
+        const csvHeaders = [
+                "Product Category",
+                "Product Subcategory",
+                "HSN Code",
+                "Product title",
+                "Description",
+                "Sale Price",
+                "MRP",
+                "Feature Image URL link 1",
+                "Image URL link 2",
+                "Image URL link 3",
+                "Image URL link 4",
+                "Image URL link 5",
+                "Bullet Point 1",
+                "Bullet Point 2",
+                "Bullet Point 3",
+                "Bullet Point 4",
+                "Bullet Point 5",
+                "Generic Keywords",
+                "Length (cm)",
+                "Width (cm)",
+                "height (cm)",
+                "Weight (Kg)",
+                "Colour",
+                "Material used / Made Of",
+                "brand",
+                "size",
+        ];
 
 	const downloadTemplate = () => {
 		if (mode === "json") {
-			const template = [
-				{
-					title: "Sample Product 1",
-					description: "This is a sample product description",
-					longDescription:
-						"This is a detailed description of the sample product",
-					category: "personal-safety",
-					price: 99.99,
+                        const template = [
+                                {
+                                        title: "Sample Product 1",
+                                        description: "This is a sample product description",
+                                        longDescription:
+                                                "This is a detailed description of the sample product",
+                                        category: "personal-safety",
+                                        subCategory: "ppe",
+                                        price: 99.99,
 					salePrice: 79.99,
 					stocks: 100,
 					discount: 20,
@@ -163,10 +165,11 @@ export function BulkUploadPopup({ open, onOpenChange }) {
 			a.click();
 			window.URL.revokeObjectURL(url);
 		} else {
-			const sample = [
-				"personal-safety",
-				"HSN001",
-				"Sample Product",
+                        const sample = [
+                                "personal-safety",
+                                "ppe",
+                                "HSN001",
+                                "Sample Product",
 				"Sample Description",
 				"79.99",
 				"99.99",
@@ -293,9 +296,10 @@ export function BulkUploadPopup({ open, onOpenChange }) {
 		const discount =
 			price && salePrice ? ((price - salePrice) / price) * 100 : 0;
 
-		return {
-			category: row["Product Category"] || "",
-			hsnCode: row["HSN Code"] || "",
+                return {
+                        category: row["Product Category"] || "",
+                        subCategory: row["Product Subcategory"] || "",
+                        hsnCode: row["HSN Code"] || "",
 			title: row["Product title"] || "",
 			description: row["Description"] || "",
 			longDescription: row["Description"] || "",

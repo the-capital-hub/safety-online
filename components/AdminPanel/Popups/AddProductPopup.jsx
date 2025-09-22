@@ -20,6 +20,8 @@ import { X, Plus, User } from "lucide-react"
 import { useAdminProductStore } from "@/store/adminProductStore.js"
 import { ImageUpload } from "@/components/AdminPanel/ImageUpload.jsx"
 
+const normalizeValue = (value) => (typeof value === "string" ? value.trim().toLowerCase() : "")
+
 const productTypes = [
   { value: "featured", label: "Featured" },
   { value: "top-selling", label: "Top Selling" },
@@ -182,6 +184,35 @@ export function AddProductPopup({ open, onOpenChange }) {
     setFeatures(updatedFeatures)
   }
 
+  const selectedCategory = categories.find(
+    (category) => normalizeValue(category.name) === normalizeValue(formData.category)
+  )
+
+  const availableSubCategories = selectedCategory?.subCategories ?? []
+
+  useEffect(() => {
+    if (!categories.length) return
+
+    const currentCategory = categories.find(
+      (category) => normalizeValue(category.name) === normalizeValue(formData.category)
+    )
+
+    if (!currentCategory) {
+      if (formData.subCategory) {
+        setFormData((prev) => ({ ...prev, subCategory: "" }))
+      }
+      return
+    }
+
+    const hasValidSubCategory = (currentCategory.subCategories || []).some(
+      (subCategory) => normalizeValue(subCategory.name) === normalizeValue(formData.subCategory)
+    )
+
+    if (!hasValidSubCategory && formData.subCategory) {
+      setFormData((prev) => ({ ...prev, subCategory: "" }))
+    }
+  }, [categories, formData.category, formData.subCategory])
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -204,7 +235,9 @@ export function AddProductPopup({ open, onOpenChange }) {
                 <Label>Select Seller *</Label>
                 <Select
                   value={formData.sellerId}
-                  onValueChange={(value) => setFormData({ ...formData, sellerId: value })}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, sellerId: value }))
+                  }
                   disabled={loadingSellers}
                 >
                   <SelectTrigger className="mt-1">
@@ -292,7 +325,9 @@ export function AddProductPopup({ open, onOpenChange }) {
                 <Label>Category *</Label>
                 <Select
                   value={formData.category}
-                  onValueChange={(value) => setFormData({ ...formData, category: value })}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, category: value, subCategory: "" }))
+                  }
                 >
                   <SelectTrigger className="mt-1">
                     <SelectValue placeholder="Select category" />
@@ -309,12 +344,31 @@ export function AddProductPopup({ open, onOpenChange }) {
 
               <div>
                 <Label>Sub Category</Label>
-                <Input
-                  placeholder="Enter sub category"
-                  value={formData.subCategory}
-                  onChange={(e) => setFormData({ ...formData, subCategory: e.target.value })}
-                  className="mt-1"
-                />
+                <Select
+                  value={formData.subCategory || ""}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, subCategory: value }))
+                  }
+                  disabled={!availableSubCategories.length}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue
+                      placeholder={
+                        availableSubCategories.length
+                          ? "Select sub category"
+                          : "No subcategories available"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">No subcategory</SelectItem>
+                    {availableSubCategories.map((subCategory) => (
+                      <SelectItem key={subCategory.name} value={subCategory.name}>
+                        {subCategory.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
