@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 
+import { normalizeCouponValue } from "./utils/normalizeCouponValue.js";
+
 const GstBreakdownSchema = new mongoose.Schema(
         {
                 mode: {
@@ -118,6 +120,9 @@ const OrderSchema = new mongoose.Schema(
                 couponApplied: {
                         type: CouponAppliedSchema,
                         default: null,
+
+                        set: normalizeCouponValue,
+
                 },
 
 		// Payment
@@ -196,4 +201,8 @@ OrderSchema.index({ orderDate: -1 });
 OrderSchema.index({ customerEmail: 1 });
 OrderSchema.index({ paymentGatewayOrderId: 1 });
 
-export default mongoose.models.Order || mongoose.model("Order", OrderSchema);
+const OrderModel = mongoose.models.Order
+        ? mongoose.model("Order", OrderSchema, undefined, { overwriteModels: true })
+        : mongoose.model("Order", OrderSchema);
+
+export default OrderModel;

@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 
+import { normalizeCouponValue } from "./utils/normalizeCouponValue.js";
+
 const GstBreakdownSchema = new mongoose.Schema(
         {
                 mode: {
@@ -127,6 +129,9 @@ const SubOrderSchema = new mongoose.Schema(
                 couponApplied: {
                         type: CouponAppliedSchema,
                         default: null,
+
+                        set: normalizeCouponValue,
+
                 },
 
 		// Tracking (per seller)
@@ -154,5 +159,8 @@ const SubOrderSchema = new mongoose.Schema(
 	{ timestamps: true }
 );
 
-export default mongoose.models.SubOrder ||
-	mongoose.model("SubOrder", SubOrderSchema);
+const SubOrderModel = mongoose.models.SubOrder
+        ? mongoose.model("SubOrder", SubOrderSchema, undefined, { overwriteModels: true })
+        : mongoose.model("SubOrder", SubOrderSchema);
+
+export default SubOrderModel;
