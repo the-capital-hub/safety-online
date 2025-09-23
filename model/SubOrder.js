@@ -129,7 +129,9 @@ const SubOrderSchema = new mongoose.Schema(
                 couponApplied: {
                         type: CouponAppliedSchema,
                         default: null,
+
                         set: normalizeCouponValue,
+
                 },
 
 		// Tracking (per seller)

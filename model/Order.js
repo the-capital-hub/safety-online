@@ -120,7 +120,9 @@ const OrderSchema = new mongoose.Schema(
                 couponApplied: {
                         type: CouponAppliedSchema,
                         default: null,
+
                         set: normalizeCouponValue,
+
                 },
 
 		// Payment

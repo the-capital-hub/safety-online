@@ -11,8 +11,24 @@ export async function POST(req) {
 	if (!user)
 		return Response.json({ message: "User not found" }, { status: 404 });
 
-	const token = createToken(user); // valid 15 mins
-	const resetLink = `${process.env.BASE_URL}/reset-password?token=${token}`;
+        const token = createToken(user); // valid 15 mins
+
+        const requestUrl = new URL(req.url);
+        const envBaseUrl = [process.env.NEXT_PUBLIC_BASE_URL, process.env.BASE_URL].reduce(
+                (validUrl, candidate) => {
+                        if (validUrl || !candidate) return validUrl;
+                        try {
+                                return new URL(candidate);
+                        } catch {
+                                return validUrl;
+                        }
+                },
+                null
+        );
+
+        const resetUrl = new URL("/reset-password", envBaseUrl ?? requestUrl);
+        resetUrl.searchParams.set("token", token);
+        const resetLink = resetUrl.toString();
 
 	const transporter = nodemailer.createTransport({
 		service: "gmail",
