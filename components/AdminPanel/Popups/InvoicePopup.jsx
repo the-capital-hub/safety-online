@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Download, Printer } from "lucide-react";
 import { useAdminOrderStore } from "@/store/adminOrderStore.js";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { buildGstLineItems } from "@/lib/utils/gst.js";
 
 export function InvoicePopup({ open, onOpenChange, order }) {
