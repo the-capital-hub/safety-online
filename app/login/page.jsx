@@ -415,16 +415,25 @@ const LoginPage = () => {
 													placeholder="Enter Password"
 													type="password"
 													value={password}
-													onChange={(e) => setPassword(e.target.value)}
-													className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-													required
-												/>
-											</motion.div>
+                                                                                onChange={(e) => setPassword(e.target.value)}
+                                                                                className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                                                                                required
+                                                                        />
+                                                                </motion.div>
 
-											<motion.div variants={itemVariants}>
-												<Button
-													type="submit"
-													className="w-full h-12 bg-gray-800 hover:bg-gray-900 text-white font-medium text-base relative"
+                                                                <motion.div variants={itemVariants} className="flex justify-end">
+                                                                        <Link
+                                                                                href="/forgot-password"
+                                                                                className="text-sm font-medium text-gray-600 hover:text-gray-900 underline"
+                                                                        >
+                                                                                Forgot password?
+                                                                        </Link>
+                                                                </motion.div>
+
+                                                                <motion.div variants={itemVariants}>
+                                                                        <Button
+                                                                                type="submit"
+                                                                                className="w-full h-12 bg-gray-800 hover:bg-gray-900 text-white font-medium text-base relative"
 													disabled={isLoading}
 												>
 													{isLoading ? (
