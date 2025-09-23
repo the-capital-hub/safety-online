@@ -11,6 +11,8 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
+import { useIsAuthenticated } from "@/store/authStore.js";
+import useRequireAuth from "@/hooks/useRequireAuth.js";
 
 export default function WishlistPage() {
 	const router = useRouter();
@@ -23,25 +25,52 @@ export default function WishlistPage() {
 		fetchWishlist,
 		moveToCart,
 		moveAllToCart,
-	} = useWishlistStore();
+        } = useWishlistStore();
 
-	const { addItem: addToCart } = useCartStore();
+        const { addItem: addToCart } = useCartStore();
+        const isAuthenticated = useIsAuthenticated();
+        const requireAuth = useRequireAuth("Please login to view your wishlist");
 
-	useEffect(() => {
-		fetchWishlist();
-	}, [fetchWishlist]);
+        useEffect(() => {
+                if (!isAuthenticated) {
+                        requireAuth({ redirectTo: "/wishlist" });
+                        return;
+                }
 
-	const handleMoveToCart = async (productId) => {
-		await moveToCart(productId, addToCart);
-	};
+                fetchWishlist();
+        }, [fetchWishlist, isAuthenticated, requireAuth]);
 
-	const handleMoveAllToCart = async () => {
-		if (items.length === 0) {
-			toast.error("Your wishlist is empty");
-			return;
-		}
-		await moveAllToCart(addToCart);
-	};
+        const handleMoveToCart = async (productId) => {
+                if (!requireAuth({ message: "Please login to manage your wishlist" })) {
+                        return;
+                }
+                await moveToCart(productId, addToCart);
+        };
+
+        const handleMoveAllToCart = async () => {
+                if (items.length === 0) {
+                        toast.error("Your wishlist is empty");
+                        return;
+                }
+                if (!requireAuth({ message: "Please login to manage your wishlist" })) {
+                        return;
+                }
+                await moveAllToCart(addToCart);
+        };
+
+        const handleRemove = (productId) => {
+                if (!requireAuth({ message: "Please login to manage your wishlist" })) {
+                        return;
+                }
+                removeItem(productId);
+        };
+
+        const handleClear = () => {
+                if (!requireAuth({ message: "Please login to manage your wishlist" })) {
+                        return;
+                }
+                clearWishlist();
+        };
 
 	const containerVariants = {
 		hidden: { opacity: 0 },
@@ -92,21 +121,21 @@ export default function WishlistPage() {
 
 					{items.length > 0 && (
 						<div className="flex items-center gap-2">
-							<Button
-								onClick={handleMoveAllToCart}
-								className="bg-black text-white hover:bg-gray-800"
-								disabled={isLoading || items.every((item) => !item.inStock)}
-							>
-								<ShoppingCart className="h-4 w-4 mr-2" />
-								Move All to Cart
-							</Button>
-							<Button
-								onClick={clearWishlist}
-								variant="outline"
-								className="text-red-600 hover:text-red-700 hover:bg-red-50"
-								disabled={isLoading}
-							>
-								<Trash2 className="h-4 w-4 mr-2" />
+                                                        <Button
+                                                                onClick={handleMoveAllToCart}
+                                                                className="bg-black text-white hover:bg-gray-800"
+                                                                disabled={isLoading || items.every((item) => !item.inStock)}
+                                                        >
+                                                                <ShoppingCart className="h-4 w-4 mr-2" />
+                                                                Move All to Cart
+                                                        </Button>
+                                                        <Button
+                                                                onClick={handleClear}
+                                                                variant="outline"
+                                                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                                disabled={isLoading}
+                                                        >
+                                                                <Trash2 className="h-4 w-4 mr-2" />
 								Clear All
 							</Button>
 						</div>
@@ -164,13 +193,13 @@ export default function WishlistPage() {
 											fill
 											className="object-contain p-4"
 										/>
-										<Button
-											variant="ghost"
-											size="icon"
-											className="absolute top-2 right-2 bg-white/80 hover:bg-white text-red-600 hover:text-red-700"
-											onClick={() => removeItem(item.id)}
-											disabled={isLoading}
-										>
+                                                                                <Button
+                                                                                        variant="ghost"
+                                                                                        size="icon"
+                                                                                        className="absolute top-2 right-2 bg-white/80 hover:bg-white text-red-600 hover:text-red-700"
+                                                                                        onClick={() => handleRemove(item.id)}
+                                                                                        disabled={isLoading}
+                                                                                >
 											<Heart className="h-4 w-4 fill-current" />
 										</Button>
 										{!item.inStock && (
@@ -205,13 +234,13 @@ export default function WishlistPage() {
 												<ShoppingCart className="h-4 w-4 mr-2" />
 												{item.inStock ? "Add to Cart" : "Out of Stock"}
 											</Button>
-											<Button
-												variant="outline"
-												size="icon"
-												className="text-red-600 hover:text-red-700 hover:bg-red-50"
-												onClick={() => removeItem(item.id)}
-												disabled={isLoading}
-											>
+                                                                                        <Button
+                                                                                                variant="outline"
+                                                                                                size="icon"
+                                                                                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                                                                onClick={() => handleRemove(item.id)}
+                                                                                                disabled={isLoading}
+                                                                                        >
 												<Trash2 className="h-4 w-4" />
 											</Button>
 										</div>

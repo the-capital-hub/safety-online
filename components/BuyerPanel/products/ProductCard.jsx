@@ -7,19 +7,20 @@ import { Badge } from "@/components/ui/badge";
 import { ShoppingCart, Heart, Eye, ArrowRight, Star, StarHalf } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/cartStore";
-import { toast } from "react-hot-toast";
 import Image from "next/image";
 import { useWishlistStore } from "@/store/wishlistStore";
+import useRequireAuth from "@/hooks/useRequireAuth.js";
 
 export default function ProductCard({ product, viewMode = "grid" }) {
 	// console.log("product", product);
 	const router = useRouter();
-	const { addItem, isLoading: CartLoading } = useCartStore();
-	const {
-		isItemInWishlist,
-		toggleItem,
-		isLoading: wishlistLoading,
-	} = useWishlistStore();
+        const { addItem, isLoading: CartLoading } = useCartStore();
+        const {
+                isItemInWishlist,
+                toggleItem,
+                isLoading: wishlistLoading,
+        } = useWishlistStore();
+        const requireAuth = useRequireAuth();
 
 	const isInWishlist = isItemInWishlist(product.id);
 
@@ -27,13 +28,17 @@ export default function ProductCard({ product, viewMode = "grid" }) {
                 router.push(`/products/${product.id}`);
         };
 
-	const handleAddToCart = async (e) => {
-		e.stopPropagation();
+        const handleAddToCart = async (e) => {
+                e.stopPropagation();
 
-		// Use the unified addItem function
-		await addItem({
-			id: product.id,
-			name: product.title,
+                if (!requireAuth({ message: "Please login to add items to your cart" })) {
+                        return;
+                }
+
+                // Use the unified addItem function
+                await addItem({
+                        id: product.id,
+                        name: product.title,
 			description: product.description,
 			price: product.salePrice || product.price,
 			originalPrice: product.price,
@@ -42,17 +47,24 @@ export default function ProductCard({ product, viewMode = "grid" }) {
 		});
 	};
 
-	const handleWishlist = async (e) => {
-		e.preventDefault();
-		e.stopPropagation();
-		await toggleItem(product);
-	};
+        const handleWishlist = async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (!requireAuth({ message: "Please login to manage your wishlist" })) {
+                        return;
+                }
+                await toggleItem(product);
+        };
 
-	const handleBuyNow = async (e) => {
-		e.stopPropagation();
+        const handleBuyNow = async (e) => {
+                e.stopPropagation();
 
-		// Redirect to checkout with buy now parameters
-		router.push(`/checkout?buyNow=true&id=${product.id}&qty=1`);
+                if (!requireAuth({ message: "Please login to continue" })) {
+                        return;
+                }
+
+                // Redirect to checkout with buy now parameters
+                router.push(`/checkout?buyNow=true&id=${product.id}&qty=1`);
 	};
 
         const renderStars = (rating, size = "h-4 w-4") => {
