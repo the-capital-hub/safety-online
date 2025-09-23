@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import User from "@/model/User.js";
-import connectDB from "@/lib/dbConnect.js";
+import { dbConnect } from "@/lib/dbConnect.js";
 
 // GET - Fetch single customer
 export async function GET(request, { params }) {
 	try {
-		await connectDB();
+                await dbConnect();
 
 		const customer = await User.findOne({
 			_id: params.id,
@@ -34,7 +34,7 @@ export async function GET(request, { params }) {
 // PUT - Update customer
 export async function PUT(request, { params }) {
 	try {
-		await connectDB();
+                await dbConnect();
 
 		const body = await request.json();
 		const { firstName, lastName, email, mobile, status } = body;
@@ -74,7 +74,7 @@ export async function PUT(request, { params }) {
 // DELETE - Delete customer
 export async function DELETE(request, { params }) {
 	try {
-		await connectDB();
+                await dbConnect();
 
 		const customer = await User.findOneAndDelete({
 			_id: params.id,

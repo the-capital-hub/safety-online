@@ -60,7 +60,7 @@ export async function GET(request) {
 // POST - Add new customer
 export async function POST(request) {
 	try {
-		await connectDB();
+                await dbConnect();
 
 		const body = await request.json();
 		const { firstName, lastName, email, mobile, password } = body;
