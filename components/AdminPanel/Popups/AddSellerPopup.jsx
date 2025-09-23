@@ -30,6 +30,14 @@ export function AddSellerPopup({ open, onOpenChange }) {
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
+
+		if (!e.currentTarget.checkValidity()) {
+
+		  e.currentTarget.reportValidity();
+
+		  return;
+
+		}
 		const success = await addSeller(formData);
 		if (success) {
 			onOpenChange(false);

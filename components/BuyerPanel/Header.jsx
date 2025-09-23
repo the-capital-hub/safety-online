@@ -14,11 +14,12 @@ import { useWishlistStore } from "@/store/wishlistStore";
 import MiniCart from "@/components/BuyerPanel/cart/MiniCart.jsx";
 import MiniWishlist from "@/components/BuyerPanel/wishlist/MiniWishlist.jsx";
 import {
-	useUserFullName,
-	useUserEmail,
-	useUserProfilePic,
-	useIsAuthenticated,
+        useUserFullName,
+        useUserEmail,
+        useUserProfilePic,
+        useIsAuthenticated,
 } from "@/store/authStore.js";
+import useRequireAuth from "@/hooks/useRequireAuth.js";
 import NavigationBar from "@/components/BuyerPanel/NavigationBar.jsx";
 import { useProductStore } from "@/store/productStore.js";
 import { useState } from "react";
@@ -31,7 +32,8 @@ export default function Header() {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [showSearch, setShowSearch] = useState(false);
-	const router = useRouter();
+        const router = useRouter();
+        const requireAuth = useRequireAuth();
 	const { setSearchQuery: setGlobalSearch } = useProductStore();
 
 	// Cart functionality
@@ -43,13 +45,19 @@ export default function Header() {
 		useWishlistStore();
 	const wishlistTotalItems = getWishlistTotalItems();
 
-	const handleCartClick = () => {
-		openCart();
-	};
+        const handleCartClick = () => {
+                if (!requireAuth({ message: "Please login to view your cart" })) {
+                        return;
+                }
+                openCart();
+        };
 
-	const handleWishlistClick = () => {
-		openWishlist();
-	};
+        const handleWishlistClick = () => {
+                if (!requireAuth({ message: "Please login to view your wishlist" })) {
+                        return;
+                }
+                openWishlist();
+        };
 
 	const handleSearch = (e) => {
 		e.preventDefault();
@@ -91,7 +99,7 @@ export default function Header() {
 
 						<div className="flex-1 px-2 hidden md:block">
 							<form onSubmit={handleSearch} className="relative">
-								<Input
+								<Input name="searchQuery"
 									placeholder="Search products..."
 									value={searchQuery}
 									onChange={(e) => setSearchQuery(e.target.value)}
@@ -178,7 +186,7 @@ export default function Header() {
 					className="fixed inset-x-0 top-0 p-4 bg-white shadow-md md:hidden z-50"
 				>
 					<form onSubmit={handleSearch} className="relative">
-						<Input
+						<Input name="searchQuery"
 							autoFocus
 							placeholder="Search products..."
 							value={searchQuery}

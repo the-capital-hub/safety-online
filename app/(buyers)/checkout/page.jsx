@@ -140,10 +140,14 @@ export default function CheckoutPage() {
         }, [user, loadUserAddresses]);
 
         useEffect(() => {
-                if (checkoutType === "buyNow") {
+                if (!recommendedLoading && recommendedCoupons.length === 0) {
                         fetchRecommendedCoupons();
                 }
-        }, [checkoutType, fetchRecommendedCoupons]);
+        }, [
+                fetchRecommendedCoupons,
+                recommendedCoupons.length,
+                recommendedLoading,
+        ]);
 
 	// Initialize checkout based on URL params
 	useEffect(() => {
@@ -867,6 +871,7 @@ export default function CheckoutPage() {
                                                                         <>
                                                                                 <div className="flex gap-2">
                                                                                         <Input
+                                                                                                name="couponCode"
                                                                                                 placeholder="Enter coupon code"
                                                                                                 value={couponCode}
                                                                                                 onChange={(e) => setCouponCode(e.target.value)}

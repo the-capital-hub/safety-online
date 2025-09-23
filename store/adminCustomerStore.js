@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 
 export const useAdminCustomerStore = create((set, get) => ({
 	customers: [],

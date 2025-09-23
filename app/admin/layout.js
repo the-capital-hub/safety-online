@@ -22,16 +22,16 @@ export default function AdminLayout({ children }) {
 					</div>
 
 					{/* Scrollable Content */}
-					<motion.main
-						className="flex-1 p-6 overflow-y-auto overflow-x-hidden hide-scrollbar"
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.3 }}
-					>
-						{children}
-					</motion.main>
-				</div>
-			</div>
-		</SidebarProvider>
-	);
+                                        <motion.main
+                                                className="flex-1 p-6 overflow-y-auto overflow-x-hidden hide-scrollbar"
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ duration: 0.3 }}
+                                        >
+                                                {children}
+                                        </motion.main>
+                                </div>
+                        </div>
+                </SidebarProvider>
+        );
 }

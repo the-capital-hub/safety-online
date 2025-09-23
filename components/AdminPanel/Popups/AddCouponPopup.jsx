@@ -33,6 +33,14 @@ export function AddCouponPopup({ open, onOpenChange }) {
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
+
+		if (!e.currentTarget.checkValidity()) {
+
+		  e.currentTarget.reportValidity();
+
+		  return;
+
+		}
 		setIsSubmitting(true);
 
                 const couponData = {

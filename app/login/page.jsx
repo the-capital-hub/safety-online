@@ -15,7 +15,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuthStore } from "@/store/authStore";
+import { useAuthStore, useIsAuthenticated } from "@/store/authStore";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { Mail, Phone, ArrowLeft } from "lucide-react";
@@ -37,7 +37,8 @@ const CodeSchema = z.object({
 });
 
 const LoginPage = () => {
-	const [activeTab, setActiveTab] = useState("password");
+        const [activeTab, setActiveTab] = useState("password");
+        const [hasHydrated, setHasHydrated] = useState(false);
 
 	// Password login
 	const [emailOrMobile, setEmailOrMobile] = useState("");
@@ -51,21 +52,51 @@ const LoginPage = () => {
 	const [isResending, setIsResending] = useState(false);
 
 	const [isLoading, setIsLoading] = useState(false);
-	const { setUser } = useAuthStore();
-	const router = useRouter();
+        const { setUser } = useAuthStore();
+        const isAuthenticated = useIsAuthenticated();
+        const router = useRouter();
 
-	useEffect(() => {
-		if (resendTimer > 0) {
-			const t = setInterval(() => setResendTimer((s) => s - 1), 1000);
-			return () => clearInterval(t);
-		}
-	}, [resendTimer]);
+        useEffect(() => {
+                if (resendTimer > 0) {
+                        const t = setInterval(() => setResendTimer((s) => s - 1), 1000);
+                        return () => clearInterval(t);
+                }
+        }, [resendTimer]);
 
-	useEffect(() => {
-		if (activeTab === "otp") {
-			setOtpStep(1);
-			setCode("");
-			setResendTimer(0);
+        useEffect(() => {
+                const persist = useAuthStore.persist;
+
+                if (!persist?.hasHydrated) {
+                        setHasHydrated(true);
+                        return;
+                }
+
+                if (persist.hasHydrated()) {
+                        setHasHydrated(true);
+                }
+
+                const unsub = persist.onFinishHydration?.(() => {
+                        setHasHydrated(true);
+                });
+
+                return () => {
+                        if (typeof unsub === "function") {
+                                unsub();
+                        }
+                };
+        }, []);
+
+        useEffect(() => {
+                if (hasHydrated && isAuthenticated) {
+                        router.replace("/account/profile");
+                }
+        }, [hasHydrated, isAuthenticated, router]);
+
+        useEffect(() => {
+                if (activeTab === "otp") {
+                        setOtpStep(1);
+                        setCode("");
+                        setResendTimer(0);
 		}
 	}, [activeTab]);
 
@@ -214,8 +245,24 @@ const LoginPage = () => {
 		},
 	};
 
-	return (
-		<div className="max-w-7xl mx-auto h-screen grid grid-cols-2 lg:px-10">
+        if (!hasHydrated) {
+                return (
+                        <div className="flex h-screen items-center justify-center bg-white">
+                                <p className="text-gray-600">Loading...</p>
+                        </div>
+                );
+        }
+
+        if (isAuthenticated) {
+                return (
+                        <div className="flex h-screen items-center justify-center bg-white">
+                                <p className="text-gray-600">Redirecting to your account...</p>
+                        </div>
+                );
+        }
+
+        return (
+                <div className="max-w-7xl mx-auto h-screen grid grid-cols-2 lg:px-10">
 			{/* Left side */}
 			<motion.div
 				className="hidden lg:flex justify-center items-center overflow-hidden p-8"
@@ -368,16 +415,25 @@ const LoginPage = () => {
 													placeholder="Enter Password"
 													type="password"
 													value={password}
-													onChange={(e) => setPassword(e.target.value)}
-													className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-													required
-												/>
-											</motion.div>
+                                                                                onChange={(e) => setPassword(e.target.value)}
+                                                                                className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                                                                                required
+                                                                        />
+                                                                </motion.div>
 
-											<motion.div variants={itemVariants}>
-												<Button
-													type="submit"
-													className="w-full h-12 bg-gray-800 hover:bg-gray-900 text-white font-medium text-base relative"
+                                                                <motion.div variants={itemVariants} className="flex justify-end">
+                                                                        <Link
+                                                                                href="/forgot-password"
+                                                                                className="text-sm font-medium text-gray-600 hover:text-gray-900 underline"
+                                                                        >
+                                                                                Forgot password?
+                                                                        </Link>
+                                                                </motion.div>
+
+                                                                <motion.div variants={itemVariants}>
+                                                                        <Button
+                                                                                type="submit"
+                                                                                className="w-full h-12 bg-gray-800 hover:bg-gray-900 text-white font-medium text-base relative"
 													disabled={isLoading}
 												>
 													{isLoading ? (

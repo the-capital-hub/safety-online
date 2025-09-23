@@ -9,11 +9,12 @@ import { useWishlistStore } from "@/store/wishlistStore";
 import { useCartStore } from "@/store/cartStore";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import useRequireAuth from "@/hooks/useRequireAuth.js";
 
 export default function MiniWishlist() {
-	const router = useRouter();
-	const {
-		items,
+        const router = useRouter();
+        const {
+                items,
 		isOpen,
 		closeWishlist,
 		removeItem,
@@ -21,23 +22,36 @@ export default function MiniWishlist() {
 		getTotalItems,
 		isLoading,
 		moveToCart,
-		moveAllToCart,
-	} = useWishlistStore();
+                moveAllToCart,
+        } = useWishlistStore();
 
-	const { addItem: addToCart } = useCartStore();
+        const { addItem: addToCart } = useCartStore();
+        const requireAuth = useRequireAuth();
 
-	const handleViewWishlist = () => {
-		closeWishlist();
-		router.push("/wishlist");
-	};
+        const handleViewWishlist = () => {
+                if (!requireAuth({ message: "Please login to view your wishlist" })) {
+                        closeWishlist();
+                        return;
+                }
+                closeWishlist();
+                router.push("/wishlist");
+        };
 
-	const handleMoveToCart = async (productId) => {
-		await moveToCart(productId, addToCart);
-	};
+        const handleMoveToCart = async (productId) => {
+                if (!requireAuth({ message: "Please login to manage your wishlist" })) {
+                        closeWishlist();
+                        return;
+                }
+                await moveToCart(productId, addToCart);
+        };
 
-	const handleMoveAllToCart = async () => {
-		await moveAllToCart(addToCart);
-	};
+        const handleMoveAllToCart = async () => {
+                if (!requireAuth({ message: "Please login to manage your wishlist" })) {
+                        closeWishlist();
+                        return;
+                }
+                await moveAllToCart(addToCart);
+        };
 
 	if (!isOpen) return null;
 

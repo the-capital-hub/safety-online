@@ -21,7 +21,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { useAdminOrderStore } from "@/store/adminOrderStore.js";
 import { GST_RATE_PERCENT } from "@/lib/utils/gst.js";
 
@@ -63,6 +63,14 @@ export function UpdateOrderPopup({ open, onOpenChange, order, onUpdate }) {
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
+
+		if (!e.currentTarget.checkValidity()) {
+
+		  e.currentTarget.reportValidity();
+
+		  return;
+
+		}
 
 		if (!order) return;
 

@@ -44,6 +44,14 @@ export function UpdateAttributePopup({ open, onOpenChange, attribute }) {
 
 	const handleSubmit = (e) => {
 		e.preventDefault();
+
+		if (!e.currentTarget.checkValidity()) {
+
+		  e.currentTarget.reportValidity();
+
+		  return;
+
+		}
 		console.log("Updating attribute:", formData);
 		onOpenChange(false);
 	};

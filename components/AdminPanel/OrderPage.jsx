@@ -22,17 +22,16 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import {
 	Calendar,
 	Search,
 	Download,
 	Filter,
-	RotateCcw,
-	Eye,
-	Printer,
-	Edit,
-	Trash2,
+        RotateCcw,
+        Eye,
+        Printer,
+        Trash2,
 	Package,
 	DollarSign,
 	Clock,
@@ -41,7 +40,6 @@ import {
 } from "lucide-react";
 import { useAdminOrderStore } from "@/store/adminOrderStore.js";
 import { OrderDetailsPopup } from "@/components/AdminPanel/Popups/OrderDetailsPopup.jsx";
-import { UpdateOrderPopup } from "@/components/AdminPanel/Popups/UpdateOrderPopup.jsx";
 import { DeleteOrderPopup } from "@/components/AdminPanel/Popups/DeleteOrderPopup.jsx";
 // import { InvoicePopup } from "@/components/AdminPanel/Popups/InvoicePopup.jsx";
 import { useIsAuthenticated } from "@/store/adminAuthStore.js";
@@ -65,12 +63,11 @@ function OrderPage() {
 	} = useAdminOrderStore();
 
 	const [selectedOrders, setSelectedOrders] = useState([]);
-	const [popups, setPopups] = useState({
-		details: { open: false, order: null },
-		update: { open: false, order: null },
-		delete: { open: false, order: null },
-		// invoice: { open: false, order: null },
-	});
+        const [popups, setPopups] = useState({
+                details: { open: false, order: null },
+                delete: { open: false, order: null },
+                // invoice: { open: false, order: null },
+        });
 
 	const isAuthenticated = useIsAuthenticated();
 	const [isRedirecting, setIsRedirecting] = useState(false);
@@ -154,12 +151,18 @@ function OrderPage() {
 		}));
 	};
 
-	const closePopup = (type) => {
-		setPopups((prev) => ({
-			...prev,
-			[type]: { open: false, order: null },
-		}));
-	};
+        const closePopup = (type) => {
+                setPopups((prev) => ({
+                        ...prev,
+                        [type]: { open: false, order: null },
+                }));
+        };
+
+        const handleDetailsOpenChange = (isOpen) => {
+                if (!isOpen) {
+                        closePopup("details");
+                }
+        };
 
 	const getStatusColor = (status) => {
 		const colors = {
@@ -174,15 +177,62 @@ function OrderPage() {
 		return colors[status] || "bg-gray-100 text-gray-800";
 	};
 
-	const getPaymentStatusColor = (status) => {
-		const colors = {
-			paid: "bg-green-100 text-green-800",
-			pending: "bg-yellow-100 text-yellow-800",
-			failed: "bg-red-100 text-red-800",
-			refunded: "bg-gray-100 text-gray-800",
-		};
-		return colors[status] || "bg-gray-100 text-gray-800";
-	};
+        const getPaymentStatusColor = (status) => {
+                const colors = {
+                        paid: "bg-green-100 text-green-800",
+                        pending: "bg-yellow-100 text-yellow-800",
+                        failed: "bg-red-100 text-red-800",
+                        refunded: "bg-gray-100 text-gray-800",
+                };
+                return colors[status] || "bg-gray-100 text-gray-800";
+        };
+
+        const getOrderItemCount = (order) => {
+                if (!order) return 0;
+
+                const parseQuantity = (value) => {
+                        const numeric = Number(value);
+                        return Number.isFinite(numeric) ? numeric : 0;
+                };
+
+                if (Array.isArray(order.products)) {
+                        return order.products.reduce(
+                                (total, product) => total + parseQuantity(product?.quantity),
+                                0
+                        );
+                }
+
+                if (Array.isArray(order.subOrders)) {
+                        const hasProductDetails = order.subOrders.some(
+                                (subOrder) => subOrder && Array.isArray(subOrder.products)
+                        );
+
+                        if (hasProductDetails) {
+                                return order.subOrders.reduce((total, subOrder) => {
+                                        if (!subOrder || !Array.isArray(subOrder.products)) {
+                                                return total;
+                                        }
+
+                                        return (
+                                                total +
+                                                subOrder.products.reduce(
+                                                        (subTotal, product) =>
+                                                                subTotal + parseQuantity(product?.quantity),
+                                                        0
+                                                )
+                                        );
+                                }, 0);
+                        }
+
+                        return order.subOrders.length;
+                }
+
+                if (typeof order.itemsCount === "number") {
+                        return order.itemsCount;
+                }
+
+                return 0;
+        };
 
 	if (error) {
 		return (
@@ -285,8 +335,9 @@ function OrderPage() {
 							<div className="flex flex-wrap gap-4 items-center">
 								<div className="relative">
 									<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-									<Input
-										placeholder="Search orders..."
+                                                                                <Input
+                                                                                name="searchQuery"
+                                                                                placeholder="Search orders..."
 										className="pl-10 w-64"
 										onKeyPress={handleSearch}
 									/>
@@ -372,8 +423,9 @@ function OrderPage() {
 							<div className="flex items-center gap-2">
 								<Calendar className="w-4 h-4 text-gray-400" />
 								<h3>From</h3>
-								<Input
-									type="date"
+                                                                    <Input
+                                                                    name="startDate"
+                                                                    type="date"
 									className="w-40"
 									value={filters.startDate}
 									onChange={(e) =>
@@ -384,8 +436,9 @@ function OrderPage() {
 							<div className="flex items-center gap-2">
 								<Calendar className="w-4 h-4 text-gray-400" />
 								<h3>To</h3>
-								<Input
-									type="date"
+                                                                    <Input
+                                                                    name="endDate"
+                                                                    type="date"
 									className="w-40"
 									value={filters.endDate}
 									onChange={(e) =>
@@ -482,12 +535,12 @@ function OrderPage() {
 														</p>
 													</div>
 												</TableCell>
-												<TableCell>
-													<div className="flex items-center gap-1">
-														<Package className="w-4 h-4" />
-														<span>{order.subOrders.length} items</span>
-													</div>
-												</TableCell>
+                                                                                                <TableCell>
+                                                                                                        <div className="flex items-center gap-1">
+                                                                                                                <Package className="w-4 h-4" />
+                                                                                                                <span>{getOrderItemCount(order)} items</span>
+                                                                                                        </div>
+                                                                                                </TableCell>
 												<TableCell>
 													<div className="space-y-1">
 														<Badge
@@ -537,27 +590,20 @@ function OrderPage() {
 														</SelectContent>
 													</Select>
 												</TableCell>
-												<TableCell>
-													<div className="flex gap-1">
-														{/* <Button
-															size="icon"
-															variant="outline"
-															onClick={() => openPopup("details", order)}
-														>
-															<Eye className="w-4 h-4" />
-														</Button> */}
-														<Button
-															size="icon"
-															variant="outline"
-															onClick={() => openPopup("update", order)}
-														>
-															<Edit className="w-4 h-4" />
-														</Button>
-														<Button
-															size="icon"
-															variant="outline"
-															onClick={() => handleDownloadInvoice(order)}
-														>
+                                                                                                <TableCell>
+                                                                                                        <div className="flex gap-1">
+                                                                                                                <Button
+                                                                                                                        size="icon"
+                                                                                                                        variant="outline"
+                                                                                                                        onClick={() => openPopup("details", order)}
+                                                                                                                >
+                                                                                                                        <Eye className="w-4 h-4" />
+                                                                                                                </Button>
+                                                                                                                <Button
+                                                                                                                        size="icon"
+                                                                                                                        variant="outline"
+                                                                                                                        onClick={() => handleDownloadInvoice(order)}
+                                                                                                                >
 															<Printer className="w-4 h-4" />
 														</Button>
 														<Button
@@ -630,18 +676,21 @@ function OrderPage() {
 			</div>
 
 			{/* Popups */}
-			<OrderDetailsPopup
-				open={popups.details.open}
-				onOpenChange={() => closePopup("details")}
-				order={popups.details.order}
-			/>
-
-			<UpdateOrderPopup
-				open={popups.update.open}
-				onOpenChange={() => closePopup("update")}
-				order={popups.update.order}
-				onUpdate={fetchOrders}
-			/>
+                        <OrderDetailsPopup
+                                open={popups.details.open}
+                                onOpenChange={handleDetailsOpenChange}
+                                order={popups.details.order}
+                                onOrderUpdated={(updatedOrder) => {
+                                        if (!updatedOrder) return;
+                                        setPopups((prev) => ({
+                                                ...prev,
+                                                details: {
+                                                        open: true,
+                                                        order: updatedOrder,
+                                                },
+                                        }));
+                                }}
+                        />
 
 			<DeleteOrderPopup
 				open={popups.delete.open}
@@ -649,18 +698,11 @@ function OrderPage() {
 				itemName={popups.delete.order?.orderNumber}
 				onConfirm={async () => {
 					const result = await deleteOrder(popups.delete.order._id);
-					if (result.success) {
-						toast({
-							title: "Success",
-							description: "Order deleted successfully",
-						});
-					} else {
-						toast({
-							title: "Error",
-							description: result.message,
-							variant: "destructive",
-						});
-					}
+                                        if (result.success) {
+                                                toast.success("Order deleted successfully");
+                                        } else {
+                                                toast.error(result.message || "Failed to delete order");
+                                        }
 					closePopup("delete");
 				}}
 			/>

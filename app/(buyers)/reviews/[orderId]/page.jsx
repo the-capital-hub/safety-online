@@ -45,8 +45,9 @@ function ImagePicker({ files, onAdd, onRemove, name }) {
 	return (
 		<div className="space-y-3">
 			<div className="flex items-center gap-3">
-				<Input
-					type="file"
+                                <Input
+                                        name="reviewImages"
+                                        type="file"
 					multiple
 					accept="image/*"
 					onChange={(e) => onAdd(Array.from(e.target.files || []))}
@@ -299,8 +300,9 @@ export default function ReviewOrderPage() {
 									/>
 								</CardHeader>
 								<CardContent className="space-y-4">
-									<Input
-										placeholder="Title (optional)"
+                                                                        <Input
+                                                                                name="reviewTitle"
+                                                                                placeholder="Title (optional)"
 										value={state.title}
 										onChange={(e) =>
 											setForm((prev) => ({
@@ -312,8 +314,9 @@ export default function ReviewOrderPage() {
 											}))
 										}
 									/>
-									<Textarea
-										placeholder="Share details about quality, comfort, size, delivery experience, etc. Minimum 10 characters."
+                                                                        <Textarea
+                                                                                name="reviewComment"
+                                                                                placeholder="Share details about quality, comfort, size, delivery experience, etc. Minimum 10 characters."
 										rows={5}
 										value={state.comment}
 										onChange={(e) =>

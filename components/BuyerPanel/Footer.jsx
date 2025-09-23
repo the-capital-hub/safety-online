@@ -122,8 +122,9 @@ export default function Footer() {
 							Subscribe to our newsletter to get exclusive offers
 						</p>
 						<div className="flex">
-							<Input
-								placeholder="Enter your email"
+                                                        <Input
+                                                                name="newsletterEmail"
+                                                                placeholder="Enter your email"
 								className="bg-transparent border-white/20  border-r-0 text-white placeholder-gray-400 rounded-r-none"
 							/>
 							<Button

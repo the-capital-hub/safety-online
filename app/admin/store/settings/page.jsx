@@ -72,6 +72,14 @@ export default function StoreSettingsPage() {
 
 	const handleSubmit = (e) => {
 		e.preventDefault();
+
+		if (!e.currentTarget.checkValidity()) {
+
+		  e.currentTarget.reportValidity();
+
+		  return;
+
+		}
 		console.log("Updating store settings:", settings);
 	};
 

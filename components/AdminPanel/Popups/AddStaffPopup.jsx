@@ -34,10 +34,14 @@ export function AddStaffPopup({ open, onOpenChange }) {
 		staffImage: null,
 	});
 
-	const handleSubmit = (e) => {
-		e.preventDefault();
-		console.log("Adding staff:", formData);
-		onOpenChange(false);
+        const handleSubmit = (e) => {
+                e.preventDefault();
+                if (!e.currentTarget.checkValidity()) {
+                        e.currentTarget.reportValidity();
+                        return;
+                }
+                console.log("Adding staff:", formData);
+                onOpenChange(false);
 		setFormData({
 			name: "",
 			email: "",

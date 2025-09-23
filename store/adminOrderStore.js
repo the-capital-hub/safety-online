@@ -116,24 +116,36 @@ export const useAdminOrderStore = create(
 
 					const data = await response.json();
 
-					if (data.success) {
-						set((state) => ({
-							orders: state.orders.map((order) =>
-								order._id === id ? data.order : order
-							),
-							currentOrder: data.order,
-							loading: false,
-						}));
-						return { success: true, message: data.message };
-					} else {
-						set({ error: data.message, loading: false });
-						return { success: false, message: data.message };
-					}
-				} catch (error) {
-					set({ error: "Failed to update order", loading: false });
-					return { success: false, message: "Failed to update order" };
-				}
-			},
+                                        if (data.success) {
+                                                set((state) => ({
+                                                        orders: state.orders.map((order) =>
+                                                                order._id === id ? data.order : order
+                                                        ),
+                                                        currentOrder: data.order,
+                                                        loading: false,
+                                                }));
+                                                return {
+                                                        success: true,
+                                                        message: data.message,
+                                                        order: data.order,
+                                                };
+                                        } else {
+                                                set({ error: data.message, loading: false });
+                                                return {
+                                                        success: false,
+                                                        message: data.message,
+                                                        order: null,
+                                                };
+                                        }
+                                } catch (error) {
+                                        set({ error: "Failed to update order", loading: false });
+                                        return {
+                                                success: false,
+                                                message: "Failed to update order",
+                                                order: null,
+                                        };
+                                }
+                        },
 
 			// Delete order
 			deleteOrder: async (id) => {

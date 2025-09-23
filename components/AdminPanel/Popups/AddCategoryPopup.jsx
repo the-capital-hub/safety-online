@@ -49,9 +49,13 @@ export function AddCategoryPopup({ open, onOpenChange }) {
 		}));
 	};
 
-	const handleSubmit = async (e) => {
-		e.preventDefault();
-		setIsSubmitting(true);
+        const handleSubmit = async (e) => {
+                e.preventDefault();
+                if (!e.currentTarget.checkValidity()) {
+                        e.currentTarget.reportValidity();
+                        return;
+                }
+                setIsSubmitting(true);
 
 		// sanitize
 		const payload = {
@@ -142,11 +146,13 @@ export function AddCategoryPopup({ open, onOpenChange }) {
 							<div className="space-y-3">
 								{formData.subCategories.map((sub, idx) => (
 									<div key={idx} className="flex items-center gap-2">
-										<Input
-											placeholder="Subcategory name"
-											value={sub.name}
-											onChange={(e) => updateSub(idx, { name: e.target.value })}
-										/>
+                                                                                <Input
+                                                                                        id={`sub-category-${idx}`}
+                                                                                        name="subCategory"
+                                                                                        placeholder="Subcategory name"
+                                                                                        value={sub.name}
+                                                                                        onChange={(e) => updateSub(idx, { name: e.target.value })}
+                                                                                />
 
 										<Button
 											type="button"

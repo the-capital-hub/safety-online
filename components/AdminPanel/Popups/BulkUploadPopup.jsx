@@ -24,6 +24,14 @@ export function BulkUploadPopup({ open, onOpenChange }) {
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
+
+		if (!e.currentTarget.checkValidity()) {
+
+		  e.currentTarget.reportValidity();
+
+		  return;
+
+		}
 		if (!jsonData.trim()) return;
 
 		setIsSubmitting(true);

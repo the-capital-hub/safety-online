@@ -324,7 +324,7 @@ export default function SellerProductsPage() {
 							<div className="flex gap-4 items-center flex-wrap">
 								<div className="relative flex-1 max-w-md">
 									<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-									<Input
+									<Input name="searchQuery"
 										placeholder="Search products..."
 										value={filters.search}
 										onChange={(e) => handleSearch(e.target.value)}
@@ -358,8 +358,9 @@ export default function SellerProductsPage() {
 								</Select>
 
 								<div className="flex gap-2">
-									<Input
-										placeholder="Min Price"
+                                                                    <Input
+                                                                    name="minPrice"
+                                                                    placeholder="Min Price"
 										value={filters.minPrice}
 										onChange={(e) =>
 											handleFilterChange("minPrice", e.target.value)
@@ -367,8 +368,9 @@ export default function SellerProductsPage() {
 										className="w-24"
 										type="number"
 									/>
-									<Input
-										placeholder="Max Price"
+                                                                    <Input
+                                                                    name="maxPrice"
+                                                                    placeholder="Max Price"
 										value={filters.maxPrice}
 										onChange={(e) =>
 											handleFilterChange("maxPrice", e.target.value)

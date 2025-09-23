@@ -1,15 +1,31 @@
 import { NextResponse } from "next/server";
 import { dbConnect } from "@/lib/dbConnect.js";
 import Order from "@/model/Order.js";
+import "@/model/SubOrder.js";
 
 export async function GET(request, { params }) {
-	try {
-		await dbConnect();
+        try {
+                await dbConnect();
 
-		const order = await Order.findById(params.id)
-			.populate("userId", "firstName lastName email mobile")
-			.populate("products.productId", "name images price")
-			.populate("couponApplied.couponId", "code discountType discountValue");
+                const { id } = await params;
+
+                if (!id) {
+                        return NextResponse.json(
+                                { success: false, message: "Order id is required" },
+                                { status: 400 }
+                        );
+                }
+
+                const order = await Order.findById(id)
+                        .populate("userId", "firstName lastName email mobile")
+                        .populate({
+                                path: "subOrders",
+                                populate: {
+                                        path: "products.productId",
+                                        select: "name title images price",
+                                },
+                        })
+                        .populate("couponApplied.couponId", "code discountType discountValue");
 
 		if (!order) {
 			return NextResponse.json(
@@ -32,17 +48,32 @@ export async function GET(request, { params }) {
 }
 
 export async function PUT(request, { params }) {
-	try {
-		await dbConnect();
+        try {
+                await dbConnect();
 
-		const updateData = await request.json();
+                const updateData = await request.json();
 
-		const order = await Order.findByIdAndUpdate(params.id, updateData, {
-			new: true,
-			runValidators: true,
-		})
-			.populate("userId", "firstName lastName email")
-			.populate("products.productId", "name images");
+                const { id } = await params;
+
+                if (!id) {
+                        return NextResponse.json(
+                                { success: false, message: "Order id is required" },
+                                { status: 400 }
+                        );
+                }
+
+                const order = await Order.findByIdAndUpdate(id, updateData, {
+                        new: true,
+                        runValidators: true,
+                })
+                        .populate("userId", "firstName lastName email")
+                        .populate({
+                                path: "subOrders",
+                                populate: {
+                                        path: "products.productId",
+                                        select: "name title images price",
+                                },
+                        });
 
 		if (!order) {
 			return NextResponse.json(
@@ -66,10 +97,19 @@ export async function PUT(request, { params }) {
 }
 
 export async function DELETE(request, { params }) {
-	try {
-		await dbConnect();
+        try {
+                await dbConnect();
 
-		const order = await Order.findByIdAndDelete(params.id);
+                const { id } = await params;
+
+                if (!id) {
+                        return NextResponse.json(
+                                { success: false, message: "Order id is required" },
+                                { status: 400 }
+                        );
+                }
+
+                const order = await Order.findByIdAndDelete(id);
 
 		if (!order) {
 			return NextResponse.json(

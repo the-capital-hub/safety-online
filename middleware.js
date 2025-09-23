@@ -13,8 +13,10 @@ function isValidJWT(token) {
 	}
 }
 
+const ADMIN_PUBLIC_PATHS = ["/admin/login", "/admin/signup"];
+
 export function middleware(req) {
-	const { pathname } = req.nextUrl;
+        const { pathname } = req.nextUrl;
 
 	// Read tokens
 	const userToken = req.cookies.get("auth_token")?.value;
@@ -62,11 +64,13 @@ export function middleware(req) {
 
 	// Guarded sections
 	// Admin-only
-	if (pathname.startsWith("/admin")) {
-		if (!adminToken || !isValidJWT(adminToken)) {
-			return NextResponse.redirect(new URL("/admin/login", req.url));
-		}
-	}
+        const isAdminPublicPath = ADMIN_PUBLIC_PATHS.some((path) => pathname.startsWith(path));
+
+        if (pathname.startsWith("/admin") && !isAdminPublicPath) {
+                if (!adminToken || !isValidJWT(adminToken)) {
+                        return NextResponse.redirect(new URL("/admin/login", req.url));
+                }
+        }
 
 	// User account areas
 	if (pathname.startsWith("/account") || pathname.startsWith("/checkout")) {

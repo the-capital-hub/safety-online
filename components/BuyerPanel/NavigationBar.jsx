@@ -16,6 +16,8 @@ const MENU_ITEMS = [
 
 const DIRECT_ROUTES = {
         home: "/home",
+        "road-safety":
+                "/products?page=1&limit=12&sort=createdAt&order=desc&category=Road+Safety&minPrice=669",
         "contact-us": "/contact",
 };
 
@@ -88,7 +90,8 @@ export default function NavigationBar({ isMenuOpen, onMenuClose }) {
                                         {/* Optional search (kept commented out as in original) */}
                                         {/* <form onSubmit={handleSearch} className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
             <div className="relative">
-              <Input
+                <Input
+                name="searchQuery"
                 placeholder="Search products..."
                 className="w-full sm:w-64 pr-10"
                 value={searchQuery}

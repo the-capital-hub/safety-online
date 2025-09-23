@@ -3,6 +3,7 @@
 import { dbConnect } from "@/lib/dbConnect.js";
 import Product from "@/model/Product.js";
 import Review from "@/model/Review";
+import Categories from "@/model/Categories";
 
 export async function GET(request) {
 	await dbConnect();
@@ -16,6 +17,7 @@ export async function GET(request) {
 		const inStock = searchParams.get("inStock");
 		const discount = searchParams.get("discount");
 		const category = searchParams.get("category");
+		const subCategoryParam = searchParams.get("subCategory");
 		const search = searchParams.get("search");
 		const type = searchParams.get("type");
 		const page = parseInt(searchParams.get("page") || "1");
@@ -36,12 +38,136 @@ export async function GET(request) {
 		// 	order,
 		// });
 
+		const escapeRegex = (value = "") =>
+			value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+		const createNameVariants = (value = "") => {
+			if (!value) {
+				return [];
+			}
+
+			const trimmed = value.trim();
+
+			if (!trimmed) {
+				return [];
+			}
+
+			const hyphenated = trimmed.replace(/\s+/g, "-");
+			const spaced = trimmed.replace(/-/g, " ");
+
+			return Array.from(new Set([trimmed, hyphenated, spaced]));
+		};
+
+		const buildRegexArray = (values = []) => {
+			const uniqueValues = Array.from(
+				new Set(
+					values
+						.map((value) => value?.toString().trim())
+						.filter((value) => value && value.length > 0)
+				)
+			);
+
+			return uniqueValues.map(
+				(value) => new RegExp(`^${escapeRegex(value)}$`, "i")
+			);
+		};
+
+		const ensureAndConditions = (queryObject) => {
+			if (!queryObject.$and) {
+				queryObject.$and = [];
+			}
+
+			return queryObject.$and;
+		};
+
 		// Build query
 		const query = { published: true };
 
-		// Category filter - Fixed: handle "all" category properly
-		if (category && category !== "all") {
-			query.category = category;
+		if (subCategoryParam) {
+			const subCategoryRegexes = buildRegexArray([
+				subCategoryParam,
+				...createNameVariants(subCategoryParam),
+			]);
+
+			if (subCategoryRegexes.length > 0) {
+				ensureAndConditions(query).push({
+					subCategory: { $in: subCategoryRegexes },
+				});
+			} else {
+				query.subCategory = subCategoryParam;
+			}
+		} else if (category && category !== "all") {
+			const categoryVariantsToCheck = Array.from(
+				new Set([category, ...createNameVariants(category)])
+			);
+
+			let categoryDocument = null;
+
+			for (const variant of categoryVariantsToCheck) {
+				// Try to find a matching category document using different variants
+				// to handle inputs with spaces, hyphens, or different casing.
+				categoryDocument = await Categories.findOne({
+					published: true,
+					name: new RegExp(`^${escapeRegex(variant)}$`, "i"),
+				}).lean();
+
+				if (categoryDocument) {
+					break;
+				}
+			}
+
+			if (categoryDocument) {
+				const orConditions = [];
+
+				const categoryRegexes = buildRegexArray([
+					categoryDocument.name,
+					...createNameVariants(categoryDocument.name),
+					...categoryVariantsToCheck,
+				]);
+
+				if (categoryRegexes.length > 0) {
+					orConditions.push({ category: { $in: categoryRegexes } });
+				}
+
+				const subCategoryNames =
+					categoryDocument.subCategories?.map((sub) => sub.name) || [];
+
+				if (subCategoryNames.length > 0) {
+					const subCategoryRegexes = buildRegexArray(
+						subCategoryNames.flatMap((name) => [
+							name,
+							...createNameVariants(name),
+						])
+					);
+
+					if (subCategoryRegexes.length > 0) {
+						orConditions.push({
+							subCategory: { $in: subCategoryRegexes },
+						});
+					}
+				}
+
+				if (orConditions.length > 0) {
+					ensureAndConditions(query).push({ $or: orConditions });
+				} else if (categoryDocument.name) {
+					query.category = categoryDocument.name;
+				} else {
+					query.category = category;
+				}
+			} else {
+				const fallbackCategoryRegexes = buildRegexArray([
+					category,
+					...createNameVariants(category),
+				]);
+
+				if (fallbackCategoryRegexes.length > 0) {
+					ensureAndConditions(query).push({
+						category: { $in: fallbackCategoryRegexes },
+					});
+				} else {
+					query.category = category;
+				}
+			}
 		}
 
 		// Search filter

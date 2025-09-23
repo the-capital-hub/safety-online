@@ -9,10 +9,12 @@ import { Badge } from "@/components/ui/badge";
 import { Tag, X, Loader2, ShoppingCart, CreditCard } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
 import { useRouter } from "next/navigation";
+import useRequireAuth from "@/hooks/useRequireAuth.js";
 
 export default function CartSummary() {
-	const router = useRouter();
-	const [couponCode, setCouponCode] = useState("");
+        const router = useRouter();
+        const [couponCode, setCouponCode] = useState("");
+        const requireAuth = useRequireAuth();
 
         const {
                 totals,
@@ -60,9 +62,12 @@ export default function CartSummary() {
                 }
         };
 
-	const handleCheckout = () => {
-		router.push("/checkout");
-	};
+        const handleCheckout = () => {
+                if (!requireAuth({ message: "Please login to checkout" })) {
+                        return;
+                }
+                router.push("/checkout");
+        };
 
 	const handleContinueShopping = () => {
 		router.push("/products");
@@ -110,6 +115,7 @@ export default function CartSummary() {
                                                 <>
                                                         <div className="flex gap-2">
                                                                 <Input
+                                                                        name="couponCode"
                                                                         placeholder="Enter coupon code"
                                                                         value={couponCode}
                                                                         onChange={(e) => setCouponCode(e.target.value)}
