@@ -16,6 +16,8 @@ const MENU_ITEMS = [
 
 const DIRECT_ROUTES = {
         home: "/home",
+        "road-safety":
+                "/products?page=1&limit=12&sort=createdAt&order=desc&category=Road+Safety&minPrice=669",
         "contact-us": "/contact",
 };
 
