@@ -31,6 +31,7 @@ import ProductCard from "@/components/BuyerPanel/products/ProductCard.jsx";
 import Image from "next/image";
 import { toast } from "react-hot-toast";
 import { useWishlistStore } from "@/store/wishlistStore";
+import useRequireAuth from "@/hooks/useRequireAuth.js";
 
 export default function ProductDetail({
 	product,
@@ -41,12 +42,13 @@ export default function ProductDetail({
 	const [quantity, setQuantity] = useState(1);
 	const [isSticky, setIsSticky] = useState(true);
 	const router = useRouter();
-	const { addItem, updateQuantity, isLoading } = useCartStore();
-	const {
-		isItemInWishlist,
-		toggleItem,
-		isLoading: wishlistLoading,
-	} = useWishlistStore();
+        const { addItem, updateQuantity, isLoading } = useCartStore();
+        const {
+                isItemInWishlist,
+                toggleItem,
+                isLoading: wishlistLoading,
+        } = useWishlistStore();
+        const requireAuth = useRequireAuth();
 
 	const isInWishlist = isItemInWishlist(product.id || product._id);
 
@@ -66,12 +68,16 @@ export default function ProductDetail({
 		return () => window.removeEventListener("scroll", handleScroll);
 	}, []);
 
-	const handleAddToCart = async (e) => {
-		e.stopPropagation();
+        const handleAddToCart = async (e) => {
+                e.stopPropagation();
 
-		await addItem(
-			{
-				id: product.id || product._id,
+                if (!requireAuth({ message: "Please login to add items to your cart" })) {
+                        return;
+                }
+
+                await addItem(
+                        {
+                                id: product.id || product._id,
 				name: product.title,
 				description: product.description,
 				price: product.salePrice || product.price,
@@ -83,12 +89,16 @@ export default function ProductDetail({
 		);
 	};
 
-	const handleBuyNow = async (e) => {
-		e.stopPropagation();
-		router.push(
-			`/checkout?buyNow=true&id=${product.id || product._id}&qty=${quantity}`
-		);
-	};
+        const handleBuyNow = async (e) => {
+                e.stopPropagation();
+
+                if (!requireAuth({ message: "Please login to continue" })) {
+                        return;
+                }
+                router.push(
+                        `/checkout?buyNow=true&id=${product.id || product._id}&qty=${quantity}`
+                );
+        };
 
 	const handleQuantityChange = (change) => {
 		const newQuantity = quantity + change;
@@ -191,6 +201,10 @@ export default function ProductDetail({
         const handleWishlist = async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
+
+                if (!requireAuth({ message: "Please login to manage your wishlist" })) {
+                        return;
+                }
                 await toggleItem(product);
         };
 

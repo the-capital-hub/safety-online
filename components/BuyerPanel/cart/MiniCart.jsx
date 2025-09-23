@@ -8,29 +8,39 @@ import { ShoppingCart, X, Plus, Minus } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import useRequireAuth from "@/hooks/useRequireAuth.js";
 
 export default function MiniCart() {
-	const router = useRouter();
-	const {
-		items,
+        const router = useRouter();
+        const {
+                items,
 		isOpen,
 		closeCart,
 		totals,
 		updateQuantity,
 		removeItem,
-		getTotalItems,
-		isLoading,
-	} = useCartStore();
+                getTotalItems,
+                isLoading,
+        } = useCartStore();
+        const requireAuth = useRequireAuth();
 
-	const handleViewCart = () => {
-		closeCart();
-		router.push("/cart");
-	};
+        const handleViewCart = () => {
+                if (!requireAuth({ message: "Please login to view your cart" })) {
+                        closeCart();
+                        return;
+                }
+                closeCart();
+                router.push("/cart");
+        };
 
-	const handleCheckout = () => {
-		closeCart();
-		router.push("/checkout");
-	};
+        const handleCheckout = () => {
+                if (!requireAuth({ message: "Please login to checkout" })) {
+                        closeCart();
+                        return;
+                }
+                closeCart();
+                router.push("/checkout");
+        };
 
 	if (!isOpen) return null;
 

@@ -6,21 +6,27 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ShoppingCart, ArrowLeft, Trash2 } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
+import { useIsAuthenticated } from "@/store/authStore.js";
+import useRequireAuth from "@/hooks/useRequireAuth.js";
 import { useRouter } from "next/navigation";
 import CartItem from "./CartItem";
 import CartSummary from "./CartSummary";
 
 export default function CartPage() {
 	const router = useRouter();
-	const { items, isLoading, syncError, clearCart, fetchCart, isAuthenticated } =
-		useCartStore();
+        const { items, isLoading, syncError, clearCart, fetchCart } = useCartStore();
+        const isAuthenticated = useIsAuthenticated();
+        const requireAuth = useRequireAuth("Please login to view your cart");
 
-	useEffect(() => {
-		// Fetch cart on page load if authenticated
-		if (isAuthenticated()) {
-			fetchCart();
-		}
-	}, [fetchCart, isAuthenticated]);
+        useEffect(() => {
+                // Redirect if not authenticated, otherwise fetch cart data
+                if (!isAuthenticated) {
+                        requireAuth({ redirectTo: "/cart" });
+                        return;
+                }
+
+                fetchCart();
+        }, [fetchCart, isAuthenticated, requireAuth]);
 
 	const handleClearCart = () => {
 		if (window.confirm("Are you sure you want to clear your cart?")) {
