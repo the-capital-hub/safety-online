@@ -81,11 +81,14 @@ const SignupPage = () => {
 		setIsLoading(true);
 		try {
 			// Send OTP to mobile
-			const response = await fetch("/api/auth/send-otp", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ mobile: parsed.data.mobile }),
-			});
+                        const response = await fetch("/api/auth/send-otp", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                        email: parsed.data.email.toLowerCase(),
+                                        mobile: parsed.data.mobile,
+                                }),
+                        });
 
 			const data = await response.json();
 			if (response.ok) {
@@ -169,11 +172,14 @@ const SignupPage = () => {
 		if (resendTimer > 0) return;
 		try {
 			setIsLoading(true);
-			const response = await fetch("/api/auth/send-otp", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ mobile: formData.mobile.trim() }),
-			});
+                        const response = await fetch("/api/auth/send-otp", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                        email: formData.email.trim().toLowerCase(),
+                                        mobile: formData.mobile.trim(),
+                                }),
+                        });
 			const data = await response.json();
 			if (response.ok) {
 				toast.success("Verification code resent");

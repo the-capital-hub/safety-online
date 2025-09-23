@@ -3,7 +3,6 @@
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { Toaster } from "react-hot-toast";
 import { AdminSidebar } from "@/components/AdminPanel/AdminSidebar.jsx";
 import { AdminHeader } from "@/components/AdminPanel/AdminHeader.jsx";
 
@@ -31,9 +30,8 @@ export default function AdminLayout({ children }) {
                                         >
                                                 {children}
                                         </motion.main>
-                                        <Toaster />
-				</div>
-			</div>
-		</SidebarProvider>
-	);
+                                </div>
+                        </div>
+                </SidebarProvider>
+        );
 }

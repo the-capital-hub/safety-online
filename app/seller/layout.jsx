@@ -8,7 +8,6 @@ import SellerHeader2 from "@/components/SellerPanel/Layout/SellerHeader.jsx";
 import SellerSidebar from "@/components/SellerPanel/Layout/SellerSidebar.jsx";
 import LoadingSpinner from "@/components/SellerPanel/Layout/LoadingSpinner.jsx";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { Toaster } from "react-hot-toast";
 
 export default function SellerLayout({ children }) {
 	const pathname = usePathname();
@@ -41,11 +40,10 @@ export default function SellerLayout({ children }) {
 					<Suspense fallback={<LoadingSpinner />}>{children}</Suspense>
 				</main>
 
-				<Suspense fallback={<LoadingSpinner />}>
-					{show && <SellerFooter />}
-				</Suspense>
-				<Toaster />
-			</div>
-		</SidebarProvider>
-	);
+                                <Suspense fallback={<LoadingSpinner />}>
+                                        {show && <SellerFooter />}
+                                </Suspense>
+                        </div>
+                </SidebarProvider>
+        );
 }
