@@ -28,11 +28,10 @@ import {
 	Search,
 	Download,
 	Filter,
-	RotateCcw,
-	Eye,
-	Printer,
-	Edit,
-	Trash2,
+        RotateCcw,
+        Eye,
+        Printer,
+        Trash2,
 	Package,
 	DollarSign,
 	Clock,
@@ -41,7 +40,6 @@ import {
 } from "lucide-react";
 import { useAdminOrderStore } from "@/store/adminOrderStore.js";
 import { OrderDetailsPopup } from "@/components/AdminPanel/Popups/OrderDetailsPopup.jsx";
-import { UpdateOrderPopup } from "@/components/AdminPanel/Popups/UpdateOrderPopup.jsx";
 import { DeleteOrderPopup } from "@/components/AdminPanel/Popups/DeleteOrderPopup.jsx";
 // import { InvoicePopup } from "@/components/AdminPanel/Popups/InvoicePopup.jsx";
 import { useIsAuthenticated } from "@/store/adminAuthStore.js";
@@ -65,12 +63,11 @@ function OrderPage() {
 	} = useAdminOrderStore();
 
 	const [selectedOrders, setSelectedOrders] = useState([]);
-	const [popups, setPopups] = useState({
-		details: { open: false, order: null },
-		update: { open: false, order: null },
-		delete: { open: false, order: null },
-		// invoice: { open: false, order: null },
-	});
+        const [popups, setPopups] = useState({
+                details: { open: false, order: null },
+                delete: { open: false, order: null },
+                // invoice: { open: false, order: null },
+        });
 
 	const isAuthenticated = useIsAuthenticated();
 	const [isRedirecting, setIsRedirecting] = useState(false);
@@ -154,12 +151,18 @@ function OrderPage() {
 		}));
 	};
 
-	const closePopup = (type) => {
-		setPopups((prev) => ({
-			...prev,
-			[type]: { open: false, order: null },
-		}));
-	};
+        const closePopup = (type) => {
+                setPopups((prev) => ({
+                        ...prev,
+                        [type]: { open: false, order: null },
+                }));
+        };
+
+        const handleDetailsOpenChange = (isOpen) => {
+                if (!isOpen) {
+                        closePopup("details");
+                }
+        };
 
 	const getStatusColor = (status) => {
 		const colors = {
@@ -540,27 +543,20 @@ function OrderPage() {
 														</SelectContent>
 													</Select>
 												</TableCell>
-												<TableCell>
-													<div className="flex gap-1">
-														{/* <Button
-															size="icon"
-															variant="outline"
-															onClick={() => openPopup("details", order)}
-														>
-															<Eye className="w-4 h-4" />
-														</Button> */}
-														<Button
-															size="icon"
-															variant="outline"
-															onClick={() => openPopup("update", order)}
-														>
-															<Edit className="w-4 h-4" />
-														</Button>
-														<Button
-															size="icon"
-															variant="outline"
-															onClick={() => handleDownloadInvoice(order)}
-														>
+                                                                                                <TableCell>
+                                                                                                        <div className="flex gap-1">
+                                                                                                                <Button
+                                                                                                                        size="icon"
+                                                                                                                        variant="outline"
+                                                                                                                        onClick={() => openPopup("details", order)}
+                                                                                                                >
+                                                                                                                        <Eye className="w-4 h-4" />
+                                                                                                                </Button>
+                                                                                                                <Button
+                                                                                                                        size="icon"
+                                                                                                                        variant="outline"
+                                                                                                                        onClick={() => handleDownloadInvoice(order)}
+                                                                                                                >
 															<Printer className="w-4 h-4" />
 														</Button>
 														<Button
@@ -633,18 +629,21 @@ function OrderPage() {
 			</div>
 
 			{/* Popups */}
-			<OrderDetailsPopup
-				open={popups.details.open}
-				onOpenChange={() => closePopup("details")}
-				order={popups.details.order}
-			/>
-
-			<UpdateOrderPopup
-				open={popups.update.open}
-				onOpenChange={() => closePopup("update")}
-				order={popups.update.order}
-				onUpdate={fetchOrders}
-			/>
+                        <OrderDetailsPopup
+                                open={popups.details.open}
+                                onOpenChange={handleDetailsOpenChange}
+                                order={popups.details.order}
+                                onOrderUpdated={(updatedOrder) => {
+                                        if (!updatedOrder) return;
+                                        setPopups((prev) => ({
+                                                ...prev,
+                                                details: {
+                                                        open: true,
+                                                        order: updatedOrder,
+                                                },
+                                        }));
+                                }}
+                        />
 
 			<DeleteOrderPopup
 				open={popups.delete.open}
