@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
+import { dbConnect } from "@/lib/dbConnect"
+import User from "@/model/User.js"
 import { sendOtpMobile } from "@/lib/sendMobileOtp"
 import { saveOTP } from "@/lib/otpStore"
 
 const SendCodeSchema = z.object({
+  email: z.string().trim().email("Valid email is required"),
   mobile: z
     .string()
     .trim()
@@ -23,7 +26,21 @@ export async function POST(req) {
       return NextResponse.json({ message: parsed.error.issues?.[0]?.message || "Invalid input" }, { status: 400 })
     }
 
+    const email = parsed.data.email.toLowerCase()
     const { mobile } = parsed.data
+
+    await dbConnect()
+
+    const existingUser = await User.findOne({
+      $or: [{ email }, { mobile }],
+    })
+
+    if (existingUser) {
+      return NextResponse.json(
+        { message: "An account with this email or mobile number already exists" },
+        { status: 409 }
+      )
+    }
     const code = generateCode()
 
     saveOTP(mobile, code)
