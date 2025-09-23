@@ -140,10 +140,14 @@ export default function CheckoutPage() {
         }, [user, loadUserAddresses]);
 
         useEffect(() => {
-                if (checkoutType === "buyNow") {
+                if (!recommendedLoading && recommendedCoupons.length === 0) {
                         fetchRecommendedCoupons();
                 }
-        }, [checkoutType, fetchRecommendedCoupons]);
+        }, [
+                fetchRecommendedCoupons,
+                recommendedCoupons.length,
+                recommendedLoading,
+        ]);
 
 	// Initialize checkout based on URL params
 	useEffect(() => {
