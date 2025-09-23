@@ -35,11 +35,50 @@ const GstBreakdownSchema = new mongoose.Schema(
         { _id: false }
 );
 
+const CouponAppliedSchema = new mongoose.Schema(
+        {
+                couponId: {
+                        type: mongoose.Schema.Types.ObjectId,
+                        ref: "Promocode",
+                        default: null,
+                },
+                couponCode: {
+                        type: String,
+                        default: null,
+                },
+                code: {
+                        type: String,
+                        default: null,
+                },
+                name: {
+                        type: String,
+                        default: null,
+                },
+                discount: {
+                        type: Number,
+                        default: 0,
+                },
+                discountValue: {
+                        type: Number,
+                        default: 0,
+                },
+                discountAmount: {
+                        type: Number,
+                        default: 0,
+                },
+                discountType: {
+                        type: String,
+                        default: null,
+                },
+        },
+        { _id: false, strict: false }
+);
+
 const OrderSchema = new mongoose.Schema(
-	{
-		orderNumber: {
-			type: String,
-			unique: true,
+        {
+                orderNumber: {
+                        type: String,
+                        unique: true,
 			required: true,
 			default: () =>
 				`ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -75,11 +114,11 @@ const OrderSchema = new mongoose.Schema(
                         }),
                 },
 
-		// Coupon/Promo
-		couponApplied: {
-			type: String,
-			default: null,
-		},
+                // Coupon/Promo
+                couponApplied: {
+                        type: CouponAppliedSchema,
+                        default: null,
+                },
 
 		// Payment
 		paymentMethod: {

@@ -35,11 +35,50 @@ const GstBreakdownSchema = new mongoose.Schema(
         { _id: false }
 );
 
+const CouponAppliedSchema = new mongoose.Schema(
+        {
+                couponId: {
+                        type: mongoose.Schema.Types.ObjectId,
+                        ref: "Promocode",
+                        default: null,
+                },
+                couponCode: {
+                        type: String,
+                        default: null,
+                },
+                code: {
+                        type: String,
+                        default: null,
+                },
+                name: {
+                        type: String,
+                        default: null,
+                },
+                discount: {
+                        type: Number,
+                        default: 0,
+                },
+                discountValue: {
+                        type: Number,
+                        default: 0,
+                },
+                discountAmount: {
+                        type: Number,
+                        default: 0,
+                },
+                discountType: {
+                        type: String,
+                        default: null,
+                },
+        },
+        { _id: false, strict: false }
+);
+
 const SubOrderSchema = new mongoose.Schema(
-	{
-		orderId: {
-			type: mongoose.Schema.Types.ObjectId,
-			ref: "Order",
+        {
+                orderId: {
+                        type: mongoose.Schema.Types.ObjectId,
+                        ref: "Order",
 			required: true,
 		},
 
@@ -84,11 +123,11 @@ const SubOrderSchema = new mongoose.Schema(
                         }),
                 },
 
-		// Coupon/Promo applied to this sub-order
-		couponApplied: {
-			type: String,
-			default: null,
-		},
+                // Coupon/Promo applied to this sub-order
+                couponApplied: {
+                        type: CouponAppliedSchema,
+                        default: null,
+                },
 
 		// Tracking (per seller)
 		trackingNumber: String,
