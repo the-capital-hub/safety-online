@@ -53,6 +53,40 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
 
         if (!order) return null;
 
+        const normalizedProducts = (() => {
+                if (Array.isArray(order?.products)) {
+                        return order.products;
+                }
+
+                if (Array.isArray(order?.subOrders)) {
+                        return order.subOrders.flatMap((subOrder) => {
+                                if (!subOrder || !Array.isArray(subOrder.products)) {
+                                        return [];
+                                }
+
+                                return subOrder.products.map((product) => ({
+                                        ...product,
+                                        productName:
+                                                product.productName ||
+                                                product?.productId?.name ||
+                                                product?.productId?.title ||
+                                                "",
+                                        productImage:
+                                                product.productImage ||
+                                                product?.productId?.images?.[0] ||
+                                                "",
+                                }));
+                        });
+                }
+
+                return [];
+        })();
+
+        const getSafeAmount = (value) => {
+                const numericValue = Number.parseFloat(value);
+                return Number.isFinite(numericValue) ? numericValue : 0;
+        };
+
         const gstLines = buildGstLineItems(order.gst);
         const gstMode = order?.gst?.mode || "igst";
 
@@ -359,15 +393,15 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
 
 						{/* Products */}
 						<Card>
-							<CardHeader>
-								<CardTitle className="flex items-center gap-2">
-									<Package className="w-5 h-5" />
-									Products ({order.products.length} items)
-								</CardTitle>
-							</CardHeader>
+                                                        <CardHeader>
+                                                                <CardTitle className="flex items-center gap-2">
+                                                                        <Package className="w-5 h-5" />
+                                                                        Products ({normalizedProducts.length} items)
+                                                                </CardTitle>
+                                                        </CardHeader>
 							<CardContent>
 								<div className="space-y-4">
-									{order.products.map((product, index) => (
+                                                                        {normalizedProducts.map((product, index) => (
 										<div
 											key={index}
 											className="flex items-center gap-4 p-4 border rounded-lg"
@@ -381,15 +415,15 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
 											)}
 											<div className="flex-1">
 												<h4 className="font-medium">{product.productName}</h4>
-												<p className="text-sm text-gray-600">
-													Quantity: {product.quantity} × $
-													{product.price.toFixed(2)}
-												</p>
+                                                                                                <p className="text-sm text-gray-600">
+                                                                                                        Quantity: {product.quantity} × $
+                                                                                                        {getSafeAmount(product.price).toFixed(2)}
+                                                                                                </p>
 											</div>
 											<div className="text-right">
-												<p className="font-medium">
-													${product.totalPrice.toFixed(2)}
-												</p>
+                                                                                                <p className="font-medium">
+                                                                                                        ${getSafeAmount(product.totalPrice).toFixed(2)}
+                                                                                                </p>
 											</div>
 										</div>
 									))}
