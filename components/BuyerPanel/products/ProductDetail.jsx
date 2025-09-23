@@ -472,9 +472,9 @@ export default function ProductDetail({
 							</div>
 						)}
 
-                                                {/* Ladwa Benefits */}
+                                                {/* Safety Online Benefits */}
                                                 <div>
-                                                        <h3 className="font-semibold text-lg mb-2">Ladwa Benefits</h3>
+                                                        <h3 className="font-semibold text-lg mb-2">Safety Online Benefits</h3>
                                                         <div className="flex flex-wrap gap-2">
                                                                 <div className="flex items-center space-x-2 bg-white border border-orange-500 rounded-lg px-3 py-2">
                                                                         <Receipt className="h-4 w-4" />
