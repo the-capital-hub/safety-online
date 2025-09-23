@@ -77,7 +77,7 @@ export default function CategorySection({
 					className="w-full relative mb-6 max-w-xl mx-auto"
 				>
 					<form onSubmit={handleSearchSubmit}>
-						<Input
+						<Input name="searchQuery"
 							placeholder="Search products..."
 							value={localSearch}
 							onChange={(e) => setLocalSearch(e.target.value)}

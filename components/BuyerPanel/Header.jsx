@@ -99,7 +99,7 @@ export default function Header() {
 
 						<div className="flex-1 px-2 hidden md:block">
 							<form onSubmit={handleSearch} className="relative">
-								<Input
+								<Input name="searchQuery"
 									placeholder="Search products..."
 									value={searchQuery}
 									onChange={(e) => setSearchQuery(e.target.value)}
@@ -186,7 +186,7 @@ export default function Header() {
 					className="fixed inset-x-0 top-0 p-4 bg-white shadow-md md:hidden z-50"
 				>
 					<form onSubmit={handleSearch} className="relative">
-						<Input
+						<Input name="searchQuery"
 							autoFocus
 							placeholder="Search products..."
 							value={searchQuery}

@@ -35,6 +35,14 @@ export function UpdateCurrencyPopup({ open, onOpenChange, currency }) {
 
 	const handleSubmit = (e) => {
 		e.preventDefault();
+
+		if (!e.currentTarget.checkValidity()) {
+
+		  e.currentTarget.reportValidity();
+
+		  return;
+
+		}
 		console.log("Updating currency:", formData);
 		onOpenChange(false);
 	};

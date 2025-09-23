@@ -115,6 +115,7 @@ export default function CartSummary() {
                                                 <>
                                                         <div className="flex gap-2">
                                                                 <Input
+                                                                        name="couponCode"
                                                                         placeholder="Enter coupon code"
                                                                         value={couponCode}
                                                                         onChange={(e) => setCouponCode(e.target.value)}

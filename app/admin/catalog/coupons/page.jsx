@@ -252,7 +252,7 @@ export default function AdminCouponsPage() {
 							<div className="flex gap-4 items-center flex-wrap">
 								<div className="relative flex-1 max-w-md">
 									<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-									<Input
+									<Input name="searchQuery"
 										placeholder="Search coupons..."
 										value={filters.search}
 										onChange={(e) => handleSearch(e.target.value)}

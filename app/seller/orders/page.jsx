@@ -236,8 +236,9 @@ function SellerOrdersPage() {
 						<div className="flex flex-wrap gap-4 items-center">
 							<div className="relative">
 								<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-								<Input
-									placeholder="Search orders..."
+                                                                <Input
+                                                                        name="searchQuery"
+                                                                        placeholder="Search orders..."
 									className="pl-10 w-64"
 									onKeyPress={handleSearch}
 								/>
@@ -288,8 +289,9 @@ function SellerOrdersPage() {
 						<div className="flex items-center gap-2">
 							<Calendar className="w-4 h-4 text-gray-400" />
 							<span className="text-sm font-medium">From</span>
-							<Input
-								type="date"
+                                                        <Input
+                                                                name="startDate"
+                                                                type="date"
 								className="w-40"
 								value={filters.startDate}
 								onChange={(e) =>
@@ -300,8 +302,9 @@ function SellerOrdersPage() {
 						<div className="flex items-center gap-2">
 							<Calendar className="w-4 h-4 text-gray-400" />
 							<span className="text-sm font-medium">To</span>
-							<Input
-								type="date"
+                                                        <Input
+                                                                name="endDate"
+                                                                type="date"
 								className="w-40"
 								value={filters.endDate}
 								onChange={(e) => handleFilterChange("endDate", e.target.value)}

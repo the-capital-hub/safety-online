@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from "react";
 import { Pencil, Trash2, Plus } from "lucide-react";
 
+import { Input } from "@/components/ui/input";
+
 const Addresses = () => {
   const [addresses, setAddresses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -54,6 +56,10 @@ const Addresses = () => {
   // Save / Update
   const handleSave = async (e) => {
     e.preventDefault();
+    if (!e.currentTarget.checkValidity()) {
+      e.currentTarget.reportValidity();
+      return;
+    }
 
     let newAddresses;
     if (editIndex !== null) {
@@ -147,21 +153,34 @@ const Addresses = () => {
               { label: "Phone", name: "phone" },
               { label: "Company Logo (URL)", name: "companyLogo" },
               { label: "GSTIN Number", name: "gstinNumber" },
-            ].map((field) => (
-              <div key={field.name}>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {field.label}
-                </label>
-                <input
-                  type="text"
-                  name={field.name}
-                  value={formData[field.name] || ""}
-                  onChange={handleChange}
-                  placeholder={field.label}
-                  className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm dark:bg-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-black"
-                />
-              </div>
-            ))}
+            ].map((field) => {
+              const inputType =
+                field.name === "companyEmail"
+                  ? "email"
+                  : field.name === "phone"
+                  ? "tel"
+                  : field.name === "companyLogo"
+                  ? "url"
+                  : "text";
+              const isRequired = field.name !== "companyLogo";
+              return (
+                <div key={field.name}>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {field.label}
+                  </label>
+                  <Input
+                    id={`company-${field.name}`}
+                    name={field.name}
+                    type={inputType}
+                    value={formData[field.name] || ""}
+                    onChange={handleChange}
+                    placeholder={field.label}
+                    required={isRequired}
+                    className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm dark:bg-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-black"
+                  />
+                </div>
+              );
+            })}
             <div className="flex justify-end gap-3">
               <button
                 type="button"

@@ -182,6 +182,14 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
+
+		if (!e.currentTarget.checkValidity()) {
+
+		  e.currentTarget.reportValidity();
+
+		  return;
+
+		}
 		if (!product) return;
 
 		setIsSubmitting(true);
@@ -553,8 +561,10 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 
 							<div>
 								<Label>HSN Code</Label>
-								<Input
-									placeholder="HSN Code"
+                                                                <Input
+                                                                        id="admin-update-hsnCode"
+                                                                        name="hsnCode"
+                                                                        placeholder="HSN Code"
 									value={formData.hsnCode}
 									onChange={(e) =>
 										setFormData({ ...formData, hsnCode: e.target.value })
@@ -565,8 +575,10 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 
 							<div>
 								<Label>Brand</Label>
-								<Input
-									placeholder="Brand"
+                                                                <Input
+                                                                        id="admin-update-brand"
+                                                                        name="brand"
+                                                                        placeholder="Brand"
 									value={formData.brand}
 									onChange={(e) =>
 										setFormData({ ...formData, brand: e.target.value })
@@ -577,8 +589,9 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 
 							<div>
 								<Label>Length</Label>
-								<Input
-									placeholder="Length"
+                                                                <Input
+                                                                        name="length"
+                                                                        placeholder="Length"
 									value={formData.length}
 									onChange={(e) =>
 										setFormData({ ...formData, length: e.target.value })
@@ -591,8 +604,9 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 
 							<div>
 								<Label>Width</Label>
-								<Input
-									placeholder="Width"
+                                                                <Input
+                                                                        name="width"
+                                                                        placeholder="Width"
 									value={formData.width}
 									onChange={(e) =>
 										setFormData({ ...formData, width: e.target.value })
@@ -605,8 +619,9 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 
 							<div>
 								<Label>Height</Label>
-								<Input
-									placeholder="Height"
+                                                                <Input
+                                                                        name="height"
+                                                                        placeholder="Height"
 									value={formData.height}
 									onChange={(e) =>
 										setFormData({ ...formData, height: e.target.value })
@@ -619,8 +634,9 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 
 							<div>
 								<Label>Weight</Label>
-								<Input
-									placeholder="Weight"
+                                                                <Input
+                                                                        name="weight"
+                                                                        placeholder="Weight"
 									value={formData.weight}
 									onChange={(e) =>
 										setFormData({ ...formData, weight: e.target.value })
@@ -631,41 +647,44 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 								/>
 							</div>
 
-							<div>
-								<Label>Colour</Label>
-								<Input
-									placeholder="Colour"
-									value={formData.colour}
-									onChange={(e) =>
-										setFormData({ ...formData, colour: e.target.value })
-									}
-									className="mt-1"
-								/>
-							</div>
+                                                                <div>
+                                                                        <Label>Colour</Label>
+                                                                        <Input
+                                                                                name="colour"
+                                                                                placeholder="Colour"
+                                                                                value={formData.colour}
+                                                                                onChange={(e) =>
+                                                                                        setFormData({ ...formData, colour: e.target.value })
+                                                                                }
+                                                                                className="mt-1"
+                                                                        />
+                                                                </div>
 
-							<div>
-								<Label>Material</Label>
-								<Input
-									placeholder="Material"
-									value={formData.material}
-									onChange={(e) =>
-										setFormData({ ...formData, material: e.target.value })
-									}
-									className="mt-1"
-								/>
-							</div>
+                                                                <div>
+                                                                        <Label>Material</Label>
+                                                                        <Input
+                                                                                name="material"
+                                                                                placeholder="Material"
+                                                                                value={formData.material}
+                                                                                onChange={(e) =>
+                                                                                        setFormData({ ...formData, material: e.target.value })
+                                                                                }
+                                                                                className="mt-1"
+                                                                        />
+                                                                </div>
 
-							<div>
-								<Label>Size</Label>
-								<Input
-									placeholder="Size"
-									value={formData.size}
-									onChange={(e) =>
-										setFormData({ ...formData, size: e.target.value })
-									}
-									className="mt-1"
-								/>
-							</div>
+                                                                <div>
+                                                                        <Label>Size</Label>
+                                                                        <Input
+                                                                                name="size"
+                                                                                placeholder="Size"
+                                                                                value={formData.size}
+                                                                                onChange={(e) =>
+                                                                                        setFormData({ ...formData, size: e.target.value })
+                                                                                }
+                                                                                className="mt-1"
+                                                                        />
+                                                                </div>
 						</div>
 
 						{/* Features Section */}
@@ -685,16 +704,18 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 							<div className="space-y-3">
 								{features.map((feature, index) => (
 									<div key={index} className="flex gap-3 items-start">
-										<Input
-											placeholder="Feature title"
+                                                                                <Input
+                                                                                        name="featureTitle"
+                                                                                        placeholder="Feature title"
 											value={feature.title}
 											onChange={(e) =>
 												updateFeature(index, "title", e.target.value)
 											}
 											className="flex-1"
 										/>
-										<Input
-											placeholder="Feature description"
+                                                                                <Input
+                                                                                        name="featureDescription"
+                                                                                        placeholder="Feature description"
 											value={feature.description}
 											onChange={(e) =>
 												updateFeature(index, "description", e.target.value)

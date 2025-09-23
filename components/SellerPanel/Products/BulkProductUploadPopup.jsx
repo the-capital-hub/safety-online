@@ -32,10 +32,14 @@ export function BulkUploadPopup({ open, onOpenChange }) {
 	const [mode, setMode] = useState("json");
 	const [uploadResults, setUploadResults] = useState(null);
 
-	const handleSubmit = async (e) => {
-		e.preventDefault();
+        const handleSubmit = async (e) => {
+                e.preventDefault();
+                if (!e.currentTarget.checkValidity()) {
+                        e.currentTarget.reportValidity();
+                        return;
+                }
 
-		setIsSubmitting(true);
+                setIsSubmitting(true);
 		try {
 			let products = [];
 			if (mode === "json") {
@@ -396,8 +400,9 @@ export function BulkUploadPopup({ open, onOpenChange }) {
 										<Label htmlFor="jsonData">
 											Product Data (JSON Format) *
 										</Label>
-										<Textarea
-											id="jsonData"
+                                                                                <Textarea
+                                                                                        id="jsonData"
+                                                                                        name="jsonData"
 											placeholder={`[
   {
     "title": "Product Name",
@@ -422,8 +427,9 @@ export function BulkUploadPopup({ open, onOpenChange }) {
 								) : (
 									<div>
 										<Label htmlFor="csvData">Product Data (CSV File) *</Label>
-										<Input
-											id="csvData"
+                                                                                <Input
+                                                                                        id="csvData"
+                                                                                        name="csvData"
 											type="file"
 											accept=".csv"
 											onChange={handleCSVChange}

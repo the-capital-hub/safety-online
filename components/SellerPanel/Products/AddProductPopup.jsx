@@ -92,9 +92,13 @@ export function AddProductPopup({ open, onOpenChange }) {
 		}
 	}, [formData.category, categories]);
 
-	const handleSubmit = async (e) => {
-		e.preventDefault();
-		setIsSubmitting(true);
+        const handleSubmit = async (e) => {
+                e.preventDefault();
+                if (!e.currentTarget.checkValidity()) {
+                        e.currentTarget.reportValidity();
+                        return;
+                }
+                setIsSubmitting(true);
 
 		try {
 			// Prepare product data with proper types
@@ -540,22 +544,26 @@ export function AddProductPopup({ open, onOpenChange }) {
 							<div className="space-y-3">
 								{features.map((feature, index) => (
 									<div key={index} className="flex gap-3 items-start">
-										<Input
-											placeholder="Feature title"
-											value={feature.title}
-											onChange={(e) =>
-												updateFeature(index, "title", e.target.value)
-											}
-											className="flex-1"
-										/>
-										<Input
-											placeholder="Feature description"
-											value={feature.description}
-											onChange={(e) =>
-												updateFeature(index, "description", e.target.value)
-											}
-											className="flex-1"
-										/>
+                                                                                <Input
+                                                                                        id={`feature-title-${index}`}
+                                                                                        name="featureTitle"
+                                                                                        placeholder="Feature title"
+                                                                                        value={feature.title}
+                                                                                        onChange={(e) =>
+                                                                                                updateFeature(index, "title", e.target.value)
+                                                                                        }
+                                                                                        className="flex-1"
+                                                                                />
+                                                                                <Input
+                                                                                        id={`feature-description-${index}`}
+                                                                                        name="featureDescription"
+                                                                                        placeholder="Feature description"
+                                                                                        value={feature.description}
+                                                                                        onChange={(e) =>
+                                                                                                updateFeature(index, "description", e.target.value)
+                                                                                        }
+                                                                                        className="flex-1"
+                                                                                />
 										{features.length > 1 && (
 											<Button
 												type="button"

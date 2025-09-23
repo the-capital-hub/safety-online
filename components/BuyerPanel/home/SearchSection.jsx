@@ -40,8 +40,9 @@ export default function SearchSection({ searchQuery, setSearchQuery }) {
 					onSubmit={handleSearch}
 					className="max-w-md mx-auto relative"
 				>
-					<Input
-						placeholder="Search products..."
+                                                <Input
+                                                name="searchQuery"
+                                                placeholder="Search products..."
 						className="h-10 pr-12 py-3 rounded-full bg-[#EEEEEE66]"
 						value={searchQuery}
 						onChange={(e) => setSearchQuery(e.target.value)}

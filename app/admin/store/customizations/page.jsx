@@ -116,6 +116,10 @@
 
 // 	const handleSubmit = (e) => {
 // 		e.preventDefault();
+ 		if (!e.currentTarget.checkValidity()) {
+ 		  e.currentTarget.reportValidity();
+ 		  return;
+ 		}
 // 		console.log("Updating store customizations:", formData);
 // 	};
 

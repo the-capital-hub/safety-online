@@ -64,6 +64,14 @@ export function UpdateOrderPopup({ open, onOpenChange, order, onUpdate }) {
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 
+		if (!e.currentTarget.checkValidity()) {
+
+		  e.currentTarget.reportValidity();
+
+		  return;
+
+		}
+
 		if (!order) return;
 
                 const roundToTwo = (value) => {
