@@ -1,65 +1,166 @@
+// import { NextResponse } from "next/server";
+// import { dbConnect } from "@/lib/dbConnect";
+// import User from "@/model/User.js";
+// import { verifyOTP, clearOTP } from "@/lib/otpStore";
+// import { createToken } from "@/lib/auth";
+// import { serialize } from "cookie";
+
+// // POST /api/auth/login-otp
+// // Body: { emailOrMobile: string, code: string }
+// export async function POST(req) {
+// 	try {
+// 		await dbConnect();
+// 		const { emailOrMobile, code } = await req.json();
+
+// 		if (!emailOrMobile || !code) {
+// 			return NextResponse.json(
+// 				{ message: "Email/Mobile and code are required" },
+// 				{ status: 400 }
+// 			);
+// 		}
+
+// 		const user = await User.findOne({
+// 			$or: [{ email: emailOrMobile }, { mobile: emailOrMobile }],
+// 		});
+
+// 		if (!user) {
+// 			return NextResponse.json(
+// 				{ message: "Account not found" },
+// 				{ status: 404 }
+// 			);
+// 		}
+
+// 		if (!user.mobile) {
+// 			return NextResponse.json(
+// 				{ message: "Please add mobile number first" },
+// 				{ status: 400 }
+// 			);
+// 		}
+
+// 		const isValid = verifyOTP(user.mobile, code);
+// 		if (!isValid) {
+// 			return NextResponse.json(
+// 				{ message: "Invalid or expired code" },
+// 				{ status: 400 }
+// 			);
+// 		}
+
+// 		clearOTP(user.mobile);
+
+// 		const token = createToken(user);
+// 		const cookie = serialize("auth_token", token, {
+// 			httpOnly: true,
+// 			secure: process.env.NODE_ENV === "production",
+// 			sameSite: "strict",
+// 			path: "/",
+// 			maxAge: 60 * 60 * 24 * 7, // 7 days
+// 		});
+
+// 		return new Response(
+// 			JSON.stringify({
+// 				success: true,
+// 				message: "Login successful",
+// 				user: {
+// 					id: user._id,
+// 					firstName: user.firstName,
+// 					lastName: user.lastName,
+// 					email: user.email,
+// 					mobile: user.mobile,
+// 				},
+// 			}),
+// 			{
+// 				status: 200,
+// 				headers: { "Set-Cookie": cookie, "Content-Type": "application/json" },
+// 			}
+// 		);
+// 	} catch (err) {
+// 		console.error("Login OTP error:", err);
+// 		return NextResponse.json({ message: "Failed to sign in" }, { status: 500 });
+// 	}
+// }
+
+import { NextResponse } from "next/server";
+import { z } from "zod";
 import { dbConnect } from "@/lib/dbConnect";
 import User from "@/model/User.js";
+import { verifyOTP, clearOTP } from "@/lib/otpStore";
 import { createToken } from "@/lib/auth";
 import { serialize } from "cookie";
-import { verifyOTP, clearOTP } from "@/lib/otpStore";
+
+const LoginOTPSchema = z.object({
+	emailOrMobile: z.string().trim().min(3, "Identifier is required"),
+	code: z.string().trim().length(6, "Code must be 6 digits"),
+});
 
 export async function POST(req) {
-	await dbConnect();
-	const { mobile, code } = await req.json();
-
-	if (!mobile || !code) {
-		return Response.json(
-			{ message: "Mobile and verification code are required" },
-			{ status: 400 }
-		);
-	}
-
-	// Verify OTP
-	const isValidOTP = verifyOTP(mobile, code);
-	if (!isValidOTP) {
-		return Response.json(
-			{ message: "Invalid or expired verification code" },
-			{ status: 400 }
-		);
-	}
-
-	// Find user by mobile
-	const user = await User.findOne({ mobile });
-	if (!user) {
-		return Response.json(
-			{ message: "No account found with this mobile number" },
-			{ status: 404 }
-		);
-	}
-
-	// Clear OTP after successful verification
-	clearOTP(mobile);
-
-	// Create token and set cookie
-	const token = createToken(user);
-	const cookie = serialize("auth_token", token, {
-		httpOnly: true,
-		secure: process.env.NODE_ENV === "production",
-		sameSite: "strict",
-		path: "/",
-		maxAge: 60 * 60 * 24 * 7, // 7 days
-	});
-
-	return new Response(
-		JSON.stringify({
-			message: "Login successful",
-			user: {
-				id: user._id,
-				firstName: user.firstName,
-				lastName: user.lastName,
-				email: user.email,
-				mobile: user.mobile,
-			},
-		}),
-		{
-			status: 200,
-			headers: { "Set-Cookie": cookie },
+	try {
+		await dbConnect();
+		const json = await req.json();
+		const parsed = LoginOTPSchema.safeParse(json);
+		if (!parsed.success) {
+			return NextResponse.json(
+				{ message: parsed.error.issues?.[0]?.message || "Invalid input" },
+				{ status: 400 }
+			);
 		}
-	);
+
+		const { emailOrMobile, code } = parsed.data;
+		const user = await User.findOne({
+			$or: [{ email: emailOrMobile }, { mobile: emailOrMobile }],
+		});
+
+		if (!user) {
+			return NextResponse.json(
+				{ message: "Account not found" },
+				{ status: 404 }
+			);
+		}
+
+		if (!user.mobile) {
+			return NextResponse.json(
+				{ message: "Please add mobile number first" },
+				{ status: 400 }
+			);
+		}
+
+		const isValid = verifyOTP(user.mobile, code);
+		if (!isValid) {
+			return NextResponse.json(
+				{ message: "Invalid or expired code" },
+				{ status: 400 }
+			);
+		}
+
+		clearOTP(user.mobile);
+
+		const token = createToken(user);
+		const cookie = serialize("auth_token", token, {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === "production",
+			sameSite: "strict",
+			path: "/",
+			maxAge: 60 * 60 * 24 * 7,
+		});
+
+		return new Response(
+			JSON.stringify({
+				success: true,
+				message: "Login successful",
+				user: {
+					id: user._id,
+					firstName: user.firstName,
+					lastName: user.lastName,
+					email: user.email,
+					mobile: user.mobile,
+				},
+			}),
+			{
+				status: 200,
+				headers: { "Set-Cookie": cookie, "Content-Type": "application/json" },
+			}
+		);
+	} catch (err) {
+		console.error("Login OTP error:", err);
+		return NextResponse.json({ message: "Failed to sign in" }, { status: 500 });
+	}
 }

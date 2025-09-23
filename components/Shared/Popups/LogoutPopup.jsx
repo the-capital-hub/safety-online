@@ -1,10 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
 	Dialog,
 	DialogContent,
-	DialogDescription,
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
@@ -13,18 +13,39 @@ import { Button } from "@/components/ui/button";
 import { useAdminAuthStore } from "@/store/adminAuthStore";
 import { useSellerAuthStore } from "@/store/sellerAuthStore";
 import { useAuthStore } from "@/store/authStore";
+import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
 
 export function LogoutPopup({ open, onOpenChange }) {
 	const { clearAdminUser } = useAdminAuthStore();
 	const { clearSeller } = useSellerAuthStore();
 	const { clearUser } = useAuthStore();
-	const handleLogout = () => {
-		// Handle logout logic here
-		console.log("Logging out...");
-		clearUser();
-		clearAdminUser();
-		clearSeller();
-		onOpenChange(false);
+	const router = useRouter();
+	const [pending, setPending] = useState(false);
+
+	const handleLogout = async () => {
+		try {
+			setPending(true);
+			const res = await fetch("/api/auth/logout", { method: "POST" });
+			if (!res.ok) {
+				const data = await res.json().catch(() => ({}));
+				throw new Error(data.message || "Failed to logout");
+			}
+			// Clear client stores
+			clearUser();
+			clearAdminUser();
+			clearSeller();
+
+			toast.success("Logged out");
+			onOpenChange(false);
+
+			// Redirect to home or login
+			router.push("/");
+		} catch (err) {
+			toast.error(err instanceof Error ? err.message : "Failed to logout");
+		} finally {
+			setPending(false);
+		}
 	};
 
 	return (
@@ -42,24 +63,22 @@ export function LogoutPopup({ open, onOpenChange }) {
 						<DialogTitle className="text-xl text-center font-semibold">
 							Are you sure you want to log out?
 						</DialogTitle>
-						{/* <DialogDescription className="text-gray-600">
-							Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-							eiusmod tempor incididunt ut labore et dolore
-						</DialogDescription> */}
 					</DialogHeader>
 					<DialogFooter className="flex gap-3 mt-6">
 						<Button
 							variant="outline"
 							onClick={() => onOpenChange(false)}
 							className="flex-1"
+							disabled={pending}
 						>
 							Cancel
 						</Button>
 						<Button
 							onClick={handleLogout}
 							className="flex-1 bg-orange-500 hover:bg-orange-600"
+							disabled={pending}
 						>
-							Yes Logout
+							{pending ? "Logging out..." : "Yes Logout"}
 						</Button>
 					</DialogFooter>
 				</motion.div>
