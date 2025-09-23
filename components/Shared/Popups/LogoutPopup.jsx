@@ -13,14 +13,15 @@ import { Button } from "@/components/ui/button";
 import { useAdminAuthStore } from "@/store/adminAuthStore";
 import { useSellerAuthStore } from "@/store/sellerAuthStore";
 import { useAuthStore } from "@/store/authStore";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 
 export function LogoutPopup({ open, onOpenChange }) {
 	const { clearAdminUser } = useAdminAuthStore();
 	const { clearSeller } = useSellerAuthStore();
 	const { clearUser } = useAuthStore();
-	const router = useRouter();
+        const router = useRouter();
+        const pathname = usePathname();
 	const [pending, setPending] = useState(false);
 
 	const handleLogout = async () => {
@@ -36,11 +37,16 @@ export function LogoutPopup({ open, onOpenChange }) {
 			clearAdminUser();
 			clearSeller();
 
-			toast.success("Logged out");
-			onOpenChange(false);
+                        toast.success("Logged out");
+                        onOpenChange(false);
 
-			// Redirect to home or login
-			router.push("/");
+                        const redirectPath = pathname?.startsWith("/admin")
+                                ? "/admin/login"
+                                : pathname?.startsWith("/seller")
+                                  ? "/seller/login"
+                                  : "/login";
+
+                        router.replace(redirectPath);
 		} catch (err) {
 			toast.error(err instanceof Error ? err.message : "Failed to logout");
 		} finally {
