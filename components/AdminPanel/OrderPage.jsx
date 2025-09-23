@@ -177,15 +177,62 @@ function OrderPage() {
 		return colors[status] || "bg-gray-100 text-gray-800";
 	};
 
-	const getPaymentStatusColor = (status) => {
-		const colors = {
-			paid: "bg-green-100 text-green-800",
-			pending: "bg-yellow-100 text-yellow-800",
-			failed: "bg-red-100 text-red-800",
-			refunded: "bg-gray-100 text-gray-800",
-		};
-		return colors[status] || "bg-gray-100 text-gray-800";
-	};
+        const getPaymentStatusColor = (status) => {
+                const colors = {
+                        paid: "bg-green-100 text-green-800",
+                        pending: "bg-yellow-100 text-yellow-800",
+                        failed: "bg-red-100 text-red-800",
+                        refunded: "bg-gray-100 text-gray-800",
+                };
+                return colors[status] || "bg-gray-100 text-gray-800";
+        };
+
+        const getOrderItemCount = (order) => {
+                if (!order) return 0;
+
+                const parseQuantity = (value) => {
+                        const numeric = Number(value);
+                        return Number.isFinite(numeric) ? numeric : 0;
+                };
+
+                if (Array.isArray(order.products)) {
+                        return order.products.reduce(
+                                (total, product) => total + parseQuantity(product?.quantity),
+                                0
+                        );
+                }
+
+                if (Array.isArray(order.subOrders)) {
+                        const hasProductDetails = order.subOrders.some(
+                                (subOrder) => subOrder && Array.isArray(subOrder.products)
+                        );
+
+                        if (hasProductDetails) {
+                                return order.subOrders.reduce((total, subOrder) => {
+                                        if (!subOrder || !Array.isArray(subOrder.products)) {
+                                                return total;
+                                        }
+
+                                        return (
+                                                total +
+                                                subOrder.products.reduce(
+                                                        (subTotal, product) =>
+                                                                subTotal + parseQuantity(product?.quantity),
+                                                        0
+                                                )
+                                        );
+                                }, 0);
+                        }
+
+                        return order.subOrders.length;
+                }
+
+                if (typeof order.itemsCount === "number") {
+                        return order.itemsCount;
+                }
+
+                return 0;
+        };
 
 	if (error) {
 		return (
@@ -488,12 +535,12 @@ function OrderPage() {
 														</p>
 													</div>
 												</TableCell>
-												<TableCell>
-													<div className="flex items-center gap-1">
-														<Package className="w-4 h-4" />
-														<span>{order.subOrders.length} items</span>
-													</div>
-												</TableCell>
+                                                                                                <TableCell>
+                                                                                                        <div className="flex items-center gap-1">
+                                                                                                                <Package className="w-4 h-4" />
+                                                                                                                <span>{getOrderItemCount(order)} items</span>
+                                                                                                        </div>
+                                                                                                </TableCell>
 												<TableCell>
 													<div className="space-y-1">
 														<Badge
