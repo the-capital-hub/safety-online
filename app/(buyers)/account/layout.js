@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
 import { AccountSidebar } from "@/components/BuyerPanel/account/AccountSidebar.jsx";
-import { useIsAuthenticated } from "@/store/authStore";
+import { useAuthStore, useIsAuthenticated } from "@/store/authStore";
 
 const fadeInUp = {
 	initial: { opacity: 0, y: 20 },
@@ -15,6 +15,7 @@ const fadeInUp = {
 export default function AccountLayout({ children }) {
         const [activeTab, setActiveTab] = useState("my-profile");
         const [isClient, setIsClient] = useState(false);
+        const [hasHydrated, setHasHydrated] = useState(false);
         const pathname = usePathname();
         const router = useRouter();
         const isAuthenticated = useIsAuthenticated();
@@ -24,10 +25,33 @@ export default function AccountLayout({ children }) {
         }, []);
 
         useEffect(() => {
-                if (isClient && !isAuthenticated) {
+                const persist = useAuthStore.persist;
+
+                if (!persist?.hasHydrated) {
+                        setHasHydrated(true);
+                        return;
+                }
+
+                if (persist.hasHydrated()) {
+                        setHasHydrated(true);
+                }
+
+                const unsub = persist.onFinishHydration?.(() => {
+                        setHasHydrated(true);
+                });
+
+                return () => {
+                        if (typeof unsub === "function") {
+                                unsub();
+                        }
+                };
+        }, []);
+
+        useEffect(() => {
+                if (isClient && hasHydrated && !isAuthenticated) {
                         router.replace("/login");
                 }
-        }, [isClient, isAuthenticated, router]);
+        }, [hasHydrated, isAuthenticated, isClient, router]);
 
         useEffect(() => {
                 if (pathname && isClient) {
@@ -47,7 +71,7 @@ export default function AccountLayout({ children }) {
                 }
         }, [pathname, isClient]);
 
-        if (!isClient) {
+        if (!isClient || !hasHydrated) {
                 return (
                         <div className="h-[calc(100vh-68px)] bg-gray-50">
                                 {/* Desktop loading sidebar */}
@@ -63,7 +87,7 @@ export default function AccountLayout({ children }) {
                 );
         }
 
-        if (!isAuthenticated) {
+        if (hasHydrated && !isAuthenticated) {
                 return (
                         <div className="h-[calc(100vh-68px)] bg-gray-50">
                                 <div className="flex h-full items-center justify-center p-6 text-gray-600">
