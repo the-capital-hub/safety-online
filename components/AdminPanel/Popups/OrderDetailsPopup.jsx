@@ -104,10 +104,6 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
                 }
         }, [resolvedOrder?.status, resolvedOrder?.paymentStatus, resolvedOrder?._id]);
 
-        if (!resolvedOrder) {
-                return null;
-        }
-
         const normalizedProducts = (() => {
                 if (Array.isArray(resolvedOrder?.products)) {
                         return resolvedOrder.products;
@@ -151,6 +147,10 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
                         }),
                 []
         );
+
+        if (!resolvedOrder) {
+                return null;
+        }
 
         const formatCurrency = (value) => currencyFormatter.format(getSafeAmount(value));
 
