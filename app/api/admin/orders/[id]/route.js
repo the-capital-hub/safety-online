@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { dbConnect } from "@/lib/dbConnect.js";
 import Order from "@/model/Order.js";
+import "@/model/SubOrder.js";
 
 export async function GET(request, { params }) {
         try {
