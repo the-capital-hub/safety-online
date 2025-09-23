@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { Toaster } from "react-hot-toast";
 import { AdminSidebar } from "@/components/AdminPanel/AdminSidebar.jsx";
 import { AdminHeader } from "@/components/AdminPanel/AdminHeader.jsx";
 
@@ -22,14 +23,15 @@ export default function AdminLayout({ children }) {
 					</div>
 
 					{/* Scrollable Content */}
-					<motion.main
-						className="flex-1 p-6 overflow-y-auto overflow-x-hidden hide-scrollbar"
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.3 }}
-					>
-						{children}
-					</motion.main>
+                                        <motion.main
+                                                className="flex-1 p-6 overflow-y-auto overflow-x-hidden hide-scrollbar"
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ duration: 0.3 }}
+                                        >
+                                                {children}
+                                        </motion.main>
+                                        <Toaster />
 				</div>
 			</div>
 		</SidebarProvider>

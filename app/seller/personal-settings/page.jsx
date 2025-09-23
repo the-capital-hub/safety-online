@@ -27,7 +27,7 @@ import {
 	useIsSellerAuthenticated,
 	useLoggedInSeller,
 } from "@/store/sellerAuthStore";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 
 export default function SellerSettings() {
 	const [formData, setFormData] = useState({

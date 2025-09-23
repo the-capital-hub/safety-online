@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 
 export const useAdminCouponStore = create((set, get) => ({
 	// State
