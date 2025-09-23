@@ -52,6 +52,14 @@ export default function SellerLogin() {
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
+
+		if (!e.currentTarget.checkValidity()) {
+
+		  e.currentTarget.reportValidity();
+
+		  return;
+
+		}
 		setIsLoading(true);
 
 		if (!formData.email || !formData.password) {

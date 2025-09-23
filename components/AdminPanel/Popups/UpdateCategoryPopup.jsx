@@ -66,6 +66,14 @@ export function UpdateCategoryPopup({ open, onOpenChange, category }) {
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
+
+		if (!e.currentTarget.checkValidity()) {
+
+		  e.currentTarget.reportValidity();
+
+		  return;
+
+		}
 		if (!category) return;
 
 		setIsSubmitting(true);
@@ -149,8 +157,10 @@ export function UpdateCategoryPopup({ open, onOpenChange, category }) {
 							<div className="space-y-3">
 								{formData.subCategories.map((sub, idx) => (
 									<div key={idx} className="flex items-center gap-2">
-										<Input
-											placeholder="Subcategory name"
+                                                                                <Input
+                                                                                        id={`update-sub-category-${idx}`}
+                                                                                        name="subCategory"
+                                                                                        placeholder="Subcategory name"
 											value={sub.name}
 											onChange={(e) => updateSub(idx, { name: e.target.value })}
 										/>

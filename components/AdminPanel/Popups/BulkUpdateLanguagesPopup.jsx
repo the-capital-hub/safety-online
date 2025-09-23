@@ -24,6 +24,14 @@ export function BulkUpdateLanguagesPopup({
 
 	const handleSubmit = (e) => {
 		e.preventDefault();
+
+		if (!e.currentTarget.checkValidity()) {
+
+		  e.currentTarget.reportValidity();
+
+		  return;
+
+		}
 		console.log("Bulk updating languages:", { published, selectedCount });
 		onOpenChange(false);
 	};

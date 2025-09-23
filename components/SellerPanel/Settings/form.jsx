@@ -1,6 +1,8 @@
 "use client";
 import React, { useState } from "react";
 
+import { Input } from "@/components/ui/input";
+
 const ShopForm = () => {
   const [companyName, setCompanyName] = useState("");
   const [companyEmail, setCompanyEmail] = useState("");
@@ -33,6 +35,10 @@ const ShopForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!e.currentTarget.checkValidity()) {
+      e.currentTarget.reportValidity();
+      return;
+    }
     setLoading(true);
     setMessage("");
 
@@ -72,8 +78,9 @@ const ShopForm = () => {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Company Name
             </label>
-            <input
-              type="text"
+            <Input
+              id="companyName"
+              name="companyName"
               placeholder="Company Name"
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
@@ -87,8 +94,9 @@ const ShopForm = () => {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               GSTIN Number
             </label>
-            <input
-              type="text"
+            <Input
+              id="gstinNumber"
+              name="gstinNumber"
               placeholder="GSTIN Number"
               value={gstinNumber}
               onChange={(e) => setGstinNumber(e.target.value)}
@@ -102,8 +110,10 @@ const ShopForm = () => {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Phone
             </label>
-            <input
-              type="text"
+            <Input
+              id="phone"
+              name="phone"
+              type="tel"
               placeholder="Phone"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
@@ -117,7 +127,9 @@ const ShopForm = () => {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Email
             </label>
-            <input
+            <Input
+              id="companyEmail"
+              name="companyEmail"
               type="email"
               placeholder="Email"
               value={companyEmail}
@@ -132,8 +144,10 @@ const ShopForm = () => {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Company Logo (URL)
             </label>
-            <input
-              type="text"
+            <Input
+              id="companyLogo"
+              name="companyLogo"
+              type="url"
               placeholder="https://example.com/logo.png"
               value={companyLogo}
               onChange={(e) => setCompanyLogo(e.target.value)}
@@ -148,18 +162,20 @@ const ShopForm = () => {
             </h3>
             {addresses.map((addr, index) => (
               <div key={index} className="border p-4 rounded-lg space-y-2 mb-3">
-                <input
-                  type="text"
+                <Input
+                  id={`tagName-${index}`}
+                  name="tagName"
                   placeholder="Tag Name (Home/Office)"
-                  value={addr.tag}
+                  value={addr.tagName}
                   onChange={(e) =>
                     handleAddressChange(index, "tagName", e.target.value)
                   }
                   required
                   className="w-full rounded-md border px-3 py-2 text-sm dark:bg-gray-700 dark:text-gray-200"
                 />
-                <input
-                  type="text"
+                <Input
+                  id={`building-${index}`}
+                  name="building"
                   placeholder="Building"
                   value={addr.building}
                   onChange={(e) =>
@@ -168,8 +184,9 @@ const ShopForm = () => {
                   required
                   className="w-full rounded-md border px-3 py-2 text-sm dark:bg-gray-700 dark:text-gray-200"
                 />
-                <input
-                  type="text"
+                <Input
+                  id={`street-${index}`}
+                  name="street"
                   placeholder="Street"
                   value={addr.street}
                   onChange={(e) =>
@@ -178,8 +195,9 @@ const ShopForm = () => {
                   required
                   className="w-full rounded-md border px-3 py-2 text-sm dark:bg-gray-700 dark:text-gray-200"
                 />
-                <input
-                  type="text"
+                <Input
+                  id={`city-${index}`}
+                  name="city"
                   placeholder="City"
                   value={addr.city}
                   onChange={(e) =>
@@ -188,8 +206,9 @@ const ShopForm = () => {
                   required
                   className="w-full rounded-md border px-3 py-2 text-sm dark:bg-gray-700 dark:text-gray-200"
                 />
-                <input
-                  type="text"
+                <Input
+                  id={`state-${index}`}
+                  name="state"
                   placeholder="State"
                   value={addr.state}
                   onChange={(e) =>
@@ -198,8 +217,9 @@ const ShopForm = () => {
                   required
                   className="w-full rounded-md border px-3 py-2 text-sm dark:bg-gray-700 dark:text-gray-200"
                 />
-                <input
-                  type="text"
+                <Input
+                  id={`pincode-${index}`}
+                  name="pincode"
                   placeholder="Pincode"
                   value={addr.pincode}
                   onChange={(e) =>
@@ -208,8 +228,9 @@ const ShopForm = () => {
                   required
                   className="w-full rounded-md border px-3 py-2 text-sm dark:bg-gray-700 dark:text-gray-200"
                 />
-                <input
-                  type="text"
+                <Input
+                  id={`country-${index}`}
+                  name="country"
                   placeholder="Country"
                   value={addr.country}
                   onChange={(e) =>

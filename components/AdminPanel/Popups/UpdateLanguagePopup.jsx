@@ -39,6 +39,14 @@ export function UpdateLanguagePopup({ open, onOpenChange, language }) {
 
 	const handleSubmit = (e) => {
 		e.preventDefault();
+
+		if (!e.currentTarget.checkValidity()) {
+
+		  e.currentTarget.reportValidity();
+
+		  return;
+
+		}
 		console.log("Updating language:", formData);
 		onOpenChange(false);
 	};

@@ -126,6 +126,14 @@ export default function SellerSettings() {
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
+
+		if (!e.currentTarget.checkValidity()) {
+
+		  e.currentTarget.reportValidity();
+
+		  return;
+
+		}
 		setIsLoading(true);
 
 		try {
@@ -343,48 +351,54 @@ export default function SellerSettings() {
 											</div>
 
 											<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-												<Input
-													placeholder="Full Name"
+                                                                                                <Input
+                                                                                                        name="name"
+                                                                                                        placeholder="Full Name"
 													value={address.name}
 													onChange={(e) =>
 														updateAddress(index, "name", e.target.value)
 													}
 													required
 												/>
-												<Input
-													placeholder="Street Address"
+                                                                                                <Input
+                                                                                                        name="street"
+                                                                                                        placeholder="Street Address"
 													value={address.street}
 													onChange={(e) =>
 														updateAddress(index, "street", e.target.value)
 													}
 													required
 												/>
-												<Input
-													placeholder="City"
+                                                                                                <Input
+                                                                                                        name="city"
+                                                                                                        placeholder="City"
 													value={address.city}
 													onChange={(e) =>
 														updateAddress(index, "city", e.target.value)
 													}
 													required
 												/>
-												<Input
-													placeholder="State"
+                                                                                                <Input
+                                                                                                        name="state"
+                                                                                                        placeholder="State"
 													value={address.state}
 													onChange={(e) =>
 														updateAddress(index, "state", e.target.value)
 													}
 													required
 												/>
-												<Input
-													placeholder="ZIP Code"
+                                                                                                <Input
+                                                                                                        name="zipCode"
+                                                                                                        placeholder="ZIP Code"
 													value={address.zipCode}
 													onChange={(e) =>
 														updateAddress(index, "zipCode", e.target.value)
 													}
 													required
 												/>
-												<Input
-													placeholder="Country"
+                                                                                                <Input
+                                                                                                        name="country"
+                                                                                                        placeholder="Country"
 													value={address.country}
 													onChange={(e) =>
 														updateAddress(index, "country", e.target.value)

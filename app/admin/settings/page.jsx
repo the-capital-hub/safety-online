@@ -44,6 +44,14 @@ export default function SettingsPage() {
 
 	const handleSubmit = (e) => {
 		e.preventDefault();
+
+		if (!e.currentTarget.checkValidity()) {
+
+		  e.currentTarget.reportValidity();
+
+		  return;
+
+		}
 		console.log("Saving settings:", settings);
 	};
 	useEffect(() => {
@@ -180,8 +188,10 @@ export default function SettingsPage() {
 
 						<div>
 							<Label>Default Date Format</Label>
-							<Input
-								value={settings.dateFormat}
+                                                        <Input
+                                                                id="dateFormat"
+                                                                name="dateFormat"
+                                                                value={settings.dateFormat}
 								onChange={(e) =>
 									setSettings({ ...settings, dateFormat: e.target.value })
 								}
@@ -192,8 +202,10 @@ export default function SettingsPage() {
 
 						<div>
 							<Label>Receipt size (width)</Label>
-							<Input
-								value={settings.receiptWidth}
+                                                        <Input
+                                                                id="receiptWidth"
+                                                                name="receiptWidth"
+                                                                value={settings.receiptWidth}
 								onChange={(e) =>
 									setSettings({ ...settings, receiptWidth: e.target.value })
 								}

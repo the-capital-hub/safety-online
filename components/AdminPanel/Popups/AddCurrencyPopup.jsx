@@ -25,6 +25,14 @@ export function AddCurrencyPopup({ open, onOpenChange }) {
 
 	const handleSubmit = (e) => {
 		e.preventDefault();
+
+		if (!e.currentTarget.checkValidity()) {
+
+		  e.currentTarget.reportValidity();
+
+		  return;
+
+		}
 		console.log("Adding currency:", formData);
 		onOpenChange(false);
 		setFormData({

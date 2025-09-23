@@ -88,7 +88,8 @@ export default function NavigationBar({ isMenuOpen, onMenuClose }) {
                                         {/* Optional search (kept commented out as in original) */}
                                         {/* <form onSubmit={handleSearch} className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
             <div className="relative">
-              <Input
+                <Input
+                name="searchQuery"
                 placeholder="Search products..."
                 className="w-full sm:w-64 pr-10"
                 value={searchQuery}

@@ -30,6 +30,14 @@ export function AddCustomerPopup({ open, onOpenChange }) {
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
+
+		if (!e.currentTarget.checkValidity()) {
+
+		  e.currentTarget.reportValidity();
+
+		  return;
+
+		}
 		const success = await addCustomer(formData);
 		if (success) {
 			onOpenChange(false);
