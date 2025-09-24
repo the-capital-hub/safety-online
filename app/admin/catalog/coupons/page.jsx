@@ -21,23 +21,22 @@ import {
 	TableCell,
 	TableHead,
 	TableHeader,
-	TableRow,
+        TableRow,
 } from "@/components/ui/table";
 import {
-	Search,
-	Plus,
-	Filter,
-	RotateCcw,
-	Edit,
-	Trash2,
-	Upload,
-	Download,
-	ChevronLeft,
-	ChevronRight,
-	ArrowUpDown,
-	Percent,
-	Calendar,
-	Eye,
+        Search,
+        Plus,
+        Filter,
+        RotateCcw,
+        Edit,
+        Trash2,
+        Upload,
+        Download,
+        ChevronLeft,
+        ChevronRight,
+        ArrowUpDown,
+        Percent,
+        Calendar,
 } from "lucide-react";
 import { useAdminCouponStore } from "@/store/adminCouponStore.js";
 import { DeletePopup } from "@/components/AdminPanel/Popups/DeletePopup.jsx";
@@ -466,26 +465,23 @@ export default function AdminCouponsPage() {
 													/>
 												</TableCell>
 												<TableCell>
-													<div className="flex gap-2">
-														<Button size="icon" variant="outline">
-															<Eye className="w-4 h-4" />
-														</Button>
-														<Button
-															size="icon"
-															variant="outline"
-															onClick={() => handleUpdate(coupon)}
-														>
-															<Edit className="w-4 h-4" />
-														</Button>
-														<Button
-															size="icon"
-															variant="outline"
-															className="text-red-600 hover:text-red-700 bg-transparent"
-															onClick={() => handleDelete(coupon)}
-														>
-															<Trash2 className="w-4 h-4" />
-														</Button>
-													</div>
+                                                                                                        <div className="flex gap-2">
+                                                                                                                <Button
+                                                                                                                        size="icon"
+                                                                                                                        variant="outline"
+                                                                                                                        onClick={() => handleUpdate(coupon)}
+                                                                                                                >
+                                                                                                                        <Edit className="w-4 h-4" />
+                                                                                                                </Button>
+                                                                                                                <Button
+                                                                                                                        size="icon"
+                                                                                                                        variant="outline"
+                                                                                                                        className="text-red-600 hover:text-red-700 bg-transparent"
+                                                                                                                        onClick={() => handleDelete(coupon)}
+                                                                                                                >
+                                                                                                                        <Trash2 className="w-4 h-4" />
+                                                                                                                </Button>
+                                                                                                        </div>
 												</TableCell>
 											</motion.tr>
 										))}
