@@ -2,64 +2,351 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+        DropdownMenu,
+        DropdownMenuContent,
+        DropdownMenuItem,
+        DropdownMenuSeparator,
+        DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ChevronDown } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-const MENU_ITEMS = [
-        { label: "Home", slug: "home" },
-        { label: "Road Safety", slug: "road-safety" },
-        { label: "Industrial Safety", slug: "industrial-safety" },
-        { label: "Q-Manager", slug: "q-manager" },
-        { label: "Fire Safety", slug: "fire-safety" },
-        { label: "Road Sign", slug: "road-sign" },
-        { label: "Contact Us", slug: "contact-us" },
-];
+const HOME_SLUG = "home";
+const CONTACT_SLUG = "contact-us";
 
-const DIRECT_ROUTES = {
-        home: "/home",
-        "road-safety":
-                "/products?page=1&limit=12&sort=createdAt&order=desc&category=Road+Safety&minPrice=669",
-        "contact-us": "/contact",
-};
+const slugify = (value = "") =>
+        value
+                .toString()
+                .trim()
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, "-")
+                .replace(/^-+|-+$/g, "");
 
-export default function NavigationBar({ isMenuOpen, onMenuClose }) {
+const hasProducts = (count) => (count ?? 0) > 0;
+
+export default function NavigationBar({ isMenuOpen = false, onMenuClose }) {
         const router = useRouter();
         const pathname = usePathname();
         const searchParams = useSearchParams();
-        const [activeItem, setActiveItem] = useState(MENU_ITEMS[0]?.slug || "");
-        const sectionParam = searchParams.get("section");
+
+        const [categories, setCategories] = useState([]);
+        const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+        const [activeCategorySlug, setActiveCategorySlug] = useState(HOME_SLUG);
+        const [activeSubCategorySlug, setActiveSubCategorySlug] = useState("");
+
+        const closeMenuIfNeeded = () => {
+                if (onMenuClose) onMenuClose();
+        };
 
         useEffect(() => {
-                if (pathname === "/coming-soon" && sectionParam) {
-                        setActiveItem(sectionParam);
+                let isMounted = true;
+
+                const fetchCategories = async () => {
+                        try {
+                                const response = await fetch("/api/categories");
+                                const data = await response.json();
+
+                                if (!isMounted) return;
+
+                                if (data.success && Array.isArray(data.categories)) {
+                                        const mappedCategories = data.categories.map((category) => {
+                                                const categorySlug = slugify(category.name);
+
+                                                return {
+                                                        ...category,
+                                                        slug: categorySlug,
+                                                        subCategories: (category.subCategories || []).map((subCategory) => ({
+                                                                ...subCategory,
+                                                                slug: slugify(subCategory.name),
+                                                        })),
+                                                };
+                                        });
+
+                                        setCategories(mappedCategories);
+                                } else {
+                                        setCategories([]);
+                                }
+                        } catch (error) {
+                                console.error("Failed to load categories:", error);
+                                if (isMounted) {
+                                        setCategories([]);
+                                }
+                        } finally {
+                                if (isMounted) {
+                                        setIsLoadingCategories(false);
+                                }
+                        }
+                };
+
+                fetchCategories();
+
+                return () => {
+                        isMounted = false;
+                };
+        }, []);
+
+        useEffect(() => {
+                const toSlug = (value) => (value ? slugify(value) : "");
+
+                const categoryParam = toSlug(searchParams?.get("category"));
+                const subCategoryParam = toSlug(searchParams?.get("subCategory"));
+                const sectionParam = toSlug(searchParams?.get("section"));
+                const parentParam = toSlug(searchParams?.get("parent"));
+                const typeParam = toSlug(searchParams?.get("type"));
+
+                if (pathname === "/" || pathname === "/home") {
+                        setActiveCategorySlug(HOME_SLUG);
+                        setActiveSubCategorySlug("");
                         return;
                 }
 
-                if (pathname === "/" || pathname === DIRECT_ROUTES.home) {
-                        setActiveItem("home");
+                if (pathname.startsWith("/contact")) {
+                        setActiveCategorySlug(CONTACT_SLUG);
+                        setActiveSubCategorySlug("");
                         return;
                 }
 
-                if (pathname === DIRECT_ROUTES["contact-us"]) {
-                        setActiveItem("contact-us");
-                }
-        }, [pathname, sectionParam]);
+                if (pathname.startsWith("/products")) {
+                        if (subCategoryParam) {
+                                setActiveSubCategorySlug(subCategoryParam);
 
-        const handleNavigation = (item) => {
-                setActiveItem(item.slug);
+                                if (categories.length > 0) {
+                                        const parentCategory = categories.find((category) =>
+                                                category.subCategories?.some(
+                                                        (subCategory) => subCategory.slug === subCategoryParam
+                                                )
+                                        );
 
-                const directRoute = DIRECT_ROUTES[item.slug];
-                if (directRoute) {
-                        router.push(directRoute);
-                        if (onMenuClose) onMenuClose();
+                                        if (parentCategory) {
+                                                setActiveCategorySlug(parentCategory.slug);
+                                                return;
+                                        }
+                                }
+
+                                if (categoryParam) {
+                                        setActiveCategorySlug(categoryParam);
+                                }
+
+                                return;
+                        }
+
+                        if (categoryParam) {
+                                setActiveCategorySlug(categoryParam);
+                                setActiveSubCategorySlug("");
+                                return;
+                        }
+
+                        setActiveCategorySlug("");
+                        setActiveSubCategorySlug("");
                         return;
                 }
 
-                router.push(
-                        `/coming-soon?section=${encodeURIComponent(
-                                item.slug
-                        )}&label=${encodeURIComponent(item.label)}`
+                if (pathname === "/coming-soon") {
+                        if (typeParam === "sub" && sectionParam) {
+                                setActiveSubCategorySlug(sectionParam);
+
+                                if (parentParam) {
+                                        setActiveCategorySlug(parentParam);
+                                        return;
+                                }
+
+                                if (categories.length > 0) {
+                                        const parentCategory = categories.find((category) =>
+                                                category.subCategories?.some(
+                                                        (subCategory) => subCategory.slug === sectionParam
+                                                )
+                                        );
+
+                                        if (parentCategory) {
+                                                setActiveCategorySlug(parentCategory.slug);
+                                                return;
+                                        }
+                                }
+
+                                setActiveCategorySlug("");
+                                return;
+                        }
+
+                        if (sectionParam) {
+                                if (sectionParam === HOME_SLUG || sectionParam === CONTACT_SLUG) {
+                                        setActiveCategorySlug(sectionParam);
+                                        setActiveSubCategorySlug("");
+                                        return;
+                                }
+
+                                setActiveCategorySlug(sectionParam);
+                                setActiveSubCategorySlug("");
+                                return;
+                        }
+
+                        setActiveCategorySlug("");
+                        setActiveSubCategorySlug("");
+                        return;
+                }
+
+                setActiveCategorySlug("");
+                setActiveSubCategorySlug("");
+        }, [pathname, searchParams, categories]);
+
+        useEffect(() => {
+                if (!activeSubCategorySlug || categories.length === 0) {
+                        return;
+                }
+
+                if (
+                        activeCategorySlug &&
+                        categories.some((category) => category.slug === activeCategorySlug)
+                ) {
+                        return;
+                }
+
+                const parentCategory = categories.find((category) =>
+                        category.subCategories?.some(
+                                (subCategory) => subCategory.slug === activeSubCategorySlug
+                        )
                 );
-                if (onMenuClose) onMenuClose();
+
+                if (parentCategory) {
+                        setActiveCategorySlug(parentCategory.slug);
+                }
+        }, [activeSubCategorySlug, activeCategorySlug, categories]);
+
+        const handleHomeNavigation = () => {
+                setActiveCategorySlug(HOME_SLUG);
+                setActiveSubCategorySlug("");
+                router.push("/home");
+                closeMenuIfNeeded();
+        };
+
+        const handleContactNavigation = () => {
+                setActiveCategorySlug(CONTACT_SLUG);
+                setActiveSubCategorySlug("");
+                router.push("/contact");
+                closeMenuIfNeeded();
+        };
+
+        const handleCategorySelection = (category) => {
+                const categorySlug = category.slug;
+
+                setActiveCategorySlug(categorySlug);
+                setActiveSubCategorySlug("");
+
+                if (hasProducts(category.productCount)) {
+                        router.push(`/products?category=${encodeURIComponent(categorySlug)}`);
+                } else {
+                        const params = new URLSearchParams({
+                                section: categorySlug,
+                                label: category.name,
+                                type: "category",
+                        });
+
+                        router.push(`/coming-soon?${params.toString()}`);
+                }
+
+                closeMenuIfNeeded();
+        };
+
+        const handleSubCategorySelection = (category, subCategory) => {
+                const categorySlug = category.slug;
+                const subCategorySlug = subCategory.slug;
+
+                setActiveCategorySlug(categorySlug);
+                setActiveSubCategorySlug(subCategorySlug);
+
+                if (hasProducts(subCategory.productCount)) {
+                        const params = new URLSearchParams({
+                                category: categorySlug,
+                                subCategory: subCategorySlug,
+                        });
+
+                        router.push(`/products?${params.toString()}`);
+                } else {
+                        const params = new URLSearchParams({
+                                section: subCategorySlug,
+                                label: subCategory.name,
+                                parent: categorySlug,
+                                parentLabel: category.name,
+                                type: "sub",
+                        });
+
+                        router.push(`/coming-soon?${params.toString()}`);
+                }
+
+                closeMenuIfNeeded();
+        };
+
+        const isCategoryActive = (category) =>
+                activeCategorySlug === category.slug ||
+                (activeSubCategorySlug &&
+                        category.subCategories?.some(
+                                (subCategory) => subCategory.slug === activeSubCategorySlug
+                        ));
+
+        const renderCategoryButton = (category) => {
+                const active = isCategoryActive(category);
+                const hasSubCategories = (category.subCategories || []).length > 0;
+                const baseClasses = "justify-start lg:justify-center whitespace-nowrap";
+                const activeClasses = active ? "bg-black text-white" : "hover:bg-gray-100";
+
+                if (!hasSubCategories) {
+                        return (
+                                <Button
+                                        key={category.slug}
+                                        variant="ghost"
+                                        className={`${baseClasses} ${activeClasses}`}
+                                        onClick={() => handleCategorySelection(category)}
+                                >
+                                        {category.name}
+                                </Button>
+                        );
+                }
+
+                return (
+                        <DropdownMenu key={category.slug}>
+                                <DropdownMenuTrigger asChild>
+                                        <Button
+                                                variant="ghost"
+                                                className={`${baseClasses} ${activeClasses} flex items-center gap-2`}
+                                        >
+                                                <span>{category.name}</span>
+                                                <ChevronDown className="h-4 w-4" />
+                                        </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="start" className="min-w-[12rem]">
+                                        <DropdownMenuItem
+                                                onSelect={(event) => {
+                                                        event.preventDefault();
+                                                        handleCategorySelection(category);
+                                                }}
+                                                className={
+                                                        !activeSubCategorySlug && active
+                                                                ? "bg-black text-white focus:bg-black focus:text-white"
+                                                                : ""
+                                                }
+                                        >
+                                                All {category.name}
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        {category.subCategories.map((subCategory) => (
+                                                <DropdownMenuItem
+                                                        key={subCategory.slug}
+                                                        onSelect={(event) => {
+                                                                event.preventDefault();
+                                                                handleSubCategorySelection(category, subCategory);
+                                                        }}
+                                                        className={
+                                                                activeSubCategorySlug === subCategory.slug
+                                                                        ? "bg-black text-white focus:bg-black focus:text-white"
+                                                                        : ""
+                                                        }
+                                                >
+                                                        {subCategory.name}
+                                                </DropdownMenuItem>
+                                        ))}
+                                </DropdownMenuContent>
+                        </DropdownMenu>
+                );
         };
 
         return (
@@ -68,40 +355,48 @@ export default function NavigationBar({ isMenuOpen, onMenuClose }) {
                                 isMenuOpen ? "block" : "hidden"
                         } lg:block bg-white border-t shadow-sm`}
                 >
-			<div className="px-4 lg:px-10 relative z-10">
-				<div className="flex flex-col lg:flex-row lg:items-center lg:justify-between py-4 space-y-4 lg:space-y-0 overflow-x-auto hide-scrollbar">
-					<div className="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0 lg:space-x-4">
-                                                {MENU_ITEMS.map((item) => (
-                                                        <Button
-                                                                key={item.slug}
-                                                                variant="ghost"
-                                                                className={`${
-                                                                        activeItem === item.slug
-                                                                                ? "bg-black text-white"
-                                                                                : "hover:bg-gray-100"
-                                                                } justify-start lg:justify-center whitespace-nowrap`}
-                                                                onClick={() => handleNavigation(item)}
-                                                        >
-                                                                {item.label}
-                                                        </Button>
-                                                ))}
-                                        </div>
+                        <div className="px-4 lg:px-10 relative z-10">
+                                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between py-4 space-y-4 lg:space-y-0 overflow-x-auto hide-scrollbar">
+                                        <div className="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0 lg:space-x-4">
+                                                <Button
+                                                        variant="ghost"
+                                                        className={`justify-start lg:justify-center whitespace-nowrap ${
+                                                                activeCategorySlug === HOME_SLUG
+                                                                        ? "bg-black text-white"
+                                                                        : "hover:bg-gray-100"
+                                                        }`}
+                                                        onClick={handleHomeNavigation}
+                                                >
+                                                        Home
+                                                </Button>
 
-                                        {/* Optional search (kept commented out as in original) */}
-                                        {/* <form onSubmit={handleSearch} className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-            <div className="relative">
-                <Input
-                name="searchQuery"
-                placeholder="Search products..."
-                className="w-full sm:w-64 pr-10"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            </div>
-          </form> */}
-				</div>
-			</div>
-		</nav>
-	);
+                                                {isLoadingCategories ? (
+                                                        <Button
+                                                                key="loading"
+                                                                variant="ghost"
+                                                                disabled
+                                                                className="justify-start lg:justify-center whitespace-nowrap text-gray-400"
+                                                        >
+                                                                Loading categories...
+                                                        </Button>
+                                                ) : (
+                                                        categories.map((category) => renderCategoryButton(category))
+                                                )}
+
+                                                <Button
+                                                        variant="ghost"
+                                                        className={`justify-start lg:justify-center whitespace-nowrap ${
+                                                                activeCategorySlug === CONTACT_SLUG
+                                                                        ? "bg-black text-white"
+                                                                        : "hover:bg-gray-100"
+                                                        }`}
+                                                        onClick={handleContactNavigation}
+                                                >
+                                                        Contact Us
+                                                </Button>
+                                        </div>
+                                </div>
+                        </div>
+                </nav>
+        );
 }

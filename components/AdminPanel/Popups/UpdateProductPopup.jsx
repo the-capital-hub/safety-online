@@ -37,44 +37,117 @@ const productTypes = [
 
 const NO_SUBCATEGORY_VALUE = "__no_subcategory__";
 
-export function UpdateProductPopup({ open, onOpenChange, product }) {
-	const { updateProduct } = useAdminProductStore();
-	const [isSubmitting, setIsSubmitting] = useState(false);
-	const [features, setFeatures] = useState([{ title: "", description: "" }]);
-	const [categories, setCategories] = useState([]);
-	const [sellers, setSellers] = useState([]);
-	const [loadingSellers, setLoadingSellers] = useState(false);
+const calculateDiscountPercentage = (mrp, salePrice) => {
+        const isSaleProvided = salePrice !== undefined && salePrice !== null && salePrice !== "";
+        const mrpValue = Number.parseFloat(mrp);
 
-	const [formData, setFormData] = useState({
-		title: "",
-		description: "",
-		longDescription: "",
-		category: "",
-		subCategory: "",
-		price: "",
-		salePrice: "",
-		stocks: "",
-		discount: "",
-		type: "featured",
-		published: true,
-		images: [],
-		hsnCode: "",
-		brand: "",
+        if (!Number.isFinite(mrpValue) || mrpValue <= 0 || !isSaleProvided) {
+                return "0.00";
+        }
+
+        const saleValue = Number.parseFloat(salePrice);
+
+        if (!Number.isFinite(saleValue) || saleValue < 0 || saleValue >= mrpValue) {
+                return "0.00";
+        }
+
+        const discount = ((mrpValue - saleValue) / mrpValue) * 100;
+        return discount.toFixed(2);
+};
+
+export function UpdateProductPopup({ open, onOpenChange, product }) {
+        const { updateProduct } = useAdminProductStore();
+        const [isSubmitting, setIsSubmitting] = useState(false);
+        const [features, setFeatures] = useState([""]);
+        const [categories, setCategories] = useState([]);
+        const [sellers, setSellers] = useState([]);
+        const [loadingSellers, setLoadingSellers] = useState(false);
+        const [priceError, setPriceError] = useState("");
+
+        const [formData, setFormData] = useState({
+                title: "",
+                description: "",
+                longDescription: "",
+                category: "",
+                subCategory: "",
+                price: "",
+                salePrice: "",
+                stocks: "",
+                discount: "0.00",
+                type: "featured",
+                published: true,
+                images: [],
+                hsnCode: "",
+                brand: "",
 		length: "",
 		width: "",
 		height: "",
 		weight: "",
 		colour: "",
 		material: "",
-		size: "",
-		sellerId: "",
-	});
+                size: "",
+                sellerId: "",
+        });
 
-	useEffect(() => {
-		if (open) {
-			// Fetch categories
-			const fetchCategories = async () => {
-				try {
+        const validatePricing = (mrpValue, saleValue) => {
+                const isSaleProvided = saleValue !== undefined && saleValue !== null && saleValue !== "";
+                const mrpNumber = Number.parseFloat(mrpValue);
+
+                if (!isSaleProvided || !Number.isFinite(mrpNumber) || mrpNumber <= 0) {
+                        setPriceError("");
+                        return true;
+                }
+
+                const saleNumber = Number.parseFloat(saleValue);
+
+                if (!Number.isFinite(saleNumber)) {
+                        setPriceError("");
+                        return true;
+                }
+
+                if (saleNumber < 0) {
+                        setPriceError("Sale price cannot be negative.");
+                        return false;
+                }
+
+                if (saleNumber >= mrpNumber) {
+                        setPriceError("Sale price should be lower than MRP.");
+                        return false;
+                }
+
+                setPriceError("");
+                return true;
+        };
+
+        const handlePriceChange = (value) => {
+                setFormData((prev) => ({
+                        ...prev,
+                        price: value,
+                        discount: calculateDiscountPercentage(value, prev.salePrice),
+                }));
+                validatePricing(value, formData.salePrice);
+        };
+
+        const handleSalePriceChange = (value) => {
+                setFormData((prev) => ({
+                        ...prev,
+                        salePrice: value,
+                        discount: calculateDiscountPercentage(prev.price, value),
+                }));
+                validatePricing(formData.price, value);
+        };
+
+        const handleHsnChange = (value) => {
+                if (value === "" || /^\d{0,8}$/.test(value)) {
+                        setFormData((prev) => ({ ...prev, hsnCode: value }));
+                }
+        };
+
+        useEffect(() => {
+                if (open) {
+                        // Fetch categories
+                        const fetchCategories = async () => {
+                                try {
 					const res = await fetch("/api/admin/categories");
 					const data = await res.json();
 					if (data.success) {
@@ -125,6 +198,9 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 
 	useEffect(() => {
 		if (product) {
+			const initialPrice = product.price?.toString() || "";
+			const initialSalePrice = product.salePrice?.toString() || "";
+
 			// Convert existing image URLs to base64 for the ImageUpload component
 			const convertImages = async () => {
 				let convertedImages = [];
@@ -144,21 +220,24 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 					);
 				}
 
+
 				setFormData({
 					title: product.title || "",
 					description: product.description || "",
 					longDescription: product.longDescription || "",
 					category: product.category || "",
 					subCategory: product.subCategory || "",
-					price: product.price?.toString() || "",
-					salePrice: product.salePrice?.toString() || "",
+					price: initialPrice,
+					salePrice: initialSalePrice,
 					stocks: product.stocks?.toString() || "",
-					discount: product.discount?.toString() || "",
+					discount:
+						calculateDiscountPercentage(initialPrice, initialSalePrice) || "0.00",
 					type: product.type || "featured",
 					published: product.published !== undefined ? product.published : true,
 					images: convertedImages,
 					hsnCode: product.hsnCode || "",
 					brand: product.brand || "",
+
 					length: product.length?.toString() || "",
 					width: product.width?.toString() || "",
 					height: product.height?.toString() || "",
@@ -172,47 +251,64 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 
 			convertImages();
 
-			setFeatures(
+			const mappedFeatures =
 				product.features?.length > 0
-					? product.features
-					: [{ title: "", description: "" }]
-			);
+					? product.features.map(
+						(feature) =>
+							feature?.description?.trim() || feature?.title?.trim() || ""
+					  )
+					: [""];
+
+			const sanitizedFeatures = mappedFeatures.filter((feature) => feature.length > 0);
+
+
+			setFeatures(sanitizedFeatures.length > 0 ? sanitizedFeatures : [""]);
+			validatePricing(initialPrice, initialSalePrice);
 		}
 	}, [product]);
 
-	const handleSubmit = async (e) => {
-		e.preventDefault();
 
-		if (!e.currentTarget.checkValidity()) {
+        const handleSubmit = async (e) => {
+                e.preventDefault();
 
-		  e.currentTarget.reportValidity();
+                if (!e.currentTarget.checkValidity()) {
 
-		  return;
+                  e.currentTarget.reportValidity();
 
-		}
-		if (!product) return;
+                  return;
 
-		setIsSubmitting(true);
+                }
+                if (!validatePricing(formData.price, formData.salePrice)) {
+                        return;
+                }
+                if (!product) return;
 
-		try {
-			// Prepare the update data similar to addProduct
-			const updateData = {
-				title: formData.title,
-				description: formData.description,
-				longDescription: formData.longDescription || formData.description,
-				category: formData.category,
-				subCategory: formData.subCategory,
-				price: Number.parseFloat(formData.price),
-				salePrice: formData.salePrice
-					? Number.parseFloat(formData.salePrice)
-					: 0,
-				stocks: Number.parseInt(formData.stocks),
-				discount: formData.discount ? Number.parseFloat(formData.discount) : 0,
-				type: formData.type,
-				published: formData.published,
-				features: features.filter((f) => f.title && f.description),
-				images: formData.images, // Pass the base64 images array
-				hsnCode: formData.hsnCode,
+                setIsSubmitting(true);
+
+                try {
+                        const formattedFeatures = features
+                                .map((feature) => feature.trim())
+                                .filter((feature) => feature.length > 0)
+                                .map((feature) => ({ title: feature, description: feature }));
+
+                        // Prepare the update data similar to addProduct
+                        const updateData = {
+                                title: formData.title,
+                                description: formData.description,
+                                longDescription: formData.longDescription || formData.description,
+                                category: formData.category,
+                                subCategory: formData.subCategory,
+                                price: Number.parseFloat(formData.price),
+                                salePrice: formData.salePrice
+                                        ? Number.parseFloat(formData.salePrice)
+                                        : 0,
+                                stocks: Number.parseInt(formData.stocks),
+                                discount: formData.discount ? Number.parseFloat(formData.discount) : 0,
+                                type: formData.type,
+                                published: formData.published,
+                                features: formattedFeatures,
+                                images: formData.images, // Pass the base64 images array
+                                hsnCode: formData.hsnCode,
 				brand: formData.brand,
 				length: formData.length ? Number.parseFloat(formData.length) : null,
 				width: formData.width ? Number.parseFloat(formData.width) : null,
@@ -237,17 +333,17 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 		}
 	};
 
-	const addFeature = () => {
-		setFeatures([...features, { title: "", description: "" }]);
-	};
+        const addFeature = () => {
+                setFeatures([...features, ""]);
+        };
 
-	const removeFeature = (index) => {
-		setFeatures(features.filter((_, i) => i !== index));
-	};
+        const removeFeature = (index) => {
+                setFeatures(features.filter((_, i) => i !== index));
+        };
 
-        const updateFeature = (index, field, value) => {
+        const updateFeature = (index, value) => {
                 const updatedFeatures = [...features];
-                updatedFeatures[index][field] = value;
+                updatedFeatures[index] = value;
                 setFeatures(updatedFeatures);
         };
 
@@ -282,8 +378,8 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
         }, [categories, formData.category, formData.subCategory]);
 
         return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+                <Dialog open={open} onOpenChange={onOpenChange}>
+                        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
 				<motion.div
 					initial={{ scale: 0.95, opacity: 0 }}
 					animate={{ scale: 1, opacity: 1 }}
@@ -498,36 +594,41 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 								</Select>
 							</div>
 
-							<div>
-								<Label htmlFor="price">Regular Price *</Label>
-								<Input
-									id="price"
-									placeholder="0.00"
-									value={formData.price}
-									onChange={(e) =>
-										setFormData({ ...formData, price: e.target.value })
-									}
-									className="mt-1"
-									type="number"
-									step="0.01"
-									required
-								/>
-							</div>
+                                                        <div>
+                                                                <Label htmlFor="price">MRP *</Label>
+                                                                <Input
+                                                                        id="price"
+                                                                        placeholder="0.00"
+                                                                        value={formData.price}
+                                                                        onChange={(e) =>
+                                                                                handlePriceChange(e.target.value)
+                                                                        }
+                                                                        className="mt-1"
+                                                                        type="number"
+                                                                        step="0.01"
+                                                                        min="0"
+                                                                        required
+                                                                />
+                                                        </div>
 
-							<div>
-								<Label htmlFor="salePrice">Sale Price</Label>
-								<Input
-									id="salePrice"
-									placeholder="0.00"
-									value={formData.salePrice}
-									onChange={(e) =>
-										setFormData({ ...formData, salePrice: e.target.value })
-									}
-									className="mt-1"
-									type="number"
-									step="0.01"
-								/>
-							</div>
+                                                        <div>
+                                                                <Label htmlFor="salePrice">Sale Price</Label>
+                                                                <Input
+                                                                        id="salePrice"
+                                                                        placeholder="0.00"
+                                                                        value={formData.salePrice}
+                                                                        onChange={(e) =>
+                                                                                handleSalePriceChange(e.target.value)
+                                                                        }
+                                                                        className="mt-1"
+                                                                        type="number"
+                                                                        step="0.01"
+                                                                        min="0"
+                                                                />
+                                                                {priceError && (
+                                                                        <p className="text-sm text-red-500 mt-1">{priceError}</p>
+                                                                )}
+                                                        </div>
 
 							<div>
 								<Label htmlFor="stocks">Stock Quantity *</Label>
@@ -544,34 +645,36 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 								/>
 							</div>
 
-							<div>
-								<Label htmlFor="discount">Discount (%)</Label>
-								<Input
-									id="discount"
-									placeholder="0"
-									value={formData.discount}
-									onChange={(e) =>
-										setFormData({ ...formData, discount: e.target.value })
-									}
-									className="mt-1"
-									type="number"
-									max="100"
-								/>
-							</div>
+                                                        <div>
+                                                                <Label htmlFor="discount">Discount (%)</Label>
+                                                                <Input
+                                                                        id="discount"
+                                                                        placeholder="0"
+                                                                        value={formData.discount}
+                                                                        className="mt-1"
+                                                                        type="number"
+                                                                        max="100"
+                                                                        readOnly
+                                                                />
+                                                        </div>
 
-							<div>
-								<Label>HSN Code</Label>
+                                                        <div>
+                                                                <Label>HSN Code</Label>
                                                                 <Input
                                                                         id="admin-update-hsnCode"
                                                                         name="hsnCode"
                                                                         placeholder="HSN Code"
-									value={formData.hsnCode}
-									onChange={(e) =>
-										setFormData({ ...formData, hsnCode: e.target.value })
-									}
-									className="mt-1"
-								/>
-							</div>
+                                                                        value={formData.hsnCode}
+                                                                        onChange={(e) =>
+                                                                                handleHsnChange(e.target.value)
+                                                                        }
+                                                                        className="mt-1"
+                                                                        inputMode="numeric"
+                                                                        maxLength={8}
+                                                                        pattern="\d{8}"
+                                                                        title="HSN code must be exactly 8 digits"
+                                                                />
+                                                        </div>
 
 							<div>
 								<Label>Brand</Label>
@@ -587,65 +690,65 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 								/>
 							</div>
 
-							<div>
-								<Label>Length</Label>
+                                                        <div>
+                                                                <Label>Length (cm)</Label>
                                                                 <Input
                                                                         name="length"
-                                                                        placeholder="Length"
-									value={formData.length}
-									onChange={(e) =>
-										setFormData({ ...formData, length: e.target.value })
-									}
-									className="mt-1"
-									type="number"
-									step="0.01"
-								/>
-							</div>
+                                                                        placeholder="Length in cm"
+                                                                        value={formData.length}
+                                                                        onChange={(e) =>
+                                                                                setFormData({ ...formData, length: e.target.value })
+                                                                        }
+                                                                        className="mt-1"
+                                                                        type="number"
+                                                                        step="0.01"
+                                                                />
+                                                        </div>
 
-							<div>
-								<Label>Width</Label>
+                                                        <div>
+                                                                <Label>Width (cm)</Label>
                                                                 <Input
                                                                         name="width"
-                                                                        placeholder="Width"
-									value={formData.width}
-									onChange={(e) =>
-										setFormData({ ...formData, width: e.target.value })
-									}
-									className="mt-1"
-									type="number"
-									step="0.01"
-								/>
-							</div>
+                                                                        placeholder="Width in cm"
+                                                                        value={formData.width}
+                                                                        onChange={(e) =>
+                                                                                setFormData({ ...formData, width: e.target.value })
+                                                                        }
+                                                                        className="mt-1"
+                                                                        type="number"
+                                                                        step="0.01"
+                                                                />
+                                                        </div>
 
-							<div>
-								<Label>Height</Label>
+                                                        <div>
+                                                                <Label>Height (cm)</Label>
                                                                 <Input
                                                                         name="height"
-                                                                        placeholder="Height"
-									value={formData.height}
-									onChange={(e) =>
-										setFormData({ ...formData, height: e.target.value })
-									}
-									className="mt-1"
-									type="number"
-									step="0.01"
-								/>
-							</div>
+                                                                        placeholder="Height in cm"
+                                                                        value={formData.height}
+                                                                        onChange={(e) =>
+                                                                                setFormData({ ...formData, height: e.target.value })
+                                                                        }
+                                                                        className="mt-1"
+                                                                        type="number"
+                                                                        step="0.01"
+                                                                />
+                                                        </div>
 
-							<div>
-								<Label>Weight</Label>
+                                                        <div>
+                                                                <Label>Weight (kg)</Label>
                                                                 <Input
                                                                         name="weight"
-                                                                        placeholder="Weight"
-									value={formData.weight}
-									onChange={(e) =>
-										setFormData({ ...formData, weight: e.target.value })
-									}
-									className="mt-1"
-									type="number"
-									step="0.01"
-								/>
-							</div>
+                                                                        placeholder="Weight in kg"
+                                                                        value={formData.weight}
+                                                                        onChange={(e) =>
+                                                                                setFormData({ ...formData, weight: e.target.value })
+                                                                        }
+                                                                        className="mt-1"
+                                                                        type="number"
+                                                                        step="0.01"
+                                                                />
+                                                        </div>
 
                                                                 <div>
                                                                         <Label>Colour</Label>
@@ -701,41 +804,31 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 									Add Feature
 								</Button>
 							</div>
-							<div className="space-y-3">
-								{features.map((feature, index) => (
-									<div key={index} className="flex gap-3 items-start">
-                                                                                <Input
-                                                                                        name="featureTitle"
-                                                                                        placeholder="Feature title"
-											value={feature.title}
-											onChange={(e) =>
-												updateFeature(index, "title", e.target.value)
-											}
-											className="flex-1"
-										/>
-                                                                                <Input
-                                                                                        name="featureDescription"
+                                                        <div className="space-y-3">
+                                                                {features.map((feature, index) => (
+                                                                        <div key={index} className="flex gap-3 items-start">
+                                                                                <Textarea
+                                                                                        name={`feature-${index}`}
                                                                                         placeholder="Feature description"
-											value={feature.description}
-											onChange={(e) =>
-												updateFeature(index, "description", e.target.value)
-											}
-											className="flex-1"
-										/>
-										{features.length > 1 && (
-											<Button
-												type="button"
-												variant="outline"
-												size="icon"
-												onClick={() => removeFeature(index)}
-											>
-												<X className="w-4 h-4" />
-											</Button>
-										)}
-									</div>
-								))}
-							</div>
-						</div>
+                                                                                        value={feature}
+                                                                                        onChange={(e) => updateFeature(index, e.target.value)}
+                                                                                        className="flex-1"
+                                                                                        rows={2}
+                                                                                />
+                                                                                {features.length > 1 && (
+                                                                                        <Button
+                                                                                                type="button"
+                                                                                                variant="outline"
+                                                                                                size="icon"
+                                                                                                onClick={() => removeFeature(index)}
+                                                                                        >
+                                                                                                <X className="w-4 h-4" />
+                                                                                        </Button>
+                                                                                )}
+                                                                        </div>
+                                                                ))}
+                                                        </div>
+                                                </div>
 
 						{/* Published Toggle */}
 						<div className="flex items-center justify-between">

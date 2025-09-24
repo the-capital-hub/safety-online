@@ -31,13 +31,32 @@ const productTypes = [
 
 const NO_SUBCATEGORY_VALUE = "__no_subcategory__"
 
+const calculateDiscountPercentage = (mrp, salePrice) => {
+  const isSaleProvided = salePrice !== undefined && salePrice !== null && salePrice !== ""
+  const mrpValue = Number.parseFloat(mrp)
+
+  if (!Number.isFinite(mrpValue) || mrpValue <= 0 || !isSaleProvided) {
+    return "0.00"
+  }
+
+  const saleValue = Number.parseFloat(salePrice)
+
+  if (!Number.isFinite(saleValue) || saleValue < 0 || saleValue >= mrpValue) {
+    return "0.00"
+  }
+
+  const discount = ((mrpValue - saleValue) / mrpValue) * 100
+  return discount.toFixed(2)
+}
+
 export function AddProductPopup({ open, onOpenChange }) {
   const { addProduct } = useAdminProductStore()
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [features, setFeatures] = useState([{ title: "", description: "" }])
+  const [features, setFeatures] = useState([""])
   const [categories, setCategories] = useState([])
   const [sellers, setSellers] = useState([])
   const [loadingSellers, setLoadingSellers] = useState(false)
+  const [priceError, setPriceError] = useState("")
 
   const [formData, setFormData] = useState({
     title: "",
@@ -48,7 +67,7 @@ export function AddProductPopup({ open, onOpenChange }) {
     price: "",
     salePrice: "",
     stocks: "",
-    discount: "",
+    discount: "0.00",
     type: "featured",
     published: true,
     images: [],
@@ -100,11 +119,75 @@ export function AddProductPopup({ open, onOpenChange }) {
     }
   }, [open])
 
+  const validatePricing = (mrpValue, saleValue) => {
+    const isSaleProvided = saleValue !== undefined && saleValue !== null && saleValue !== ""
+    const mrpNumber = Number.parseFloat(mrpValue)
+
+    if (!isSaleProvided || !Number.isFinite(mrpNumber) || mrpNumber <= 0) {
+      setPriceError("")
+      return true
+    }
+
+    const saleNumber = Number.parseFloat(saleValue)
+
+    if (!Number.isFinite(saleNumber)) {
+      setPriceError("")
+      return true
+    }
+
+    if (saleNumber < 0) {
+      setPriceError("Sale price cannot be negative.")
+      return false
+    }
+
+    if (saleNumber >= mrpNumber) {
+      setPriceError("Sale price should be lower than MRP.")
+      return false
+    }
+
+    setPriceError("")
+    return true
+  }
+
+  const handlePriceChange = (value) => {
+    setFormData((prev) => ({
+      ...prev,
+      price: value,
+      discount: calculateDiscountPercentage(value, prev.salePrice),
+    }))
+    validatePricing(value, formData.salePrice)
+  }
+
+  const handleSalePriceChange = (value) => {
+    setFormData((prev) => ({
+      ...prev,
+      salePrice: value,
+      discount: calculateDiscountPercentage(prev.price, value),
+    }))
+    validatePricing(formData.price, value)
+  }
+
+  const handleHsnChange = (value) => {
+    if (value === "" || /^\d{0,8}$/.test(value)) {
+      setFormData((prev) => ({ ...prev, hsnCode: value }))
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    if (!validatePricing(formData.price, formData.salePrice)) {
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
+      const formattedFeatures = features
+        .map((feature) => feature.trim())
+        .filter((feature) => feature.length > 0)
+        .map((feature) => ({ title: feature, description: feature }))
+
       const productData = {
         title: formData.title,
         description: formData.description,
@@ -127,7 +210,7 @@ export function AddProductPopup({ open, onOpenChange }) {
         colour: formData.colour,
         material: formData.material,
         size: formData.size,
-        features: features.filter((f) => f.title && f.description),
+        features: formattedFeatures,
         sellerId: formData.sellerId,
       }
 
@@ -154,7 +237,7 @@ export function AddProductPopup({ open, onOpenChange }) {
       price: "",
       salePrice: "",
       stocks: "",
-      discount: "",
+      discount: "0.00",
       type: "featured",
       published: true,
       images: [],
@@ -169,20 +252,21 @@ export function AddProductPopup({ open, onOpenChange }) {
       size: "",
       sellerId: "",
     })
-    setFeatures([{ title: "", description: "" }])
+    setFeatures([""])
+    setPriceError("")
   }
 
   const addFeature = () => {
-    setFeatures([...features, { title: "", description: "" }])
+    setFeatures([...features, ""])
   }
 
   const removeFeature = (index) => {
     setFeatures(features.filter((_, i) => i !== index))
   }
 
-  const updateFeature = (index, field, value) => {
+  const updateFeature = (index, value) => {
     const updatedFeatures = [...features]
-    updatedFeatures[index][field] = value
+    updatedFeatures[index] = value
     setFeatures(updatedFeatures)
   }
 
@@ -393,15 +477,16 @@ export function AddProductPopup({ open, onOpenChange }) {
               </div>
 
               <div>
-                <Label htmlFor="price">Regular Price *</Label>
+                <Label htmlFor="price">MRP *</Label>
                 <Input
                   id="price"
                   placeholder="0.00"
                   value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                  onChange={(e) => handlePriceChange(e.target.value)}
                   className="mt-1"
                   type="number"
                   step="0.01"
+                  min="0"
                   required
                 />
               </div>
@@ -412,11 +497,13 @@ export function AddProductPopup({ open, onOpenChange }) {
                   id="salePrice"
                   placeholder="0.00"
                   value={formData.salePrice}
-                  onChange={(e) => setFormData({ ...formData, salePrice: e.target.value })}
+                  onChange={(e) => handleSalePriceChange(e.target.value)}
                   className="mt-1"
                   type="number"
                   step="0.01"
+                  min="0"
                 />
+                {priceError && <p className="text-sm text-red-500 mt-1">{priceError}</p>}
               </div>
 
               <div>
@@ -438,10 +525,10 @@ export function AddProductPopup({ open, onOpenChange }) {
                   id="discount"
                   placeholder="0"
                   value={formData.discount}
-                  onChange={(e) => setFormData({ ...formData, discount: e.target.value })}
                   className="mt-1"
                   type="number"
                   max="100"
+                  readOnly
                 />
               </div>
 
@@ -452,8 +539,12 @@ export function AddProductPopup({ open, onOpenChange }) {
                   name="hsnCode"
                   placeholder="HSN Code"
                   value={formData.hsnCode}
-                  onChange={(e) => setFormData({ ...formData, hsnCode: e.target.value })}
+                  onChange={(e) => handleHsnChange(e.target.value)}
                   className="mt-1"
+                  inputMode="numeric"
+                  maxLength={8}
+                  pattern="\d{8}"
+                  title="HSN code must be exactly 8 digits"
                 />
               </div>
 
@@ -470,10 +561,10 @@ export function AddProductPopup({ open, onOpenChange }) {
               </div>
 
               <div>
-                <Label>Length</Label>
+                <Label>Length (cm)</Label>
                 <Input
                   name="length"
-                  placeholder="Length"
+                  placeholder="Length in cm"
                   value={formData.length}
                   onChange={(e) => setFormData({ ...formData, length: e.target.value })}
                   className="mt-1"
@@ -483,10 +574,10 @@ export function AddProductPopup({ open, onOpenChange }) {
               </div>
 
               <div>
-                <Label>Width</Label>
+                <Label>Width (cm)</Label>
                 <Input
                   name="width"
-                  placeholder="Width"
+                  placeholder="Width in cm"
                   value={formData.width}
                   onChange={(e) => setFormData({ ...formData, width: e.target.value })}
                   className="mt-1"
@@ -496,10 +587,10 @@ export function AddProductPopup({ open, onOpenChange }) {
               </div>
 
               <div>
-                <Label>Height</Label>
+                <Label>Height (cm)</Label>
                 <Input
                   name="height"
-                  placeholder="Height"
+                  placeholder="Height in cm"
                   value={formData.height}
                   onChange={(e) => setFormData({ ...formData, height: e.target.value })}
                   className="mt-1"
@@ -509,10 +600,10 @@ export function AddProductPopup({ open, onOpenChange }) {
               </div>
 
               <div>
-                <Label>Weight</Label>
+                <Label>Weight (kg)</Label>
                 <Input
                   name="weight"
-                  placeholder="Weight"
+                  placeholder="Weight in kg"
                   value={formData.weight}
                   onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
                   className="mt-1"
@@ -566,19 +657,13 @@ export function AddProductPopup({ open, onOpenChange }) {
               <div className="space-y-3">
                 {features.map((feature, index) => (
                   <div key={index} className="flex gap-3 items-start">
-                    <Input
-                      name="featureTitle"
-                      placeholder="Feature title"
-                      value={feature.title}
-                      onChange={(e) => updateFeature(index, "title", e.target.value)}
-                      className="flex-1"
-                    />
-                    <Input
-                      name="featureDescription"
+                    <Textarea
+                      name={`feature-${index}`}
                       placeholder="Feature description"
-                      value={feature.description}
-                      onChange={(e) => updateFeature(index, "description", e.target.value)}
+                      value={feature}
+                      onChange={(e) => updateFeature(index, e.target.value)}
                       className="flex-1"
+                      rows={2}
                     />
                     {features.length > 1 && (
                       <Button type="button" variant="outline" size="icon" onClick={() => removeFeature(index)}>

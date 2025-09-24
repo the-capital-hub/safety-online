@@ -15,16 +15,38 @@ export const metadata = {
 };
 
 export default function ComingSoonPage({ searchParams }) {
-        const sectionParam = Array.isArray(searchParams?.section)
-                ? searchParams.section[0]
-                : searchParams?.section;
-        const labelParam = Array.isArray(searchParams?.label)
-                ? searchParams.label[0]
-                : searchParams?.label;
+        const getFirstValue = (value) => (Array.isArray(value) ? value[0] : value);
+
+        const sectionParam = getFirstValue(searchParams?.section);
+        const labelParam = getFirstValue(searchParams?.label);
+        const typeParam = getFirstValue(searchParams?.type);
+        const parentLabelParam = getFirstValue(searchParams?.parentLabel);
 
         const normalizedSection = sectionParam?.toLowerCase();
+        const normalizedType = typeParam?.toLowerCase();
         const displayLabel = labelParam || "This page";
-        const message = normalizedSection ? messages[normalizedSection] : null;
+        const parentDisplayLabel = parentLabelParam || "";
+        const messageFromPreset = normalizedSection ? messages[normalizedSection] : null;
+
+        const fallbackMessage = (() => {
+                if (normalizedType === "sub") {
+                        const parentSuffix = parentDisplayLabel ? ` in ${parentDisplayLabel}` : "";
+                        return `We're curating products for ${displayLabel}${parentSuffix}. Please check back soon.`;
+                }
+
+                if (displayLabel === "This page") {
+                        return "We are working hard to bring this experience to you. Please check back soon for updates.";
+                }
+
+                return `We're working hard to bring ${displayLabel} to you. Please check back soon.`;
+        })();
+
+        const message = messageFromPreset || fallbackMessage;
+
+        const headingLabel =
+                normalizedType === "sub" && parentDisplayLabel
+                        ? `${displayLabel} in ${parentDisplayLabel}`
+                        : displayLabel;
 
         return (
                 <div className="min-h-[calc(100vh-120px)] flex items-center justify-center bg-white px-4 py-16">
@@ -33,11 +55,10 @@ export default function ComingSoonPage({ searchParams }) {
                                         Coming Soon
                                 </p>
                                 <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">
-                                        {displayLabel} page is under construction
+                                        {headingLabel} page is under construction
                                 </h1>
                                 <p className="text-base sm:text-lg text-gray-600">
-                                        {message ||
-                                                "We are working hard to bring this experience to you. Please check back soon for updates."}
+                                        {message}
                                 </p>
                                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                                         <Link
