@@ -46,9 +46,9 @@ const productTypes = [
 ];
 
 export function AddProductPopup({ open, onOpenChange }) {
-	const { addProduct, categories, fetchCategories } = useSellerProductStore();
-	const [isSubmitting, setIsSubmitting] = useState(false);
-	const [features, setFeatures] = useState([{ title: "", description: "" }]);
+        const { addProduct, categories, fetchCategories } = useSellerProductStore();
+        const [isSubmitting, setIsSubmitting] = useState(false);
+        const [features, setFeatures] = useState([""]);
 	const [selectedCategory, setSelectedCategory] = useState(null);
 
 	const [formData, setFormData] = useState({
@@ -101,21 +101,26 @@ export function AddProductPopup({ open, onOpenChange }) {
                 setIsSubmitting(true);
 
 		try {
-			// Prepare product data with proper types
-			const productData = {
-				title: formData.title,
-				description: formData.description,
-				longDescription: formData.longDescription || formData.description,
-				category: formData.category,
-				price: Number.parseFloat(formData.price),
+                        const formattedFeatures = features
+                                .map((feature) => feature.trim())
+                                .filter((feature) => feature.length > 0)
+                                .map((feature) => ({ title: feature, description: feature }));
+
+                        // Prepare product data with proper types
+                        const productData = {
+                                title: formData.title,
+                                description: formData.description,
+                                longDescription: formData.longDescription || formData.description,
+                                category: formData.category,
+                                price: Number.parseFloat(formData.price),
 				salePrice: formData.salePrice
 					? Number.parseFloat(formData.salePrice)
 					: 0,
 				stocks: Number.parseInt(formData.stocks),
-				discount: formData.discount ? Number.parseFloat(formData.discount) : 0,
-				type: formData.type,
-				published: formData.published,
-				features: features.filter((f) => f.title && f.description),
+                                discount: formData.discount ? Number.parseFloat(formData.discount) : 0,
+                                type: formData.type,
+                                published: formData.published,
+                                features: formattedFeatures,
 				images: formData.images,
 				subCategory: formData.subCategory,
 				hsnCode: formData.hsnCode,
@@ -170,22 +175,22 @@ export function AddProductPopup({ open, onOpenChange }) {
 			material: "",
 			size: "",
 		});
-		setFeatures([{ title: "", description: "" }]);
-	};
+                setFeatures([""]);
+        };
 
-	const addFeature = () => {
-		setFeatures([...features, { title: "", description: "" }]);
-	};
+        const addFeature = () => {
+                setFeatures([...features, ""]);
+        };
 
-	const removeFeature = (index) => {
-		setFeatures(features.filter((_, i) => i !== index));
-	};
+        const removeFeature = (index) => {
+                setFeatures(features.filter((_, i) => i !== index));
+        };
 
-	const updateFeature = (index, field, value) => {
-		const updatedFeatures = [...features];
-		updatedFeatures[index][field] = value;
-		setFeatures(updatedFeatures);
-	};
+        const updateFeature = (index, value) => {
+                const updatedFeatures = [...features];
+                updatedFeatures[index] = value;
+                setFeatures(updatedFeatures);
+        };
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -541,43 +546,32 @@ export function AddProductPopup({ open, onOpenChange }) {
 									Add Feature
 								</Button>
 							</div>
-							<div className="space-y-3">
-								{features.map((feature, index) => (
-									<div key={index} className="flex gap-3 items-start">
-                                                                                <Input
-                                                                                        id={`feature-title-${index}`}
-                                                                                        name="featureTitle"
-                                                                                        placeholder="Feature title"
-                                                                                        value={feature.title}
-                                                                                        onChange={(e) =>
-                                                                                                updateFeature(index, "title", e.target.value)
-                                                                                        }
-                                                                                        className="flex-1"
-                                                                                />
-                                                                                <Input
-                                                                                        id={`feature-description-${index}`}
+                                                        <div className="space-y-3">
+                                                                {features.map((feature, index) => (
+                                                                        <div key={index} className="flex gap-3 items-start">
+                                                                                <Textarea
+                                                                                        id={`feature-${index}`}
                                                                                         name="featureDescription"
                                                                                         placeholder="Feature description"
-                                                                                        value={feature.description}
-                                                                                        onChange={(e) =>
-                                                                                                updateFeature(index, "description", e.target.value)
-                                                                                        }
+                                                                                        value={feature}
+                                                                                        onChange={(e) => updateFeature(index, e.target.value)}
                                                                                         className="flex-1"
+                                                                                        rows={2}
                                                                                 />
-										{features.length > 1 && (
-											<Button
-												type="button"
-												variant="outline"
-												size="icon"
-												onClick={() => removeFeature(index)}
-											>
-												<X className="w-4 h-4" />
-											</Button>
-										)}
-									</div>
-								))}
-							</div>
-						</div>
+                                                                                {features.length > 1 && (
+                                                                                        <Button
+                                                                                                type="button"
+                                                                                                variant="outline"
+                                                                                                size="icon"
+                                                                                                onClick={() => removeFeature(index)}
+                                                                                        >
+                                                                                                <X className="w-4 h-4" />
+                                                                                        </Button>
+                                                                                )}
+                                                                        </div>
+                                                                ))}
+                                                        </div>
+                                                </div>
 
 						<div className="flex items-center justify-between">
 							<div>

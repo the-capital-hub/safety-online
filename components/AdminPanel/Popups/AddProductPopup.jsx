@@ -34,7 +34,7 @@ const NO_SUBCATEGORY_VALUE = "__no_subcategory__"
 export function AddProductPopup({ open, onOpenChange }) {
   const { addProduct } = useAdminProductStore()
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [features, setFeatures] = useState([{ title: "", description: "" }])
+  const [features, setFeatures] = useState([""])
   const [categories, setCategories] = useState([])
   const [sellers, setSellers] = useState([])
   const [loadingSellers, setLoadingSellers] = useState(false)
@@ -105,6 +105,11 @@ export function AddProductPopup({ open, onOpenChange }) {
     setIsSubmitting(true)
 
     try {
+      const formattedFeatures = features
+        .map((feature) => feature.trim())
+        .filter((feature) => feature.length > 0)
+        .map((feature) => ({ title: feature, description: feature }))
+
       const productData = {
         title: formData.title,
         description: formData.description,
@@ -127,7 +132,7 @@ export function AddProductPopup({ open, onOpenChange }) {
         colour: formData.colour,
         material: formData.material,
         size: formData.size,
-        features: features.filter((f) => f.title && f.description),
+        features: formattedFeatures,
         sellerId: formData.sellerId,
       }
 
@@ -169,20 +174,20 @@ export function AddProductPopup({ open, onOpenChange }) {
       size: "",
       sellerId: "",
     })
-    setFeatures([{ title: "", description: "" }])
+    setFeatures([""])
   }
 
   const addFeature = () => {
-    setFeatures([...features, { title: "", description: "" }])
+    setFeatures([...features, ""])
   }
 
   const removeFeature = (index) => {
     setFeatures(features.filter((_, i) => i !== index))
   }
 
-  const updateFeature = (index, field, value) => {
+  const updateFeature = (index, value) => {
     const updatedFeatures = [...features]
-    updatedFeatures[index][field] = value
+    updatedFeatures[index] = value
     setFeatures(updatedFeatures)
   }
 
@@ -566,19 +571,13 @@ export function AddProductPopup({ open, onOpenChange }) {
               <div className="space-y-3">
                 {features.map((feature, index) => (
                   <div key={index} className="flex gap-3 items-start">
-                    <Input
-                      name="featureTitle"
-                      placeholder="Feature title"
-                      value={feature.title}
-                      onChange={(e) => updateFeature(index, "title", e.target.value)}
-                      className="flex-1"
-                    />
-                    <Input
-                      name="featureDescription"
+                    <Textarea
+                      name={`feature-${index}`}
                       placeholder="Feature description"
-                      value={feature.description}
-                      onChange={(e) => updateFeature(index, "description", e.target.value)}
+                      value={feature}
+                      onChange={(e) => updateFeature(index, e.target.value)}
                       className="flex-1"
+                      rows={2}
                     />
                     {features.length > 1 && (
                       <Button type="button" variant="outline" size="icon" onClick={() => removeFeature(index)}>
