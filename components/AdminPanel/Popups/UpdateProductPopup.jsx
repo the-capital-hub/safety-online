@@ -198,6 +198,9 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 
 	useEffect(() => {
 		if (product) {
+			const initialPrice = product.price?.toString() || "";
+			const initialSalePrice = product.salePrice?.toString() || "";
+
 			// Convert existing image URLs to base64 for the ImageUpload component
 			const convertImages = async () => {
 				let convertedImages = [];
@@ -217,25 +220,24 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 					);
 				}
 
-                                const initialPrice = product.price?.toString() || "";
-                                const initialSalePrice = product.salePrice?.toString() || "";
-                                setFormData({
-                                        title: product.title || "",
-                                        description: product.description || "",
-                                        longDescription: product.longDescription || "",
-                                        category: product.category || "",
-                                        subCategory: product.subCategory || "",
-                                        price: initialPrice,
-                                        salePrice: initialSalePrice,
-                                        stocks: product.stocks?.toString() || "",
-                                        discount:
-                                                calculateDiscountPercentage(initialPrice, initialSalePrice) ||
-                                                "0.00",
-                                        type: product.type || "featured",
-                                        published: product.published !== undefined ? product.published : true,
-                                        images: convertedImages,
-                                        hsnCode: product.hsnCode || "",
-                                        brand: product.brand || "",
+
+				setFormData({
+					title: product.title || "",
+					description: product.description || "",
+					longDescription: product.longDescription || "",
+					category: product.category || "",
+					subCategory: product.subCategory || "",
+					price: initialPrice,
+					salePrice: initialSalePrice,
+					stocks: product.stocks?.toString() || "",
+					discount:
+						calculateDiscountPercentage(initialPrice, initialSalePrice) || "0.00",
+					type: product.type || "featured",
+					published: product.published !== undefined ? product.published : true,
+					images: convertedImages,
+					hsnCode: product.hsnCode || "",
+					brand: product.brand || "",
+
 					length: product.length?.toString() || "",
 					width: product.width?.toString() || "",
 					height: product.height?.toString() || "",
@@ -249,20 +251,22 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 
 			convertImages();
 
-                        const mappedFeatures =
-                                product.features?.length > 0
-                                        ? product.features.map(
-                                                  (feature) =>
-                                                          feature?.description?.trim() || feature?.title?.trim() || ""
-                                          )
-                                        : [""];
+			const mappedFeatures =
+				product.features?.length > 0
+					? product.features.map(
+						(feature) =>
+							feature?.description?.trim() || feature?.title?.trim() || ""
+					  )
+					: [""];
 
-                        const sanitizedFeatures = mappedFeatures.filter((feature) => feature.length > 0);
+			const sanitizedFeatures = mappedFeatures.filter((feature) => feature.length > 0);
 
-                        setFeatures(sanitizedFeatures.length > 0 ? sanitizedFeatures : [""]);
-                        validatePricing(initialPrice, initialSalePrice);
-                }
-        }, [product]);
+
+			setFeatures(sanitizedFeatures.length > 0 ? sanitizedFeatures : [""]);
+			validatePricing(initialPrice, initialSalePrice);
+		}
+	}, [product]);
+
 
         const handleSubmit = async (e) => {
                 e.preventDefault();
