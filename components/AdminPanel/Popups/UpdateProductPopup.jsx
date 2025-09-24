@@ -220,6 +220,7 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 					);
 				}
 
+
 				setFormData({
 					title: product.title || "",
 					description: product.description || "",
@@ -236,6 +237,7 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 					images: convertedImages,
 					hsnCode: product.hsnCode || "",
 					brand: product.brand || "",
+
 					length: product.length?.toString() || "",
 					width: product.width?.toString() || "",
 					height: product.height?.toString() || "",
@@ -259,10 +261,12 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 
 			const sanitizedFeatures = mappedFeatures.filter((feature) => feature.length > 0);
 
+
 			setFeatures(sanitizedFeatures.length > 0 ? sanitizedFeatures : [""]);
 			validatePricing(initialPrice, initialSalePrice);
 		}
 	}, [product]);
+
 
         const handleSubmit = async (e) => {
                 e.preventDefault();
