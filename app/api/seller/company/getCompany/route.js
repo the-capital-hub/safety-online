@@ -1,10 +1,9 @@
-// app/api/seller/company/getCompany/route.js
-
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { dbConnect } from "@/lib/dbConnect";
 import User from "@/model/User";
+import companyDetails from "@/model/companyDetails";
 
 export async function GET() {
 	try {
