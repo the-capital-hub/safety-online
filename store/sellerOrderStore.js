@@ -9,6 +9,7 @@ export const useSellerOrderStore = create(
 			currentOrder: null,
 			loading: false,
 			error: null,
+			returnsError: null,
 			pagination: {
 				currentPage: 1,
 				totalPages: 1,
@@ -83,6 +84,31 @@ export const useSellerOrderStore = create(
 					}
 				} catch (error) {
 					set({ error: "Failed to fetch orders", loading: false });
+				}
+			},
+
+			// Fetch return orders
+			fetchReturnOrders: async () => {
+				set({ returnsLoading: true, returnsError: null });
+				try {
+					const response = await fetch("/api/seller/orders/returns", {
+						method: "GET",
+						credentials: "include",
+					});
+					const data = await response.json();
+
+					if (!response.ok || !data.success) {
+						throw new Error(data.message || "Failed to fetch return orders");
+					}
+
+					set({ returnOrders: data.orders, returnsLoading: false });
+				} catch (error) {
+					console.error("Fetch return orders error:", error);
+					set({
+						returnOrders: [],
+						returnsLoading: false,
+						returnsError: error.message || "Failed to fetch return orders",
+					});
 				}
 			},
 

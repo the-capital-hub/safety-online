@@ -3,230 +3,254 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { useShallow } from "zustand/react/shallow";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { RotateCcw, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
+import { RotateCcw } from "lucide-react";
+
+import { useSellerOrderStore } from "@/store/sellerOrderStore";
 import { useIsSellerAuthenticated } from "@/store/sellerAuthStore";
 
-const returnsData = [
-	{
-		id: "SB001",
-		product: "Helmet Yellow",
-		quantity: 1,
-		price: "$60",
-		location: "Bengaluru, Karnataka, 5601",
-		refundTime: "7 Days",
-		status: "pending",
-	},
-	{
-		id: "SB001",
-		product: "Helmet Yellow",
-		quantity: 2,
-		price: "$60",
-		location: "Bengaluru, Karnataka, 5601",
-		refundTime: "7 Days",
-		status: "pending",
-	},
-	{
-		id: "SB001",
-		product: "Helmet Yellow",
-		quantity: 2,
-		price: "$60",
-		location: "Bengaluru, Karnataka, 5601",
-		refundTime: "7 Days",
-		status: "pending",
-	},
-	{
-		id: "SB001",
-		product: "Helmet Yellow",
-		quantity: 1,
-		price: "$60",
-		location: "Bengaluru, Karnataka, 5601",
-		refundTime: "7 Days",
-		status: "pending",
-	},
-	{
-		id: "SB002",
-		product: "Gloves Black",
-		quantity: 2,
-		price: "$15",
-		location: "Chennai, Tamil Nadu, 6000",
-		refundTime: "5 Days",
-		status: "pending",
-	},
-	{
-		id: "SB003",
-		product: "Jacket Blue",
-		quantity: 1,
-		price: "$42",
-		location: "Mumbai, Maharashtra, 4000",
-		refundTime: "10 Days",
-		status: "pending",
-	},
-	{
-		id: "SB004",
-		product: "Boots Black",
-		quantity: 3,
-		price: "$96",
-		location: "Pune, Maharashtra, 4111",
-		refundTime: "8 Days",
-		status: "pending",
-	},
-	{
-		id: "SB005",
-		product: "Knee Pads Red",
-		quantity: 4,
-		price: "$29",
-		location: "Hyderabad, Telangana, 5001",
-		refundTime: "6 Days",
-		status: "pending",
-	},
-	{
-		id: "SB006",
-		product: "Elbow Guards Green",
-		quantity: 2,
-		price: "$22",
-		location: "Ahmedabad, Gujarat, 3800",
-		refundTime: "4 Days",
-		status: "pending",
-	},
-	{
-		id: "SB001",
-		product: "Helmet Yellow",
-		quantity: 1,
-		price: "$60",
-		location: "Bengaluru, Karnataka, 5601",
-		refundTime: "7 Days",
-		status: "pending",
-	},
-	{
-		id: "SB001",
-		product: "Helmet Yellow",
-		quantity: 1,
-		price: "$60",
-		location: "Bengaluru, Karnataka, 5601",
-		refundTime: "7 Days",
-		status: "pending",
-	},
-];
+const STATUS_BADGES = {
+	returned: "bg-amber-100 text-amber-800",
+	processing: "bg-blue-100 text-blue-800",
+	pending: "bg-yellow-100 text-yellow-800",
+	cancelled: "bg-red-100 text-red-800",
+};
 
 export default function SellerReturnsPage() {
 	const router = useRouter();
 	const isAuthenticated = useIsSellerAuthenticated();
 
+	const { returnOrders, returnsLoading, returnsError } = useSellerOrderStore(
+		useShallow((state) => ({
+			returnOrders: state.returnOrders,
+			returnsLoading: state.returnsLoading,
+			returnsError: state.returnsError,
+		}))
+	);
+	const fetchReturnOrders = useSellerOrderStore(
+		(state) => state.fetchReturnOrders
+	);
+
 	useEffect(() => {
 		if (!isAuthenticated) {
-			router.push("/seller/login");
-			return;
+			const timer = setTimeout(() => {
+				router.push("/seller/login");
+			}, 120);
+			return () => clearTimeout(timer);
 		}
 	}, [isAuthenticated, router]);
 
+	useEffect(() => {
+		if (isAuthenticated) {
+			fetchReturnOrders();
+		}
+	}, [isAuthenticated, fetchReturnOrders]);
+
+	if (!isAuthenticated) {
+		return (
+			<div className="flex items-center justify-center py-8 px-6 bg-white">
+				<div className="text-gray-600">Redirecting to login...</div>
+			</div>
+		);
+	}
+
 	return (
-		<div className="p-6">
-			{/* Orders Return */}
+		<div className="p-6 space-y-6">
 			<motion.div
-				initial={{ opacity: 0, y: 20 }}
+				initial={{ opacity: 0, y: 12 }}
 				animate={{ opacity: 1, y: 0 }}
-				transition={{ delay: 0.1 }}
+				transition={{ duration: 0.3 }}
 			>
-				<Card className="bg-white border-0 shadow-sm">
-					<div className="p-6 border-b">
-						<div className="flex items-center space-x-2">
-							<div className="w-5 h-5 bg-orange-100 rounded flex items-center justify-center">
-								<RotateCcw className="w-3 h-3 text-orange-600" />
-							</div>
+				<h1 className="text-3xl font-bold text-gray-900">Return requests</h1>
+				<p className="text-gray-600 mt-2">
+					Monitor the status of customer returns and keep track of refund
+					timelines.
+				</p>
+			</motion.div>
+
+			<Card className="bg-white border-0 shadow-sm">
+				<div className="p-6 border-b flex items-center justify-between">
+					<div className="flex items-center space-x-2">
+						<div className="w-8 h-8 bg-orange-50 rounded flex items-center justify-center">
+							<RotateCcw className="w-4 h-4 text-orange-600" />
+						</div>
+						<div>
 							<h2 className="text-lg font-semibold text-gray-900">
-								Orders return
+								Returned sub-orders
 							</h2>
+							<p className="text-sm text-gray-500">
+								All return requests submitted by buyers for your products.
+							</p>
 						</div>
 					</div>
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={fetchReturnOrders}
+						disabled={returnsLoading}
+					>
+						Refresh
+					</Button>
+				</div>
 
-					<div className="overflow-x-auto">
-						<table className="w-full">
-							<thead className="bg-gray-50">
-								<tr>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-										Request ID
-									</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-										Product Name
-									</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-										Quantity
-									</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-										Price
-									</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-										Delivery Location
-									</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-										Refund Time
-									</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-										Action
-									</th>
-								</tr>
-							</thead>
-							<tbody className="bg-white divide-y divide-gray-200">
-								{returnsData.map((returnItem, index) => (
+				<div className="overflow-x-auto">
+					<Table>
+						<TableHeader className="bg-gray-50">
+							<TableRow>
+								<TableHead>Return ID</TableHead>
+								<TableHead>Order</TableHead>
+								<TableHead>Products</TableHead>
+								<TableHead>Quantity</TableHead>
+								<TableHead>Total refund</TableHead>
+								<TableHead>Customer</TableHead>
+								<TableHead>Location</TableHead>
+								<TableHead>Refund ETA</TableHead>
+								<TableHead>Status</TableHead>
+							</TableRow>
+						</TableHeader>
+						<TableBody>
+							{returnsLoading ? (
+								<TableRow>
+									<TableCell
+										colSpan={9}
+										className="py-10 text-center text-sm text-muted-foreground"
+									>
+										Loading return orders...
+									</TableCell>
+								</TableRow>
+							) : returnsError ? (
+								<TableRow>
+									<TableCell
+										colSpan={9}
+										className="py-10 text-center text-sm text-red-600"
+									>
+										{returnsError}
+									</TableCell>
+								</TableRow>
+							) : returnOrders?.length === 0 ? (
+								<TableRow>
+									<TableCell
+										colSpan={9}
+										className="py-10 text-center text-sm text-muted-foreground"
+									>
+										No returns recorded yet.
+									</TableCell>
+								</TableRow>
+							) : (
+								returnOrders?.map((order, index) => (
 									<motion.tr
-										key={`${returnItem.id}-${index}`}
-										initial={{ opacity: 0 }}
-										animate={{ opacity: 1 }}
-										transition={{ delay: index * 0.05 }}
+										key={order.id}
+										initial={{ opacity: 0, y: 8 }}
+										animate={{ opacity: 1, y: 0 }}
+										transition={{ duration: 0.2, delay: index * 0.03 }}
 										className="hover:bg-gray-50"
 									>
-										<td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-											{returnItem.id}
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-											{returnItem.product}
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-											{returnItem.quantity}
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
-											{returnItem.price}
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-											{returnItem.location}
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-											{returnItem.refundTime}
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
-											<Button
-												size="sm"
-												variant="outline"
-												className="text-red-600 border-red-200 hover:bg-red-50 bg-transparent"
+										<TableCell className="font-medium">
+											<div className="flex flex-col">
+												<span>{order.subOrderCode}</span>
+												<span className="text-xs text-muted-foreground">
+													{order.orderNumber}
+												</span>
+											</div>
+										</TableCell>
+										<TableCell>
+											{order.orderDate
+												? new Date(order.orderDate).toLocaleDateString()
+												: "—"}
+											<br />
+											<span className="text-xs text-gray-500">
+												Updated{" "}
+												{order.updatedAt
+													? new Date(order.updatedAt).toLocaleDateString()
+													: "—"}
+											</span>
+										</TableCell>
+										<TableCell>
+											<div className="space-y-2">
+												{order.products.slice(0, 2).map((product, idx) => (
+													<div
+														key={`${order.id}-${idx}`}
+														className="flex items-center gap-3"
+													>
+														<img
+															src={
+																product.image ||
+																"/placeholder.svg?height=40&width=40&query=product"
+															}
+															alt={product.name}
+															className="w-10 h-10 object-cover rounded"
+														/>
+														<div>
+															<p className="font-medium text-sm">
+																{product.name}
+															</p>
+															<p className="text-xs text-gray-500">
+																Qty: {product.quantity}
+															</p>
+														</div>
+													</div>
+												))}
+												{order.products.length > 2 && (
+													<p className="text-xs text-gray-500">
+														+{order.products.length - 2} more items
+													</p>
+												)}
+											</div>
+										</TableCell>
+										<TableCell>{order.totalQuantity}</TableCell>
+										<TableCell className="font-semibold text-emerald-600">
+											₹
+											{Number(order.totalAmount || 0).toLocaleString(
+												undefined,
+												{ minimumFractionDigits: 2 }
+											)}
+										</TableCell>
+										<TableCell>
+											<div className="flex flex-col">
+												<span className="font-medium">
+													{order.customer?.name || "Customer"}
+												</span>
+												<span className="text-xs text-gray-500">
+													{order.customer?.email}
+												</span>
+											</div>
+										</TableCell>
+										<TableCell className="max-w-[180px] truncate">
+											{order.location || "—"}
+										</TableCell>
+										<TableCell>
+											{order.refundDeadline
+												? new Date(order.refundDeadline).toLocaleDateString()
+												: "—"}
+										</TableCell>
+										<TableCell>
+											<Badge
+												className={
+													STATUS_BADGES[order.status] ||
+													"bg-gray-100 text-gray-800"
+												}
 											>
-												Decline
-											</Button>
-											<Button
-												size="sm"
-												className="bg-blue-600 hover:bg-blue-700 text-white"
-											>
-												Refund
-											</Button>
-										</td>
+												{order.status?.toUpperCase()}
+											</Badge>
+										</TableCell>
 									</motion.tr>
-								))}
-							</tbody>
-						</table>
-					</div>
-
-					{/* Pagination */}
-					<div className="px-6 py-4 border-t flex items-center justify-center space-x-2">
-						<Button variant="ghost" size="sm">
-							<ChevronLeft className="w-4 h-4" />
-						</Button>
-						<Button variant="ghost" size="sm">
-							<ChevronRight className="w-4 h-4" />
-						</Button>
-					</div>
-				</Card>
-			</motion.div>
+								))
+							)}
+						</TableBody>
+					</Table>
+				</div>
+			</Card>
 		</div>
 	);
 }

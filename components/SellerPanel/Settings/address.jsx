@@ -1,245 +1,230 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { Pencil, Trash2, Plus } from "lucide-react";
 
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Pencil, Trash2, Plus, Save, X } from "lucide-react";
+import {
+	Card,
+	CardHeader,
+	CardTitle,
+	CardDescription,
+	CardContent,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { addressSchema } from "@/zodSchema/companyScema.js";
 
-const Addresses = () => {
-  const [addresses, setAddresses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [editIndex, setEditIndex] = useState(null);
-  const [formData, setFormData] = useState({
-    tagName: "",
-    building: "",
-    street: "",
-    city: "",
-    state: "",
-    pincode: "",
-    country: "",
-    companyEmail: "",
-    phone: "",
-    companyLogo: "",
-    gstinNumber: "",
-  });
+export default function CompanyAddresses() {
+	const [addresses, setAddresses] = useState([]);
+	const [loading, setLoading] = useState(true);
+	const [editingIndex, setEditingIndex] = useState(-1);
+	const [draft, setDraft] = useState({
+		tagName: "",
+		building: "",
+		street: "",
+		city: "",
+		state: "",
+		pincode: "",
+		country: "",
+	});
 
-  // Fetch company details
-  useEffect(() => {
-    const fetchCompany = async () => {
-      try {
-        const res = await fetch("/api/seller/company/getCompany", { credentials: "include" });
-        if (!res.ok) throw new Error("Failed to fetch company");
-        const data = await res.json();
-        setAddresses(data.company.companyAddress || []);
-        setFormData({
-          ...formData,
-          companyEmail: data.company.companyEmail || "",
-          phone: data.company.phone || "",
-          companyLogo: data.company.companyLogo || "",
-          gstinNumber: data.company.gstinNumber || "",
-        });
-      } catch (err) {
-        console.error("Error fetching company:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+	const resetDraft = () =>
+		setDraft({
+			tagName: "",
+			building: "",
+			street: "",
+			city: "",
+			state: "",
+			pincode: "",
+			country: "",
+		});
 
-    fetchCompany();
-   
-  }, []);
+	useEffect(() => {
+		let mounted = true;
+		(async () => {
+			try {
+				const res = await fetch("/api/seller/company/getCompany", {
+					credentials: "include",
+				});
+				if (res.ok) {
+					const data = await res.json();
+					if (mounted) setAddresses(data?.company?.companyAddress || []);
+				}
+			} catch (e) {
+				// noop
+			} finally {
+				if (mounted) setLoading(false);
+			}
+		})();
+		return () => {
+			mounted = false;
+		};
+	}, []);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+	const startAdd = () => {
+		resetDraft();
+		setEditingIndex(addresses.length);
+	};
 
-  // Save / Update
-  const handleSave = async (e) => {
-    e.preventDefault();
-    if (!e.currentTarget.checkValidity()) {
-      e.currentTarget.reportValidity();
-      return;
-    }
+	const startEdit = (i) => {
+		setDraft(addresses[i]);
+		setEditingIndex(i);
+	};
 
-    let newAddresses;
-    if (editIndex !== null) {
-      // update existing
-      newAddresses = addresses.map((addr, idx) =>
-        idx === editIndex ? { ...formData } : addr
-      );
-    } else {
-      // add new
-      newAddresses = [...addresses, { ...formData }];
-    }
+	const cancelEdit = () => {
+		resetDraft();
+		setEditingIndex(-1);
+	};
 
-    try {
-      const res = await fetch("/api/seller/company/updateCompany", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          companyAddress: newAddresses,
-          companyEmail: formData.companyEmail,
-          phone: formData.phone,
-          companyLogo: formData.companyLogo,
-          gstinNumber: formData.gstinNumber,
-        }),
-      });
+	const removeAddress = async (i) => {
+		const next = addresses.filter((_, idx) => idx !== i);
+		try {
+			const res = await fetch("/api/seller/company/updateCompany", {
+				method: "PUT",
+				headers: { "Content-Type": "application/json" },
+				credentials: "include",
+				body: JSON.stringify({ companyAddress: next }),
+			});
+			if (!res.ok) throw new Error("Failed to remove address");
+			setAddresses(next);
+			toast.success("Address removed");
+		} catch (err) {
+			toast.error(err.message);
+		}
+	};
 
-      if (!res.ok) throw new Error("Failed to save");
-      const data = await res.json();
-      setAddresses(data.company.companyAddress || []);
-      setFormData({
-        tagName: "",
-        building: "",
-        street: "",
-        city: "",
-        state: "",
-        pincode: "",
-        country: "",
-        companyEmail: data.company.companyEmail || "",
-        phone: data.company.phone || "",
-        companyLogo: data.company.companyLogo || "",
-        gstinNumber: data.company.gstinNumber || "",
-      });
-      setEditIndex(null);
-      setShowForm(false);
-    } catch (err) {
-      console.error("Error saving:", err);
-    }
-  };
+	const saveDraft = async () => {
+		const parsed = addressSchema.safeParse(draft);
+		if (!parsed.success) {
+			toast.error(parsed.error.errors[0].message);
+			return;
+		}
+		const next = [...addresses];
+		next[editingIndex] = parsed.data;
+		try {
+			const res = await fetch("/api/seller/company/updateCompany", {
+				method: "PUT",
+				headers: { "Content-Type": "application/json" },
+				credentials: "include",
+				body: JSON.stringify({ companyAddress: next }),
+			});
+			if (!res.ok) throw new Error("Failed to save address");
+			setAddresses(next);
+			toast.success(
+				editingIndex >= addresses.length ? "Address added" : "Address updated"
+			);
+			cancelEdit();
+		} catch (err) {
+			toast.error(err.message);
+		}
+	};
 
-  const handleEdit = (index) => {
-    setFormData({ ...addresses[index], ...formData }); // keep company fields
-    setEditIndex(index);
-    setShowForm(true);
-  };
+	if (loading) {
+		return (
+			<Card>
+				<CardHeader>
+					<CardTitle>Company Addresses</CardTitle>
+					<CardDescription>Loading addresses…</CardDescription>
+				</CardHeader>
+			</Card>
+		);
+	}
 
-  if (loading) return <p className="p-6">Loading...</p>;
+	return (
+		<Card className="border border-gray-200">
+			<CardHeader className="flex-row items-center justify-between">
+				<div>
+					<CardTitle>Company Addresses</CardTitle>
+					<CardDescription>
+						Add or update your company addresses
+					</CardDescription>
+				</div>
+				<Button onClick={startAdd} variant="secondary" size="sm">
+					<Plus className="h-4 w-4 mr-1" /> Add address
+				</Button>
+			</CardHeader>
+			<CardContent className="space-y-5">
+				{editingIndex !== -1 && (
+					<div className="rounded-lg border p-4 grid gap-3">
+						{[
+							{ label: "Tag", name: "tagName", placeholder: "Head Office" },
+							{
+								label: "Building",
+								name: "building",
+								placeholder: "Building / Suite",
+							},
+							{ label: "Street", name: "street", placeholder: "Street" },
+							{ label: "City", name: "city", placeholder: "City" },
+							{ label: "State", name: "state", placeholder: "State" },
+							{ label: "Pincode", name: "pincode", placeholder: "Pincode" },
+							{ label: "Country", name: "country", placeholder: "Country" },
+						].map((f) => (
+							<div key={f.name} className="grid gap-1">
+								<Label htmlFor={f.name}>{f.label}</Label>
+								<Input
+									id={f.name}
+									value={draft[f.name] || ""}
+									onChange={(e) =>
+										setDraft((d) => ({ ...d, [f.name]: e.target.value }))
+									}
+									placeholder={f.placeholder}
+								/>
+							</div>
+						))}
+						<div className="flex justify-end gap-2">
+							<Button variant="outline" onClick={cancelEdit}>
+								<X className="mr-1 h-4 w-4" /> Cancel
+							</Button>
+							<Button onClick={saveDraft}>
+								<Save className="mr-1 h-4 w-4" /> Save
+							</Button>
+						</div>
+					</div>
+				)}
 
-  return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-6">
-      <div className="bg-white dark:bg-gray-800 shadow-md rounded-2xl p-6 w-full">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-            Company Addresses
-          </h2>
-          {!showForm && (
-            <button
-              onClick={() => {
-                setShowForm(true);
-                setEditIndex(null);
-              }}
-              className="flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-md bg-black text-white hover:bg-gray-800"
-            >
-              <Plus size={16} /> Add Address
-            </button>
-          )}
-        </div>
-
-        {/* Form */}
-        {showForm && (
-          <form onSubmit={handleSave} className="space-y-4 mt-6">
-            {[
-              { label: "Tag Name", name: "tagName" },
-              { label: "Building", name: "building" },
-              { label: "Street", name: "street" },
-              { label: "City", name: "city" },
-              { label: "State", name: "state" },
-              { label: "Pincode", name: "pincode" },
-              { label: "Country", name: "country" },
-              { label: "Company Email", name: "companyEmail" },
-              { label: "Phone", name: "phone" },
-              { label: "Company Logo (URL)", name: "companyLogo" },
-              { label: "GSTIN Number", name: "gstinNumber" },
-            ].map((field) => {
-              const inputType =
-                field.name === "companyEmail"
-                  ? "email"
-                  : field.name === "phone"
-                  ? "tel"
-                  : field.name === "companyLogo"
-                  ? "url"
-                  : "text";
-              const isRequired = field.name !== "companyLogo";
-              return (
-                <div key={field.name}>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {field.label}
-                  </label>
-                  <Input
-                    id={`company-${field.name}`}
-                    name={field.name}
-                    type={inputType}
-                    value={formData[field.name] || ""}
-                    onChange={handleChange}
-                    placeholder={field.label}
-                    required={isRequired}
-                    className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm dark:bg-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-black"
-                  />
-                </div>
-              );
-            })}
-            <div className="flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowForm(false);
-                  setEditIndex(null);
-                }}
-                className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-6 py-2 rounded-md bg-black text-white text-sm hover:bg-gray-800 transition"
-              >
-                {editIndex !== null ? "Update" : "Save"}
-              </button>
-            </div>
-          </form>
-        )}
-
-        {/* Address List */}
-        {!showForm && (
-          <div className="space-y-4 mt-6">
-            {addresses.map((addr, index) => (
-              <div
-                key={index}
-                className="border border-gray-200 dark:border-gray-700 rounded-xl p-4 flex justify-between items-start"
-              >
-                <div>
-                  <h3 className="font-medium text-gray-800 dark:text-gray-100">
-                    {addr.tagName}
-                  </h3>
-                  <pre className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap mt-1">
-                    {addr.building}, {addr.street}
-                    {"\n"}
-                    {addr.city}, {addr.state} {addr.pincode}
-                    {"\n"}
-                    {addr.country}
-                  </pre>
-                </div>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => handleEdit(index)}
-                    className="text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white"
-                  >
-                    <Pencil size={18} />
-                  </button>
-                  <button className="text-gray-600 dark:text-gray-300 hover:text-red-500">
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-export default Addresses;
+				{addresses.length === 0 ? (
+					<p className="text-sm text-gray-500">No addresses added yet.</p>
+				) : (
+					<div className="grid gap-3">
+						{addresses.map((addr, idx) => (
+							<div
+								key={idx}
+								className="rounded-lg border p-4 flex items-start justify-between"
+							>
+								<div className="text-sm">
+									<p className="font-medium text-gray-900">{addr.tagName}</p>
+									<p className="text-gray-700">
+										{addr.building}, {addr.street}
+									</p>
+									<p className="text-gray-700">
+										{addr.city}, {addr.state} {addr.pincode}
+									</p>
+									<p className="text-gray-700">{addr.country}</p>
+								</div>
+								<div className="flex gap-2">
+									<Button
+										variant="ghost"
+										size="icon"
+										onClick={() => startEdit(idx)}
+										aria-label="Edit"
+									>
+										<Pencil className="h-4 w-4" />
+									</Button>
+									<Button
+										variant="ghost"
+										size="icon"
+										onClick={() => removeAddress(idx)}
+										aria-label="Delete"
+									>
+										<Trash2 className="h-4 w-4" />
+									</Button>
+								</div>
+							</div>
+						))}
+					</div>
+				)}
+			</CardContent>
+		</Card>
+	);
+}
