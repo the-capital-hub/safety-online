@@ -76,19 +76,68 @@ export async function GET(request) {
                         );
                 };
 
-		const buildRegexArray = (values = []) => {
-			const uniqueValues = Array.from(
-				new Set(
-					values
-						.map((value) => value?.toString().trim())
-						.filter((value) => value && value.length > 0)
-				)
-			);
+                const buildRegexArray = (values = []) => {
+                        const uniqueValues = Array.from(
+                                new Set(
+                                        values
+                                                .map((value) => value?.toString().trim())
+                                                .filter((value) => value && value.length > 0)
+                                )
+                        );
 
-			return uniqueValues.map(
-				(value) => new RegExp(`^${escapeRegex(value)}$`, "i")
-			);
-		};
+                        return uniqueValues.map(
+                                (value) => new RegExp(`^${escapeRegex(value)}$`, "i")
+                        );
+                };
+
+                const buildSlugExpression = (fieldExpression) => ({
+                        $let: {
+                                vars: {
+                                        trimmedLower: {
+                                                $toLower: {
+                                                        $trim: {
+                                                                input: {
+                                                                        $ifNull: [fieldExpression, ""],
+                                                                },
+                                                        },
+                                                },
+                                        },
+                                },
+                                in: {
+                                        $let: {
+                                                vars: {
+                                                        replaced: {
+                                                                $regexReplace: {
+                                                                        input: "$$trimmedLower",
+                                                                        regex: "[^a-z0-9]+",
+                                                                        replacement: "-",
+                                                                },
+                                                        },
+                                                },
+                                                in: {
+                                                        $let: {
+                                                                vars: {
+                                                                        noLeading: {
+                                                                                $regexReplace: {
+                                                                                        input: "$$replaced",
+                                                                                        regex: "^-+",
+                                                                                        replacement: "",
+                                                                                },
+                                                                        },
+                                                                },
+                                                                in: {
+                                                                        $regexReplace: {
+                                                                                input: "$$noLeading",
+                                                                                regex: "-+$",
+                                                                                replacement: "",
+                                                                        },
+                                                                },
+                                                        },
+                                                },
+                                        },
+                                },
+                        },
+                });
 
 		const ensureAndConditions = (queryObject) => {
 			if (!queryObject.$and) {
@@ -146,14 +195,32 @@ export async function GET(request) {
                                 Array.from(possibleSubCategoryValues)
                         );
 
+                        const slugMatchExpression = normalizedSubCategory
+                                ? buildSlugExpression("$subCategory")
+                                : null;
+
+                        const subCategoryConditions = [];
+
                         if (subCategoryRegexes.length > 0) {
-                                ensureAndConditions(query).push({
+                                subCategoryConditions.push({
                                         subCategory: { $in: subCategoryRegexes },
                                 });
+                        }
+
+                        if (slugMatchExpression) {
+                                subCategoryConditions.push({
+                                        $expr: {
+                                                $eq: [slugMatchExpression, normalizedSubCategory],
+                                        },
+                                });
+                        }
+
+                        if (subCategoryConditions.length > 0) {
+                                ensureAndConditions(query).push({ $or: subCategoryConditions });
                         } else {
                                 query.subCategory = subCategoryParam;
                         }
-		} else if (category && category !== "all") {
+                } else if (category && category !== "all") {
 			const categoryVariantsToCheck = Array.from(
 				new Set([category, ...createNameVariants(category)])
 			);
