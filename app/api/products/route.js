@@ -95,6 +95,35 @@ export async function GET(request) {
                 };
 
 
+                const buildSlugExpression = (fieldPath) => ({
+                        $let: {
+                                vars: {
+                                        normalized: {
+                                                $toLower: {
+                                                        $trim: {
+                                                                input: {
+                                                                        $ifNull: [fieldPath, ""],
+                                                                },
+                                                        },
+                                                },
+                                        },
+                                },
+                                in: {
+                                        $trim: {
+                                                input: {
+                                                        $regexReplace: {
+                                                                input: "$${normalized}",
+                                                                regex: "[^a-z0-9]+",
+                                                                replacement: "-",
+                                                        },
+                                                },
+                                                chars: "-",
+                                        },
+                                },
+                        },
+                });
+
+
                 const appendValueAndVariants = (set, rawValue) => {
                         if (rawValue === undefined || rawValue === null) {
                                 return;
