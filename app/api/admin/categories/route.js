@@ -204,6 +204,7 @@
 // app/api/admin/categories/route.js
 
 import { dbConnect } from "@/lib/dbConnect.js";
+import { attachProductCountsToCategories } from "@/lib/categoryCounts.js";
 import Category from "@/model/Categories.js";
 
 export async function GET(request) {
@@ -240,18 +241,10 @@ export async function GET(request) {
                         .limit(limit)
                         .lean();
 
-                const normalizedCategories = categories.map((category) => ({
-                        ...category,
-                        subCategories: Array.isArray(category.subCategories)
-                                ? category.subCategories.map((sub) => ({
-                                          ...sub,
-                                          published:
-                                                  sub?.published !== undefined
-                                                          ? !!sub.published
-                                                          : true,
-                                  }))
-                                : [],
-                }));
+                const normalizedCategories = await attachProductCountsToCategories(
+                        categories,
+                        { persist: true }
+                );
 
                 const total = await Category.countDocuments(query);
                 const totalPages = Math.ceil(total / limit);
