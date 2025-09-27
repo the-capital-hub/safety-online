@@ -23,7 +23,27 @@ const slugify = (value = "") =>
                 .replace(/[^a-z0-9]+/g, "-")
                 .replace(/^-+|-+$/g, "");
 
-const hasProducts = (count) => (count ?? 0) > 0;
+const toNumber = (value) => {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const hasProductCount = (count) => toNumber(count) > 0;
+
+const categoryHasProducts = (category) => {
+        if (!category) return false;
+
+        if (hasProductCount(category.productCount)) {
+                return true;
+        }
+
+        return (category.subCategories || []).some((subCategory) =>
+                hasProductCount(subCategory.productCount)
+        );
+};
+
+const subCategoryHasProducts = (subCategory) =>
+        hasProductCount(subCategory?.productCount);
 
 export default function NavigationBar({ isMenuOpen = false, onMenuClose }) {
         const router = useRouter();
@@ -55,9 +75,11 @@ export default function NavigationBar({ isMenuOpen = false, onMenuClose }) {
 
                                                 return {
                                                         ...category,
+                                                        productCount: toNumber(category.productCount),
                                                         slug: categorySlug,
                                                         subCategories: (category.subCategories || []).map((subCategory) => ({
                                                                 ...subCategory,
+                                                                productCount: toNumber(subCategory.productCount),
                                                                 slug: slugify(subCategory.name),
                                                         })),
                                                 };
@@ -232,7 +254,7 @@ export default function NavigationBar({ isMenuOpen = false, onMenuClose }) {
                 setActiveCategorySlug(categorySlug);
                 setActiveSubCategorySlug("");
 
-                if (hasProducts(category.productCount)) {
+                if (categoryHasProducts(category)) {
                         router.push(`/products?category=${encodeURIComponent(categorySlug)}`);
                 } else {
                         const params = new URLSearchParams({
@@ -254,7 +276,7 @@ export default function NavigationBar({ isMenuOpen = false, onMenuClose }) {
                 setActiveCategorySlug(categorySlug);
                 setActiveSubCategorySlug(subCategorySlug);
 
-                if (hasProducts(subCategory.productCount)) {
+                if (subCategoryHasProducts(subCategory)) {
                         const params = new URLSearchParams({
                                 category: categorySlug,
                                 subCategory: subCategorySlug,
