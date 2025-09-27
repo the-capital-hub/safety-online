@@ -90,6 +90,7 @@ export async function GET(request) {
                         );
                 };
 
+
 		const ensureAndConditions = (queryObject) => {
 			if (!queryObject.$and) {
 				queryObject.$and = [];
@@ -146,10 +147,28 @@ export async function GET(request) {
                                 Array.from(possibleSubCategoryValues)
                         );
 
+                        const slugMatchExpression = normalizedSubCategory
+                                ? buildSlugExpression("$subCategory")
+                                : null;
+
+                        const subCategoryConditions = [];
+
                         if (subCategoryRegexes.length > 0) {
-                                ensureAndConditions(query).push({
+                                subCategoryConditions.push({
                                         subCategory: { $in: subCategoryRegexes },
                                 });
+                        }
+
+                        if (slugMatchExpression) {
+                                subCategoryConditions.push({
+                                        $expr: {
+                                                $eq: [slugMatchExpression, normalizedSubCategory],
+                                        },
+                                });
+                        }
+
+                        if (subCategoryConditions.length > 0) {
+                                ensureAndConditions(query).push({ $or: subCategoryConditions });
                         } else {
                                 query.subCategory = subCategoryParam;
                         }
