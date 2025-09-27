@@ -76,19 +76,19 @@ export async function GET(request) {
                         );
                 };
 
-		const buildRegexArray = (values = []) => {
-			const uniqueValues = Array.from(
-				new Set(
-					values
-						.map((value) => value?.toString().trim())
-						.filter((value) => value && value.length > 0)
-				)
-			);
+                const buildRegexArray = (values = []) => {
+                        const uniqueValues = Array.from(
+                                new Set(
+                                        values
+                                                .map((value) => value?.toString().trim())
+                                                .filter((value) => value && value.length > 0)
+                                )
+                        );
 
-			return uniqueValues.map(
-				(value) => new RegExp(`^${escapeRegex(value)}$`, "i")
-			);
-		};
+                        return uniqueValues.map(
+                                (value) => new RegExp(`^${escapeRegex(value)}$`, "i")
+                        );
+                };
 
 		const ensureAndConditions = (queryObject) => {
 			if (!queryObject.$and) {
@@ -153,7 +153,7 @@ export async function GET(request) {
                         } else {
                                 query.subCategory = subCategoryParam;
                         }
-		} else if (category && category !== "all") {
+                } else if (category && category !== "all") {
 			const categoryVariantsToCheck = Array.from(
 				new Set([category, ...createNameVariants(category)])
 			);
@@ -356,10 +356,20 @@ export async function GET(request) {
 				salePrice: product.salePrice,
 				discount: product.discount,
 				discountPercentage,
-				image:
-					product.images?.[0] ||
-					"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png",
-				images: product.images || [],
+                                image:
+                                        product.images?.find(
+                                                (img) =>
+                                                        typeof img === "string" && img.trim().length > 0
+                                        ) ||
+                                        "https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png",
+                                images:
+                                        Array.isArray(product.images)
+                                                ? product.images.filter(
+                                                          (img) =>
+                                                                  typeof img === "string" &&
+                                                                  img.trim().length > 0
+                                                  )
+                                                : [],
 				category: product.category,
 				subCategory: product.subCategory,
 				inStock: product.inStock,
