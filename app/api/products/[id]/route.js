@@ -18,8 +18,25 @@ const createNameVariants = (value = "") => {
 
         const hyphenated = trimmed.replace(/\s+/g, "-");
         const spaced = trimmed.replace(/-/g, " ");
+        const withoutSpacesOrHyphens = trimmed.replace(/[\s-]+/g, "");
 
-        return Array.from(new Set([trimmed, hyphenated, spaced]));
+        const ampersandReplaced = trimmed.replace(/&/g, "and");
+        const ampHyphenated = ampersandReplaced.replace(/\s+/g, "-");
+        const ampSpaced = ampersandReplaced.replace(/-/g, " ");
+        const ampWithoutSpacesOrHyphens = ampersandReplaced.replace(/[\s-]+/g, "");
+
+        return Array.from(
+                new Set([
+                        trimmed,
+                        hyphenated,
+                        spaced,
+                        withoutSpacesOrHyphens,
+                        ampersandReplaced,
+                        ampHyphenated,
+                        ampSpaced,
+                        ampWithoutSpacesOrHyphens,
+                ])
+        );
 };
 
 const buildRegexArray = (values = []) => {

@@ -42,22 +42,39 @@ export async function GET(request) {
 		const escapeRegex = (value = "") =>
 			value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-		const createNameVariants = (value = "") => {
-			if (!value) {
-				return [];
-			}
+                const createNameVariants = (value = "") => {
+                        if (!value) {
+                                return [];
+                        }
 
-			const trimmed = value.trim();
+                        const trimmed = value.toString().trim();
 
-			if (!trimmed) {
-				return [];
-			}
+                        if (!trimmed) {
+                                return [];
+                        }
 
-			const hyphenated = trimmed.replace(/\s+/g, "-");
-			const spaced = trimmed.replace(/-/g, " ");
+                        const hyphenated = trimmed.replace(/\s+/g, "-");
+                        const spaced = trimmed.replace(/-/g, " ");
+                        const withoutSpacesOrHyphens = trimmed.replace(/[\s-]+/g, "");
 
-			return Array.from(new Set([trimmed, hyphenated, spaced]));
-		};
+                        const ampersandReplaced = trimmed.replace(/&/g, "and");
+                        const ampHyphenated = ampersandReplaced.replace(/\s+/g, "-");
+                        const ampSpaced = ampersandReplaced.replace(/-/g, " ");
+                        const ampWithoutSpacesOrHyphens = ampersandReplaced.replace(/[\s-]+/g, "");
+
+                        return Array.from(
+                                new Set([
+                                        trimmed,
+                                        hyphenated,
+                                        spaced,
+                                        withoutSpacesOrHyphens,
+                                        ampersandReplaced,
+                                        ampHyphenated,
+                                        ampSpaced,
+                                        ampWithoutSpacesOrHyphens,
+                                ])
+                        );
+                };
 
 		const buildRegexArray = (values = []) => {
 			const uniqueValues = Array.from(
