@@ -80,9 +80,11 @@ export async function GET(request) {
                         const uniqueValues = Array.from(
                                 new Set(
                                         values
+
                                                 .map((value) =>
                                                         value?.toString().trim()
                                                 )
+
                                                 .filter((value) => value && value.length > 0)
                                 )
                         );
@@ -91,6 +93,7 @@ export async function GET(request) {
                                 (value) => new RegExp(`^${escapeRegex(value)}$`, "i")
                         );
                 };
+
 
                 const appendValueAndVariants = (set, rawValue) => {
                         if (rawValue === undefined || rawValue === null) {
@@ -224,6 +227,7 @@ export async function GET(request) {
                         return categoriesCache;
                 };
 
+
 		const ensureAndConditions = (queryObject) => {
 			if (!queryObject.$and) {
 				queryObject.$and = [];
@@ -309,13 +313,32 @@ export async function GET(request) {
                                 Array.from(possibleSubCategoryValues)
                         );
 
+                        const slugMatchExpression = normalizedSubCategory
+                                ? buildSlugExpression("$subCategory")
+                                : null;
+
+                        const subCategoryConditions = [];
+
                         if (subCategoryRegexes.length > 0) {
-                                ensureAndConditions(query).push({
+                                subCategoryConditions.push({
                                         subCategory: { $in: subCategoryRegexes },
                                 });
+                        }
+
+                        if (slugMatchExpression) {
+                                subCategoryConditions.push({
+                                        $expr: {
+                                                $eq: [slugMatchExpression, normalizedSubCategory],
+                                        },
+                                });
+                        }
+
+                        if (subCategoryConditions.length > 0) {
+                                ensureAndConditions(query).push({ $or: subCategoryConditions });
                         } else {
                                 query.subCategory = subCategoryParam;
                         }
+
 
                         if (matchedCategoryValuesFromSubCategory.size > 0) {
                                 const categoryRegexesFromSubCategory = buildRegexArray(
