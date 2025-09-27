@@ -94,36 +94,6 @@ export async function GET(request) {
                         );
                 };
 
-
-                const buildSlugExpression = (fieldPath) => ({
-                        $let: {
-                                vars: {
-                                        normalized: {
-                                                $toLower: {
-                                                        $trim: {
-                                                                input: {
-                                                                        $ifNull: [fieldPath, ""],
-                                                                },
-                                                        },
-                                                },
-                                        },
-                                },
-                                in: {
-                                        $trim: {
-                                                input: {
-                                                        $regexReplace: {
-                                                                input: "$${normalized}",
-                                                                regex: "[^a-z0-9]+",
-                                                                replacement: "-",
-                                                        },
-                                                },
-                                                chars: "-",
-                                        },
-                                },
-                        },
-                });
-
-
                 const appendValueAndVariants = (set, rawValue) => {
                         if (rawValue === undefined || rawValue === null) {
                                 return;
@@ -342,23 +312,11 @@ export async function GET(request) {
                                 Array.from(possibleSubCategoryValues)
                         );
 
-                        const slugMatchExpression = normalizedSubCategory
-                                ? buildSlugExpression("$subCategory")
-                                : null;
-
                         const subCategoryConditions = [];
 
                         if (subCategoryRegexes.length > 0) {
                                 subCategoryConditions.push({
                                         subCategory: { $in: subCategoryRegexes },
-                                });
-                        }
-
-                        if (slugMatchExpression) {
-                                subCategoryConditions.push({
-                                        $expr: {
-                                                $eq: [slugMatchExpression, normalizedSubCategory],
-                                        },
                                 });
                         }
 
