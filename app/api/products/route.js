@@ -90,54 +90,6 @@ export async function GET(request) {
                         );
                 };
 
-                const buildSlugExpression = (fieldExpression) => ({
-                        $let: {
-                                vars: {
-                                        trimmedLower: {
-                                                $toLower: {
-                                                        $trim: {
-                                                                input: {
-                                                                        $ifNull: [fieldExpression, ""],
-                                                                },
-                                                        },
-                                                },
-                                        },
-                                },
-                                in: {
-                                        $let: {
-                                                vars: {
-                                                        replaced: {
-                                                                $regexReplace: {
-                                                                        input: "$$trimmedLower",
-                                                                        regex: "[^a-z0-9]+",
-                                                                        replacement: "-",
-                                                                },
-                                                        },
-                                                },
-                                                in: {
-                                                        $let: {
-                                                                vars: {
-                                                                        noLeading: {
-                                                                                $regexReplace: {
-                                                                                        input: "$$replaced",
-                                                                                        regex: "^-+",
-                                                                                        replacement: "",
-                                                                                },
-                                                                        },
-                                                                },
-                                                                in: {
-                                                                        $regexReplace: {
-                                                                                input: "$$noLeading",
-                                                                                regex: "-+$",
-                                                                                replacement: "",
-                                                                        },
-                                                                },
-                                                        },
-                                                },
-                                        },
-                                },
-                        },
-                });
 
 		const ensureAndConditions = (queryObject) => {
 			if (!queryObject.$and) {
@@ -423,10 +375,20 @@ export async function GET(request) {
 				salePrice: product.salePrice,
 				discount: product.discount,
 				discountPercentage,
-				image:
-					product.images?.[0] ||
-					"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png",
-				images: product.images || [],
+                                image:
+                                        product.images?.find(
+                                                (img) =>
+                                                        typeof img === "string" && img.trim().length > 0
+                                        ) ||
+                                        "https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png",
+                                images:
+                                        Array.isArray(product.images)
+                                                ? product.images.filter(
+                                                          (img) =>
+                                                                  typeof img === "string" &&
+                                                                  img.trim().length > 0
+                                                  )
+                                                : [],
 				category: product.category,
 				subCategory: product.subCategory,
 				inStock: product.inStock,
