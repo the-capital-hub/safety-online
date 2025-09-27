@@ -11,17 +11,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { slugify } from "@/lib/slugify.js";
 
 const HOME_SLUG = "home";
 const CONTACT_SLUG = "contact-us";
-
-const slugify = (value = "") =>
-        value
-                .toString()
-                .trim()
-                .toLowerCase()
-                .replace(/[^a-z0-9]+/g, "-")
-                .replace(/^-+|-+$/g, "");
 
 const toNumber = (value) => {
         const parsed = Number(value);
@@ -71,7 +64,9 @@ export default function NavigationBar({ isMenuOpen = false, onMenuClose }) {
 
                                 if (data.success && Array.isArray(data.categories)) {
                                         const mappedCategories = data.categories.map((category) => {
-                                                const categorySlug = slugify(category.name);
+                                                const categorySlug = slugify(
+                                                        category.slug || category.name
+                                                );
 
                                                 return {
                                                         ...category,
@@ -80,7 +75,9 @@ export default function NavigationBar({ isMenuOpen = false, onMenuClose }) {
                                                         subCategories: (category.subCategories || []).map((subCategory) => ({
                                                                 ...subCategory,
                                                                 productCount: toNumber(subCategory.productCount),
-                                                                slug: slugify(subCategory.name),
+                                                                slug: slugify(
+                                                                        subCategory.slug || subCategory.name
+                                                                ),
                                                         })),
                                                 };
                                         });
