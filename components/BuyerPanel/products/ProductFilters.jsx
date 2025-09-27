@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
+import { Badge } from "@/components/ui/badge";
 import {
 	Select,
 	SelectContent,
@@ -25,17 +26,17 @@ export default function ProductFilters() {
 	const [isOpen, setIsOpen] = useState(false);
 	const [expandedCategories, setExpandedCategories] = useState(new Set());
 
-	const {
-		filters,
-		availableFilters,
-		setFilters,
-		applyFilters,
-		fetchFilters,
-		currentCategory,
-		setCurrentCategory,
-		currentSubCategory,
-		setCurrentSubCategory,
-	} = useProductStore();
+        const {
+                filters,
+                availableFilters,
+                setFilters,
+                applyFilters,
+                fetchFilters,
+                currentCategory,
+                setCurrentCategory,
+                currentSubCategory,
+                setCurrentSubCategory,
+        } = useProductStore();
 
 	useEffect(() => {
 		fetchFilters();
@@ -69,27 +70,41 @@ export default function ProductFilters() {
 		}
 	};
 
-	const handleSubCategoryChange = (subCategory, checked) => {
-		console.log("handleSubCategoryChange", subCategory, checked);
+        const handleSubCategoryChange = (subCategory, checked) => {
+                console.log("handleSubCategoryChange", subCategory, checked);
 
-		if (checked) {
-			setCurrentSubCategory(subCategory.id);
-		} else {
+                if (checked) {
+                        setCurrentSubCategory(subCategory.id);
+                } else {
 			if (currentSubCategory === subCategory.id) {
 				setCurrentSubCategory("");
 			}
 		}
 	};
 
-	const toggleCategoryExpansion = (categoryId) => {
-		const newExpanded = new Set(expandedCategories);
-		if (newExpanded.has(categoryId)) {
-			newExpanded.delete(categoryId);
-		} else {
-			newExpanded.add(categoryId);
-		}
-		setExpandedCategories(newExpanded);
-	};
+        const toggleCategoryExpansion = (categoryId) => {
+                const newExpanded = new Set(expandedCategories);
+                if (newExpanded.has(categoryId)) {
+                        newExpanded.delete(categoryId);
+                } else {
+                        newExpanded.add(categoryId);
+                }
+                setExpandedCategories(newExpanded);
+        };
+
+        const handleSubCategoryCountClick = (category, subCategory) => {
+                if (!subCategory?.id) {
+                        return;
+                }
+
+                setExpandedCategories((prev) => {
+                        const next = new Set(prev);
+                        next.add(category.id);
+                        return next;
+                });
+
+                setCurrentSubCategory(subCategory.id);
+        };
 
 	const handlePriceChange = (value) => {
 		setFilters({ priceRange: value });
@@ -166,19 +181,20 @@ export default function ProductFilters() {
 					</Button>
 				</div>
 
-				<FilterContent
-					availableFilters={availableFilters}
-					filters={filters}
-					currentCategory={currentCategory}
-					currentSubCategory={currentSubCategory}
-					expandedCategories={expandedCategories}
-					onCategoryChange={handleCategoryChange}
-					onSubCategoryChange={handleSubCategoryChange}
-					onToggleCategoryExpansion={toggleCategoryExpansion}
-					onPriceChange={handlePriceChange}
-					onStockChange={handleStockChange}
-					onDiscountChange={handleDiscountChange}
-					onTypeChange={handleTypeChange}
+                                <FilterContent
+                                        availableFilters={availableFilters}
+                                        filters={filters}
+                                        currentCategory={currentCategory}
+                                        currentSubCategory={currentSubCategory}
+                                        expandedCategories={expandedCategories}
+                                        onCategoryChange={handleCategoryChange}
+                                        onSubCategoryChange={handleSubCategoryChange}
+                                        onSubCategoryCountClick={handleSubCategoryCountClick}
+                                        onToggleCategoryExpansion={toggleCategoryExpansion}
+                                        onPriceChange={handlePriceChange}
+                                        onStockChange={handleStockChange}
+                                        onDiscountChange={handleDiscountChange}
+                                        onTypeChange={handleTypeChange}
 					onApply={handleApplyFilters}
 				/>
 			</div>
@@ -212,19 +228,20 @@ export default function ProductFilters() {
 								</Button>
 							</div>
 
-							<FilterContent
-								availableFilters={availableFilters}
-								filters={filters}
-								currentCategory={currentCategory}
-								currentSubCategory={currentSubCategory}
-								expandedCategories={expandedCategories}
-								onCategoryChange={handleCategoryChange}
-								onSubCategoryChange={handleSubCategoryChange}
-								onToggleCategoryExpansion={toggleCategoryExpansion}
-								onPriceChange={handlePriceChange}
-								onStockChange={handleStockChange}
-								onDiscountChange={handleDiscountChange}
-								onTypeChange={handleTypeChange}
+                                                        <FilterContent
+                                                                availableFilters={availableFilters}
+                                                                filters={filters}
+                                                                currentCategory={currentCategory}
+                                                                currentSubCategory={currentSubCategory}
+                                                                expandedCategories={expandedCategories}
+                                                                onCategoryChange={handleCategoryChange}
+                                                                onSubCategoryChange={handleSubCategoryChange}
+                                                                onSubCategoryCountClick={handleSubCategoryCountClick}
+                                                                onToggleCategoryExpansion={toggleCategoryExpansion}
+                                                                onPriceChange={handlePriceChange}
+                                                                onStockChange={handleStockChange}
+                                                                onDiscountChange={handleDiscountChange}
+                                                                onTypeChange={handleTypeChange}
 								onApply={handleApplyFilters}
 							/>
 						</motion.div>
@@ -238,16 +255,17 @@ export default function ProductFilters() {
 function FilterContent({
 	availableFilters,
 	filters,
-	currentCategory,
-	currentSubCategory,
-	expandedCategories,
-	onCategoryChange,
-	onSubCategoryChange,
-	onToggleCategoryExpansion,
-	onPriceChange,
-	onStockChange,
-	onDiscountChange,
-	onTypeChange,
+        currentCategory,
+        currentSubCategory,
+        expandedCategories,
+        onCategoryChange,
+        onSubCategoryChange,
+        onSubCategoryCountClick,
+        onToggleCategoryExpansion,
+        onPriceChange,
+        onStockChange,
+        onDiscountChange,
+        onTypeChange,
 	onApply,
 }) {
 	return (
@@ -321,37 +339,59 @@ function FilterContent({
 														className="overflow-hidden"
 													>
 														<div className="ml-6 mt-2 space-y-2 border-l-2 border-gray-100 pl-4">
-															{category.subCategories.map((subCategory) => (
-																<div
-																	key={`${category.id}-${subCategory.id}`}
-																	className="flex items-center space-x-3"
-																>
-																	<Checkbox
-																		id={`${category.id}-${subCategory.id}`}
-																		checked={
-																			currentSubCategory === subCategory.id
-																		}
-																		onCheckedChange={(checked) =>
-																			onSubCategoryChange(subCategory, checked)
-																		}
-																		className="data-[state=checked]:bg-black data-[state=checked]:border-black"
-																	/>
-																	<label
-																		htmlFor={`${category.id}-${subCategory.id}`}
-																		className="text-xs text-gray-600 leading-none cursor-pointer flex-1 select-none hover:text-gray-800 transition-colors"
-																	>
-																		{subCategory.label}
-																		{/* {subCategory.count && (
-																			<span className="ml-1 text-gray-400">
-																				({subCategory.count})
-																			</span>
-																		)} */}
-																	</label>
-																</div>
-															))}
-														</div>
-													</motion.div>
-												)}
+                                                        {category.subCategories.map((subCategory) => (
+                                                                <div
+                                                                        key={`${category.id}-${subCategory.id}`}
+                                                                        className="flex items-center justify-between space-x-3"
+                                                                >
+                                                                        <div className="flex items-center space-x-3 flex-1">
+                                                                                <Checkbox
+                                                                                        id={`${category.id}-${subCategory.id}`}
+                                                                                        checked={
+                                                                                                currentSubCategory ===
+                                                                                                subCategory.id
+                                                                                        }
+                                                                                        onCheckedChange={(checked) =>
+                                                                                                onSubCategoryChange(
+                                                                                                        subCategory,
+                                                                                                        checked
+                                                                                                )
+                                                                                        }
+                                                                                        className="data-[state=checked]:bg-black data-[state=checked]:border-black"
+                                                                                />
+                                                                                <label
+                                                                                        htmlFor={`${category.id}-${subCategory.id}`}
+                                                                                        className="text-xs text-gray-600 leading-none cursor-pointer flex-1 select-none hover:text-gray-800 transition-colors"
+                                                                                >
+                                                                                        {subCategory.label}
+                                                                                </label>
+                                                                        </div>
+                                                                        {subCategory.count > 0 && (
+                                                                                <button
+                                                                                        type="button"
+                                                                                        onClick={(event) => {
+                                                                                                event.stopPropagation();
+                                                                                                onSubCategoryCountClick?.(
+                                                                                                        category,
+                                                                                                        subCategory
+                                                                                                );
+                                                                                        }}
+                                                                                        className="ml-2"
+                                                                                        aria-label={`View ${subCategory.count} products in ${subCategory.label}`}
+                                                                                >
+                                                                                        <Badge
+                                                                                                variant="secondary"
+                                                                                                className="cursor-pointer hover:bg-black hover:text-white transition-colors"
+                                                                                        >
+                                                                                                {subCategory.count}
+                                                                                        </Badge>
+                                                                                </button>
+                                                                        )}
+                                                                </div>
+                                                        ))}
+                                                </div>
+                                        </motion.div>
+                                )}
 											</AnimatePresence>
 										)}
 								</div>
@@ -451,47 +491,48 @@ function FilterContent({
 			</Accordion>
 
 			{/* Availability */}
-			<Accordion type="single" collapsible>
-				<AccordionItem value="availability" className="border-none">
-					<AccordionTrigger className="hover:no-underline py-3">
-						<span className="font-medium">Availability</span>
-					</AccordionTrigger>
-					<AccordionContent>
-						<div className="pt-4 space-y-3">
-							<div className="flex items-center space-x-3">
-								<Checkbox
-									id="in-stock"
-									checked={filters.inStock || false}
-									onCheckedChange={onStockChange}
-									className="data-[state=checked]:bg-black data-[state=checked]:border-black"
-								/>
-								<label
-									htmlFor="in-stock"
-									className="text-sm font-medium leading-none cursor-pointer select-none"
-								>
-									In Stock Only
-									{availableFilters.stock?.inStock && (
-										<span className="ml-1 text-xs text-gray-500">
-											({availableFilters.stock.inStock})
-										</span>
-									)}
-								</label>
-							</div>
-						</div>
-					</AccordionContent>
-				</AccordionItem>
-			</Accordion>
+        <Accordion type="single" collapsible>
+                <AccordionItem value="availability" className="border-none">
+                        <AccordionTrigger className="hover:no-underline py-3">
+                                <span className="font-medium">Availability</span>
+                        </AccordionTrigger>
+                        <AccordionContent>
+                                <div className="pt-4 space-y-3">
+                                        <div className="flex items-center space-x-3">
+                                                <Checkbox
+                                                        id="in-stock"
+                                                        checked={filters.inStock || false}
+                                                        onCheckedChange={onStockChange}
+                                                        className="data-[state=checked]:bg-black data-[state=checked]:border-black"
+                                                />
+                                                <label
+                                                        htmlFor="in-stock"
+                                                        className="text-sm font-medium leading-none cursor-pointer select-none"
+                                                >
+                                                        In Stock Only
+                                                        {availableFilters.stock?.inStock && (
+                                                                <span className="ml-1 text-xs text-gray-500">
+                                                                        ({availableFilters.stock.inStock})
+                                                                </span>
+                                                        )}
+                                                </label>
+                                        </div>
+                                </div>
+                        </AccordionContent>
+                </AccordionItem>
+        </Accordion>
 
-			{/* Apply Button - with better styling */}
-			<div className="pt-4 border-t">
-				<Button
-					onClick={onApply}
-					className="w-full bg-black text-white hover:bg-gray-800 transition-colors duration-200 font-medium"
-					size="lg"
-				>
-					Apply Filters
-				</Button>
-			</div>
-		</div>
-	);
+        {/* Apply Button - with better styling */}
+        <div className="pt-4 border-t">
+                <Button
+                        onClick={onApply}
+                        className="w-full bg-black text-white hover:bg-gray-800 transition-colors duration-200 font-medium"
+                        size="lg"
+                >
+                        Apply Filters
+                </Button>
+        </div>
+</div>
+        );
 }
+
