@@ -20,18 +20,21 @@ export function AddCategoryPopup({ open, onOpenChange }) {
 	const { addCategory } = useAdminCategoryStore();
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
-	const [formData, setFormData] = useState({
-		name: "",
-		published: true,
-		subCategories: [],
-	});
+        const [formData, setFormData] = useState({
+                name: "",
+                published: true,
+                subCategories: [],
+        });
 
-	const addSub = () => {
-		setFormData((prev) => ({
-			...prev,
-			subCategories: [...prev.subCategories, { name: "" }],
-		}));
-	};
+        const addSub = () => {
+                setFormData((prev) => ({
+                        ...prev,
+                        subCategories: [
+                                ...prev.subCategories,
+                                { name: "", published: true },
+                        ],
+                }));
+        };
 
 	const removeSub = (idx) => {
 		setFormData((prev) => ({
@@ -58,13 +61,19 @@ export function AddCategoryPopup({ open, onOpenChange }) {
                 setIsSubmitting(true);
 
 		// sanitize
-		const payload = {
-			name: formData.name.trim(),
-			published: formData.published,
-			subCategories: (formData.subCategories || []).filter(
-				(s) => (s.name || "").trim() !== ""
-			),
-		};
+                const payload = {
+                        name: formData.name.trim(),
+                        published: formData.published,
+                        subCategories: (formData.subCategories || [])
+                                .filter((s) => (s.name || "").trim() !== "")
+                                .map((s) => ({
+                                        name: s.name.trim(),
+                                        published:
+                                                s.published !== undefined
+                                                        ? !!s.published
+                                                        : true,
+                                })),
+                };
 
 		const success = await addCategory(payload);
 		if (success) {
@@ -74,13 +83,13 @@ export function AddCategoryPopup({ open, onOpenChange }) {
 		setIsSubmitting(false);
 	};
 
-	const resetForm = () => {
-		setFormData({
-			name: "",
-			published: true,
-			subCategories: [],
-		});
-	};
+        const resetForm = () => {
+                setFormData({
+                        name: "",
+                        published: true,
+                        subCategories: [],
+                });
+        };
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
