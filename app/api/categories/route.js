@@ -16,13 +16,36 @@ export async function GET() {
                         { persist: true }
                 );
 
-                const categories = categoriesWithCounts.map((category) => ({
-                        _id: category._id,
-                        name: category.name,
-                        productCount: category.productCount || 0,
-                        subCategories: category.subCategories || [],
-                        published: true,
-                }));
+                const categories = categoriesWithCounts.map((category) => {
+                        const subCategories = (category.subCategories || [])
+                                .filter((subCategory) => subCategory?.published !== false)
+                                .map((subCategory) => ({
+                                        _id: subCategory._id,
+                                        name: subCategory.name,
+                                        published:
+                                                subCategory.published !== undefined
+                                                        ? !!subCategory.published
+                                                        : true,
+                                        productCount: Number(subCategory.productCount) || 0,
+                                }));
+
+                        const directProductCount = Number(category.productCount) || 0;
+                        const aggregatedProductCount = subCategories.reduce(
+                                (total, subCategory) => total + (Number(subCategory.productCount) || 0),
+                                0
+                        );
+
+                        return {
+                                _id: category._id,
+                                name: category.name,
+                                productCount:
+                                        directProductCount > 0
+                                                ? directProductCount
+                                                : aggregatedProductCount,
+                                subCategories,
+                                published: true,
+                        };
+                });
 
 		return Response.json({
 			success: true,
