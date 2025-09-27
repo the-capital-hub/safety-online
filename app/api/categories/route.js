@@ -1,4 +1,5 @@
 import { dbConnect } from "@/lib/dbConnect.js";
+import { attachProductCountsToCategories } from "@/lib/categoryCounts.js";
 import Category from "@/model/Categories.js";
 
 export async function GET() {
@@ -6,17 +7,22 @@ export async function GET() {
 		await dbConnect();
 
 		// Only published categories
-		const cats = await Category.find({ published: true })
-			.sort({ name: 1 })
-			.lean();
+                const cats = await Category.find({ published: true })
+                        .sort({ name: 1 })
+                        .lean();
 
-		const categories = cats.map((c) => ({
-			_id: c._id,
-			name: c.name,
-			productCount: c.productCount || 0,
-			subCategories: c.subCategories || [],
-			published: true,
-		}));
+                const categoriesWithCounts = await attachProductCountsToCategories(
+                        cats,
+                        { persist: true }
+                );
+
+                const categories = categoriesWithCounts.map((category) => ({
+                        _id: category._id,
+                        name: category.name,
+                        productCount: category.productCount || 0,
+                        subCategories: category.subCategories || [],
+                        published: true,
+                }));
 
 		return Response.json({
 			success: true,
