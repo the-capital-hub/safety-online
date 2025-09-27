@@ -80,7 +80,11 @@ export async function GET(request) {
                         const uniqueValues = Array.from(
                                 new Set(
                                         values
-                                                .map((value) => value?.toString().trim())
+
+                                                .map((value) =>
+                                                        value?.toString().trim()
+                                                )
+
                                                 .filter((value) => value && value.length > 0)
                                 )
                         );
@@ -88,6 +92,139 @@ export async function GET(request) {
                         return uniqueValues.map(
                                 (value) => new RegExp(`^${escapeRegex(value)}$`, "i")
                         );
+                };
+
+
+                const appendValueAndVariants = (set, rawValue) => {
+                        if (rawValue === undefined || rawValue === null) {
+                                return;
+                        }
+
+                        const stringValue =
+                                typeof rawValue === "string"
+                                        ? rawValue
+                                        : rawValue?.toString?.() || "";
+
+                        const trimmed = stringValue.trim();
+
+                        if (!trimmed) {
+                                return;
+                        }
+
+                        const maybeAdd = (value) => {
+                                if (!value && value !== 0) {
+                                        return;
+                                }
+
+                                const valueString =
+                                        typeof value === "string"
+                                                ? value
+                                                : value?.toString?.() || "";
+
+                                const valueTrimmed = valueString.trim();
+
+                                if (valueTrimmed) {
+                                        set.add(valueTrimmed);
+                                }
+                        };
+
+                        maybeAdd(trimmed);
+
+                        const normalized = ensureSlug(trimmed);
+
+                        if (normalized && normalized !== trimmed) {
+                                set.add(normalized);
+                        }
+
+                        createNameVariants(trimmed).forEach((variant) => {
+                                const variantTrimmed = variant.trim();
+
+                                if (!variantTrimmed) {
+                                        return;
+                                }
+
+                                set.add(variantTrimmed);
+
+                                const variantNormalized = ensureSlug(variantTrimmed);
+
+                                if (
+                                        variantNormalized &&
+                                        variantNormalized !== variantTrimmed &&
+                                        variantNormalized !== normalized
+                                ) {
+                                        set.add(variantNormalized);
+                                }
+                        });
+                };
+
+                const doesIdentifierMatch = (
+                        identifier,
+                        normalizedIdentifier,
+                        candidatesSet
+                ) => {
+                        if (identifier === undefined || identifier === null) {
+                                return false;
+                        }
+
+                        const identifierString =
+                                typeof identifier === "string"
+                                        ? identifier
+                                        : identifier?.toString?.() || "";
+
+                        const trimmedIdentifier = identifierString.trim();
+
+                        if (!trimmedIdentifier) {
+                                return false;
+                        }
+
+                        const lowerIdentifier = trimmedIdentifier.toLowerCase();
+
+                        for (const candidate of candidatesSet) {
+                                const candidateString =
+                                        typeof candidate === "string"
+                                                ? candidate
+                                                : candidate?.toString?.();
+
+                                if (!candidateString) {
+                                        continue;
+                                }
+
+                                const trimmedCandidate = candidateString.trim();
+
+                                if (!trimmedCandidate) {
+                                        continue;
+                                }
+
+                                if (trimmedCandidate === trimmedIdentifier) {
+                                        return true;
+                                }
+
+                                if (trimmedCandidate.toLowerCase() === lowerIdentifier) {
+                                        return true;
+                                }
+
+                                if (
+                                        normalizedIdentifier &&
+                                        ensureSlug(trimmedCandidate) === normalizedIdentifier
+                                ) {
+                                        return true;
+                                }
+                        }
+
+                        return false;
+                };
+
+                let categoriesCache = null;
+
+                const getPublishedCategories = async () => {
+                        if (!categoriesCache) {
+                                categoriesCache = await Categories.find(
+                                        { published: true },
+                                        { name: 1, subCategories: 1 }
+                                ).lean();
+                        }
+
+                        return categoriesCache;
                 };
 
 
@@ -102,46 +239,75 @@ export async function GET(request) {
 		// Build query
 		const query = { published: true };
 
+                let matchedCategoryValuesFromSubCategory = new Set();
+
                 if (subCategoryParam) {
                         const normalizedSubCategory = ensureSlug(subCategoryParam);
+                        const possibleSubCategoryValues = new Set();
 
-                        const possibleSubCategoryValues = new Set([
-                                subCategoryParam,
-                                ...createNameVariants(subCategoryParam),
-                        ]);
+                        appendValueAndVariants(possibleSubCategoryValues, subCategoryParam);
 
-                        if (normalizedSubCategory) {
-                                const categoriesWithSubCategories = await Categories.find(
-                                        { published: true },
-                                        { name: 1, subCategories: 1 }
-                                ).lean();
+                        if (
+                                normalizedSubCategory &&
+                                normalizedSubCategory !== subCategoryParam
+                        ) {
+                                appendValueAndVariants(
+                                        possibleSubCategoryValues,
+                                        normalizedSubCategory
+                                );
+                        }
 
-                                categoriesWithSubCategories.forEach((category) => {
-                                        category.subCategories?.forEach((subCategory) => {
-                                                const slugFromSubCategory = ensureSlug(
-                                                        subCategory.slug || subCategory.name
+                        const categoriesWithSubCategories =
+                                await getPublishedCategories();
+
+                        categoriesWithSubCategories.forEach((categoryDocument) => {
+                                categoryDocument.subCategories?.forEach((subCategory) => {
+                                        const candidateValues = new Set();
+
+                                        appendValueAndVariants(
+                                                candidateValues,
+                                                subCategory?.name
+                                        );
+
+                                        if (subCategory?.slug) {
+                                                appendValueAndVariants(
+                                                        candidateValues,
+                                                        subCategory.slug
+                                                );
+                                        }
+
+                                        if (subCategory?._id) {
+                                                appendValueAndVariants(
+                                                        candidateValues,
+                                                        subCategory._id.toString()
+                                                );
+                                        }
+
+                                        if (
+                                                doesIdentifierMatch(
+                                                        subCategoryParam,
+                                                        normalizedSubCategory,
+                                                        candidateValues
+                                                )
+                                        ) {
+                                                candidateValues.forEach((value) => {
+                                                        possibleSubCategoryValues.add(value);
+                                                });
+
+                                                appendValueAndVariants(
+                                                        matchedCategoryValuesFromSubCategory,
+                                                        categoryDocument.name
                                                 );
 
-                                                if (slugFromSubCategory === normalizedSubCategory) {
-                                                        const subCategoryName = subCategory.name || "";
-                                                        const subCategorySlug = subCategory.slug || subCategoryName;
-
-                                                        possibleSubCategoryValues.add(subCategoryName);
-                                                        possibleSubCategoryValues.add(subCategorySlug);
-                                                        possibleSubCategoryValues.add(
-                                                                subCategoryName
-                                                                        .replace(/&/g, "and")
-                                                                        .replace(/\s+/g, "-")
-                                                        );
-                                                        possibleSubCategoryValues.add(
-                                                                subCategoryName
-                                                                        .replace(/&/g, "and")
-                                                                        .replace(/-/g, " ")
+                                                if (categoryDocument.slug) {
+                                                        appendValueAndVariants(
+                                                                matchedCategoryValuesFromSubCategory,
+                                                                categoryDocument.slug
                                                         );
                                                 }
-                                        });
+                                        }
                                 });
-                        }
+                        });
 
                         const subCategoryRegexes = buildRegexArray(
                                 Array.from(possibleSubCategoryValues)
@@ -172,79 +338,147 @@ export async function GET(request) {
                         } else {
                                 query.subCategory = subCategoryParam;
                         }
-                } else if (category && category !== "all") {
-			const categoryVariantsToCheck = Array.from(
-				new Set([category, ...createNameVariants(category)])
-			);
 
-			let categoryDocument = null;
 
-			for (const variant of categoryVariantsToCheck) {
-				// Try to find a matching category document using different variants
-				// to handle inputs with spaces, hyphens, or different casing.
-				categoryDocument = await Categories.findOne({
-					published: true,
-					name: new RegExp(`^${escapeRegex(variant)}$`, "i"),
-				}).lean();
+                        if (matchedCategoryValuesFromSubCategory.size > 0) {
+                                const categoryRegexesFromSubCategory = buildRegexArray(
+                                        Array.from(matchedCategoryValuesFromSubCategory)
+                                );
 
-				if (categoryDocument) {
-					break;
-				}
-			}
+                                if (categoryRegexesFromSubCategory.length > 0) {
+                                        ensureAndConditions(query).push({
+                                                category: { $in: categoryRegexesFromSubCategory },
+                                        });
+                                }
+                        }
+                }
 
-			if (categoryDocument) {
-				const orConditions = [];
+                if (category && category !== "all") {
+                        const categoryVariantsToCheck = Array.from(
+                                new Set([category, ...createNameVariants(category)])
+                        );
 
-				const categoryRegexes = buildRegexArray([
-					categoryDocument.name,
-					...createNameVariants(categoryDocument.name),
-					...categoryVariantsToCheck,
-				]);
+                        const normalizedCategory = ensureSlug(category);
+                        const categoriesWithSubCategories = await getPublishedCategories();
 
-				if (categoryRegexes.length > 0) {
-					orConditions.push({ category: { $in: categoryRegexes } });
-				}
+                        let categoryDocument = null;
+                        let matchedCategoryCandidateValues = new Set();
 
-				const subCategoryNames =
-					categoryDocument.subCategories?.map((sub) => sub.name) || [];
+                        for (const categoryEntry of categoriesWithSubCategories) {
+                                const candidateValues = new Set();
 
-				if (subCategoryNames.length > 0) {
-					const subCategoryRegexes = buildRegexArray(
-						subCategoryNames.flatMap((name) => [
-							name,
-							...createNameVariants(name),
-						])
-					);
+                                appendValueAndVariants(
+                                        candidateValues,
+                                        categoryEntry?.name
+                                );
 
-					if (subCategoryRegexes.length > 0) {
-						orConditions.push({
-							subCategory: { $in: subCategoryRegexes },
-						});
-					}
-				}
+                                if (categoryEntry?.slug) {
+                                        appendValueAndVariants(
+                                                candidateValues,
+                                                categoryEntry.slug
+                                        );
+                                }
 
-				if (orConditions.length > 0) {
-					ensureAndConditions(query).push({ $or: orConditions });
-				} else if (categoryDocument.name) {
-					query.category = categoryDocument.name;
-				} else {
-					query.category = category;
-				}
-			} else {
-				const fallbackCategoryRegexes = buildRegexArray([
-					category,
-					...createNameVariants(category),
-				]);
+                                if (categoryEntry?._id) {
+                                        candidateValues.add(categoryEntry._id.toString());
+                                }
 
-				if (fallbackCategoryRegexes.length > 0) {
-					ensureAndConditions(query).push({
-						category: { $in: fallbackCategoryRegexes },
-					});
-				} else {
-					query.category = category;
-				}
-			}
-		}
+                                const directMatch = doesIdentifierMatch(
+                                        category,
+                                        normalizedCategory,
+                                        candidateValues
+                                );
+
+                                const variantMatch = categoryVariantsToCheck.some((variant) =>
+                                        doesIdentifierMatch(
+                                                variant,
+                                                ensureSlug(variant),
+                                                candidateValues
+                                        )
+                                );
+
+                                if (directMatch || variantMatch) {
+                                        categoryDocument = categoryEntry;
+                                        matchedCategoryCandidateValues = candidateValues;
+                                        break;
+                                }
+                        }
+
+                        if (categoryDocument) {
+                                const orConditions = [];
+                                const combinedCategoryValues = new Set([
+                                        ...matchedCategoryCandidateValues,
+                                        ...categoryVariantsToCheck,
+                                ]);
+
+                                const categoryRegexes = buildRegexArray(
+                                        Array.from(combinedCategoryValues)
+                                );
+
+                                if (categoryRegexes.length > 0) {
+                                        orConditions.push({ category: { $in: categoryRegexes } });
+                                }
+
+                                const subCategoryCandidates = new Set();
+
+                                categoryDocument.subCategories?.forEach((subCategory) => {
+                                        appendValueAndVariants(
+                                                subCategoryCandidates,
+                                                subCategory?.name
+                                        );
+
+                                        if (subCategory?.slug) {
+                                                appendValueAndVariants(
+                                                        subCategoryCandidates,
+                                                        subCategory.slug
+                                                );
+                                        }
+
+                                        if (subCategory?._id) {
+                                                appendValueAndVariants(
+                                                        subCategoryCandidates,
+                                                        subCategory._id.toString()
+                                                );
+                                        }
+                                });
+
+                                const subCategoryRegexes = buildRegexArray(
+                                        Array.from(subCategoryCandidates)
+                                );
+
+                                if (subCategoryRegexes.length > 0) {
+                                        orConditions.push({
+                                                subCategory: { $in: subCategoryRegexes },
+                                        });
+                                }
+
+                                if (orConditions.length > 0) {
+                                        ensureAndConditions(query).push({ $or: orConditions });
+                                } else if (categoryDocument.name) {
+                                        query.category = categoryDocument.name;
+                                } else {
+                                        query.category = category;
+                                }
+                        } else {
+                                const fallbackCategoryValues = new Set();
+
+                                categoryVariantsToCheck.forEach((value) =>
+                                        appendValueAndVariants(fallbackCategoryValues, value)
+                                );
+
+                                const fallbackCategoryRegexes = buildRegexArray(
+                                        Array.from(fallbackCategoryValues)
+                                );
+
+                                if (fallbackCategoryRegexes.length > 0) {
+                                        ensureAndConditions(query).push({
+                                                category: { $in: fallbackCategoryRegexes },
+                                        });
+                                } else {
+                                        query.category = category;
+                                }
+                        }
+                }
 
 		// Search filter
 		if (search) {
