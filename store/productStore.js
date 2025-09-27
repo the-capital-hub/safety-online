@@ -2,6 +2,23 @@
 
 import { create } from "zustand";
 import { persist, devtools } from "zustand/middleware";
+import { ensureSlug } from "@/lib/slugify.js";
+
+const normalizeCategorySlug = (value) => {
+        if (!value) {
+                return "";
+        }
+
+        const trimmedValue = value.toString().trim();
+
+        if (trimmedValue.toLowerCase() === "all") {
+                return "all";
+        }
+
+        return ensureSlug(trimmedValue);
+};
+
+const normalizeSubCategorySlug = (value) => ensureSlug(value);
 
 export const useProductStore = create(
 	devtools(
@@ -51,13 +68,19 @@ export const useProductStore = create(
 						});
 
 						// Handle category and subcategory logic
-						if (currentSubCategory && currentSubCategory !== "") {
-							// If subcategory is selected, use it (and the backend should handle the parent category)
-							params.append("subCategory", currentSubCategory);
-						} else if (currentCategory && currentCategory !== "all") {
-							// Only use main category if no subcategory is selected
-							params.append("category", currentCategory);
-						}
+                                                if (currentSubCategory && currentSubCategory !== "") {
+                                                        // If subcategory is selected, use it (and the backend should handle the parent category)
+                                                        params.append(
+                                                                "subCategory",
+                                                                normalizeSubCategorySlug(currentSubCategory)
+                                                        );
+                                                } else if (currentCategory && currentCategory !== "all") {
+                                                        // Only use main category if no subcategory is selected
+                                                        params.append(
+                                                                "category",
+                                                                normalizeCategorySlug(currentCategory)
+                                                        );
+                                                }
 
 						if (searchQuery) {
 							params.append("search", searchQuery);
@@ -137,38 +160,49 @@ export const useProductStore = create(
 
 				setCurrentCategory: (category) => {
 					console.log("Setting current category to:", category);
-					set({
-						currentCategory: category,
-						currentSubCategory: "", // Clear subcategory when changing main category
-						currentPage: 1,
-					});
-					// Automatically fetch products when category changes
-					setTimeout(() => get().fetchProducts(), 0);
-				},
+                                        const normalizedCategory = normalizeCategorySlug(category);
 
-				setCurrentSubCategory: (subCategory) => {
-					console.log("Setting current subcategory to:", subCategory);
+                                        set({
+                                                currentCategory: normalizedCategory || "all",
+                                                currentSubCategory: "", // Clear subcategory when changing main category
+                                                currentPage: 1,
+                                        });
+                                        // Automatically fetch products when category changes
+                                        setTimeout(() => get().fetchProducts(), 0);
+                                },
 
-					// If setting a subcategory, find and set the parent category
-					if (subCategory && subCategory !== "") {
-						const { availableFilters } = get();
-						const parentCategory = availableFilters?.categories?.find((cat) =>
-							cat.subCategories?.some((subCat) => subCat.id === subCategory)
-						);
+                                setCurrentSubCategory: (subCategory) => {
+                                        console.log("Setting current subcategory to:", subCategory);
 
-						if (parentCategory) {
-							set({
-								currentCategory: parentCategory.id,
-								currentSubCategory: subCategory,
-								currentPage: 1,
-							});
-						} else {
-							set({ currentSubCategory: subCategory, currentPage: 1 });
-						}
-					} else {
-						// Clearing subcategory
-						set({ currentSubCategory: "", currentPage: 1 });
-					}
+                                        // If setting a subcategory, find and set the parent category
+                                        if (subCategory && subCategory !== "") {
+                                                const normalizedSubCategory = normalizeSubCategorySlug(
+                                                        subCategory
+                                                );
+
+                                                const { availableFilters } = get();
+                                                const parentCategory = availableFilters?.categories?.find((cat) =>
+                                                        cat.subCategories?.some(
+                                                                (subCat) => subCat.id === normalizedSubCategory
+                                                        )
+                                                );
+
+                                                if (parentCategory) {
+                                                        set({
+                                                                currentCategory: parentCategory.id,
+                                                                currentSubCategory: normalizedSubCategory,
+                                                                currentPage: 1,
+                                                        });
+                                                } else {
+                                                        set({
+                                                                currentSubCategory: normalizedSubCategory,
+                                                                currentPage: 1,
+                                                        });
+                                                }
+                                        } else {
+                                                // Clearing subcategory
+                                                set({ currentSubCategory: "", currentPage: 1 });
+                                        }
 
 					get().fetchProducts();
 				},
