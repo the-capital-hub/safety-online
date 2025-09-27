@@ -4,6 +4,7 @@ import { dbConnect } from "@/lib/dbConnect.js";
 import Product from "@/model/Product.js";
 import Review from "@/model/Review";
 import Categories from "@/model/Categories";
+import { ensureSlug } from "@/lib/slugify.js";
 
 export async function GET(request) {
 	await dbConnect();
@@ -83,19 +84,58 @@ export async function GET(request) {
 		// Build query
 		const query = { published: true };
 
-		if (subCategoryParam) {
-			const subCategoryRegexes = buildRegexArray([
-				subCategoryParam,
-				...createNameVariants(subCategoryParam),
-			]);
+                if (subCategoryParam) {
+                        const normalizedSubCategory = ensureSlug(subCategoryParam);
 
-			if (subCategoryRegexes.length > 0) {
-				ensureAndConditions(query).push({
-					subCategory: { $in: subCategoryRegexes },
-				});
-			} else {
-				query.subCategory = subCategoryParam;
-			}
+                        const possibleSubCategoryValues = new Set([
+                                subCategoryParam,
+                                ...createNameVariants(subCategoryParam),
+                        ]);
+
+                        if (normalizedSubCategory) {
+                                const categoriesWithSubCategories = await Categories.find(
+                                        { published: true },
+                                        { name: 1, subCategories: 1 }
+                                ).lean();
+
+                                categoriesWithSubCategories.forEach((category) => {
+                                        category.subCategories?.forEach((subCategory) => {
+                                                const slugFromSubCategory = ensureSlug(
+                                                        subCategory.slug || subCategory.name
+                                                );
+
+                                                if (slugFromSubCategory === normalizedSubCategory) {
+                                                        const subCategoryName = subCategory.name || "";
+                                                        const subCategorySlug = subCategory.slug || subCategoryName;
+
+                                                        possibleSubCategoryValues.add(subCategoryName);
+                                                        possibleSubCategoryValues.add(subCategorySlug);
+                                                        possibleSubCategoryValues.add(
+                                                                subCategoryName
+                                                                        .replace(/&/g, "and")
+                                                                        .replace(/\s+/g, "-")
+                                                        );
+                                                        possibleSubCategoryValues.add(
+                                                                subCategoryName
+                                                                        .replace(/&/g, "and")
+                                                                        .replace(/-/g, " ")
+                                                        );
+                                                }
+                                        });
+                                });
+                        }
+
+                        const subCategoryRegexes = buildRegexArray(
+                                Array.from(possibleSubCategoryValues)
+                        );
+
+                        if (subCategoryRegexes.length > 0) {
+                                ensureAndConditions(query).push({
+                                        subCategory: { $in: subCategoryRegexes },
+                                });
+                        } else {
+                                query.subCategory = subCategoryParam;
+                        }
 		} else if (category && category !== "all") {
 			const categoryVariantsToCheck = Array.from(
 				new Set([category, ...createNameVariants(category)])
