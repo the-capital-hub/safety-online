@@ -6,6 +6,7 @@ import ProductFilters from "@/components/BuyerPanel/products/ProductFilters.jsx"
 import ProductGrid from "@/components/BuyerPanel/products/ProductGrid.jsx";
 import FeaturedBanner from "@/components/BuyerPanel/products/FeaturedBanner.jsx";
 import { useSearchParams } from "next/navigation";
+import { ensureSlug } from "@/lib/slugify.js";
 
 export default function ProductsPage() {
 	const searchParams = useSearchParams();
@@ -24,20 +25,26 @@ export default function ProductsPage() {
 		const subCategory = searchParams.get("subCategory");
 		const search = searchParams.get("search");
 
-		if (category) {
-			setCurrentCategory(category.replace(/-/g, " "));
-		}
+                if (category) {
+                        setCurrentCategory(ensureSlug(category));
+                }
 
-		if (subCategory) {
-			setCurrentSubCategory(subCategory.replace(/-/g, " "));
-		}
+                if (subCategory) {
+                        setCurrentSubCategory(ensureSlug(subCategory));
+                }
 
 		if (search) {
 			setSearchQuery(search);
 		}
 
 		fetchProducts();
-	}, [searchParams, fetchProducts, setCurrentCategory, setSearchQuery]);
+        }, [
+                searchParams,
+                fetchProducts,
+                setCurrentCategory,
+                setCurrentSubCategory,
+                setSearchQuery,
+        ]);
 
 	if (error) {
 		return (

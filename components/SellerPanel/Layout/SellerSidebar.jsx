@@ -24,15 +24,16 @@ import {
 } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
 import {
-	LayoutDashboard,
-	Package,
-	ShoppingCart,
-	ChevronDown,
-	Settings,
-	Sun,
-	Moon,
-	ChartColumn,
-	Undo2,
+        LayoutDashboard,
+        Package,
+        ShoppingCart,
+        ChevronDown,
+        Settings,
+        Sun,
+        Moon,
+        ChartColumn,
+        Undo2,
+        Wallet,
 } from "lucide-react";
 import Logo from "@/public/SafetyLogo.png";
 
@@ -47,14 +48,19 @@ const menuItems = [
 		icon: Package,
 		href: "/seller/products",
 	},
-	{
-		title: "Orders",
-		icon: ShoppingCart,
-		href: "/seller/orders",
-	},
-	{
-		title: "Order Returns",
-		icon: Undo2,
+        {
+                title: "Orders",
+                icon: ShoppingCart,
+                href: "/seller/orders",
+        },
+        {
+                title: "Payments",
+                icon: Wallet,
+                href: "/seller/payments",
+        },
+        {
+                title: "Order Returns",
+                icon: Undo2,
 		href: "/seller/returns",
 	},
 	{

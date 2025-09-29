@@ -16,6 +16,14 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useAdminCategoryStore } from "@/store/adminCategoryStore.js";
 
+const slugify = (value = "") =>
+        value
+                .toString()
+                .trim()
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, "-")
+                .replace(/^-+|-+$/g, "");
+
 export function UpdateCategoryPopup({ open, onOpenChange, category }) {
 	const { updateCategory } = useAdminCategoryStore();
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -111,19 +119,37 @@ export function UpdateCategoryPopup({ open, onOpenChange, category }) {
 					</DialogHeader>
 
 					<form onSubmit={handleSubmit} className="space-y-4 mt-4">
-						<div>
-							<Label htmlFor="name">Category Name *</Label>
-							<Input
-								id="name"
-								placeholder="Enter category name"
-								value={formData.name}
+                                                <div>
+                                                        <Label htmlFor="name">Category Name *</Label>
+                                                        <Input
+                                                                id="name"
+                                                                placeholder="Enter category name"
+                                                                value={formData.name}
 								onChange={(e) =>
 									setFormData({ ...formData, name: e.target.value })
 								}
-								className="mt-1"
-								required
-							/>
-						</div>
+                                                                className="mt-1"
+                                                                required
+                                                        />
+                                                        <div className="mt-2 space-y-1">
+                                                                <Label
+                                                                        htmlFor="category-slug-preview"
+                                                                        className="text-xs font-medium text-gray-500"
+                                                                >
+                                                                        Category Slug
+                                                                </Label>
+                                                                <Input
+                                                                        id="category-slug-preview"
+                                                                        value={slugify(formData.name) || ""}
+                                                                        readOnly
+                                                                        className="bg-gray-100 text-gray-600 font-mono text-sm"
+                                                                />
+                                                                <p className="text-xs text-gray-500">
+                                                                        Use this slug to match category filters and navigation
+                                                                        links.
+                                                                </p>
+                                                        </div>
+                                                </div>
 
 						<div className="flex items-center justify-between">
 							<div>
@@ -154,36 +180,69 @@ export function UpdateCategoryPopup({ open, onOpenChange, category }) {
 								</p>
 							)}
 
-							<div className="space-y-3">
-								{formData.subCategories.map((sub, idx) => (
-									<div key={idx} className="flex items-center gap-2">
-                                                                                <Input
-                                                                                        id={`update-sub-category-${idx}`}
-                                                                                        name="subCategory"
-                                                                                        placeholder="Subcategory name"
-											value={sub.name}
-											onChange={(e) => updateSub(idx, { name: e.target.value })}
-										/>
-										<div className="flex items-center gap-2">
-											<span className="text-sm text-gray-600">Published</span>
-											<Switch
-												checked={!!sub.published}
-												onCheckedChange={(checked) =>
-													updateSub(idx, { published: checked })
-												}
-											/>
-										</div>
-										<Button
-											type="button"
-											variant="destructive"
-											onClick={() => removeSub(idx)}
-										>
-											Remove
-										</Button>
-									</div>
-								))}
-							</div>
-						</div>
+                                                        <div className="space-y-3">
+                                                                {formData.subCategories.map((sub, idx) => {
+                                                                        const subSlug = slugify(sub.name);
+
+                                                                        return (
+                                                                                <div
+                                                                                        key={idx}
+                                                                                        className="rounded-md border p-3 space-y-3"
+                                                                                >
+                                                                                        <div className="flex flex-col gap-2 md:flex-row md:items-center">
+                                                                                                <Input
+                                                                                                        id={`update-sub-category-${idx}`}
+                                                                                                        name="subCategory"
+                                                                                                        placeholder="Subcategory name"
+                                                                                                        value={sub.name}
+                                                                                                        onChange={(e) =>
+                                                                                                                updateSub(idx, {
+                                                                                                                        name: e.target.value,
+                                                                                                                })
+                                                                                                        }
+                                                                                                />
+                                                                                                <div className="flex items-center gap-2 text-sm text-gray-600">
+                                                                                                        <span>Published</span>
+                                                                                                        <Switch
+                                                                                                                checked={!!sub.published}
+                                                                                                                onCheckedChange={(checked) =>
+                                                                                                                        updateSub(idx, {
+                                                                                                                                published: checked,
+                                                                                                                        })
+                                                                                                                }
+                                                                                                        />
+                                                                                                </div>
+                                                                                                <Button
+                                                                                                        type="button"
+                                                                                                        variant="destructive"
+                                                                                                        onClick={() => removeSub(idx)}
+                                                                                                >
+                                                                                                        Remove
+                                                                                                </Button>
+                                                                                        </div>
+                                                                                        <div className="grid gap-1">
+                                                                                                <Label
+                                                                                                        htmlFor={`update-sub-category-slug-${idx}`}
+                                                                                                        className="text-xs font-medium text-gray-500"
+                                                                                                >
+                                                                                                        Subcategory Slug
+                                                                                                </Label>
+                                                                                                <Input
+                                                                                                        id={`update-sub-category-slug-${idx}`}
+                                                                                                        value={subSlug}
+                                                                                                        readOnly
+                                                                                                        className="bg-gray-100 text-gray-600 font-mono text-sm"
+                                                                                                />
+                                                                                                <p className="text-xs text-gray-500">
+                                                                                                        Reference this slug when associating products with
+                                                                                                        this subcategory.
+                                                                                                </p>
+                                                                                        </div>
+                                                                                </div>
+                                                                        );
+                                                                })}
+                                                        </div>
+                                                </div>
 
 						<DialogFooter className="flex gap-3 mt-6">
 							<Button

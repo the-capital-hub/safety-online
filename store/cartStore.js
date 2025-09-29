@@ -5,10 +5,17 @@ import { persist, subscribeWithSelector, devtools } from "zustand/middleware";
 import { toast } from "react-hot-toast";
 import { useAuthStore } from "@/store/authStore.js";
 
+const SESSION_EXPIRED_MESSAGE = "Your session has expired. Please log in again.";
+
+const handleUnauthorized = () => {
+        toast.error(SESSION_EXPIRED_MESSAGE);
+        void useAuthStore.getState().logout();
+};
+
 // Cart API functions
 const cartAPI = {
-	async fetchCart() {
-		const response = await fetch("/api/cart", {
+        async fetchCart() {
+                const response = await fetch("/api/cart", {
 			method: "GET",
 		});
 		if (!response.ok) {
@@ -20,66 +27,81 @@ const cartAPI = {
 		return response.json();
 	},
 
-	async addToCart(productId, quantity = 1) {
-		const response = await fetch("/api/cart", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ productId, quantity }),
-		});
-		if (!response.ok) {
-			const error = await response.json();
-			throw new Error(error.message || "Failed to add to cart");
-		}
-		return response.json();
-	},
+        async addToCart(productId, quantity = 1) {
+                const response = await fetch("/api/cart", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ productId, quantity }),
+                });
+                if (!response.ok) {
+                        if (response.status === 401) {
+                                throw new Error("UNAUTHORIZED");
+                        }
+                        const error = await response.json();
+                        throw new Error(error.message || "Failed to add to cart");
+                }
+                return response.json();
+        },
 
-	async updateQuantity(productId, quantity) {
-		const response = await fetch(`/api/cart/${productId}`, {
-			method: "PUT",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ quantity }),
-		});
-		if (!response.ok) {
-			const error = await response.json();
-			throw new Error(error.message || "Failed to update cart");
-		}
-		return response.json();
-	},
+        async updateQuantity(productId, quantity) {
+                const response = await fetch(`/api/cart/${productId}`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ quantity }),
+                });
+                if (!response.ok) {
+                        if (response.status === 401) {
+                                throw new Error("UNAUTHORIZED");
+                        }
+                        const error = await response.json();
+                        throw new Error(error.message || "Failed to update cart");
+                }
+                return response.json();
+        },
 
-	async removeItem(productId) {
-		const response = await fetch(`/api/cart/${productId}`, {
-			method: "DELETE",
-		});
-		if (!response.ok) {
-			const error = await response.json();
-			throw new Error(error.message || "Failed to remove item");
-		}
-		return response.json();
-	},
+        async removeItem(productId) {
+                const response = await fetch(`/api/cart/${productId}`, {
+                        method: "DELETE",
+                });
+                if (!response.ok) {
+                        if (response.status === 401) {
+                                throw new Error("UNAUTHORIZED");
+                        }
+                        const error = await response.json();
+                        throw new Error(error.message || "Failed to remove item");
+                }
+                return response.json();
+        },
 
-	async applyPromo(promoCode) {
-		const response = await fetch("/api/cart/apply-promo", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ promoCode }),
-		});
-		if (!response.ok) {
-			const error = await response.json();
-			throw new Error(error.message || "Failed to apply promo code");
-		}
-		return response.json();
-	},
+        async applyPromo(promoCode) {
+                const response = await fetch("/api/cart/apply-promo", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ promoCode }),
+                });
+                if (!response.ok) {
+                        if (response.status === 401) {
+                                throw new Error("UNAUTHORIZED");
+                        }
+                        const error = await response.json();
+                        throw new Error(error.message || "Failed to apply promo code");
+                }
+                return response.json();
+        },
 
-	async removePromo() {
-		const response = await fetch("/api/cart/remove-promo", {
-			method: "DELETE",
-		});
-		if (!response.ok) {
-			const error = await response.json();
-			throw new Error(error.message || "Failed to remove promo code");
-		}
-		return response.json();
-	},
+        async removePromo() {
+                const response = await fetch("/api/cart/remove-promo", {
+                        method: "DELETE",
+                });
+                if (!response.ok) {
+                        if (response.status === 401) {
+                                throw new Error("UNAUTHORIZED");
+                        }
+                        const error = await response.json();
+                        throw new Error(error.message || "Failed to remove promo code");
+                }
+                return response.json();
+        },
 
 	async validateCoupon(couponCode, orderAmount) {
 		const response = await fetch("/api/coupons/validate", {
@@ -99,6 +121,9 @@ const cartAPI = {
                         method: "DELETE",
                 });
                 if (!response.ok) {
+                        if (response.status === 401) {
+                                throw new Error("UNAUTHORIZED");
+                        }
                         const error = await response.json();
                         throw new Error(error.message || "Failed to clear cart");
                 }
@@ -156,8 +181,8 @@ export const useCartStore = create(
 						if (isAuth) {
 							// For authenticated users: Update database directly
 							set({ isLoading: true });
-							try {
-								const data = await cartAPI.addToCart(product.id, quantity);
+                                                try {
+                                                        const data = await cartAPI.addToCart(product.id, quantity);
 
                                                                 // Update local state with server response
                                                                 const serverItems = transformCartProducts(
@@ -170,19 +195,19 @@ export const useCartStore = create(
 									lastSyncTime: Date.now(),
 								});
 
-								get().calculateTotals();
-								toast.success("Added to cart!");
-							} catch (error) {
-								console.error("Failed to add to cart:", error);
-								toast.error(error.message || "Failed to add to cart");
-								if (error.message === "UNAUTHORIZED") {
-									// Clear auth state if unauthorized
-									useAuthStore.getState().clearUser();
-								}
-							} finally {
-								set({ isLoading: false });
-							}
-						} else {
+                                                        get().calculateTotals();
+                                                        toast.success("Added to cart!");
+                                                } catch (error) {
+                                                                console.error("Failed to add to cart:", error);
+                                                                if (error.message === "UNAUTHORIZED") {
+                                                                        handleUnauthorized();
+                                                                } else {
+                                                                        toast.error(error.message || "Failed to add to cart");
+                                                                }
+                                                        } finally {
+                                                                set({ isLoading: false });
+                                                        }
+                                                } else {
 							// For non-authenticated users: Update locally
 							const { items } = get();
 							const existingItem = items.find((item) => item.id === product.id);
@@ -231,15 +256,16 @@ export const useCartStore = create(
 								});
 
 								get().calculateTotals();
-							} catch (error) {
-								console.error("Failed to update quantity:", error);
-								toast.error(error.message || "Failed to update quantity");
-								if (error.message === "UNAUTHORIZED") {
-									useAuthStore.getState().clearUser();
-								}
-							} finally {
-								set({ isLoading: false });
-							}
+                                                } catch (error) {
+                                                        console.error("Failed to update quantity:", error);
+                                                        if (error.message === "UNAUTHORIZED") {
+                                                                handleUnauthorized();
+                                                        } else {
+                                                                toast.error(error.message || "Failed to update quantity");
+                                                        }
+                                                } finally {
+                                                        set({ isLoading: false });
+                                                }
 						} else {
 							// For non-authenticated users: Update locally
 							set({
@@ -274,15 +300,16 @@ export const useCartStore = create(
 
 								get().calculateTotals();
 								toast.success("Item removed from cart");
-							} catch (error) {
-								console.error("Failed to remove item:", error);
-								toast.error(error.message || "Failed to remove item");
-								if (error.message === "UNAUTHORIZED") {
-									useAuthStore.getState().clearUser();
-								}
-							} finally {
-								set({ isLoading: false });
-							}
+                                                } catch (error) {
+                                                        console.error("Failed to remove item:", error);
+                                                        if (error.message === "UNAUTHORIZED") {
+                                                                handleUnauthorized();
+                                                        } else {
+                                                                toast.error(error.message || "Failed to remove item");
+                                                        }
+                                                } finally {
+                                                        set({ isLoading: false });
+                                                }
 						} else {
 							// For non-authenticated users: Update locally
 							set({
@@ -314,15 +341,16 @@ export const useCartStore = create(
 									},
 									lastSyncTime: Date.now(),
 								});
-							} catch (error) {
-								console.error("Failed to clear cart:", error);
-								toast.error(error.message || "Failed to clear cart");
-								if (error.message === "UNAUTHORIZED") {
-									useAuthStore.getState().clearUser();
-								}
-							} finally {
-								set({ isLoading: false });
-							}
+                                                } catch (error) {
+                                                        console.error("Failed to clear cart:", error);
+                                                        if (error.message === "UNAUTHORIZED") {
+                                                                handleUnauthorized();
+                                                        } else {
+                                                                toast.error(error.message || "Failed to clear cart");
+                                                        }
+                                                } finally {
+                                                        set({ isLoading: false });
+                                                }
 						} else {
 							// For non-authenticated users: Update locally
 							set({
@@ -359,16 +387,16 @@ export const useCartStore = create(
 							});
 
 							get().calculateTotals();
-						} catch (error) {
-							if (error.message === "UNAUTHORIZED") {
-								useAuthStore.getState().clearUser();
-							} else {
-								set({ syncError: error.message });
-								console.error("Cart fetch error:", error);
-							}
-						} finally {
-							set({ isLoading: false });
-						}
+                                                } catch (error) {
+                                                        if (error.message === "UNAUTHORIZED") {
+                                                                handleUnauthorized();
+                                                        } else {
+                                                                set({ syncError: error.message });
+                                                                console.error("Cart fetch error:", error);
+                                                        }
+                                                } finally {
+                                                        set({ isLoading: false });
+                                                }
 					},
 
                                         // Handle authentication state changes
@@ -421,24 +449,25 @@ export const useCartStore = create(
 						if (isAuth) {
 							// For authenticated users: Apply promo on server
 							set({ isLoading: true });
-							try {
-								const data = await cartAPI.applyPromo(promoCode);
-								set({
-									appliedPromo: { code: promoCode, discount: data.discount },
-									serverCart: data.cart,
-								});
-								get().calculateTotals();
-								toast.success("Promo code applied successfully!");
-								return true;
-							} catch (error) {
-								toast.error(error.message);
-								if (error.message === "UNAUTHORIZED") {
-									useAuthStore.getState().clearUser();
-								}
-								return false;
-							} finally {
-								set({ isLoading: false });
-							}
+                                                        try {
+                                                                const data = await cartAPI.applyPromo(promoCode);
+                                                                set({
+                                                                        appliedPromo: { code: promoCode, discount: data.discount },
+                                                                        serverCart: data.cart,
+                                                                });
+                                                                get().calculateTotals();
+                                                                toast.success("Promo code applied successfully!");
+                                                                return true;
+                                                        } catch (error) {
+                                                                if (error.message === "UNAUTHORIZED") {
+                                                                        handleUnauthorized();
+                                                                } else {
+                                                                        toast.error(error.message || "Failed to apply promo code");
+                                                                }
+                                                                return false;
+                                                        } finally {
+                                                                set({ isLoading: false });
+                                                        }
 						} else {
 							// For non-authenticated users: Validate coupon locally
 							set({ isLoading: true });
@@ -472,16 +501,26 @@ export const useCartStore = create(
 						}
 					},
 
-					removePromoCode: () => {
-						// For authenticated users: Remove promo on server
-						const isAuth = get().isAuthenticated();
-						if (isAuth) {
-							cartAPI.removePromo();
-						}
-						set({ appliedPromo: null });
-						get().calculateTotals();
-						toast.success("Promo code removed");
-					},
+                                        removePromoCode: async () => {
+                                                // For authenticated users: Remove promo on server
+                                                const isAuth = get().isAuthenticated();
+                                                if (isAuth) {
+                                                        try {
+                                                                await cartAPI.removePromo();
+                                                        } catch (error) {
+                                                                if (error.message === "UNAUTHORIZED") {
+                                                                        handleUnauthorized();
+                                                                } else {
+                                                                        toast.error(error.message || "Failed to remove promo code");
+                                                                }
+                                                                return false;
+                                                        }
+                                                }
+                                                set({ appliedPromo: null });
+                                                get().calculateTotals();
+                                                toast.success("Promo code removed");
+                                                return true;
+                                        },
 
 					// Calculate totals - removed delivery fee calculation
 					calculateTotals: () => {

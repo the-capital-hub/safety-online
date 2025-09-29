@@ -1,17 +1,21 @@
 import mongoose from "mongoose";
 
 const SubCategorySchema = new mongoose.Schema(
-	{
-		name: {
-			type: String,
-			required: true,
-			trim: true,
-		},
-		productCount: {
-			type: Number,
-			default: 0,
-		},
-	},
+        {
+                name: {
+                        type: String,
+                        required: true,
+                        trim: true,
+                },
+                published: {
+                        type: Boolean,
+                        default: true,
+                },
+                productCount: {
+                        type: Number,
+                        default: 0,
+                },
+        },
 	{ _id: false }
 );
 

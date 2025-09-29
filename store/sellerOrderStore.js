@@ -7,8 +7,11 @@ export const useSellerOrderStore = create(
 			// State
 			orders: [],
 			currentOrder: null,
-			loading: false,
-			error: null,
+                        loading: false,
+                        error: null,
+                        returnsError: null,
+                        returnOrders: [],
+                        returnsLoading: false,
 			pagination: {
 				currentPage: 1,
 				totalPages: 1,
@@ -86,11 +89,36 @@ export const useSellerOrderStore = create(
 				}
 			},
 
-			// Accept order
-			acceptOrder: async (orderId) => {
-				set({ loading: true, error: null });
-
+			// Fetch return orders
+			fetchReturnOrders: async () => {
+				set({ returnsLoading: true, returnsError: null });
 				try {
+					const response = await fetch("/api/seller/orders/returns", {
+						method: "GET",
+						credentials: "include",
+					});
+					const data = await response.json();
+
+					if (!response.ok || !data.success) {
+						throw new Error(data.message || "Failed to fetch return orders");
+					}
+
+					set({ returnOrders: data.orders, returnsLoading: false });
+				} catch (error) {
+					console.error("Fetch return orders error:", error);
+					set({
+						returnOrders: [],
+						returnsLoading: false,
+						returnsError: error.message || "Failed to fetch return orders",
+					});
+				}
+			},
+
+                        // Accept order
+                        acceptOrder: async (orderId) => {
+                                set({ loading: true, error: null });
+
+                                try {
 					const response = await fetch(`/api/seller/orders/${orderId}/accept`, {
 						method: "PUT",
 						headers: {
@@ -118,12 +146,65 @@ export const useSellerOrderStore = create(
 				} catch (error) {
 					set({ error: "Failed to accept order", loading: false });
 					return { success: false, message: "Failed to accept order" };
-				}
-			},
+                                }
+                        },
 
-			// Reject order
-			rejectOrder: async (orderId) => {
-				set({ loading: true, error: null });
+                        // Mark order as delivered
+                        markAsDelivered: async (orderId, deliveryDate) => {
+                                set({ loading: true, error: null });
+
+                                try {
+                                        const response = await fetch(`/api/seller/orders/${orderId}/deliver`, {
+                                                method: "PUT",
+                                                headers: {
+                                                        "Content-Type": "application/json",
+                                                },
+                                                credentials: "include",
+                                                body: JSON.stringify({ deliveryDate }),
+                                        });
+
+                                        const data = await response.json();
+
+                                        if (!response.ok || !data.success) {
+                                                throw new Error(data.message || "Failed to update delivery status");
+                                        }
+
+                                        set((state) => ({
+                                                orders: state.orders.map((order) =>
+                                                        order._id === orderId
+                                                                ? {
+                                                                          ...order,
+                                                                          status: "delivered",
+                                                                          actualDelivery:
+                                                                                  data.order?.actualDelivery || deliveryDate,
+                                                                  }
+                                                                : order
+                                                ),
+                                                loading: false,
+                                        }));
+
+                                        return {
+                                                success: true,
+                                                message: data.message,
+                                                payment: data.payment,
+                                                releaseError: data.releaseError,
+                                        };
+                                } catch (error) {
+                                        set({
+                                                loading: false,
+                                                error: error.message || "Failed to update delivery status",
+                                        });
+
+                                        return {
+                                                success: false,
+                                                message: error.message || "Failed to update delivery status",
+                                        };
+                                }
+                        },
+
+                        // Reject order
+                        rejectOrder: async (orderId) => {
+                                set({ loading: true, error: null });
 
 				try {
 					const response = await fetch(`/api/seller/orders/${orderId}/reject`, {

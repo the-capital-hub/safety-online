@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import Order from "@/model/Order.js";
 import { dbConnect } from "@/lib/dbConnect.js";
 import { createOrderWithSubOrders } from "@/lib/orders/createOrder.js";
+import ReturnRequest from "@/model/ReturnRequest.js";
 
 export async function POST(req) {
         try {
@@ -79,16 +80,36 @@ export async function GET(req) {
                                                 select: "name email businessName",
                                         },
                                 ],
-                        })
-                        .lean();
+                        });
 
                 const total = await Order.countDocuments(query);
 
-                const ordersWithDebug = orders.map((order) => ({
-                        ...order,
-                        subOrdersCount: order.subOrders?.length || 0,
-                        hasSubOrders: Boolean(order.subOrders?.length),
-                }));
+                const orderIds = orders.map((order) => order._id);
+                const returnRequests = await ReturnRequest.find({
+                        orderId: { $in: orderIds },
+                })
+                        .sort({ createdAt: -1 })
+                        .lean();
+
+                const requestsByOrder = returnRequests.reduce((acc, request) => {
+                        const key = request.orderId?.toString();
+                        if (!key) {
+                                return acc;
+                        }
+                        if (!acc.has(key)) {
+                                acc.set(key, []);
+                        }
+                        acc.get(key).push(request);
+                        return acc;
+                }, new Map());
+
+                const ordersWithDebug = orders.map((order) => {
+                        const orderObject = order.toObject();
+                        orderObject.subOrdersCount = orderObject.subOrders?.length || 0;
+                        orderObject.hasSubOrders = Boolean(orderObject.subOrders?.length);
+                        orderObject.returnRequests = requestsByOrder.get(order._id.toString()) || [];
+                        return orderObject;
+                });
 
                 return NextResponse.json({
                         success: true,

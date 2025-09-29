@@ -204,6 +204,7 @@
 // app/api/admin/categories/route.js
 
 import { dbConnect } from "@/lib/dbConnect.js";
+import { attachProductCountsToCategories } from "@/lib/categoryCounts.js";
 import Category from "@/model/Categories.js";
 
 export async function GET(request) {
@@ -234,18 +235,23 @@ export async function GET(request) {
 		sortObj[sort] = order === "desc" ? -1 : 1;
 
 		const skip = (page - 1) * limit;
-		const categories = await Category.find(query)
-			.sort(sortObj)
-			.skip(skip)
-			.limit(limit)
-			.lean();
+                const categories = await Category.find(query)
+                        .sort(sortObj)
+                        .skip(skip)
+                        .limit(limit)
+                        .lean();
 
-		const total = await Category.countDocuments(query);
-		const totalPages = Math.ceil(total / limit);
+                const normalizedCategories = await attachProductCountsToCategories(
+                        categories,
+                        { persist: true }
+                );
 
-		return Response.json({
-			success: true,
-			categories,
+                const total = await Category.countDocuments(query);
+                const totalPages = Math.ceil(total / limit);
+
+                return Response.json({
+                        success: true,
+                        categories: normalizedCategories,
 			pagination: {
 				currentPage: page,
 				totalPages,
@@ -291,15 +297,19 @@ export async function POST(request) {
 		}
 
 		// Normalize subCategories array
-		const normalizedSubs = Array.isArray(subCategories)
-			? subCategories
-					.filter(
-						(s) => s && typeof s.name === "string" && s.name.trim() !== ""
-					)
-					.map((s) => ({
-						name: s.name.trim().toLowerCase(),
-					}))
-			: [];
+                const normalizedSubs = Array.isArray(subCategories)
+                        ? subCategories
+                                        .filter(
+                                                (s) => s && typeof s.name === "string" && s.name.trim() !== ""
+                                        )
+                                        .map((s) => ({
+                                                name: s.name.trim().toLowerCase(),
+                                                published:
+                                                        s.published !== undefined
+                                                                ? !!s.published
+                                                                : true,
+                                        }))
+                        : [];
 
 		const category = new Category({
 			name,
@@ -352,12 +362,16 @@ export async function PUT(request) {
 		if (typeof updateData.published === "boolean")
 			allowed.published = updateData.published;
 		if (Array.isArray(updateData.subCategories)) {
-			allowed.subCategories = updateData.subCategories
-				.filter((s) => s && typeof s.name === "string" && s.name.trim() !== "")
-				.map((s) => ({
-					name: s.name.trim(),
-					productCount: Number(s.productCount) || 0,
-				}));
+                        allowed.subCategories = updateData.subCategories
+                                .filter((s) => s && typeof s.name === "string" && s.name.trim() !== "")
+                                .map((s) => ({
+                                        name: s.name.trim(),
+                                        published:
+                                                s.published !== undefined
+                                                        ? !!s.published
+                                                        : true,
+                                        productCount: Number(s.productCount) || 0,
+                                }));
 		}
 		if (typeof updateData.productCount === "number") {
 			allowed.productCount = updateData.productCount;

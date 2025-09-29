@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
-	Dialog,
-	DialogContent,
+        Dialog,
+        DialogContent,
 	DialogDescription,
 	DialogFooter,
 	DialogHeader,
@@ -18,188 +18,354 @@ import {
 	Select,
 	SelectContent,
 	SelectItem,
-	SelectTrigger,
-	SelectValue,
+        SelectTrigger,
+        SelectValue,
 } from "@/components/ui/select";
 import { useAdminSellerStore } from "@/store/adminSellerStore.js";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export function UpdateSellerPopup({ open, onOpenChange, seller }) {
-	const { updateSeller, loading } = useAdminSellerStore();
+        const { updateSeller, loading } = useAdminSellerStore();
 
-	const [formData, setFormData] = useState({
-		firstName: "",
-		lastName: "",
-		email: "",
-		mobile: "",
-		// address: "",
-		status: "active",
-	});
+        const [formData, setFormData] = useState({
+                firstName: "",
+                lastName: "",
+                email: "",
+                mobile: "",
+                status: "active",
+                companyName: "",
+                brandName: "",
+                companyEmail: "",
+                companyPhone: "",
+                gstinNumber: "",
+                brandDescription: "",
+        });
 
-	useEffect(() => {
-		if (seller) {
-			setFormData({
-				firstName: seller.firstName || "",
-				lastName: seller.lastName || "",
-				email: seller.email || "",
-				mobile: seller.mobile || "",
-				// address: seller.address || "",
-				status: seller.status || "active",
-			});
-		}
-	}, [seller]);
+        const [activeTab, setActiveTab] = useState("personal");
+        const tabOrder = ["personal", "company", "status"];
 
-	const handleSubmit = async (e) => {
-		e.preventDefault();
+        const handleChange = (field) => (event) => {
+                setFormData((prev) => ({ ...prev, [field]: event.target.value }));
+        };
 
-		if (!e.currentTarget.checkValidity()) {
+        useEffect(() => {
+                if (seller) {
+                        setFormData({
+                                firstName: seller.firstName || "",
+                                lastName: seller.lastName || "",
+                                email: seller.email || "",
+                                mobile: seller.mobile || "",
+                                status: seller.status || "active",
+                                companyName: seller.company?.companyName || "",
+                                brandName:
+                                        seller.company?.brandName || seller.company?.companyName || "",
+                                companyEmail: seller.company?.companyEmail || "",
+                                companyPhone: seller.company?.phone || "",
+                                gstinNumber: seller.company?.gstinNumber || "",
+                                brandDescription: seller.company?.brandDescription || "",
+                        });
+                }
+        }, [seller]);
 
-		  e.currentTarget.reportValidity();
+        useEffect(() => {
+                if (open) {
+                        setActiveTab("personal");
+                }
+        }, [open]);
 
-		  return;
+        const handleSubmit = async (e) => {
+                e.preventDefault();
 
-		}
-		if (seller) {
-			const success = await updateSeller(seller._id, formData);
-			if (success) {
-				onOpenChange(false);
-			}
-		}
-	};
+                if (!e.currentTarget.checkValidity()) {
+                        e.currentTarget.reportValidity();
+                        return;
+                }
+                if (seller) {
+                        const payload = {
+                                firstName: formData.firstName,
+                                lastName: formData.lastName,
+                                email: formData.email,
+                                mobile: formData.mobile,
+                                status: formData.status,
+                                company: {
+                                        companyName: formData.companyName,
+                                        brandName:
+                                                formData.brandName || formData.companyName || undefined,
+                                        companyEmail: formData.companyEmail,
+                                        phone: formData.companyPhone,
+                                        gstinNumber: formData.gstinNumber,
+                                        brandDescription: formData.brandDescription,
+                                },
+                        };
 
-	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-md">
-				<motion.div
-					initial={{ scale: 0.95, opacity: 0 }}
-					animate={{ scale: 1, opacity: 1 }}
-					transition={{ duration: 0.2 }}
-				>
-					<DialogHeader>
-						<div className="flex items-center justify-between">
-							<div>
-								<DialogTitle className="text-lg font-semibold">
-									Update Seller
-								</DialogTitle>
-								<DialogDescription className="text-gray-600">
-									Update seller information
-								</DialogDescription>
-							</div>
-						</div>
-					</DialogHeader>
+                        const success = await updateSeller(seller._id, payload);
+                        if (success) {
+                                onOpenChange(false);
+                        }
+                }
+        };
 
-					<form onSubmit={handleSubmit} className="space-y-4 mt-4">
-						<div className="grid grid-cols-2 gap-4">
-							<div>
-								<Label htmlFor="firstName">First Name</Label>
-								<Input
-									id="firstName"
-									placeholder="First Name"
-									value={formData.firstName}
-									onChange={(e) =>
-										setFormData({ ...formData, firstName: e.target.value })
-									}
-									className="mt-1"
-									required
-								/>
-							</div>
-							<div>
-								<Label htmlFor="lastName">Last Name</Label>
-								<Input
-									id="lastName"
-									placeholder="Last Name"
-									value={formData.lastName}
-									onChange={(e) =>
-										setFormData({ ...formData, lastName: e.target.value })
-									}
-									className="mt-1"
-									required
-								/>
-							</div>
-						</div>
+        const goToNextTab = () => {
+                const currentIndex = tabOrder.indexOf(activeTab);
+                if (currentIndex < tabOrder.length - 1) {
+                        setActiveTab(tabOrder[currentIndex + 1]);
+                }
+        };
 
-						<div>
-							<Label htmlFor="email">Email</Label>
-							<Input
-								id="email"
-								type="email"
-								placeholder="seller@example.com"
-								value={formData.email}
-								onChange={(e) =>
-									setFormData({ ...formData, email: e.target.value })
-								}
-								className="mt-1"
-								required
-							/>
-						</div>
+        const goToPreviousTab = () => {
+                const currentIndex = tabOrder.indexOf(activeTab);
+                if (currentIndex > 0) {
+                        setActiveTab(tabOrder[currentIndex - 1]);
+                }
+        };
 
-						<div>
-							<Label htmlFor="mobile">Mobile</Label>
-							<Input
-								id="mobile"
-								placeholder="Phone Number"
-								value={formData.mobile}
-								onChange={(e) =>
-									setFormData({ ...formData, mobile: e.target.value })
-								}
-								className="mt-1"
-								required
-							/>
-						</div>
+        return (
+                <Dialog open={open} onOpenChange={onOpenChange}>
 
-						{/* <div>
-							<Label htmlFor="address">Address</Label>
-							<Textarea
-								id="address"
-								placeholder="Seller Address"
-								value={formData.address}
-								onChange={(e) =>
-									setFormData({ ...formData, address: e.target.value })
-								}
-								className="mt-1"
-								rows={3}
-							/>
-						</div> */}
+                        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-hidden p-0">
 
-						<div>
-							<Label htmlFor="status">Status</Label>
-							<Select
-								value={formData.status}
-								onValueChange={(value) =>
-									setFormData({ ...formData, status: value })
-								}
-							>
-								<SelectTrigger className="mt-1">
-									<SelectValue placeholder="Select status" />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="active">Active</SelectItem>
-									<SelectItem value="inactive">Inactive</SelectItem>
-									<SelectItem value="suspended">Suspended</SelectItem>
-								</SelectContent>
-							</Select>
-						</div>
+                                <motion.div
+                                        initial={{ scale: 0.95, opacity: 0 }}
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="flex max-h-[90vh] flex-col"
+                                >
+                                        <DialogHeader className="px-6 pb-4 pt-6">
+                                                <div className="flex items-center justify-between">
+                                                        <div>
+                                                                <DialogTitle className="text-lg font-semibold">
+                                                                        Update Seller
+                                                                </DialogTitle>
+                                                                <DialogDescription className="text-gray-600">
+                                                                        Update seller information
+                                                                </DialogDescription>
+                                                        </div>
+                                                </div>
+                                        </DialogHeader>
 
-						<DialogFooter className="flex gap-3 mt-6">
-							<Button
-								type="button"
-								variant="outline"
-								onClick={() => onOpenChange(false)}
-								className="flex-1"
-								disabled={loading}
-							>
-								Cancel
-							</Button>
-							<Button
-								type="submit"
-								className="flex-1 bg-orange-500 hover:bg-orange-600"
-								disabled={loading}
-							>
-								{loading ? "Updating..." : "Update Seller"}
-							</Button>
-						</DialogFooter>
-					</form>
-				</motion.div>
-			</DialogContent>
-		</Dialog>
-	);
+                                        <form onSubmit={handleSubmit} className="flex h-full flex-col">
+                                                <div className="flex-1 overflow-y-auto px-6 pb-6 pt-4">
+                                                        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+                                                        <TabsList className="grid w-full grid-cols-3">
+                                                                <TabsTrigger value="personal">Personal</TabsTrigger>
+                                                                <TabsTrigger value="company">Company</TabsTrigger>
+                                                                <TabsTrigger value="status">Status</TabsTrigger>
+                                                        </TabsList>
+
+                                                        <TabsContent value="personal" className="space-y-4">
+                                                                <p className="text-sm text-muted-foreground">
+                                                                        Verify and update the seller's personal contact details.
+                                                                </p>
+                                                                <div className="grid gap-4 md:grid-cols-2">
+                                                                        <div>
+                                                                                <Label htmlFor="firstName">First Name</Label>
+                                                                                <Input
+                                                                                        id="firstName"
+                                                                                        placeholder="First Name"
+                                                                                        value={formData.firstName}
+                                                                                        onChange={handleChange("firstName")}
+                                                                                        className="mt-1"
+                                                                                        required
+                                                                                />
+                                                                        </div>
+                                                                        <div>
+                                                                                <Label htmlFor="lastName">Last Name</Label>
+                                                                                <Input
+                                                                                        id="lastName"
+                                                                                        placeholder="Last Name"
+                                                                                        value={formData.lastName}
+                                                                                        onChange={handleChange("lastName")}
+                                                                                        className="mt-1"
+                                                                                        required
+                                                                                />
+                                                                        </div>
+                                                                </div>
+                                                                <div className="grid gap-4 md:grid-cols-2">
+                                                                        <div>
+                                                                                <Label htmlFor="email">Email</Label>
+                                                                                <Input
+                                                                                        id="email"
+                                                                                        type="email"
+                                                                                        placeholder="seller@example.com"
+                                                                                        value={formData.email}
+                                                                                        onChange={handleChange("email")}
+                                                                                        className="mt-1"
+                                                                                        required
+                                                                                />
+                                                                        </div>
+                                                                        <div>
+                                                                                <Label htmlFor="mobile">Mobile</Label>
+                                                                                <Input
+                                                                                        id="mobile"
+                                                                                        placeholder="Phone Number"
+                                                                                        value={formData.mobile}
+                                                                                        onChange={handleChange("mobile")}
+                                                                                        className="mt-1"
+                                                                                        required
+                                                                                />
+                                                                        </div>
+                                                                </div>
+                                                                <div className="flex justify-end">
+                                                                        <Button type="button" onClick={goToNextTab}>
+                                                                                Continue to Company Details
+                                                                        </Button>
+                                                                </div>
+                                                        </TabsContent>
+
+                                                        <TabsContent value="company" className="space-y-4">
+                                                                <p className="text-sm text-muted-foreground">
+                                                                        Update the brand and registered business information associated with this seller.
+                                                                </p>
+                                                                <div className="grid gap-4 md:grid-cols-2">
+                                                                        <div className="md:col-span-2">
+                                                                                <Label htmlFor="companyName">Company Name</Label>
+                                                                                <Input
+                                                                                        id="companyName"
+                                                                                        placeholder="Registered company name"
+                                                                                        value={formData.companyName}
+                                                                                        onChange={handleChange("companyName")}
+                                                                                        className="mt-1"
+                                                                                        required
+                                                                                />
+                                                                        </div>
+                                                                        <div>
+                                                                                <Label htmlFor="brandName">Brand / Store Name</Label>
+                                                                                <Input
+                                                                                        id="brandName"
+                                                                                        placeholder="Public facing brand"
+                                                                                        value={formData.brandName}
+                                                                                        onChange={handleChange("brandName")}
+                                                                                        className="mt-1"
+                                                                                />
+                                                                        </div>
+                                                                        <div>
+                                                                                <Label htmlFor="companyEmail">Company Email</Label>
+                                                                                <Input
+                                                                                        id="companyEmail"
+                                                                                        type="email"
+                                                                                        placeholder="brand@company.com"
+                                                                                        value={formData.companyEmail}
+                                                                                        onChange={handleChange("companyEmail")}
+                                                                                        className="mt-1"
+                                                                                        required
+                                                                                />
+                                                                        </div>
+                                                                        <div>
+                                                                                <Label htmlFor="companyPhone">Company Phone</Label>
+                                                                                <Input
+                                                                                        id="companyPhone"
+                                                                                        placeholder="Company contact number"
+                                                                                        value={formData.companyPhone}
+                                                                                        onChange={handleChange("companyPhone")}
+                                                                                        className="mt-1"
+                                                                                        required
+                                                                                />
+                                                                        </div>
+                                                                        <div>
+                                                                                <Label htmlFor="gstinNumber">GSTIN</Label>
+                                                                                <Input
+                                                                                        id="gstinNumber"
+                                                                                        placeholder="22AAAAA0000A1Z5"
+                                                                                        value={formData.gstinNumber}
+                                                                                        onChange={handleChange("gstinNumber")}
+                                                                                        className="mt-1"
+                                                                                />
+                                                                        </div>
+                                                                        <div className="md:col-span-2">
+                                                                                <Label htmlFor="brandDescription">Brand Description</Label>
+                                                                                <Textarea
+                                                                                        id="brandDescription"
+                                                                                        placeholder="Short description about the brand"
+                                                                                        value={formData.brandDescription}
+                                                                                        onChange={handleChange("brandDescription")}
+                                                                                        className="mt-1"
+                                                                                        rows={3}
+                                                                                />
+                                                                        </div>
+                                                                </div>
+                                                                <div className="flex flex-col gap-2 justify-between sm:flex-row">
+                                                                        <Button type="button" variant="outline" onClick={goToPreviousTab}>
+                                                                                Back to Personal Details
+                                                                        </Button>
+                                                                        <Button type="button" onClick={goToNextTab}>
+                                                                                Continue to Status
+                                                                        </Button>
+                                                                </div>
+                                                        </TabsContent>
+
+                                                        <TabsContent value="status" className="space-y-4">
+                                                                <p className="text-sm text-muted-foreground">
+                                                                        Review the seller's account status before saving your changes.
+                                                                </p>
+                                                                <div className="grid gap-4 md:grid-cols-2">
+                                                                        <div>
+                                                                                <Label htmlFor="status">Status</Label>
+                                                                                <Select
+                                                                                        value={formData.status}
+                                                                                        onValueChange={(value) =>
+                                                                                                setFormData({ ...formData, status: value })
+                                                                                        }
+                                                                                >
+                                                                                        <SelectTrigger className="mt-1">
+                                                                                                <SelectValue placeholder="Select status" />
+                                                                                        </SelectTrigger>
+                                                                                        <SelectContent>
+                                                                                                <SelectItem value="active">Active</SelectItem>
+                                                                                                <SelectItem value="inactive">Inactive</SelectItem>
+                                                                                                <SelectItem value="suspended">Suspended</SelectItem>
+                                                                                        </SelectContent>
+                                                                                </Select>
+                                                                        </div>
+                                                                        <div className="rounded-lg border bg-muted/30 p-4">
+                                                                                <p className="text-sm font-medium text-muted-foreground">
+                                                                                        Quick summary
+                                                                                </p>
+                                                                                <ul className="mt-2 space-y-1 text-sm">
+                                                                                        <li>
+                                                                                                <span className="font-semibold">Seller:</span> {formData.firstName} {formData.lastName}
+                                                                                        </li>
+                                                                                        <li>
+                                                                                                <span className="font-semibold">Email:</span> {formData.email}
+                                                                                        </li>
+                                                                                        <li>
+                                                                                                <span className="font-semibold">Company:</span> {formData.companyName || "—"}
+                                                                                        </li>
+                                                                                        <li>
+                                                                                                <span className="font-semibold">Brand:</span> {formData.brandName || "—"}
+                                                                                        </li>
+                                                                                </ul>
+                                                                        </div>
+                                                                </div>
+                                                                <div className="flex justify-start">
+                                                                        <Button type="button" variant="outline" onClick={goToPreviousTab}>
+                                                                                Back to Company Details
+                                                                        </Button>
+                                                                </div>
+                                                        </TabsContent>
+                                                        </Tabs>
+                                                </div>
+
+                                                <DialogFooter className="flex flex-col gap-3 border-t border-border px-6 py-4 sm:flex-row">
+                                                        <Button
+                                                                type="button"
+                                                                variant="outline"
+                                                                onClick={() => onOpenChange(false)}
+                                                                className="flex-1"
+                                                                disabled={loading}
+                                                        >
+                                                                Cancel
+                                                        </Button>
+                                                        <Button
+                                                                type="submit"
+                                                                className="flex-1 bg-orange-500 hover:bg-orange-600"
+                                                                disabled={loading}
+                                                        >
+                                                                {loading ? "Updating..." : "Update Seller"}
+                                                        </Button>
+                                                </DialogFooter>
+                                        </form>
+                                </motion.div>
+                        </DialogContent>
+                </Dialog>
+        );
 }

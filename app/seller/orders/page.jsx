@@ -47,12 +47,13 @@ function SellerOrdersPage() {
 		stats,
 		filters,
 		setFilters,
-		resetFilters,
-		fetchOrders,
-		acceptOrder,
-		rejectOrder,
-		downloadShipmentReceipt,
-	} = useSellerOrderStore();
+                resetFilters,
+                fetchOrders,
+                acceptOrder,
+                rejectOrder,
+                downloadShipmentReceipt,
+                markAsDelivered,
+        } = useSellerOrderStore();
 
 	const isAuthenticated = useIsSellerAuthenticated();
 	const [isRedirecting, setIsRedirecting] = useState(false);
@@ -90,14 +91,33 @@ function SellerOrdersPage() {
 		}
 	};
 
-	const handleDownloadReceipt = async (order) => {
-		const result = await downloadShipmentReceipt(order._id, order.orderNumber);
-		if (result.success) {
-			toast.success("Shipment receipt downloaded successfully");
-		} else {
-			toast.error("Failed to download shipment receipt");
-		}
-	};
+        const handleDownloadReceipt = async (order) => {
+                const orderNumber =
+                        order?.orderId?.orderNumber || order?.orderNumber || order?._id || "order";
+
+                const result = await downloadShipmentReceipt(order._id, orderNumber);
+                if (result.success) {
+                        toast.success("Shipment receipt downloaded successfully");
+                } else {
+                        toast.error("Failed to download shipment receipt");
+                }
+        };
+
+        const handleMarkDelivered = async (orderId) => {
+                const result = await markAsDelivered(orderId, new Date().toISOString());
+
+                if (result.success) {
+                        fetchOrders();
+                        toast.success("Delivery confirmed successfully");
+                        if (result.releaseError) {
+                                toast.error(result.releaseError);
+                        } else if (result.payment?.status === "released") {
+                                toast.success("Escrow released to your account");
+                        }
+                } else {
+                        toast.error(result.message || "Failed to update delivery status");
+                }
+        };
 
 	const getStatusColor = (status) => {
 		const colors = {
@@ -341,15 +361,15 @@ function SellerOrdersPage() {
 											transition={{ duration: 0.2 }}
 										>
 											<TableCell className="font-medium">
-												{order.orderId.orderNumber}
+												{order.orderId?.orderNumber || order.orderNumber || "N/A"}
 											</TableCell>
 											<TableCell>
-												{new Date(order.orderId.orderDate).toLocaleDateString()}
+												{order.orderId?.orderDate ? new Date(order.orderId.orderDate).toLocaleDateString() : "N/A"}
 												<br />
 												<span className="text-xs text-gray-500">
-													{new Date(
-														order.orderId.orderDate
-													).toLocaleTimeString()}
+													{order.orderId?.orderDate
+															? new Date(order.orderId.orderDate).toLocaleTimeString()
+															: ""}
 												</span>
 											</TableCell>
 											<TableCell>
@@ -386,7 +406,7 @@ function SellerOrdersPage() {
 											</TableCell>
 											<TableCell>
 												<Badge className="bg-blue-100 text-blue-800">
-													{getPaymentMethodDisplay(order.orderId.paymentMethod)}
+													{getPaymentMethodDisplay(order.orderId?.paymentMethod || order.paymentMethod)}
 												</Badge>
 											</TableCell>
 											<TableCell className="font-medium text-green-600">
@@ -420,18 +440,36 @@ function SellerOrdersPage() {
 															</Button>
 														</>
 													)}
-													{order.status === "processing" && (
-														<>
-															<Button
-																size="sm"
-																variant="outline"
-																onClick={() => handleDownloadReceipt(order)}
-															>
-																<FileText className="w-4 h-4 mr-1" />
-																Receipt
-															</Button>
-														</>
-													)}
+                                        {order.status === "processing" && (
+                                                <>
+                                                        <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                onClick={() => handleDownloadReceipt(order)}
+                                                        >
+                                                                <FileText className="w-4 h-4 mr-1" />
+                                                                Receipt
+                                                        </Button>
+                                                        <Button
+                                                                size="sm"
+                                                                className="bg-emerald-600 hover:bg-emerald-700"
+                                                                onClick={() => handleMarkDelivered(order._id)}
+                                                        >
+                                                                <CheckCircle className="w-4 h-4 mr-1" />
+                                                                Mark Delivered
+                                                        </Button>
+                                                </>
+                                        )}
+                                        {order.status === "shipped" && (
+                                                <Button
+                                                        size="sm"
+                                                        className="bg-emerald-600 hover:bg-emerald-700"
+                                                        onClick={() => handleMarkDelivered(order._id)}
+                                                >
+                                                        <CheckCircle className="w-4 h-4 mr-1" />
+                                                        Mark Delivered
+                                                </Button>
+                                        )}
 												</div>
 											</TableCell>
 										</motion.tr>

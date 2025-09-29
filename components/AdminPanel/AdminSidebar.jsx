@@ -44,22 +44,29 @@ import {
 	Languages,
 	DollarSign,
 	Eye,
-	Palette,
-	Cog,
+        Palette,
+        Cog,
+        RotateCcw,
+        BarChart3,
 } from "lucide-react";
 import Logo from "@/public/SafetyLogo.png";
 import { useIsAuthenticated } from "@/store/adminAuthStore.js";
 
 const menuItems = [
-	{
-		title: "Dashboard",
-		icon: LayoutDashboard,
-		href: "/admin/dashboard",
-	},
-	{
-		title: "Catalog",
-		icon: Package,
-		items: [
+        {
+                title: "Dashboard",
+                icon: LayoutDashboard,
+                href: "/admin/dashboard",
+        },
+        {
+                title: "Analytics",
+                icon: BarChart3,
+                href: "/admin/analytics",
+        },
+        {
+                title: "Catalog",
+                icon: Package,
+                items: [
 			{ title: "Products", href: "/admin/catalog/products", icon: FolderOpen },
 			{ title: "Categories", href: "/admin/catalog/categories", icon: Tags },
 			// { title: "Attributes", href: "/admin/catalog/attributes", icon: Layers },
@@ -76,12 +83,22 @@ const menuItems = [
 		icon: Users,
 		href: "/admin/sellers",
 	},
-	{
-		title: "Orders",
-		icon: ShoppingCart,
-		href: "/admin/orders",
-	},
-	// {
+        {
+                title: "Orders",
+                icon: ShoppingCart,
+                href: "/admin/orders",
+        },
+        {
+                title: "Returns",
+                icon: RotateCcw,
+                href: "/admin/returns",
+        },
+        {
+                title: "Payments",
+                icon: DollarSign,
+                href: "/admin/payments",
+        },
+        // {
 	// 	title: "Our Staff",
 	// 	icon: UserCheck,
 	// 	href: "/admin/our-staff",

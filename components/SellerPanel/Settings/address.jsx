@@ -1,95 +1,22 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { Pencil, Trash2, Plus } from "lucide-react";
 
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Pencil, Trash2, Plus, Save, X, Loader2 } from "lucide-react";
+import {
+        Card,
+        CardHeader,
+        CardTitle,
+        CardDescription,
+        CardContent,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { addressSchema } from "@/zodSchema/companyScema.js";
+import { useSellerCompanyStore } from "@/store/sellerCompanyStore.js";
 
-const Addresses = () => {
-  const [addresses, setAddresses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [editIndex, setEditIndex] = useState(null);
-  const [formData, setFormData] = useState({
-    tagName: "",
-    building: "",
-    street: "",
-    city: "",
-    state: "",
-    pincode: "",
-    country: "",
-    companyEmail: "",
-    phone: "",
-    companyLogo: "",
-    gstinNumber: "",
-  });
-
-  // Fetch company details
-  useEffect(() => {
-    const fetchCompany = async () => {
-      try {
-        const res = await fetch("/api/seller/company/getCompany", { credentials: "include" });
-        if (!res.ok) throw new Error("Failed to fetch company");
-        const data = await res.json();
-        setAddresses(data.company.companyAddress || []);
-        setFormData({
-          ...formData,
-          companyEmail: data.company.companyEmail || "",
-          phone: data.company.phone || "",
-          companyLogo: data.company.companyLogo || "",
-          gstinNumber: data.company.gstinNumber || "",
-        });
-      } catch (err) {
-        console.error("Error fetching company:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCompany();
-   
-  }, []);
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  // Save / Update
-  const handleSave = async (e) => {
-    e.preventDefault();
-    if (!e.currentTarget.checkValidity()) {
-      e.currentTarget.reportValidity();
-      return;
-    }
-
-    let newAddresses;
-    if (editIndex !== null) {
-      // update existing
-      newAddresses = addresses.map((addr, idx) =>
-        idx === editIndex ? { ...formData } : addr
-      );
-    } else {
-      // add new
-      newAddresses = [...addresses, { ...formData }];
-    }
-
-    try {
-      const res = await fetch("/api/seller/company/updateCompany", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          companyAddress: newAddresses,
-          companyEmail: formData.companyEmail,
-          phone: formData.phone,
-          companyLogo: formData.companyLogo,
-          gstinNumber: formData.gstinNumber,
-        }),
-      });
-
-      if (!res.ok) throw new Error("Failed to save");
-      const data = await res.json();
-      setAddresses(data.company.companyAddress || []);
-      setFormData({
+const EMPTY_DRAFT = {
         tagName: "",
         building: "",
         street: "",
@@ -97,149 +24,223 @@ const Addresses = () => {
         state: "",
         pincode: "",
         country: "",
-        companyEmail: data.company.companyEmail || "",
-        phone: data.company.phone || "",
-        companyLogo: data.company.companyLogo || "",
-        gstinNumber: data.company.gstinNumber || "",
-      });
-      setEditIndex(null);
-      setShowForm(false);
-    } catch (err) {
-      console.error("Error saving:", err);
-    }
-  };
-
-  const handleEdit = (index) => {
-    setFormData({ ...addresses[index], ...formData }); // keep company fields
-    setEditIndex(index);
-    setShowForm(true);
-  };
-
-  if (loading) return <p className="p-6">Loading...</p>;
-
-  return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-6">
-      <div className="bg-white dark:bg-gray-800 shadow-md rounded-2xl p-6 w-full">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-            Company Addresses
-          </h2>
-          {!showForm && (
-            <button
-              onClick={() => {
-                setShowForm(true);
-                setEditIndex(null);
-              }}
-              className="flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-md bg-black text-white hover:bg-gray-800"
-            >
-              <Plus size={16} /> Add Address
-            </button>
-          )}
-        </div>
-
-        {/* Form */}
-        {showForm && (
-          <form onSubmit={handleSave} className="space-y-4 mt-6">
-            {[
-              { label: "Tag Name", name: "tagName" },
-              { label: "Building", name: "building" },
-              { label: "Street", name: "street" },
-              { label: "City", name: "city" },
-              { label: "State", name: "state" },
-              { label: "Pincode", name: "pincode" },
-              { label: "Country", name: "country" },
-              { label: "Company Email", name: "companyEmail" },
-              { label: "Phone", name: "phone" },
-              { label: "Company Logo (URL)", name: "companyLogo" },
-              { label: "GSTIN Number", name: "gstinNumber" },
-            ].map((field) => {
-              const inputType =
-                field.name === "companyEmail"
-                  ? "email"
-                  : field.name === "phone"
-                  ? "tel"
-                  : field.name === "companyLogo"
-                  ? "url"
-                  : "text";
-              const isRequired = field.name !== "companyLogo";
-              return (
-                <div key={field.name}>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {field.label}
-                  </label>
-                  <Input
-                    id={`company-${field.name}`}
-                    name={field.name}
-                    type={inputType}
-                    value={formData[field.name] || ""}
-                    onChange={handleChange}
-                    placeholder={field.label}
-                    required={isRequired}
-                    className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm dark:bg-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-black"
-                  />
-                </div>
-              );
-            })}
-            <div className="flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowForm(false);
-                  setEditIndex(null);
-                }}
-                className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-6 py-2 rounded-md bg-black text-white text-sm hover:bg-gray-800 transition"
-              >
-                {editIndex !== null ? "Update" : "Save"}
-              </button>
-            </div>
-          </form>
-        )}
-
-        {/* Address List */}
-        {!showForm && (
-          <div className="space-y-4 mt-6">
-            {addresses.map((addr, index) => (
-              <div
-                key={index}
-                className="border border-gray-200 dark:border-gray-700 rounded-xl p-4 flex justify-between items-start"
-              >
-                <div>
-                  <h3 className="font-medium text-gray-800 dark:text-gray-100">
-                    {addr.tagName}
-                  </h3>
-                  <pre className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap mt-1">
-                    {addr.building}, {addr.street}
-                    {"\n"}
-                    {addr.city}, {addr.state} {addr.pincode}
-                    {"\n"}
-                    {addr.country}
-                  </pre>
-                </div>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => handleEdit(index)}
-                    className="text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white"
-                  >
-                    <Pencil size={18} />
-                  </button>
-                  <button className="text-gray-600 dark:text-gray-300 hover:text-red-500">
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
 };
 
-export default Addresses;
+export default function CompanyAddresses() {
+        const {
+                company,
+                loading,
+                initialized,
+                addressesSaving,
+                fetchCompany,
+                updateAddresses,
+        } = useSellerCompanyStore((state) => ({
+                company: state.company,
+                loading: state.loading,
+                initialized: state.initialized,
+                addressesSaving: state.addressesSaving,
+                fetchCompany: state.fetchCompany,
+                updateAddresses: state.updateAddresses,
+        }));
+
+        const [addresses, setAddresses] = useState([]);
+        const [editingIndex, setEditingIndex] = useState(-1);
+        const [draft, setDraft] = useState(EMPTY_DRAFT);
+
+        useEffect(() => {
+                if (!initialized) {
+                        fetchCompany().catch(() => undefined);
+                }
+        }, [initialized, fetchCompany]);
+
+        useEffect(() => {
+                setAddresses(company?.companyAddress || []);
+        }, [company]);
+
+        const resetDraft = () => {
+                setDraft(EMPTY_DRAFT);
+        };
+
+        const startAdd = () => {
+                if (!company?._id) {
+                        toast.error("Create your company profile before adding addresses.");
+                        return;
+                }
+                resetDraft();
+                setEditingIndex(addresses.length);
+        };
+
+        const startEdit = (index) => {
+                if (!company?._id) {
+                        toast.error("Create your company profile before editing addresses.");
+                        return;
+                }
+                setDraft({ ...addresses[index] });
+                setEditingIndex(index);
+        };
+
+        const cancelEdit = () => {
+                resetDraft();
+                setEditingIndex(-1);
+        };
+
+        const removeAddress = async (index) => {
+                if (!company?._id) {
+                        toast.error("Create your company profile before managing addresses.");
+                        return;
+                }
+                const next = addresses.filter((_, idx) => idx !== index);
+                const result = await updateAddresses(next);
+                if (result.success) {
+                        setAddresses(next);
+                        toast.success("Address removed");
+                } else {
+                        toast.error(result.message || "Failed to remove address");
+                }
+        };
+
+        const saveDraft = async () => {
+                if (!company?._id) {
+                        toast.error("Create your company profile before adding addresses.");
+                        return;
+                }
+                const parsed = addressSchema.safeParse(draft);
+                if (!parsed.success) {
+                        toast.error(parsed.error.errors[0].message);
+                        return;
+                }
+                const next = [...addresses];
+                next[editingIndex] = parsed.data;
+                const result = await updateAddresses(next);
+                if (result.success) {
+                        setAddresses(next);
+                        toast.success(
+                                editingIndex >= addresses.length ? "Address added" : "Address updated"
+                        );
+                        cancelEdit();
+                } else {
+                        toast.error(result.message || "Failed to save address");
+                }
+        };
+
+        const isInitializing = loading && !initialized;
+
+        if (isInitializing) {
+                return (
+                        <Card className="border border-gray-200">
+                                <CardHeader>
+                                        <CardTitle>Company Addresses</CardTitle>
+                                        <CardDescription>Loading addresses…</CardDescription>
+                                </CardHeader>
+                        </Card>
+                );
+        }
+
+        return (
+                <Card className="border border-gray-200">
+                        <CardHeader className="flex-row items-center justify-between">
+                                <div>
+                                        <CardTitle>Company Addresses</CardTitle>
+                                        <CardDescription>
+                                                Add or update your company addresses
+                                        </CardDescription>
+                                </div>
+                                <Button onClick={startAdd} variant="secondary" size="sm" disabled={addressesSaving}>
+                                        <Plus className="mr-1 h-4 w-4" /> Add address
+                                </Button>
+                        </CardHeader>
+                        <CardContent className="space-y-5">
+                                {editingIndex !== -1 && (
+                                        <div className="grid gap-3 rounded-lg border p-4">
+                                                {[
+                                                        { label: "Tag", name: "tagName", placeholder: "Head Office" },
+                                                        {
+                                                                label: "Building",
+                                                                name: "building",
+                                                                placeholder: "Building / Suite",
+                                                        },
+                                                        { label: "Street", name: "street", placeholder: "Street" },
+                                                        { label: "City", name: "city", placeholder: "City" },
+                                                        { label: "State", name: "state", placeholder: "State" },
+                                                        { label: "Pincode", name: "pincode", placeholder: "Pincode" },
+                                                        { label: "Country", name: "country", placeholder: "Country" },
+                                                ].map((field) => (
+                                                        <div key={field.name} className="grid gap-1">
+                                                                <Label htmlFor={field.name}>{field.label}</Label>
+                                                                <Input
+                                                                        id={field.name}
+                                                                        value={draft[field.name] || ""}
+                                                                        onChange={(e) =>
+                                                                                setDraft((d) => ({ ...d, [field.name]: e.target.value }))
+                                                                        }
+                                                                        placeholder={field.placeholder}
+                                                                        disabled={addressesSaving}
+                                                                />
+                                                        </div>
+                                                ))}
+                                                <div className="flex justify-end gap-2">
+                                                        <Button variant="outline" onClick={cancelEdit} disabled={addressesSaving}>
+                                                                <X className="mr-1 h-4 w-4" /> Cancel
+                                                        </Button>
+                                                        <Button onClick={saveDraft} disabled={addressesSaving}>
+                                                                {addressesSaving ? (
+                                                                        <>
+                                                                                <Loader2 className="mr-1 h-4 w-4 animate-spin" /> Save
+                                                                        </>
+                                                                ) : (
+                                                                        <>
+                                                                                <Save className="mr-1 h-4 w-4" /> Save
+                                                                        </>
+                                                                )}
+                                                        </Button>
+                                                </div>
+                                        </div>
+                                )}
+
+                                {addresses.length === 0 ? (
+                                        <p className="text-sm text-gray-500">No addresses added yet.</p>
+                                ) : (
+                                        <div className="grid gap-3">
+                                                {addresses.map((addr, idx) => (
+                                                        <div
+                                                                key={`${addr.tagName}-${idx}`}
+                                                                className="flex items-start justify-between rounded-lg border p-4"
+                                                        >
+                                                                <div className="text-sm">
+                                                                        <p className="font-medium text-gray-900">{addr.tagName}</p>
+                                                                        <p className="text-gray-700">
+                                                                                {addr.building}, {addr.street}
+                                                                        </p>
+                                                                        <p className="text-gray-700">
+                                                                                {addr.city}, {addr.state} {addr.pincode}
+                                                                        </p>
+                                                                        <p className="text-gray-700">{addr.country}</p>
+                                                                </div>
+                                                                <div className="flex gap-2">
+                                                                        <Button
+                                                                                variant="ghost"
+                                                                                size="icon"
+                                                                                onClick={() => startEdit(idx)}
+                                                                                aria-label="Edit"
+                                                                                disabled={addressesSaving}
+                                                                        >
+                                                                                <Pencil className="h-4 w-4" />
+                                                                        </Button>
+                                                                        <Button
+                                                                                variant="ghost"
+                                                                                size="icon"
+                                                                                onClick={() => removeAddress(idx)}
+                                                                                aria-label="Delete"
+                                                                                disabled={addressesSaving}
+                                                                        >
+                                                                                <Trash2 className="h-4 w-4" />
+                                                                        </Button>
+                                                                </div>
+                                                        </div>
+                                                ))}
+                                        </div>
+                                )}
+                        </CardContent>
+                </Card>
+        );
+}

@@ -1,4 +1,5 @@
 import { dbConnect } from "@/lib/dbConnect.js";
+import { slugify } from "@/lib/slugify.js";
 import Product from "@/model/Product.js";
 import Categories from "@/model/Categories";
 
@@ -109,22 +110,42 @@ export async function GET() {
 		const updatedCategories = await Promise.all(categoryUpdatePromises);
 
 		// Format categories for response
-		const formattedCategories = updatedCategories.map((cat) => ({
-			id: cat.name,
-			label: cat.name
-				.split("-")
-				.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-				.join(" "),
-			count: cat.productCount,
-			subCategories: cat.subCategories.map((subCat) => ({
-				id: subCat.name,
-				label: subCat.name
-					.split("-")
-					.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-					.join(" "),
-				count: subCat.productCount,
-			})),
-		}));
+                const formattedCategories = updatedCategories.map((cat) => {
+                        const categorySlug = slugify(cat.slug || cat.name);
+
+                        return {
+                                id: categorySlug,
+                                slug: categorySlug,
+                                name: cat.name,
+                                label: cat.name
+                                        .split("-")
+                                        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                                        .join(" "),
+                                count: cat.productCount,
+                                subCategories: cat.subCategories.map((subCat) => {
+                                        const subCategorySlug = slugify(
+                                                subCat.slug || subCat.name
+                                        );
+
+                                        return {
+                                                id: subCategorySlug,
+                                                slug: subCategorySlug,
+                                                name: subCat.name,
+                                                label: subCat.name
+                                                        .split("-")
+                                                        .map(
+                                                                (word) =>
+                                                                        word
+                                                                                .charAt(0)
+                                                                                .toUpperCase() +
+                                                                        word.slice(1)
+                                                        )
+                                                        .join(" "),
+                                                count: subCat.productCount,
+                                        };
+                                }),
+                        };
+                });
 
 		// Get discount range
 		const discountStats = await Product.aggregate([

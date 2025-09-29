@@ -4,6 +4,7 @@ import { dbConnect } from "@/lib/dbConnect.js";
 import Product from "@/model/Product.js";
 import Review from "@/model/Review";
 import Categories from "@/model/Categories";
+import { ensureSlug } from "@/lib/slugify.js";
 
 export async function GET(request) {
 	await dbConnect();
@@ -41,36 +42,190 @@ export async function GET(request) {
 		const escapeRegex = (value = "") =>
 			value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-		const createNameVariants = (value = "") => {
-			if (!value) {
-				return [];
-			}
+                const createNameVariants = (value = "") => {
+                        if (!value) {
+                                return [];
+                        }
 
-			const trimmed = value.trim();
+                        const trimmed = value.toString().trim();
 
-			if (!trimmed) {
-				return [];
-			}
+                        if (!trimmed) {
+                                return [];
+                        }
 
-			const hyphenated = trimmed.replace(/\s+/g, "-");
-			const spaced = trimmed.replace(/-/g, " ");
+                        const hyphenated = trimmed.replace(/\s+/g, "-");
+                        const spaced = trimmed.replace(/-/g, " ");
+                        const withoutSpacesOrHyphens = trimmed.replace(/[\s-]+/g, "");
 
-			return Array.from(new Set([trimmed, hyphenated, spaced]));
-		};
+                        const ampersandReplaced = trimmed.replace(/&/g, "and");
+                        const ampHyphenated = ampersandReplaced.replace(/\s+/g, "-");
+                        const ampSpaced = ampersandReplaced.replace(/-/g, " ");
+                        const ampWithoutSpacesOrHyphens = ampersandReplaced.replace(/[\s-]+/g, "");
 
-		const buildRegexArray = (values = []) => {
-			const uniqueValues = Array.from(
-				new Set(
-					values
-						.map((value) => value?.toString().trim())
-						.filter((value) => value && value.length > 0)
-				)
-			);
+                        return Array.from(
+                                new Set([
+                                        trimmed,
+                                        hyphenated,
+                                        spaced,
+                                        withoutSpacesOrHyphens,
+                                        ampersandReplaced,
+                                        ampHyphenated,
+                                        ampSpaced,
+                                        ampWithoutSpacesOrHyphens,
+                                ])
+                        );
+                };
 
-			return uniqueValues.map(
-				(value) => new RegExp(`^${escapeRegex(value)}$`, "i")
-			);
-		};
+                const buildRegexArray = (values = []) => {
+                        const uniqueValues = Array.from(
+                                new Set(
+                                        values
+
+                                                .map((value) =>
+                                                        value?.toString().trim()
+                                                )
+
+                                                .filter((value) => value && value.length > 0)
+                                )
+                        );
+
+                        return uniqueValues.map(
+                                (value) => new RegExp(`^${escapeRegex(value)}$`, "i")
+                        );
+                };
+
+                const appendValueAndVariants = (set, rawValue) => {
+                        if (rawValue === undefined || rawValue === null) {
+                                return;
+                        }
+
+                        const stringValue =
+                                typeof rawValue === "string"
+                                        ? rawValue
+                                        : rawValue?.toString?.() || "";
+
+                        const trimmed = stringValue.trim();
+
+                        if (!trimmed) {
+                                return;
+                        }
+
+                        const maybeAdd = (value) => {
+                                if (!value && value !== 0) {
+                                        return;
+                                }
+
+                                const valueString =
+                                        typeof value === "string"
+                                                ? value
+                                                : value?.toString?.() || "";
+
+                                const valueTrimmed = valueString.trim();
+
+                                if (valueTrimmed) {
+                                        set.add(valueTrimmed);
+                                }
+                        };
+
+                        maybeAdd(trimmed);
+
+                        const normalized = ensureSlug(trimmed);
+
+                        if (normalized && normalized !== trimmed) {
+                                set.add(normalized);
+                        }
+
+                        createNameVariants(trimmed).forEach((variant) => {
+                                const variantTrimmed = variant.trim();
+
+                                if (!variantTrimmed) {
+                                        return;
+                                }
+
+                                set.add(variantTrimmed);
+
+                                const variantNormalized = ensureSlug(variantTrimmed);
+
+                                if (
+                                        variantNormalized &&
+                                        variantNormalized !== variantTrimmed &&
+                                        variantNormalized !== normalized
+                                ) {
+                                        set.add(variantNormalized);
+                                }
+                        });
+                };
+
+                const doesIdentifierMatch = (
+                        identifier,
+                        normalizedIdentifier,
+                        candidatesSet
+                ) => {
+                        if (identifier === undefined || identifier === null) {
+                                return false;
+                        }
+
+                        const identifierString =
+                                typeof identifier === "string"
+                                        ? identifier
+                                        : identifier?.toString?.() || "";
+
+                        const trimmedIdentifier = identifierString.trim();
+
+                        if (!trimmedIdentifier) {
+                                return false;
+                        }
+
+                        const lowerIdentifier = trimmedIdentifier.toLowerCase();
+
+                        for (const candidate of candidatesSet) {
+                                const candidateString =
+                                        typeof candidate === "string"
+                                                ? candidate
+                                                : candidate?.toString?.();
+
+                                if (!candidateString) {
+                                        continue;
+                                }
+
+                                const trimmedCandidate = candidateString.trim();
+
+                                if (!trimmedCandidate) {
+                                        continue;
+                                }
+
+                                if (trimmedCandidate === trimmedIdentifier) {
+                                        return true;
+                                }
+
+                                if (trimmedCandidate.toLowerCase() === lowerIdentifier) {
+                                        return true;
+                                }
+
+                                if (
+                                        normalizedIdentifier &&
+                                        ensureSlug(trimmedCandidate) === normalizedIdentifier
+                                ) {
+                                        return true;
+                                }
+                        }
+
+                        return false;
+                };
+
+                let categoriesCache = null;
+
+                const getPublishedCategories = async () => {
+                        if (!categoriesCache) {
+                                categoriesCache = await Categories.find(
+                                        { published: true },
+                                        { name: 1, subCategories: 1 }
+                                ).lean();
+                        }
+
+                        return categoriesCache;
+                };
+
 
 		const ensureAndConditions = (queryObject) => {
 			if (!queryObject.$and) {
@@ -83,92 +238,234 @@ export async function GET(request) {
 		// Build query
 		const query = { published: true };
 
-		if (subCategoryParam) {
-			const subCategoryRegexes = buildRegexArray([
-				subCategoryParam,
-				...createNameVariants(subCategoryParam),
-			]);
+                let matchedCategoryValuesFromSubCategory = new Set();
 
-			if (subCategoryRegexes.length > 0) {
-				ensureAndConditions(query).push({
-					subCategory: { $in: subCategoryRegexes },
-				});
-			} else {
-				query.subCategory = subCategoryParam;
-			}
-		} else if (category && category !== "all") {
-			const categoryVariantsToCheck = Array.from(
-				new Set([category, ...createNameVariants(category)])
-			);
+                if (subCategoryParam) {
+                        const normalizedSubCategory = ensureSlug(subCategoryParam);
+                        const possibleSubCategoryValues = new Set();
 
-			let categoryDocument = null;
+                        appendValueAndVariants(possibleSubCategoryValues, subCategoryParam);
 
-			for (const variant of categoryVariantsToCheck) {
-				// Try to find a matching category document using different variants
-				// to handle inputs with spaces, hyphens, or different casing.
-				categoryDocument = await Categories.findOne({
-					published: true,
-					name: new RegExp(`^${escapeRegex(variant)}$`, "i"),
-				}).lean();
+                        if (
+                                normalizedSubCategory &&
+                                normalizedSubCategory !== subCategoryParam
+                        ) {
+                                appendValueAndVariants(
+                                        possibleSubCategoryValues,
+                                        normalizedSubCategory
+                                );
+                        }
 
-				if (categoryDocument) {
-					break;
-				}
-			}
+                        const categoriesWithSubCategories =
+                                await getPublishedCategories();
 
-			if (categoryDocument) {
-				const orConditions = [];
+                        categoriesWithSubCategories.forEach((categoryDocument) => {
+                                categoryDocument.subCategories?.forEach((subCategory) => {
+                                        const candidateValues = new Set();
 
-				const categoryRegexes = buildRegexArray([
-					categoryDocument.name,
-					...createNameVariants(categoryDocument.name),
-					...categoryVariantsToCheck,
-				]);
+                                        appendValueAndVariants(
+                                                candidateValues,
+                                                subCategory?.name
+                                        );
 
-				if (categoryRegexes.length > 0) {
-					orConditions.push({ category: { $in: categoryRegexes } });
-				}
+                                        if (subCategory?.slug) {
+                                                appendValueAndVariants(
+                                                        candidateValues,
+                                                        subCategory.slug
+                                                );
+                                        }
 
-				const subCategoryNames =
-					categoryDocument.subCategories?.map((sub) => sub.name) || [];
+                                        if (subCategory?._id) {
+                                                appendValueAndVariants(
+                                                        candidateValues,
+                                                        subCategory._id.toString()
+                                                );
+                                        }
 
-				if (subCategoryNames.length > 0) {
-					const subCategoryRegexes = buildRegexArray(
-						subCategoryNames.flatMap((name) => [
-							name,
-							...createNameVariants(name),
-						])
-					);
+                                        if (
+                                                doesIdentifierMatch(
+                                                        subCategoryParam,
+                                                        normalizedSubCategory,
+                                                        candidateValues
+                                                )
+                                        ) {
+                                                candidateValues.forEach((value) => {
+                                                        possibleSubCategoryValues.add(value);
+                                                });
 
-					if (subCategoryRegexes.length > 0) {
-						orConditions.push({
-							subCategory: { $in: subCategoryRegexes },
-						});
-					}
-				}
+                                                appendValueAndVariants(
+                                                        matchedCategoryValuesFromSubCategory,
+                                                        categoryDocument.name
+                                                );
 
-				if (orConditions.length > 0) {
-					ensureAndConditions(query).push({ $or: orConditions });
-				} else if (categoryDocument.name) {
-					query.category = categoryDocument.name;
-				} else {
-					query.category = category;
-				}
-			} else {
-				const fallbackCategoryRegexes = buildRegexArray([
-					category,
-					...createNameVariants(category),
-				]);
+                                                if (categoryDocument.slug) {
+                                                        appendValueAndVariants(
+                                                                matchedCategoryValuesFromSubCategory,
+                                                                categoryDocument.slug
+                                                        );
+                                                }
+                                        }
+                                });
+                        });
 
-				if (fallbackCategoryRegexes.length > 0) {
-					ensureAndConditions(query).push({
-						category: { $in: fallbackCategoryRegexes },
-					});
-				} else {
-					query.category = category;
-				}
-			}
-		}
+                        const subCategoryRegexes = buildRegexArray(
+                                Array.from(possibleSubCategoryValues)
+                        );
+
+                        const subCategoryConditions = [];
+
+                        if (subCategoryRegexes.length > 0) {
+                                subCategoryConditions.push({
+                                        subCategory: { $in: subCategoryRegexes },
+                                });
+                        }
+
+                        if (subCategoryConditions.length > 0) {
+                                ensureAndConditions(query).push({ $or: subCategoryConditions });
+                        } else {
+                                query.subCategory = subCategoryParam;
+                        }
+
+
+                        if (matchedCategoryValuesFromSubCategory.size > 0) {
+                                const categoryRegexesFromSubCategory = buildRegexArray(
+                                        Array.from(matchedCategoryValuesFromSubCategory)
+                                );
+
+                                if (categoryRegexesFromSubCategory.length > 0) {
+                                        ensureAndConditions(query).push({
+                                                category: { $in: categoryRegexesFromSubCategory },
+                                        });
+                                }
+                        }
+                }
+
+                if (category && category !== "all") {
+                        const categoryVariantsToCheck = Array.from(
+                                new Set([category, ...createNameVariants(category)])
+                        );
+
+                        const normalizedCategory = ensureSlug(category);
+                        const categoriesWithSubCategories = await getPublishedCategories();
+
+                        let categoryDocument = null;
+                        let matchedCategoryCandidateValues = new Set();
+
+                        for (const categoryEntry of categoriesWithSubCategories) {
+                                const candidateValues = new Set();
+
+                                appendValueAndVariants(
+                                        candidateValues,
+                                        categoryEntry?.name
+                                );
+
+                                if (categoryEntry?.slug) {
+                                        appendValueAndVariants(
+                                                candidateValues,
+                                                categoryEntry.slug
+                                        );
+                                }
+
+                                if (categoryEntry?._id) {
+                                        candidateValues.add(categoryEntry._id.toString());
+                                }
+
+                                const directMatch = doesIdentifierMatch(
+                                        category,
+                                        normalizedCategory,
+                                        candidateValues
+                                );
+
+                                const variantMatch = categoryVariantsToCheck.some((variant) =>
+                                        doesIdentifierMatch(
+                                                variant,
+                                                ensureSlug(variant),
+                                                candidateValues
+                                        )
+                                );
+
+                                if (directMatch || variantMatch) {
+                                        categoryDocument = categoryEntry;
+                                        matchedCategoryCandidateValues = candidateValues;
+                                        break;
+                                }
+                        }
+
+                        if (categoryDocument) {
+                                const orConditions = [];
+                                const combinedCategoryValues = new Set([
+                                        ...matchedCategoryCandidateValues,
+                                        ...categoryVariantsToCheck,
+                                ]);
+
+                                const categoryRegexes = buildRegexArray(
+                                        Array.from(combinedCategoryValues)
+                                );
+
+                                if (categoryRegexes.length > 0) {
+                                        orConditions.push({ category: { $in: categoryRegexes } });
+                                }
+
+                                const subCategoryCandidates = new Set();
+
+                                categoryDocument.subCategories?.forEach((subCategory) => {
+                                        appendValueAndVariants(
+                                                subCategoryCandidates,
+                                                subCategory?.name
+                                        );
+
+                                        if (subCategory?.slug) {
+                                                appendValueAndVariants(
+                                                        subCategoryCandidates,
+                                                        subCategory.slug
+                                                );
+                                        }
+
+                                        if (subCategory?._id) {
+                                                appendValueAndVariants(
+                                                        subCategoryCandidates,
+                                                        subCategory._id.toString()
+                                                );
+                                        }
+                                });
+
+                                const subCategoryRegexes = buildRegexArray(
+                                        Array.from(subCategoryCandidates)
+                                );
+
+                                if (subCategoryRegexes.length > 0) {
+                                        orConditions.push({
+                                                subCategory: { $in: subCategoryRegexes },
+                                        });
+                                }
+
+                                if (orConditions.length > 0) {
+                                        ensureAndConditions(query).push({ $or: orConditions });
+                                } else if (categoryDocument.name) {
+                                        query.category = categoryDocument.name;
+                                } else {
+                                        query.category = category;
+                                }
+                        } else {
+                                const fallbackCategoryValues = new Set();
+
+                                categoryVariantsToCheck.forEach((value) =>
+                                        appendValueAndVariants(fallbackCategoryValues, value)
+                                );
+
+                                const fallbackCategoryRegexes = buildRegexArray(
+                                        Array.from(fallbackCategoryValues)
+                                );
+
+                                if (fallbackCategoryRegexes.length > 0) {
+                                        ensureAndConditions(query).push({
+                                                category: { $in: fallbackCategoryRegexes },
+                                        });
+                                } else {
+                                        query.category = category;
+                                }
+                        }
+                }
 
 		// Search filter
 		if (search) {
@@ -299,10 +596,20 @@ export async function GET(request) {
 				salePrice: product.salePrice,
 				discount: product.discount,
 				discountPercentage,
-				image:
-					product.images?.[0] ||
-					"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png",
-				images: product.images || [],
+                                image:
+                                        product.images?.find(
+                                                (img) =>
+                                                        typeof img === "string" && img.trim().length > 0
+                                        ) ||
+                                        "https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png",
+                                images:
+                                        Array.isArray(product.images)
+                                                ? product.images.filter(
+                                                          (img) =>
+                                                                  typeof img === "string" &&
+                                                                  img.trim().length > 0
+                                                  )
+                                                : [],
 				category: product.category,
 				subCategory: product.subCategory,
 				inStock: product.inStock,
