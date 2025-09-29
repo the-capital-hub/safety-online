@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Pencil, Trash2, Plus, Save, X, Loader2 } from "lucide-react";
 import {
@@ -35,23 +35,11 @@ export default function CompanyAddresses() {
                         addressesSaving: state.addressesSaving,
                 })
         );
-        const fetchCompany = useSellerCompanyStore((state) => state.fetchCompany);
         const updateAddresses = useSellerCompanyStore((state) => state.updateAddresses);
 
         const [addresses, setAddresses] = useState([]);
         const [editingIndex, setEditingIndex] = useState(-1);
         const [draft, setDraft] = useState(EMPTY_DRAFT);
-        const fetchCompanyRef = useRef(fetchCompany);
-
-        useEffect(() => {
-                fetchCompanyRef.current = fetchCompany;
-        }, [fetchCompany]);
-
-        useEffect(() => {
-                if (!initialized && !loading) {
-                        fetchCompanyRef.current().catch(() => undefined);
-                }
-        }, [initialized, loading]);
 
         useEffect(() => {
                 setAddresses(company?.companyAddress || []);

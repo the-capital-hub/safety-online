@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import Image from "next/image";
 import {
@@ -35,23 +35,11 @@ export default function ShopForm() {
                         uploadingLogo: state.uploadingLogo,
                 })
         );
-        const fetchCompany = useSellerCompanyStore((state) => state.fetchCompany);
         const saveCompany = useSellerCompanyStore((state) => state.saveCompany);
         const uploadLogo = useSellerCompanyStore((state) => state.uploadLogo);
         const setCompany = useSellerCompanyStore((state) => state.setCompany);
 
         const [form, setForm] = useState(EMPTY_FORM);
-        const fetchCompanyRef = useRef(fetchCompany);
-
-        useEffect(() => {
-                fetchCompanyRef.current = fetchCompany;
-        }, [fetchCompany]);
-
-        useEffect(() => {
-                if (!initialized && !loading) {
-                        fetchCompanyRef.current().catch(() => undefined);
-                }
-        }, [initialized, loading]);
 
         useEffect(() => {
                 if (company) {
