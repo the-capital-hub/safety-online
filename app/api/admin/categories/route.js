@@ -207,6 +207,16 @@ import { dbConnect } from "@/lib/dbConnect.js";
 import { attachProductCountsToCategories } from "@/lib/categoryCounts.js";
 import Category from "@/model/Categories.js";
 
+const normalizeNavigationOrder = (value) => {
+        const parsed = Number(value);
+
+        if (!Number.isFinite(parsed) || parsed < 0) {
+                return 0;
+        }
+
+        return Math.floor(parsed);
+};
+
 export async function GET(request) {
 	await dbConnect();
 
@@ -251,12 +261,21 @@ export async function GET(request) {
                         { persist: true }
                 );
 
+                const categoriesWithNormalizedOrder = normalizedCategories.map(
+                        (category) => ({
+                                ...category,
+                                navigationOrder: normalizeNavigationOrder(
+                                        category.navigationOrder
+                                ),
+                        })
+                );
+
                 const total = await Category.countDocuments(query);
                 const totalPages = Math.ceil(total / limit);
 
                 return Response.json({
                         success: true,
-                        categories: normalizedCategories,
+                        categories: categoriesWithNormalizedOrder,
 			pagination: {
 				currentPage: page,
 				totalPages,
@@ -321,16 +340,14 @@ export async function POST(request) {
                                         }))
                         : [];
 
-                const navOrderNumber = Number(navigationOrder);
 
                 const category = new Category({
                         name,
                         published: !!published,
                         subCategories: normalizedSubs,
-                        navigationOrder:
-                                Number.isFinite(navOrderNumber) && navOrderNumber >= 0
-                                        ? navOrderNumber
-                                        : 0,
+
+                        navigationOrder: normalizeNavigationOrder(navigationOrder),
+
                 });
 
 		await category.save();
@@ -393,18 +410,18 @@ export async function PUT(request) {
                         allowed.productCount = updateData.productCount;
                 }
                 if (updateData.navigationOrder !== undefined) {
-                        const navOrderNumber = Number(updateData.navigationOrder);
-                        allowed.navigationOrder =
-                                Number.isFinite(navOrderNumber) && navOrderNumber >= 0
-                                        ? navOrderNumber
-                                        : 0;
+
+                        allowed.navigationOrder = normalizeNavigationOrder(
+                                updateData.navigationOrder
+                        );
                 }
 
-		const category = await Category.findByIdAndUpdate(
-			categoryId,
-			{ $set: allowed },
-			{ new: true }
-		);
+                const category = await Category.findByIdAndUpdate(
+                        categoryId,
+                        { $set: allowed },
+                        { new: true, runValidators: true }
+                );
+
 
 		if (!category) {
 			return Response.json(

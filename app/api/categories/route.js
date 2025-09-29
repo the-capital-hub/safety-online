@@ -3,6 +3,15 @@ import { attachProductCountsToCategories } from "@/lib/categoryCounts.js";
 import { slugify } from "@/lib/slugify.js";
 import Category from "@/model/Categories.js";
 
+const normalizeNavigationOrder = (value) => {
+        const parsed = Number(value);
+        if (!Number.isFinite(parsed) || parsed < 0) {
+                return 0;
+        }
+
+        return Math.floor(parsed);
+};
+
 export async function GET() {
 	try {
 		await dbConnect();
@@ -43,7 +52,11 @@ export async function GET() {
                                 _id: category._id,
                                 name: category.name,
                                 slug: categorySlug,
-                                navigationOrder: Number(category.navigationOrder) || 0,
+
+                                navigationOrder: normalizeNavigationOrder(
+                                        category.navigationOrder
+                                ),
+
                                 productCount:
                                         directProductCount > 0
                                                 ? directProductCount
