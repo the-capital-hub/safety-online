@@ -1,3 +1,5 @@
+// /api/products/[id]
+
 import Product from "@/model/Product.js";
 import { dbConnect } from "@/lib/dbConnect.js";
 import companyDetails from "@/model/companyDetails";
