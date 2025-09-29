@@ -15,6 +15,13 @@ import { slugify } from "@/lib/slugify.js";
 
 const HOME_SLUG = "home";
 const CONTACT_SLUG = "contact-us";
+const DESIRED_CATEGORY_ORDER = [
+        "road-safety",
+        "industrial-safety",
+        "q-manager",
+        "fire-safety",
+        "road-sign",
+];
 
 const toNumber = (value) => {
         const parsed = Number(value);
@@ -47,6 +54,37 @@ const categoryHasProducts = (category) => {
 const subCategoryHasProducts = (subCategory) =>
         hasProductCount(subCategory?.productCount);
 
+const createCategoryComparator = () => {
+        const orderMap = new Map(
+                DESIRED_CATEGORY_ORDER.map((slug, index) => [slug, index])
+        );
+
+        return (a, b) => {
+                const orderA = orderMap.get(a.slug);
+                const orderB = orderMap.get(b.slug);
+                const hasOrderA = orderA !== undefined;
+                const hasOrderB = orderB !== undefined;
+
+                if (hasOrderA && hasOrderB && orderA !== orderB) {
+                        return orderA - orderB;
+                }
+
+                if (hasOrderA && !hasOrderB) {
+                        return -1;
+                }
+
+                if (!hasOrderA && hasOrderB) {
+                        return 1;
+                }
+
+                if (a.navigationOrder !== b.navigationOrder) {
+                        return a.navigationOrder - b.navigationOrder;
+                }
+
+                return a.name.localeCompare(b.name);
+        };
+};
+
 export default function NavigationBar({ isMenuOpen = false, onMenuClose }) {
         const router = useRouter();
         const pathname = usePathname();
@@ -72,6 +110,8 @@ export default function NavigationBar({ isMenuOpen = false, onMenuClose }) {
                                 if (!isMounted) return;
 
                                 if (data.success && Array.isArray(data.categories)) {
+                                        const categoryComparator = createCategoryComparator();
+
                                         const mappedCategories = data.categories
                                                 .map((category) => {
                                                         const categorySlug = slugify(
@@ -111,13 +151,7 @@ export default function NavigationBar({ isMenuOpen = false, onMenuClose }) {
                                                                         }),
                                                         };
                                                 })
-                                                .sort((a, b) => {
-                                                        if (a.navigationOrder === b.navigationOrder) {
-                                                                return a.name.localeCompare(b.name);
-                                                        }
-
-                                                        return a.navigationOrder - b.navigationOrder;
-                                                });
+                                                .sort(categoryComparator);
 
                                         setCategories(mappedCategories);
                                 } else {
