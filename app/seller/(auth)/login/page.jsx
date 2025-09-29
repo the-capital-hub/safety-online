@@ -172,7 +172,7 @@ export default function SellerLogin() {
                                                         variants={itemVariants}
                                                 >
                                                         <span className="h-2 w-2 rounded-full bg-orange-400" />
-                                                        Seller portal 2.0
+                                                        Seller portal 1.2
                                                 </motion.div>
                                                 <motion.h1
                                                         className="text-3xl font-semibold leading-tight text-white md:text-4xl lg:text-5xl"
@@ -214,7 +214,7 @@ export default function SellerLogin() {
                                                 animate={{ scale: 1, opacity: 1 }}
                                                 transition={{ duration: 1, delay: 0.35 }}
                                         >
-                                                <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
+                                                {/* <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
                                                         <div className="absolute inset-x-6 top-6 h-40 rounded-3xl bg-gradient-to-b from-white/40 to-transparent blur-2xl" />
                                                         <Image
                                                                 src={LoginModel.src}
@@ -223,7 +223,7 @@ export default function SellerLogin() {
                                                                 height={360}
                                                                 className="relative z-10 h-full w-full rounded-2xl object-cover shadow-2xl"
                                                         />
-                                                </div>
+                                                </div> */}
                                         </motion.div>
                                 </motion.section>
 
