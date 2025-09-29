@@ -27,12 +27,17 @@ export default function AccountSettings() {
         }));
         const fetchCompany = useSellerCompanyStore((state) => state.fetchCompany);
         const isFetchingRef = useRef(false);
+        const fetchCompanyRef = useRef(fetchCompany);
+
+        useEffect(() => {
+                fetchCompanyRef.current = fetchCompany;
+        }, [fetchCompany]);
 
         const handleRetry = () => {
                 if (isFetchingRef.current) return;
 
                 isFetchingRef.current = true;
-                fetchCompany(true)
+                fetchCompanyRef.current(true)
                         .catch(() => undefined)
                         .finally(() => {
                                 isFetchingRef.current = false;
@@ -59,12 +64,12 @@ export default function AccountSettings() {
                 }
 
                 isFetchingRef.current = true;
-                fetchCompany()
+                fetchCompanyRef.current()
                         .catch(() => undefined)
                         .finally(() => {
                                 isFetchingRef.current = false;
                         });
-        }, [isAuthenticated, initialized, loading, fetchCompany]);
+        }, [isAuthenticated, initialized, loading]);
 
         if (!isAuthenticated) {
                 return (
