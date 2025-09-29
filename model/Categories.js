@@ -16,7 +16,7 @@ const SubCategorySchema = new mongoose.Schema(
                         default: 0,
                 },
         },
-	{ _id: false }
+        { _id: false }
 );
 
 const CategorySchema = new mongoose.Schema(
@@ -33,11 +33,16 @@ const CategorySchema = new mongoose.Schema(
 			default: true,
 		},
 		// Number of products in this category and its subcategories
-		productCount: {
-			type: Number,
-			default: 0,
-		},
-	},
+                productCount: {
+                        type: Number,
+                        default: 0,
+                },
+                navigationOrder: {
+                        type: Number,
+                        default: 0,
+                        min: 0,
+                },
+        },
 	{
 		timestamps: true,
 	}

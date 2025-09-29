@@ -28,24 +28,31 @@ export function UpdateCategoryPopup({ open, onOpenChange, category }) {
 	const { updateCategory } = useAdminCategoryStore();
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
-	const [formData, setFormData] = useState({
-		name: "",
-		published: true,
-		subCategories: [],
-	});
+        const [formData, setFormData] = useState({
+                name: "",
+                navigationOrder: "",
+                published: true,
+                subCategories: [],
+        });
 
 	useEffect(() => {
 		if (category) {
-			setFormData({
-				name: category.name || "",
-				published: category.published !== undefined ? category.published : true,
-				subCategories: Array.isArray(category.subCategories)
-					? category.subCategories.map((s) => ({
-							name: s.name || "",
-							published: s.published !== undefined ? !!s.published : true,
-					  }))
-					: [],
-			});
+                        setFormData({
+                                name: category.name || "",
+                                navigationOrder:
+                                        category.navigationOrder !== undefined &&
+                                        category.navigationOrder !== null
+                                                ? String(category.navigationOrder)
+                                                : "",
+                                published:
+                                        category.published !== undefined ? category.published : true,
+                                subCategories: Array.isArray(category.subCategories)
+                                        ? category.subCategories.map((s) => ({
+                                                        name: s.name || "",
+                                                        published: s.published !== undefined ? !!s.published : true,
+                                          }))
+                                        : [],
+                        });
 		}
 	}, [category]);
 
@@ -86,11 +93,17 @@ export function UpdateCategoryPopup({ open, onOpenChange, category }) {
 
 		setIsSubmitting(true);
 
-		const payload = {
-			name: formData.name.trim(),
-			published: formData.published,
-			subCategories: (formData.subCategories || []).filter(
-				(s) => (s.name || "").trim() !== ""
+                const navOrderNumber = Number(formData.navigationOrder);
+
+                const payload = {
+                        name: formData.name.trim(),
+                        navigationOrder:
+                                Number.isFinite(navOrderNumber) && navOrderNumber >= 0
+                                        ? navOrderNumber
+                                        : 0,
+                        published: formData.published,
+                        subCategories: (formData.subCategories || []).filter(
+                                (s) => (s.name || "").trim() !== ""
 			),
 		};
 
@@ -149,6 +162,30 @@ export function UpdateCategoryPopup({ open, onOpenChange, category }) {
                                                                         links.
                                                                 </p>
                                                         </div>
+                                                </div>
+
+                                                <div>
+                                                        <Label htmlFor="update-navigationOrder">
+                                                                Navigation Order
+                                                        </Label>
+                                                        <Input
+                                                                id="update-navigationOrder"
+                                                                type="number"
+                                                                min={0}
+                                                                placeholder="e.g. 1"
+                                                                value={formData.navigationOrder}
+                                                                onChange={(e) =>
+                                                                        setFormData({
+                                                                                ...formData,
+                                                                                navigationOrder:
+                                                                                        e.target.value,
+                                                                        })
+                                                                }
+                                                                className="mt-1"
+                                                        />
+                                                        <p className="text-sm text-gray-500 mt-1">
+                                                                Determines the category position in navigation menus.
+                                                        </p>
                                                 </div>
 
 						<div className="flex items-center justify-between">
