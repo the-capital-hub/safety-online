@@ -19,8 +19,8 @@ export const useAdminCategoryStore = create((set, get) => ({
 		limit: 10,
 	},
 	selectedCategories: [],
-	sortBy: "createdAt",
-	sortOrder: "desc",
+        sortBy: "navigationOrder",
+        sortOrder: "asc",
 
 	// Actions
 	fetchCategories: async () => {
@@ -237,24 +237,26 @@ export const useAdminCategoryStore = create((set, get) => ({
 	exportToCSV: () => {
 		const { categories } = get();
 		const csvContent = [
-			[
-				"ID",
-				"Name",
-				"Subcategories",
-				"Published",
-				"Product Count",
-				"Created At",
-			].join(","),
-			...categories.map((category) =>
-				[
-					category._id,
-					`"${category.name}"`,
-					category.subCategories ? category.subCategories.length : 0,
-					category.published ? "Yes" : "No",
-					category.productCount || 0,
-					category.createdAt
-						? new Date(category.createdAt).toLocaleDateString()
-						: "",
+                        [
+                                "ID",
+                                "Name",
+                                "Subcategories",
+                                "Published",
+                                "Product Count",
+                                "Navigation Order",
+                                "Created At",
+                        ].join(","),
+                        ...categories.map((category) =>
+                                [
+                                        category._id,
+                                        `"${category.name}"`,
+                                        category.subCategories ? category.subCategories.length : 0,
+                                        category.published ? "Yes" : "No",
+                                        category.productCount || 0,
+                                        category.navigationOrder ?? 0,
+                                        category.createdAt
+                                                ? new Date(category.createdAt).toLocaleDateString()
+                                                : "",
 				].join(",")
 			),
 		].join("\n");

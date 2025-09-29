@@ -9,7 +9,7 @@ export async function GET() {
 
 		// Only published categories
                 const cats = await Category.find({ published: true })
-                        .sort({ name: 1 })
+                        .sort({ navigationOrder: 1, name: 1 })
                         .lean();
 
                 const categoriesWithCounts = await attachProductCountsToCategories(
@@ -43,6 +43,7 @@ export async function GET() {
                                 _id: category._id,
                                 name: category.name,
                                 slug: categorySlug,
+                                navigationOrder: Number(category.navigationOrder) || 0,
                                 productCount:
                                         directProductCount > 0
                                                 ? directProductCount

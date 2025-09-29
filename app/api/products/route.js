@@ -219,8 +219,10 @@ export async function GET(request) {
                         if (!categoriesCache) {
                                 categoriesCache = await Categories.find(
                                         { published: true },
-                                        { name: 1, subCategories: 1 }
-                                ).lean();
+                                        { name: 1, subCategories: 1, navigationOrder: 1 }
+                                )
+                                        .sort({ navigationOrder: 1, name: 1 })
+                                        .lean();
                         }
 
                         return categoriesCache;
