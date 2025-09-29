@@ -76,12 +76,17 @@ const menuItems = [
 		icon: Users,
 		href: "/admin/sellers",
 	},
-	{
-		title: "Orders",
-		icon: ShoppingCart,
-		href: "/admin/orders",
-	},
-	// {
+        {
+                title: "Orders",
+                icon: ShoppingCart,
+                href: "/admin/orders",
+        },
+        {
+                title: "Payments",
+                icon: DollarSign,
+                href: "/admin/payments",
+        },
+        // {
 	// 	title: "Our Staff",
 	// 	icon: UserCheck,
 	// 	href: "/admin/our-staff",

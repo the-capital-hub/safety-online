@@ -47,12 +47,13 @@ function SellerOrdersPage() {
 		stats,
 		filters,
 		setFilters,
-		resetFilters,
-		fetchOrders,
-		acceptOrder,
-		rejectOrder,
-		downloadShipmentReceipt,
-	} = useSellerOrderStore();
+                resetFilters,
+                fetchOrders,
+                acceptOrder,
+                rejectOrder,
+                downloadShipmentReceipt,
+                markAsDelivered,
+        } = useSellerOrderStore();
 
 	const isAuthenticated = useIsSellerAuthenticated();
 	const [isRedirecting, setIsRedirecting] = useState(false);
@@ -90,14 +91,30 @@ function SellerOrdersPage() {
 		}
 	};
 
-	const handleDownloadReceipt = async (order) => {
-		const result = await downloadShipmentReceipt(order._id, order.orderNumber);
-		if (result.success) {
-			toast.success("Shipment receipt downloaded successfully");
-		} else {
-			toast.error("Failed to download shipment receipt");
-		}
-	};
+        const handleDownloadReceipt = async (order) => {
+                const result = await downloadShipmentReceipt(order._id, order.orderNumber);
+                if (result.success) {
+                        toast.success("Shipment receipt downloaded successfully");
+                } else {
+                        toast.error("Failed to download shipment receipt");
+                }
+        };
+
+        const handleMarkDelivered = async (orderId) => {
+                const result = await markAsDelivered(orderId, new Date().toISOString());
+
+                if (result.success) {
+                        fetchOrders();
+                        toast.success("Delivery confirmed successfully");
+                        if (result.releaseError) {
+                                toast.error(result.releaseError);
+                        } else if (result.payment?.status === "released") {
+                                toast.success("Escrow released to your account");
+                        }
+                } else {
+                        toast.error(result.message || "Failed to update delivery status");
+                }
+        };
 
 	const getStatusColor = (status) => {
 		const colors = {
@@ -420,18 +437,36 @@ function SellerOrdersPage() {
 															</Button>
 														</>
 													)}
-													{order.status === "processing" && (
-														<>
-															<Button
-																size="sm"
-																variant="outline"
-																onClick={() => handleDownloadReceipt(order)}
-															>
-																<FileText className="w-4 h-4 mr-1" />
-																Receipt
-															</Button>
-														</>
-													)}
+                                        {order.status === "processing" && (
+                                                <>
+                                                        <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                onClick={() => handleDownloadReceipt(order)}
+                                                        >
+                                                                <FileText className="w-4 h-4 mr-1" />
+                                                                Receipt
+                                                        </Button>
+                                                        <Button
+                                                                size="sm"
+                                                                className="bg-emerald-600 hover:bg-emerald-700"
+                                                                onClick={() => handleMarkDelivered(order._id)}
+                                                        >
+                                                                <CheckCircle className="w-4 h-4 mr-1" />
+                                                                Mark Delivered
+                                                        </Button>
+                                                </>
+                                        )}
+                                        {order.status === "shipped" && (
+                                                <Button
+                                                        size="sm"
+                                                        className="bg-emerald-600 hover:bg-emerald-700"
+                                                        onClick={() => handleMarkDelivered(order._id)}
+                                                >
+                                                        <CheckCircle className="w-4 h-4 mr-1" />
+                                                        Mark Delivered
+                                                </Button>
+                                        )}
 												</div>
 											</TableCell>
 										</motion.tr>

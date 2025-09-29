@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { dbConnect } from "@/lib/dbConnect.js";
 import Order from "@/model/Order";
 import { createOrderWithSubOrders } from "@/lib/orders/createOrder.js";
+import { ensureEscrowPayments } from "@/lib/payments/ensureEscrowPayments.js";
 import {
         sendOrderConfirmationEmail,
         sendOrderFailureEmail,
@@ -178,6 +179,13 @@ export async function POST(req) {
                                 existingOrder.transactionId = razorpay_payment_id;
                                 await existingOrder.save();
                                 existingOrder = await getPopulatedOrder({ _id: existingOrder._id });
+                                await ensureEscrowPayments({
+                                        order: existingOrder,
+                                        paymentInfo: {
+                                                transactionId: razorpay_payment_id,
+                                                gatewayOrderId: razorpay_order_id,
+                                        },
+                                });
                         }
 
                         try {
@@ -213,6 +221,14 @@ export async function POST(req) {
                                 gatewayOrderId: razorpay_order_id,
                         },
                         orderStatus: "confirmed",
+                });
+
+                await ensureEscrowPayments({
+                        order,
+                        paymentInfo: {
+                                transactionId: razorpay_payment_id,
+                                gatewayOrderId: razorpay_order_id,
+                        },
                 });
 
                 const orderObject = order.toObject();
