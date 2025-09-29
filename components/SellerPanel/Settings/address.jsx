@@ -27,31 +27,26 @@ const EMPTY_DRAFT = {
 };
 
 export default function CompanyAddresses() {
-        const {
-                company,
-                loading,
-                initialized,
-                addressesSaving,
-                fetchCompany,
-                updateAddresses,
-        } = useSellerCompanyStore((state) => ({
-                company: state.company,
-                loading: state.loading,
-                initialized: state.initialized,
-                addressesSaving: state.addressesSaving,
-                fetchCompany: state.fetchCompany,
-                updateAddresses: state.updateAddresses,
-        }));
+        const { company, loading, initialized, addressesSaving } = useSellerCompanyStore(
+                (state) => ({
+                        company: state.company,
+                        loading: state.loading,
+                        initialized: state.initialized,
+                        addressesSaving: state.addressesSaving,
+                })
+        );
+        const fetchCompany = useSellerCompanyStore((state) => state.fetchCompany);
+        const updateAddresses = useSellerCompanyStore((state) => state.updateAddresses);
 
         const [addresses, setAddresses] = useState([]);
         const [editingIndex, setEditingIndex] = useState(-1);
         const [draft, setDraft] = useState(EMPTY_DRAFT);
 
         useEffect(() => {
-                if (!initialized) {
+                if (!initialized && !loading) {
                         fetchCompany().catch(() => undefined);
                 }
-        }, [initialized, fetchCompany]);
+        }, [initialized, loading, fetchCompany]);
 
         useEffect(() => {
                 setAddresses(company?.companyAddress || []);

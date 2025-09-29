@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
@@ -20,12 +20,24 @@ import { useIsSellerAuthenticated } from "@/store/sellerAuthStore";
 export default function AccountSettings() {
         const router = useRouter();
         const isAuthenticated = useIsSellerAuthenticated();
-        const { loading, initialized, error, fetchCompany } = useSellerCompanyStore((state) => ({
+        const { loading, initialized, error } = useSellerCompanyStore((state) => ({
                 loading: state.loading,
                 initialized: state.initialized,
                 error: state.error,
-                fetchCompany: state.fetchCompany,
         }));
+        const fetchCompany = useSellerCompanyStore((state) => state.fetchCompany);
+        const isFetchingRef = useRef(false);
+
+        const handleRetry = () => {
+                if (isFetchingRef.current) return;
+
+                isFetchingRef.current = true;
+                fetchCompany(true)
+                        .catch(() => undefined)
+                        .finally(() => {
+                                isFetchingRef.current = false;
+                        });
+        };
 
         useEffect(() => {
                 if (!isAuthenticated) {
@@ -37,10 +49,22 @@ export default function AccountSettings() {
         }, [isAuthenticated, router]);
 
         useEffect(() => {
-                if (isAuthenticated && !initialized) {
-                        fetchCompany().catch(() => undefined);
+                if (!isAuthenticated) {
+                        isFetchingRef.current = false;
+                        return;
                 }
-        }, [isAuthenticated, initialized, fetchCompany]);
+
+                if (initialized || loading || isFetchingRef.current) {
+                        return;
+                }
+
+                isFetchingRef.current = true;
+                fetchCompany()
+                        .catch(() => undefined)
+                        .finally(() => {
+                                isFetchingRef.current = false;
+                        });
+        }, [isAuthenticated, initialized, loading, fetchCompany]);
 
         if (!isAuthenticated) {
                 return (
@@ -76,7 +100,8 @@ export default function AccountSettings() {
                                                                         <Button
                                                                                 variant="outline"
                                                                                 size="sm"
-                                                                                onClick={() => fetchCompany(true)}
+                                                                                onClick={handleRetry}
+                                                                                disabled={loading}
                                                                         >
                                                                                 Retry
                                                                         </Button>
