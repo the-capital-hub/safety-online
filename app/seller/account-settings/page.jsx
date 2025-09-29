@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
@@ -15,7 +15,7 @@ import ShopForm from "@/components/SellerPanel/Settings/form";
 import CompanyAddresses from "@/components/SellerPanel/Settings/address";
 import LoadingSpinner from "@/components/SellerPanel/Layout/LoadingSpinner.jsx";
 import { useSellerCompanyStore } from "@/store/sellerCompanyStore.js";
-import { useIsSellerAuthenticated } from "@/store/sellerAuthStore";
+import { useIsSellerAuthenticated, useSellerAuthStore } from "@/store/sellerAuthStore";
 
 export default function AccountSettings() {
         const router = useRouter();
@@ -28,10 +28,32 @@ export default function AccountSettings() {
         const fetchCompany = useSellerCompanyStore((state) => state.fetchCompany);
         const isFetchingRef = useRef(false);
         const fetchCompanyRef = useRef(fetchCompany);
+        const [authHydrated, setAuthHydrated] = useState(
+                () => useSellerAuthStore.persist?.hasHydrated?.() ?? false
+        );
 
         useEffect(() => {
                 fetchCompanyRef.current = fetchCompany;
         }, [fetchCompany]);
+
+        useEffect(() => {
+                const persist = useSellerAuthStore.persist;
+                if (!persist) return;
+
+                const onHydrate = persist.onHydrate?.(() => {
+                        setAuthHydrated(false);
+                });
+                const onFinishHydration = persist.onFinishHydration?.(() => {
+                        setAuthHydrated(true);
+                });
+
+                setAuthHydrated(persist.hasHydrated?.() ?? false);
+
+                return () => {
+                        onHydrate?.();
+                        onFinishHydration?.();
+                };
+        }, []);
 
         const handleRetry = () => {
                 if (isFetchingRef.current) return;
@@ -45,16 +67,20 @@ export default function AccountSettings() {
         };
 
         useEffect(() => {
+                if (!authHydrated) {
+                        return;
+                }
+
                 if (!isAuthenticated) {
                         const timer = setTimeout(() => {
                                 router.push("/seller/login");
                         }, 100);
                         return () => clearTimeout(timer);
                 }
-        }, [isAuthenticated, router]);
+        }, [authHydrated, isAuthenticated, router]);
 
         useEffect(() => {
-                if (!isAuthenticated) {
+                if (!authHydrated || !isAuthenticated) {
                         isFetchingRef.current = false;
                         return;
                 }
@@ -69,7 +95,15 @@ export default function AccountSettings() {
                         .finally(() => {
                                 isFetchingRef.current = false;
                         });
-        }, [isAuthenticated, initialized, loading]);
+        }, [authHydrated, isAuthenticated, initialized, loading]);
+
+        if (!authHydrated) {
+                return (
+                        <div className="flex min-h-screen items-center justify-center bg-white py-10">
+                                <LoadingSpinner />
+                        </div>
+                );
+        }
 
         if (!isAuthenticated) {
                 return (
