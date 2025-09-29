@@ -52,9 +52,11 @@ export async function GET() {
                                 _id: category._id,
                                 name: category.name,
                                 slug: categorySlug,
+
                                 navigationOrder: normalizeNavigationOrder(
                                         category.navigationOrder
                                 ),
+
                                 productCount:
                                         directProductCount > 0
                                                 ? directProductCount

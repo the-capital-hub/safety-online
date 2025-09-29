@@ -94,6 +94,7 @@ export function UpdateCategoryPopup({ open, onOpenChange, category }) {
 		setIsSubmitting(true);
 
                 const navOrderNumber = Number(formData.navigationOrder);
+
                 const normalizedNavigationOrder = Number.isFinite(navOrderNumber)
                         ? Math.max(0, Math.floor(navOrderNumber))
                         : 0;
@@ -101,6 +102,7 @@ export function UpdateCategoryPopup({ open, onOpenChange, category }) {
                 const payload = {
                         name: formData.name.trim(),
                         navigationOrder: normalizedNavigationOrder,
+
                         published: formData.published,
                         subCategories: (formData.subCategories || []).filter(
                                 (s) => (s.name || "").trim() !== ""

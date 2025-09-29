@@ -63,6 +63,7 @@ export function AddCategoryPopup({ open, onOpenChange }) {
 
 		// sanitize
                 const navOrderNumber = Number(formData.navigationOrder);
+
                 const normalizedNavigationOrder = Number.isFinite(navOrderNumber)
                         ? Math.max(0, Math.floor(navOrderNumber))
                         : 0;
@@ -70,6 +71,7 @@ export function AddCategoryPopup({ open, onOpenChange }) {
                 const payload = {
                         name: formData.name.trim(),
                         navigationOrder: normalizedNavigationOrder,
+
                         published: formData.published,
                         subCategories: (formData.subCategories || [])
                                 .filter((s) => (s.name || "").trim() !== "")

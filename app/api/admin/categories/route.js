@@ -340,11 +340,14 @@ export async function POST(request) {
                                         }))
                         : [];
 
+
                 const category = new Category({
                         name,
                         published: !!published,
                         subCategories: normalizedSubs,
+
                         navigationOrder: normalizeNavigationOrder(navigationOrder),
+
                 });
 
 		await category.save();
@@ -407,6 +410,7 @@ export async function PUT(request) {
                         allowed.productCount = updateData.productCount;
                 }
                 if (updateData.navigationOrder !== undefined) {
+
                         allowed.navigationOrder = normalizeNavigationOrder(
                                 updateData.navigationOrder
                         );
@@ -417,6 +421,7 @@ export async function PUT(request) {
                         { $set: allowed },
                         { new: true, runValidators: true }
                 );
+
 
 		if (!category) {
 			return Response.json(

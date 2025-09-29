@@ -183,7 +183,9 @@ export default function AdminCategoriesPage() {
                 const normalizedValue =
                         draftValue === "" || !Number.isFinite(parsedValue) || parsedValue < 0
                                 ? 0
+
                                 : Math.floor(parsedValue);
+
 
                 const category = categories.find((cat) => cat._id === categoryId);
                 if (!category) return;
