@@ -207,6 +207,16 @@ import { dbConnect } from "@/lib/dbConnect.js";
 import { attachProductCountsToCategories } from "@/lib/categoryCounts.js";
 import Category from "@/model/Categories.js";
 
+const normalizeNavigationOrder = (value) => {
+        const parsed = Number(value);
+
+        if (!Number.isFinite(parsed) || parsed < 0) {
+                return 0;
+        }
+
+        return Math.floor(parsed);
+};
+
 export async function GET(request) {
 	await dbConnect();
 
@@ -217,7 +227,7 @@ export async function GET(request) {
 		const published = searchParams.get("published");
 		const page = Number.parseInt(searchParams.get("page") || "1");
 		const limit = Number.parseInt(searchParams.get("limit") || "10");
-		const sort = searchParams.get("sort") || "createdAt";
+                const sort = searchParams.get("sort") || "navigationOrder";
 		const order = searchParams.get("order") || "desc";
 
 		const query = {};
@@ -231,8 +241,13 @@ export async function GET(request) {
 			query.published = published === "true";
 		}
 
-		const sortObj = {};
-		sortObj[sort] = order === "desc" ? -1 : 1;
+                const sortObj = {};
+                sortObj[sort] = order === "desc" ? -1 : 1;
+                if (sort !== "navigationOrder") {
+                        sortObj.navigationOrder = 1;
+                } else {
+                        sortObj.name = 1;
+                }
 
 		const skip = (page - 1) * limit;
                 const categories = await Category.find(query)
@@ -246,12 +261,21 @@ export async function GET(request) {
                         { persist: true }
                 );
 
+                const categoriesWithNormalizedOrder = normalizedCategories.map(
+                        (category) => ({
+                                ...category,
+                                navigationOrder: normalizeNavigationOrder(
+                                        category.navigationOrder
+                                ),
+                        })
+                );
+
                 const total = await Category.countDocuments(query);
                 const totalPages = Math.ceil(total / limit);
 
                 return Response.json({
                         success: true,
-                        categories: normalizedCategories,
+                        categories: categoriesWithNormalizedOrder,
 			pagination: {
 				currentPage: page,
 				totalPages,
@@ -275,7 +299,12 @@ export async function POST(request) {
 
 	try {
 		const body = await request.json();
-		let { name, published = true, subCategories = [] } = body || {};
+                let {
+                        name,
+                        published = true,
+                        subCategories = [],
+                        navigationOrder = 0,
+                } = body || {};
 
 		if (!name || typeof name !== "string" || name.trim() === "") {
 			return Response.json(
@@ -311,11 +340,12 @@ export async function POST(request) {
                                         }))
                         : [];
 
-		const category = new Category({
-			name,
-			published: !!published,
-			subCategories: normalizedSubs,
-		});
+                const category = new Category({
+                        name,
+                        published: !!published,
+                        subCategories: normalizedSubs,
+                        navigationOrder: normalizeNavigationOrder(navigationOrder),
+                });
 
 		await category.save();
 
@@ -373,15 +403,20 @@ export async function PUT(request) {
                                         productCount: Number(s.productCount) || 0,
                                 }));
 		}
-		if (typeof updateData.productCount === "number") {
-			allowed.productCount = updateData.productCount;
-		}
+                if (typeof updateData.productCount === "number") {
+                        allowed.productCount = updateData.productCount;
+                }
+                if (updateData.navigationOrder !== undefined) {
+                        allowed.navigationOrder = normalizeNavigationOrder(
+                                updateData.navigationOrder
+                        );
+                }
 
-		const category = await Category.findByIdAndUpdate(
-			categoryId,
-			{ $set: allowed },
-			{ new: true }
-		);
+                const category = await Category.findByIdAndUpdate(
+                        categoryId,
+                        { $set: allowed },
+                        { new: true, runValidators: true }
+                );
 
 		if (!category) {
 			return Response.json(

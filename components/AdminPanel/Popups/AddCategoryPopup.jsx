@@ -22,6 +22,7 @@ export function AddCategoryPopup({ open, onOpenChange }) {
 
         const [formData, setFormData] = useState({
                 name: "",
+                navigationOrder: "",
                 published: true,
                 subCategories: [],
         });
@@ -61,8 +62,14 @@ export function AddCategoryPopup({ open, onOpenChange }) {
                 setIsSubmitting(true);
 
 		// sanitize
+                const navOrderNumber = Number(formData.navigationOrder);
+                const normalizedNavigationOrder = Number.isFinite(navOrderNumber)
+                        ? Math.max(0, Math.floor(navOrderNumber))
+                        : 0;
+
                 const payload = {
                         name: formData.name.trim(),
+                        navigationOrder: normalizedNavigationOrder,
                         published: formData.published,
                         subCategories: (formData.subCategories || [])
                                 .filter((s) => (s.name || "").trim() !== "")
@@ -86,6 +93,7 @@ export function AddCategoryPopup({ open, onOpenChange }) {
         const resetForm = () => {
                 setFormData({
                         name: "",
+                        navigationOrder: "",
                         published: true,
                         subCategories: [],
                 });
@@ -109,9 +117,9 @@ export function AddCategoryPopup({ open, onOpenChange }) {
 					</DialogHeader>
 
 					<form onSubmit={handleSubmit} className="space-y-4 mt-4">
-						<div>
-							<Label htmlFor="name">Category Name *</Label>
-							<Input
+                                                <div>
+                                                        <Label htmlFor="name">Category Name *</Label>
+                                                        <Input
 								id="name"
 								placeholder="Enter category name"
 								value={formData.name}
@@ -120,8 +128,32 @@ export function AddCategoryPopup({ open, onOpenChange }) {
 								}
 								className="mt-1"
 								required
-							/>
-						</div>
+                                                        />
+                                                </div>
+
+                                                <div>
+                                                        <Label htmlFor="navigationOrder">
+                                                                Navigation Order
+                                                        </Label>
+                                                        <Input
+                                                                id="navigationOrder"
+                                                                type="number"
+                                                                min={0}
+                                                                placeholder="e.g. 1"
+                                                                value={formData.navigationOrder}
+                                                                onChange={(e) =>
+                                                                        setFormData({
+                                                                                ...formData,
+                                                                                navigationOrder:
+                                                                                        e.target.value,
+                                                                        })
+                                                                }
+                                                                className="mt-1"
+                                                        />
+                                                        <p className="text-sm text-gray-500 mt-1">
+                                                                Controls the left-to-right order in the navigation bar.
+                                                        </p>
+                                                </div>
 
 						<div className="flex items-center justify-between">
 							<div>

@@ -107,10 +107,27 @@ export async function GET() {
 		});
 
 		// Execute all category updates
-		const updatedCategories = await Promise.all(categoryUpdatePromises);
+                const updatedCategories = await Promise.all(categoryUpdatePromises);
 
-		// Format categories for response
-                const formattedCategories = updatedCategories.map((cat) => {
+                const sortedCategories = updatedCategories
+                        .filter(Boolean)
+                        .sort((a, b) => {
+                                const aOrder = Number.isFinite(Number(a?.navigationOrder))
+                                        ? Number(a.navigationOrder)
+                                        : Number.MAX_SAFE_INTEGER;
+                                const bOrder = Number.isFinite(Number(b?.navigationOrder))
+                                        ? Number(b.navigationOrder)
+                                        : Number.MAX_SAFE_INTEGER;
+
+                                if (aOrder === bOrder) {
+                                        return (a?.name || "").localeCompare(b?.name || "");
+                                }
+
+                                return aOrder - bOrder;
+                        });
+
+                // Format categories for response
+                const formattedCategories = sortedCategories.map((cat) => {
                         const categorySlug = slugify(cat.slug || cat.name);
 
                         return {

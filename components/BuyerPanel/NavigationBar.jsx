@@ -21,6 +21,15 @@ const toNumber = (value) => {
         return Number.isFinite(parsed) ? parsed : 0;
 };
 
+const normalizeNavigationOrder = (value) => {
+        const parsed = Number(value);
+        if (!Number.isFinite(parsed) || parsed < 0) {
+                return 0;
+        }
+
+        return Math.floor(parsed);
+};
+
 const hasProductCount = (count) => toNumber(count) > 0;
 
 const categoryHasProducts = (category) => {
@@ -63,24 +72,52 @@ export default function NavigationBar({ isMenuOpen = false, onMenuClose }) {
                                 if (!isMounted) return;
 
                                 if (data.success && Array.isArray(data.categories)) {
-                                        const mappedCategories = data.categories.map((category) => {
-                                                const categorySlug = slugify(
-                                                        category.slug || category.name
-                                                );
+                                        const mappedCategories = data.categories
+                                                .map((category) => {
+                                                        const categorySlug = slugify(
+                                                                category.slug || category.name
+                                                        );
 
-                                                return {
-                                                        ...category,
-                                                        productCount: toNumber(category.productCount),
-                                                        slug: categorySlug,
-                                                        subCategories: (category.subCategories || []).map((subCategory) => ({
-                                                                ...subCategory,
-                                                                productCount: toNumber(subCategory.productCount),
-                                                                slug: slugify(
-                                                                        subCategory.slug || subCategory.name
+                                                        return {
+                                                                ...category,
+                                                                navigationOrder: normalizeNavigationOrder(
+                                                                        category.navigationOrder
                                                                 ),
-                                                        })),
-                                                };
-                                        });
+                                                                productCount: toNumber(category.productCount),
+                                                                slug: categorySlug,
+                                                                subCategories: (category.subCategories || [])
+                                                                        .map((subCategory) => ({
+                                                                                ...subCategory,
+                                                                                navigationOrder:
+                                                                                        normalizeNavigationOrder(
+                                                                                                subCategory.navigationOrder
+                                                                                        ),
+                                                                                productCount: toNumber(
+                                                                                        subCategory.productCount
+                                                                                ),
+                                                                                slug: slugify(
+                                                                                        subCategory.slug || subCategory.name
+                                                                                ),
+                                                                        }))
+                                                                        .sort((a, b) => {
+                                                                                if (a.navigationOrder === b.navigationOrder) {
+                                                                                        return a.name.localeCompare(b.name);
+                                                                                }
+
+                                                                                return (
+                                                                                        a.navigationOrder -
+                                                                                        b.navigationOrder
+                                                                                );
+                                                                        }),
+                                                        };
+                                                })
+                                                .sort((a, b) => {
+                                                        if (a.navigationOrder === b.navigationOrder) {
+                                                                return a.name.localeCompare(b.name);
+                                                        }
+
+                                                        return a.navigationOrder - b.navigationOrder;
+                                                });
 
                                         setCategories(mappedCategories);
                                 } else {

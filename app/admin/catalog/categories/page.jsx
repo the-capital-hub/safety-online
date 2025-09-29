@@ -47,27 +47,45 @@ export default function AdminCategoriesPage() {
 	const isAuthenticated = useIsAuthenticated();
 	const [isRedirecting, setIsRedirecting] = useState(false);
 	const router = useRouter();
-	const {
-		categories,
-		isLoading,
-		error,
-		filters,
-		pagination,
-		selectedCategories,
-		fetchCategories,
-		setFilters,
-		resetFilters,
-		setPage,
-		setSorting,
-		selectAllCategories,
-		clearSelection,
-		toggleCategorySelection,
-		deleteCategory,
-		deleteMultipleCategories,
-		updateCategory,
-		exportToCSV,
-		exportToJSON,
-	} = useAdminCategoryStore();
+        const {
+                categories,
+                isLoading,
+                error,
+                filters,
+                pagination,
+                selectedCategories,
+                fetchCategories,
+                setFilters,
+                resetFilters,
+                setPage,
+                setSorting,
+                selectAllCategories,
+                clearSelection,
+                toggleCategorySelection,
+                deleteCategory,
+                deleteMultipleCategories,
+                updateCategory,
+                exportToCSV,
+                exportToJSON,
+                sortBy,
+                sortOrder,
+        } = useAdminCategoryStore();
+
+        const [navOrderDrafts, setNavOrderDrafts] = useState({});
+        const [navOrderSaving, setNavOrderSaving] = useState({});
+
+        useEffect(() => {
+                const initialDrafts = categories.reduce((acc, category) => {
+                        acc[category._id] =
+                                category.navigationOrder === undefined ||
+                                category.navigationOrder === null
+                                        ? ""
+                                        : String(category.navigationOrder);
+                        return acc;
+                }, {});
+
+                setNavOrderDrafts(initialDrafts);
+        }, [categories]);
 
 	const [popups, setPopups] = useState({
 		delete: { open: false, category: null },
@@ -141,10 +159,59 @@ export default function AdminCategoriesPage() {
 		await updateCategory(categoryId, { published });
 	};
 
-	const handleSort = (field) => {
-		const currentOrder = filters.sortOrder === "desc" ? "asc" : "desc";
-		setSorting(field, currentOrder);
-	};
+        const handleSort = (field) => {
+                const currentOrder =
+                        sortBy === field && sortOrder === "asc" ? "desc" : "asc";
+                setSorting(field, currentOrder);
+        };
+
+        const handleNavOrderChange = (categoryId, value) => {
+                setNavOrderDrafts((prev) => ({
+                        ...prev,
+                        [categoryId]: value,
+                }));
+        };
+
+        const commitNavOrderChange = async (categoryId) => {
+                if (navOrderSaving[categoryId]) {
+                        return;
+                }
+
+                const draftValue = navOrderDrafts[categoryId];
+                const parsedValue = Number(draftValue);
+
+                const normalizedValue =
+                        draftValue === "" || !Number.isFinite(parsedValue) || parsedValue < 0
+                                ? 0
+                                : Math.floor(parsedValue);
+
+                const category = categories.find((cat) => cat._id === categoryId);
+                if (!category) return;
+
+                if ((category.navigationOrder || 0) === normalizedValue) {
+                        // Ensure empty drafts reflect normalized value
+                        setNavOrderDrafts((prev) => ({
+                                ...prev,
+                                [categoryId]: String(normalizedValue),
+                        }));
+                        return;
+                }
+
+                setNavOrderSaving((prev) => ({ ...prev, [categoryId]: true }));
+                try {
+                        const success = await updateCategory(categoryId, {
+                                navigationOrder: normalizedValue,
+                        });
+                        if (!success) {
+                                setNavOrderDrafts((prev) => ({
+                                        ...prev,
+                                        [categoryId]: String(category.navigationOrder || 0),
+                                }));
+                        }
+                } finally {
+                        setNavOrderSaving((prev) => ({ ...prev, [categoryId]: false }));
+                }
+        };
 
 	if (error) {
 		return (
@@ -296,8 +363,22 @@ export default function AdminCategoriesPage() {
 												</Button>
 											</TableHead>
 											<TableHead>Subcategories</TableHead>
-											<TableHead>Products</TableHead>
-											<TableHead>Published</TableHead>
+                                                                                        <TableHead>Products</TableHead>
+                                                                                        <TableHead>
+                                                                                                <Button
+                                                                                                        variant="ghost"
+                                                                                                        onClick={() =>
+                                                                                                                handleSort(
+                                                                                                                        "navigationOrder"
+                                                                                                                )
+                                                                                                        }
+                                                                                                        className="p-0 h-auto font-medium"
+                                                                                                >
+                                                                                                        Nav Order
+                                                                                                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                                                                                                </Button>
+                                                                                        </TableHead>
+                                                                                        <TableHead>Published</TableHead>
 											<TableHead>
 												<Button
 													variant="ghost"
@@ -363,14 +444,45 @@ export default function AdminCategoriesPage() {
 														{category.productCount || 0} products
 													</Badge>
 												</TableCell>
-												<TableCell>
-													<Switch
-														checked={!!category.published}
-														onCheckedChange={(checked) =>
-															handlePublishToggle(category._id, checked)
-														}
-													/>
-												</TableCell>
+                                                                                                <TableCell>
+                                                                                                        <div className="max-w-[6rem]">
+                                                                                                                <Input
+                                                                                                                        type="number"
+                                                                                                                        min={0}
+                                                                                                                        value={
+                                                                                                                                navOrderDrafts[category._id] ?? ""
+                                                                                                                        }
+                                                                                                                        onChange={(e) =>
+                                                                                                                                handleNavOrderChange(
+                                                                                                                                        category._id,
+                                                                                                                                        e.target.value
+                                                                                                                                )
+                                                                                                                        }
+                                                                                                                        onBlur={() =>
+                                                                                                                                commitNavOrderChange(
+                                                                                                                                        category._id
+                                                                                                                                )
+                                                                                                                        }
+                                                                                                                        onKeyDown={(e) => {
+                                                                                                                                if (e.key === "Enter") {
+                                                                                                                                        commitNavOrderChange(
+                                                                                                                                                category._id
+                                                                                                                                        );
+                                                                                                                                }
+                                                                                                                        }}
+                                                                                                                        disabled={!!navOrderSaving[category._id]}
+                                                                                                                        className="h-9"
+                                                                                                                />
+                                                                                                        </div>
+                                                                                                </TableCell>
+                                                                                                <TableCell>
+                                                                                                        <Switch
+                                                                                                                checked={!!category.published}
+                                                                                                                onCheckedChange={(checked) =>
+                                                                                                                        handlePublishToggle(category._id, checked)
+                                                                                                                }
+                                                                                                        />
+                                                                                                </TableCell>
 												<TableCell>
 													<div className="text-sm text-gray-500">
 														{category.createdAt

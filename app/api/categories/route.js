@@ -3,13 +3,22 @@ import { attachProductCountsToCategories } from "@/lib/categoryCounts.js";
 import { slugify } from "@/lib/slugify.js";
 import Category from "@/model/Categories.js";
 
+const normalizeNavigationOrder = (value) => {
+        const parsed = Number(value);
+        if (!Number.isFinite(parsed) || parsed < 0) {
+                return 0;
+        }
+
+        return Math.floor(parsed);
+};
+
 export async function GET() {
 	try {
 		await dbConnect();
 
 		// Only published categories
                 const cats = await Category.find({ published: true })
-                        .sort({ name: 1 })
+                        .sort({ navigationOrder: 1, name: 1 })
                         .lean();
 
                 const categoriesWithCounts = await attachProductCountsToCategories(
@@ -43,6 +52,9 @@ export async function GET() {
                                 _id: category._id,
                                 name: category.name,
                                 slug: categorySlug,
+                                navigationOrder: normalizeNavigationOrder(
+                                        category.navigationOrder
+                                ),
                                 productCount:
                                         directProductCount > 0
                                                 ? directProductCount
