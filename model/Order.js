@@ -76,15 +76,42 @@ const CouponAppliedSchema = new mongoose.Schema(
         { _id: false, strict: false }
 );
 
+const generateInvoiceNumber = async (orderModel) => {
+        const now = new Date();
+        const fullYear = now.getFullYear();
+        const yearSuffix = fullYear.toString().slice(-2);
+        const prefix = `LSI-SO${yearSuffix}-`;
+        const startOfYear = new Date(fullYear, 0, 1);
+        const startOfNextYear = new Date(fullYear + 1, 0, 1);
+
+        const lastOrder = await orderModel
+                .findOne({
+                        createdAt: { $gte: startOfYear, $lt: startOfNextYear },
+                        orderNumber: { $regex: `^${prefix}` },
+                })
+                .sort({ createdAt: -1, _id: -1 })
+                .lean();
+
+        let sequence = 1;
+
+        if (lastOrder?.orderNumber) {
+                const match = lastOrder.orderNumber.match(/(\d+)$/);
+
+                if (match) {
+                        sequence = parseInt(match[1], 10) + 1;
+                }
+        }
+
+        return `${prefix}${sequence.toString().padStart(5, "0")}`;
+};
+
 const OrderSchema = new mongoose.Schema(
         {
                 orderNumber: {
                         type: String,
                         unique: true,
-			required: true,
-			default: () =>
-				`ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-		},
+                        required: true,
+                },
 
 		// Customer
 		userId: {
@@ -191,10 +218,23 @@ const OrderSchema = new mongoose.Schema(
 
 		orderDate: { type: Date, default: Date.now },
 	},
-	{ timestamps: true }
+        { timestamps: true }
 );
 
 // Indexes for better query performance
+OrderSchema.pre("validate", async function setInvoiceNumber(next) {
+        if (!this.isNew || this.orderNumber) {
+                return next();
+        }
+
+        try {
+                this.orderNumber = await generateInvoiceNumber(this.constructor);
+                return next();
+        } catch (error) {
+                return next(error);
+        }
+});
+
 OrderSchema.index({ userId: 1 });
 OrderSchema.index({ status: 1 });
 OrderSchema.index({ orderDate: -1 });
