@@ -5,10 +5,17 @@ import { persist, subscribeWithSelector, devtools } from "zustand/middleware";
 import { toast } from "react-hot-toast";
 import { useAuthStore } from "@/store/authStore.js";
 
+const SESSION_EXPIRED_MESSAGE = "Your session has expired. Please log in again.";
+
+const handleUnauthorized = () => {
+        toast.error(SESSION_EXPIRED_MESSAGE);
+        void useAuthStore.getState().logout();
+};
+
 // Wishlist API functions
 const wishlistAPI = {
-	async fetchWishlist() {
-		const response = await fetch("/api/wishlist", {
+        async fetchWishlist() {
+                const response = await fetch("/api/wishlist", {
 			method: "GET",
 			credentials: "include",
 		});
@@ -21,43 +28,52 @@ const wishlistAPI = {
 		return response.json();
 	},
 
-	async addToWishlist(productId) {
-		const response = await fetch("/api/wishlist", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ productId }),
-			credentials: "include",
-		});
-		if (!response.ok) {
-			const error = await response.json();
-			throw new Error(error.message || "Failed to add to wishlist");
-		}
-		return response.json();
-	},
+        async addToWishlist(productId) {
+                const response = await fetch("/api/wishlist", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ productId }),
+                        credentials: "include",
+                });
+                if (!response.ok) {
+                        if (response.status === 401) {
+                                throw new Error("UNAUTHORIZED");
+                        }
+                        const error = await response.json();
+                        throw new Error(error.message || "Failed to add to wishlist");
+                }
+                return response.json();
+        },
 
-	async removeFromWishlist(productId) {
-		const response = await fetch(`/api/wishlist/${productId}`, {
-			method: "DELETE",
-			credentials: "include",
-		});
-		if (!response.ok) {
-			const error = await response.json();
-			throw new Error(error.message || "Failed to remove from wishlist");
-		}
-		return response.json();
-	},
+        async removeFromWishlist(productId) {
+                const response = await fetch(`/api/wishlist/${productId}`, {
+                        method: "DELETE",
+                        credentials: "include",
+                });
+                if (!response.ok) {
+                        if (response.status === 401) {
+                                throw new Error("UNAUTHORIZED");
+                        }
+                        const error = await response.json();
+                        throw new Error(error.message || "Failed to remove from wishlist");
+                }
+                return response.json();
+        },
 
-	async clearWishlist() {
-		const response = await fetch("/api/wishlist/clear", {
-			method: "DELETE",
-				credentials: "include",
-		});
-		if (!response.ok) {
-			const error = await response.json();
-			throw new Error(error.message || "Failed to clear wishlist");
-		}
-		return response.json();
-	},
+        async clearWishlist() {
+                const response = await fetch("/api/wishlist/clear", {
+                        method: "DELETE",
+                        credentials: "include",
+                });
+                if (!response.ok) {
+                        if (response.status === 401) {
+                                throw new Error("UNAUTHORIZED");
+                        }
+                        const error = await response.json();
+                        throw new Error(error.message || "Failed to clear wishlist");
+                }
+                return response.json();
+        },
 };
 
 export const useWishlistStore = create(
@@ -110,15 +126,16 @@ export const useWishlistStore = create(
 								});
 
 								toast.success("Added to wishlist!");
-							} catch (error) {
-								console.error("Failed to add to wishlist:", error);
-								toast.error(error.message || "Failed to add to wishlist");
-								if (error.message === "UNAUTHORIZED") {
-									useAuthStore.getState().clearUser();
-								}
-							} finally {
-								set({ isLoading: false });
-							}
+                                                        } catch (error) {
+                                                                console.error("Failed to add to wishlist:", error);
+                                                                if (error.message === "UNAUTHORIZED") {
+                                                                        handleUnauthorized();
+                                                                } else {
+                                                                        toast.error(error.message || "Failed to add to wishlist");
+                                                                }
+                                                        } finally {
+                                                                set({ isLoading: false });
+                                                        }
 						} else {
 							// For non-authenticated users: Update locally
 							const { items } = get();
@@ -172,15 +189,16 @@ export const useWishlistStore = create(
 								});
 
 								toast.success("Removed from wishlist");
-							} catch (error) {
-								console.error("Failed to remove from wishlist:", error);
-								toast.error(error.message || "Failed to remove from wishlist");
-								if (error.message === "UNAUTHORIZED") {
-									useAuthStore.getState().clearUser();
-								}
-							} finally {
-								set({ isLoading: false });
-							}
+                                                        } catch (error) {
+                                                                console.error("Failed to remove from wishlist:", error);
+                                                                if (error.message === "UNAUTHORIZED") {
+                                                                        handleUnauthorized();
+                                                                } else {
+                                                                        toast.error(error.message || "Failed to remove from wishlist");
+                                                                }
+                                                        } finally {
+                                                                set({ isLoading: false });
+                                                        }
 						} else {
 							// For non-authenticated users: Update locally
 							set({
@@ -218,15 +236,16 @@ export const useWishlistStore = create(
 								});
 
 								toast.success("Wishlist cleared");
-							} catch (error) {
-								console.error("Failed to clear wishlist:", error);
-								toast.error(error.message || "Failed to clear wishlist");
-								if (error.message === "UNAUTHORIZED") {
-									useAuthStore.getState().clearUser();
-								}
-							} finally {
-								set({ isLoading: false });
-							}
+                                                        } catch (error) {
+                                                                console.error("Failed to clear wishlist:", error);
+                                                                if (error.message === "UNAUTHORIZED") {
+                                                                        handleUnauthorized();
+                                                                } else {
+                                                                        toast.error(error.message || "Failed to clear wishlist");
+                                                                }
+                                                        } finally {
+                                                                set({ isLoading: false });
+                                                        }
 						} else {
 							// For non-authenticated users: Update locally
 							set({ items: [] });
@@ -262,16 +281,16 @@ export const useWishlistStore = create(
 								serverWishlist: data.wishlist,
 								lastSyncTime: Date.now(),
 							});
-						} catch (error) {
-							if (error.message === "UNAUTHORIZED") {
-								useAuthStore.getState().clearUser();
-							} else {
-								set({ syncError: error.message });
-								console.error("Wishlist fetch error:", error);
-							}
-						} finally {
-							set({ isLoading: false });
-						}
+                                                } catch (error) {
+                                                        if (error.message === "UNAUTHORIZED") {
+                                                                handleUnauthorized();
+                                                        } else {
+                                                                set({ syncError: error.message });
+                                                                console.error("Wishlist fetch error:", error);
+                                                        }
+                                                } finally {
+                                                        set({ isLoading: false });
+                                                }
 					},
 
 					// Handle authentication state changes

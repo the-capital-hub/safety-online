@@ -1,3 +1,5 @@
+"use client";
+
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 
@@ -7,7 +9,24 @@ export const useAuthStore = create(
 			(set) => ({
 				user: null,
 				setUser: (user) => set({ user }),
-				clearUser: () => set({ user: null }),
+                                clearUser: () => set({ user: null }),
+                                logout: async (redirectPath = "/login") => {
+                                        set({ user: null });
+
+                                        if (typeof window === "undefined") {
+                                                return;
+                                        }
+
+                                        try {
+                                                await fetch("/api/auth/logout", { method: "POST" });
+                                        } catch (error) {
+                                                console.error("Failed to call logout endpoint:", error);
+                                        } finally {
+                                                if (window.location.pathname !== redirectPath) {
+                                                        window.location.href = redirectPath;
+                                                }
+                                        }
+                                },
 			}),
 			{
 				name: "logged-in-user",
