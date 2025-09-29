@@ -15,14 +15,24 @@ export const addressSchema = z.object({
 });
 
 export const companyBaseSchema = z.object({
-	companyName: z.string().min(2, "Company name is required"),
-	companyEmail: z.string().email("Enter a valid email"),
-	phone: z.string().regex(phoneRegex, "Enter a valid phone number"),
-	gstinNumber: z
-		.string()
-		.regex(gstinRegex, "Enter a valid GSTIN")
-		.optional()
-		.or(z.literal("")),
+        companyName: z.string().min(2, "Company name is required"),
+        companyEmail: z.string().email("Enter a valid email"),
+        phone: z.string().regex(phoneRegex, "Enter a valid phone number"),
+        brandName: z
+                .string()
+                .min(2, "Brand name should be at least 2 characters")
+                .optional()
+                .or(z.literal("")),
+        brandDescription: z
+                .string()
+                .max(500, "Brand description should be under 500 characters")
+                .optional()
+                .or(z.literal("")),
+        gstinNumber: z
+                .string()
+                .regex(gstinRegex, "Enter a valid GSTIN")
+                .optional()
+                .or(z.literal("")),
 	companyLogo: z.string().url("Invalid logo URL").optional().or(z.literal("")),
 });
 

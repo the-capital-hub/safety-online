@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import User from "@/model/User.js";
+import Company from "@/model/companyDetails.js";
 import { dbConnect } from "@/lib/dbConnect.js";
+
+const COMPANY_PROJECTION =
+        "companyName companyEmail phone gstinNumber brandName brandDescription companyLogo";
 
 // GET - Fetch all sellers (exclude admins)
 export async function GET(request) {
@@ -11,7 +15,8 @@ export async function GET(request) {
 		const page = Number.parseInt(searchParams.get("page")) || 1;
 		const limit = Number.parseInt(searchParams.get("limit")) || 10;
 		const search = searchParams.get("search") || "";
-		const status = searchParams.get("status") || "";
+                const statusParam = searchParams.get("status") || "";
+                const status = statusParam === "all" ? "" : statusParam;
 
 		const skip = (page - 1) * limit;
 
@@ -31,11 +36,12 @@ export async function GET(request) {
 			query.status = status;
 		}
 
-		const sellers = await User.find(query)
-			.select("-password")
-			.sort({ createdAt: -1 })
-			.skip(skip)
-			.limit(limit);
+                const sellers = await User.find(query)
+                        .select("-password")
+                        .populate({ path: "company", select: COMPANY_PROJECTION })
+                        .sort({ createdAt: -1 })
+                        .skip(skip)
+                        .limit(limit);
 
 		const total = await User.countDocuments(query);
 
@@ -62,8 +68,16 @@ export async function POST(request) {
 	try {
 		await dbConnect();
 
-		const body = await request.json();
-		const { firstName, lastName, email, mobile, password } = body;
+                const body = await request.json();
+                const {
+                        firstName,
+                        lastName,
+                        email,
+                        mobile,
+                        password,
+                        status = "active",
+                        company,
+                } = body;
 
 		// Check if seller already exists
 		const existingUser = await User.findOne({
@@ -80,24 +94,54 @@ export async function POST(request) {
 			);
 		}
 
-		const seller = new User({
-			firstName,
-			lastName,
-			email,
-			mobile,
-			password,
-			userType: "seller",
-			status: "active",
-		});
+                const seller = new User({
+                        firstName,
+                        lastName,
+                        email,
+                        mobile,
+                        password,
+                        userType: "seller",
+                        status,
+                });
 
-		await seller.save();
+                await seller.save();
 
-		// Remove password from response
-		const sellerResponse = seller.toObject();
-		delete sellerResponse.password;
+                if (company) {
+                        const {
+                                companyName,
+                                companyEmail,
+                                phone,
+                                gstinNumber,
+                                brandName,
+                                brandDescription,
+                                companyLogo,
+                        } = company;
 
-		return NextResponse.json({
-			success: true,
+                        if (companyName && companyEmail && phone) {
+                                const company = await Company.create({
+                                        user: seller._id,
+                                        companyName,
+                                        companyEmail,
+                                        phone,
+                                        gstinNumber,
+                                        brandName,
+                                        brandDescription,
+                                        companyLogo,
+                                });
+
+                                seller.company = company._id;
+                                await seller.save();
+                        }
+                }
+
+                // Remove password from response
+                const sellerResponse = await User.findById(seller._id)
+                        .select("-password")
+                        .populate({ path: "company", select: COMPANY_PROJECTION })
+                        .lean();
+
+                return NextResponse.json({
+                        success: true,
 			data: sellerResponse,
 			message: "Seller added successfully",
 		});
