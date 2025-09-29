@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 
 import { dbConnect } from "@/lib/dbConnect.js";
 import Order from "@/model/Order.js";
+import { ensureEscrowPayments } from "@/lib/payments/ensureEscrowPayments.js";
 import {
         sendOrderConfirmationEmail,
         sendOrderFailureEmail,
@@ -30,6 +31,14 @@ async function updateOrderAndNotify(order, update, notification) {
         if (!updatedOrder) {
                 return null;
         }
+
+        await ensureEscrowPayments({
+                order: updatedOrder,
+                paymentInfo: {
+                        transactionId: update?.transactionId || order.transactionId || null,
+                        gatewayOrderId: order.paymentGatewayOrderId || null,
+                },
+        });
 
         try {
                 if (notification?.type === "success") {
