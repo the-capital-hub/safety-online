@@ -89,25 +89,37 @@ export const useAdminCategoryStore = create((set, get) => ({
 		}
 	},
 
-	updateCategory: async (categoryId, updateData) => {
-		try {
-			const response = await fetch("/api/admin/categories", {
-				method: "PUT",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({ categoryId, ...updateData }),
-			});
+        updateCategory: async (categoryId, updateData) => {
+                try {
+                        const response = await fetch("/api/admin/categories", {
+                                method: "PUT",
+                                headers: {
+                                        "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify({ categoryId, ...updateData }),
+                        });
 
-			const data = await response.json();
+                        const data = await response.json();
 
-			if (data.success) {
-				toast.success("Category updated successfully");
-				get().fetchCategories();
-				return true;
-			} else {
-				toast.error(data.message);
-				return false;
+                        if (data.success) {
+                                toast.success("Category updated successfully");
+                                if (data.category && data.category._id) {
+                                        set((state) => ({
+                                                categories: state.categories.map((category) =>
+                                                        category._id === data.category._id
+                                                                ? {
+                                                                          ...category,
+                                                                          ...data.category,
+                                                                  }
+                                                                : category
+                                                ),
+                                        }));
+                                }
+                                get().fetchCategories();
+                                return true;
+                        } else {
+                                toast.error(data.message);
+                                return false;
 			}
 		} catch (error) {
 			toast.error("Failed to update category");

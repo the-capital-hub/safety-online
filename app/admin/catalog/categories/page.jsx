@@ -172,12 +172,16 @@ export default function AdminCategoriesPage() {
                 }));
         };
 
-        const commitNavOrderChange = async (categoryId) => {
+        const commitNavOrderChange = async (categoryId, rawValue) => {
                 if (navOrderSaving[categoryId]) {
                         return;
                 }
 
-                const draftValue = navOrderDrafts[categoryId];
+                const draftValue = rawValue ?? navOrderDrafts[categoryId];
+
+                if (draftValue === undefined) {
+                        return;
+                }
                 const parsedValue = Number(draftValue);
 
                 const normalizedValue =
@@ -208,6 +212,11 @@ export default function AdminCategoriesPage() {
                                 setNavOrderDrafts((prev) => ({
                                         ...prev,
                                         [categoryId]: String(category.navigationOrder || 0),
+                                }));
+                        } else {
+                                setNavOrderDrafts((prev) => ({
+                                        ...prev,
+                                        [categoryId]: String(normalizedValue),
                                 }));
                         }
                 } finally {
@@ -451,30 +460,31 @@ export default function AdminCategoriesPage() {
                                                                                                                 <Input
                                                                                                                         type="number"
                                                                                                                         min={0}
-                                                                                                                        value={
-                                                                                                                                navOrderDrafts[category._id] ?? ""
-                                                                                                                        }
+                                                                                                                        value={navOrderDrafts[category._id] ?? ""}
                                                                                                                         onChange={(e) =>
                                                                                                                                 handleNavOrderChange(
                                                                                                                                         category._id,
                                                                                                                                         e.target.value
                                                                                                                                 )
                                                                                                                         }
-                                                                                                                        onBlur={() =>
+                                                                                                                        onBlur={(e) =>
                                                                                                                                 commitNavOrderChange(
-                                                                                                                                        category._id
+                                                                                                                                        category._id,
+                                                                                                                                        e.target.value
                                                                                                                                 )
                                                                                                                         }
                                                                                                                         onKeyDown={(e) => {
                                                                                                                                 if (e.key === "Enter") {
                                                                                                                                         commitNavOrderChange(
-                                                                                                                                                category._id
+                                                                                                                                                category._id,
+                                                                                                                                                e.currentTarget.value
                                                                                                                                         );
                                                                                                                                 }
                                                                                                                         }}
                                                                                                                         disabled={!!navOrderSaving[category._id]}
                                                                                                                         className="h-9"
                                                                                                                 />
+
                                                                                                         </div>
                                                                                                 </TableCell>
                                                                                                 <TableCell>

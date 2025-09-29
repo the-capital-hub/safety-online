@@ -376,26 +376,43 @@ export async function POST(request) {
 }
 
 export async function PUT(request) {
-	await dbConnect();
+        await dbConnect();
 
-	try {
-		const body = await request.json();
-		const { categoryId, ...updateData } = body || {};
+        try {
+                const body = await request.json();
+                const { categoryId, ...updateData } = body || {};
 
-		if (!categoryId) {
-			return Response.json(
-				{ success: false, message: "Category ID is required" },
-				{ status: 400 }
-			);
-		}
+                if (!categoryId) {
+                        return Response.json(
+                                { success: false, message: "Category ID is required" },
+                                { status: 400 }
+                        );
+                }
 
-		const allowed = {};
-		if (typeof updateData.name === "string")
-			allowed.name = updateData.name.trim();
-		if (typeof updateData.published === "boolean")
-			allowed.published = updateData.published;
-		if (Array.isArray(updateData.subCategories)) {
-                        allowed.subCategories = updateData.subCategories
+                const category = await Category.findById(categoryId);
+
+                if (!category) {
+                        return Response.json(
+                                { success: false, message: "Category not found" },
+                                { status: 404 }
+                        );
+                }
+
+                const updates = {};
+
+                if (typeof updateData.name === "string") {
+                        const trimmedName = updateData.name.trim();
+                        if (trimmedName.length > 0) {
+                                updates.name = trimmedName;
+                        }
+                }
+
+                if (typeof updateData.published === "boolean") {
+                        updates.published = updateData.published;
+                }
+
+                if (Array.isArray(updateData.subCategories)) {
+                        updates.subCategories = updateData.subCategories
                                 .filter((s) => s && typeof s.name === "string" && s.name.trim() !== "")
                                 .map((s) => ({
                                         name: s.name.trim(),
@@ -405,43 +422,62 @@ export async function PUT(request) {
                                                         : true,
                                         productCount: Number(s.productCount) || 0,
                                 }));
-		}
-                if (typeof updateData.productCount === "number") {
-                        allowed.productCount = updateData.productCount;
                 }
-                if (updateData.navigationOrder !== undefined) {
 
-                        allowed.navigationOrder = normalizeNavigationOrder(
+                if (typeof updateData.productCount === "number") {
+                        updates.productCount = updateData.productCount;
+                }
+
+                if (updateData.navigationOrder !== undefined) {
+                        updates.navigationOrder = normalizeNavigationOrder(
                                 updateData.navigationOrder
                         );
                 }
 
-                const category = await Category.findByIdAndUpdate(
-                        categoryId,
-                        { $set: allowed },
-                        { new: true, runValidators: true }
+                if (Object.keys(updates).length === 0) {
+                        return Response.json(
+                                {
+                                        success: false,
+                                        message: "No valid fields provided for update",
+                                },
+                                { status: 400 }
+                        );
+                }
+
+                Object.assign(category, updates);
+
+                await category.save();
+
+                const [categoryWithCounts] = await attachProductCountsToCategories([
+                        category.toObject(),
+                ]);
+
+                const normalizedCategory = categoryWithCounts
+                        ? {
+                                  ...categoryWithCounts,
+                                  _id: category._id.toString(),
+                                  navigationOrder: normalizeNavigationOrder(
+                                          categoryWithCounts.navigationOrder
+                                  ),
+                          }
+                        : {
+                                  ...category.toObject(),
+                                  _id: category._id.toString(),
+                                  navigationOrder: normalizeNavigationOrder(category.navigationOrder),
+                          };
+
+                return Response.json({
+                        success: true,
+                        message: "Category updated successfully",
+                        category: normalizedCategory,
+                });
+        } catch (error) {
+                console.error("Update category error:", error);
+                return Response.json(
+                        { success: false, message: "Failed to update category" },
+                        { status: 500 }
                 );
-
-
-		if (!category) {
-			return Response.json(
-				{ success: false, message: "Category not found" },
-				{ status: 404 }
-			);
-		}
-
-		return Response.json({
-			success: true,
-			message: "Category updated successfully",
-			category,
-		});
-	} catch (error) {
-		console.error("Update category error:", error);
-		return Response.json(
-			{ success: false, message: "Failed to update category" },
-			{ status: 500 }
-		);
-	}
+        }
 }
 
 export async function DELETE(request) {
