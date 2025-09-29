@@ -88,7 +88,7 @@ const LoginPage = () => {
 
         useEffect(() => {
                 if (hasHydrated && isAuthenticated) {
-                        router.replace("/account/profile");
+                        router.replace("/");
                 }
         }, [hasHydrated, isAuthenticated, router]);
 
