@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { dbConnect } from "@/lib/dbConnect.js";
 import { calculateGstTotals, determineGstMode, GST_RATE_PERCENT } from "@/lib/utils/gst.js";
 import Order from "@/model/Order.js";
+import ReturnRequest from "@/model/ReturnRequest.js";
 
 export async function GET(request) {
 	try {
@@ -44,16 +45,33 @@ export async function GET(request) {
 
 		const skip = (page - 1) * limit;
 
-		const orders = await Order.find(query)
-			// .populate("subOrders", "products")
-			.sort({ orderDate: -1 })
-			.skip(skip)
-			.limit(limit);
+                const orders = await Order.find(query)
+                        // .populate("subOrders", "products")
+                        .sort({ orderDate: -1 })
+                        .skip(skip)
+                        .limit(limit);
 
-		const total = await Order.countDocuments(query);
+                const total = await Order.countDocuments(query);
 
-		// Calculate statistics
-		const stats = await Order.aggregate([
+                const orderIds = orders.map((order) => order._id);
+                const returnRequests = await ReturnRequest.find({ orderId: { $in: orderIds } })
+                        .sort({ createdAt: -1 })
+                        .lean();
+
+                const requestsByOrder = returnRequests.reduce((acc, request) => {
+                        const key = request.orderId?.toString();
+                        if (!key) {
+                                return acc;
+                        }
+                        if (!acc.has(key)) {
+                                acc.set(key, []);
+                        }
+                        acc.get(key).push(request);
+                        return acc;
+                }, new Map());
+
+                // Calculate statistics
+                const stats = await Order.aggregate([
 			{
 				$group: {
 					_id: null,
@@ -69,9 +87,14 @@ export async function GET(request) {
 			},
 		]);
 
-		return NextResponse.json({
-			success: true,
-			orders,
+                const ordersWithReturns = orders.map((order) => ({
+                        ...order.toObject(),
+                        returnRequests: requestsByOrder.get(order._id.toString()) || [],
+                }));
+
+                return NextResponse.json({
+                        success: true,
+                        orders: ordersWithReturns,
 			pagination: {
 				currentPage: page,
 				totalPages: Math.ceil(total / limit),

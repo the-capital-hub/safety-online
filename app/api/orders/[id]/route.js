@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { dbConnect } from "@/lib/dbConnect.js";
 import Order from "@/model/Order.js";
 import "@/model/SubOrder.js";
+import ReturnRequest from "@/model/ReturnRequest.js";
 
 export async function GET(request, { params }) {
 	try {
@@ -29,16 +30,23 @@ export async function GET(request, { params }) {
 			query = query.populate("subOrders");
 		}
 
-		const order = await query.lean();
+                const order = await query.lean();
 
-		if (!order) {
-			return NextResponse.json(
-				{ success: false, message: "Order not found" },
-				{ status: 404 }
-			);
-		}
+                if (!order) {
+                        return NextResponse.json(
+                                { success: false, message: "Order not found" },
+                                { status: 404 }
+                        );
+                }
 
-		return NextResponse.json({ success: true, order }, { status: 200 });
+                const returnRequests = await ReturnRequest.find({ orderId: order._id })
+                        .sort({ createdAt: -1 })
+                        .lean();
+
+                return NextResponse.json(
+                        { success: true, order: { ...order, returnRequests } },
+                        { status: 200 }
+                );
 	} catch (error) {
 		console.error("Single order fetch error:", error);
 		return NextResponse.json(

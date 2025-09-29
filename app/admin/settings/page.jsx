@@ -1,6 +1,6 @@
 "use client";
 
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,12 +16,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useIsAuthenticated } from "@/store/adminAuthStore.js";
 import { useRouter } from "next/navigation";
+import { useAdminReturnStore } from "@/store/adminReturnStore";
+import { toast } from "react-hot-toast";
 
 export default function SettingsPage() {
-	const [settings, setSettings] = useState({
-		imagesPerProduct: "5",
-		autoTranslation: true,
-		translationKey: "",
+        const [settings, setSettings] = useState({
+                imagesPerProduct: "5",
+                autoTranslation: true,
+                translationKey: "",
 		defaultLanguage: "english",
 		defaultCurrency: "dollar",
 		defaultTimezone: "default",
@@ -35,35 +37,79 @@ export default function SettingsPage() {
 		postCode: "",
 		contact: "",
 		email: "",
-		website: "",
-	});
+                website: "",
+        });
+
+        const {
+                returnSettings,
+                fetchReturnSettings,
+                updateReturnSettings: saveReturnSettings,
+                updatingSettings,
+                settingsLoading,
+        } = useAdminReturnStore();
+
+        const [returnWindow, setReturnWindow] = useState("7");
 
 	const isAuthenticated = useIsAuthenticated();
 	const [isRedirecting, setIsRedirecting] = useState(false);
 	const router = useRouter();
 
-	const handleSubmit = (e) => {
-		e.preventDefault();
+        const handleSubmit = (e) => {
+                e.preventDefault();
 
-		if (!e.currentTarget.checkValidity()) {
+                if (!e.currentTarget.checkValidity()) {
 
-		  e.currentTarget.reportValidity();
+                  e.currentTarget.reportValidity();
 
-		  return;
+                  return;
 
-		}
-		console.log("Saving settings:", settings);
-	};
-	useEffect(() => {
-		if (!isAuthenticated) {
-			setIsRedirecting(true);
-			const timer = setTimeout(() => {
-				router.push("/admin/login");
-			}, 3);
-			
-			return () => clearTimeout(timer);
-		}
-	}, [isAuthenticated, router]);
+                }
+                console.log("Saving settings:", settings);
+        };
+
+        const handleToggleReturns = async (enabled) => {
+                const result = await saveReturnSettings({ enabled });
+
+                if (result.success) {
+                        toast.success(enabled ? "Buyer returns enabled" : "Buyer returns disabled");
+                } else {
+                        toast.error(result.message || "Failed to update return settings");
+                }
+        };
+
+        const handleSaveReturnWindow = async () => {
+                const parsedWindow = Number(returnWindow);
+                const windowDays = Number.isFinite(parsedWindow) && parsedWindow >= 0 ? parsedWindow : 0;
+                const result = await saveReturnSettings({ windowDays });
+
+                if (result.success) {
+                        toast.success("Return window updated");
+                } else {
+                        toast.error(result.message || "Failed to update return window");
+                }
+        };
+
+        const windowChanged = String(returnSettings?.windowDays ?? "") !== String(returnWindow);
+        useEffect(() => {
+                if (!isAuthenticated) {
+                        setIsRedirecting(true);
+                        const timer = setTimeout(() => {
+                                router.push("/admin/login");
+                        }, 3);
+
+                        return () => clearTimeout(timer);
+                }
+        }, [isAuthenticated, router]);
+
+        useEffect(() => {
+                fetchReturnSettings();
+        }, [fetchReturnSettings]);
+
+        useEffect(() => {
+                if (typeof returnSettings?.windowDays !== "undefined") {
+                        setReturnWindow(String(returnSettings.windowDays ?? 7));
+                }
+        }, [returnSettings]);
 
 	// Show redirecting message if not authenticated
 	if (!isAuthenticated) {
@@ -214,19 +260,59 @@ export default function SettingsPage() {
 							/>
 						</div>
 
-						<div className="flex items-center justify-between">
-							<div>
-								<Label>Enable invoice Send to Customer by email</Label>
-							</div>
-							<Switch
-								checked={settings.emailInvoice}
-								onCheckedChange={(checked) =>
-									setSettings({ ...settings, emailInvoice: checked })
-								}
-							/>
-						</div>
-					</CardContent>
-				</Card>
+                                                <div className="flex items-center justify-between">
+                                                        <div>
+                                                                <Label>Enable invoice Send to Customer by email</Label>
+                                                        </div>
+                                                        <Switch
+                                                                checked={settings.emailInvoice}
+                                                                onCheckedChange={(checked) =>
+                                                                        setSettings({ ...settings, emailInvoice: checked })
+                                                                }
+                                                        />
+                                                </div>
+
+                                                <div className="space-y-3 rounded-lg border border-dashed p-4">
+                                                        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                                                                <div>
+                                                                        <Label>Enable buyer returns</Label>
+                                                                        <p className="text-sm text-muted-foreground">
+                                                                                Allow buyers to submit return requests from their account dashboard.
+                                                                        </p>
+                                                                </div>
+                                                                <Switch
+                                                                        checked={Boolean(returnSettings?.enabled)}
+                                                                        onCheckedChange={handleToggleReturns}
+                                                                        disabled={settingsLoading || updatingSettings}
+                                                                />
+                                                        </div>
+                                                        <div className="grid gap-2 md:max-w-xs">
+                                                                <Label htmlFor="return-window">Return window (days)</Label>
+                                                                <div className="flex items-center gap-2">
+                                                                        <Input
+                                                                                id="return-window"
+                                                                                type="number"
+                                                                                min="0"
+                                                                                value={returnWindow}
+                                                                                onChange={(event) => setReturnWindow(event.target.value)}
+                                                                                disabled={settingsLoading}
+                                                                        />
+                                                                        <Button
+                                                                                type="button"
+                                                                                variant="outline"
+                                                                                onClick={handleSaveReturnWindow}
+                                                                                disabled={!windowChanged || updatingSettings}
+                                                                        >
+                                                                                {updatingSettings ? "Saving..." : "Save"}
+                                                                        </Button>
+                                                                </div>
+                                                                <p className="text-xs text-muted-foreground">
+                                                                        Buyers can request returns within the configured time frame after delivery.
+                                                                </p>
+                                                        </div>
+                                                </div>
+                                        </CardContent>
+                                </Card>
 
 				<Card>
 					<CardHeader>

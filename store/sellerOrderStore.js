@@ -7,9 +7,11 @@ export const useSellerOrderStore = create(
 			// State
 			orders: [],
 			currentOrder: null,
-			loading: false,
-			error: null,
-			returnsError: null,
+                        loading: false,
+                        error: null,
+                        returnsError: null,
+                        returnOrders: [],
+                        returnsLoading: false,
 			pagination: {
 				currentPage: 1,
 				totalPages: 1,
