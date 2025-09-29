@@ -121,27 +121,29 @@ export function UpdateSellerPopup({ open, onOpenChange, seller }) {
 
         return (
                 <Dialog open={open} onOpenChange={onOpenChange}>
-                        <DialogContent className="sm:max-w-3xl">
+                        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-hidden p-0">
                                 <motion.div
                                         initial={{ scale: 0.95, opacity: 0 }}
                                         animate={{ scale: 1, opacity: 1 }}
                                         transition={{ duration: 0.2 }}
+                                        className="flex max-h-[90vh] flex-col"
                                 >
-					<DialogHeader>
-						<div className="flex items-center justify-between">
-							<div>
-								<DialogTitle className="text-lg font-semibold">
-									Update Seller
-								</DialogTitle>
-								<DialogDescription className="text-gray-600">
-									Update seller information
-								</DialogDescription>
-							</div>
+                                        <DialogHeader className="px-6 pb-4 pt-6">
+                                                <div className="flex items-center justify-between">
+                                                        <div>
+                                                                <DialogTitle className="text-lg font-semibold">
+                                                                        Update Seller
+                                                                </DialogTitle>
+                                                                <DialogDescription className="text-gray-600">
+                                                                        Update seller information
+                                                                </DialogDescription>
+                                                        </div>
                                                 </div>
                                         </DialogHeader>
 
-                                        <form onSubmit={handleSubmit} className="mt-4 space-y-6">
-                                                <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+                                        <form onSubmit={handleSubmit} className="flex h-full flex-col">
+                                                <div className="flex-1 overflow-y-auto px-6 pb-6 pt-4">
+                                                        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
                                                         <TabsList className="grid w-full grid-cols-3">
                                                                 <TabsTrigger value="personal">Personal</TabsTrigger>
                                                                 <TabsTrigger value="company">Company</TabsTrigger>
@@ -338,9 +340,10 @@ export function UpdateSellerPopup({ open, onOpenChange, seller }) {
                                                                         </Button>
                                                                 </div>
                                                         </TabsContent>
-                                                </Tabs>
+                                                        </Tabs>
+                                                </div>
 
-                                                <DialogFooter className="flex flex-col gap-3 sm:flex-row">
+                                                <DialogFooter className="flex flex-col gap-3 border-t border-border px-6 py-4 sm:flex-row">
                                                         <Button
                                                                 type="button"
                                                                 variant="outline"
