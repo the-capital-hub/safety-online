@@ -25,10 +25,15 @@ export const useOrderStore = create(
 					hasNext: false,
 					hasPrev: false,
 				},
-				stats: null,
+                                stats: null,
+                                returnSettings: {
+                                        enabled: true,
+                                        windowDays: 7,
+                                },
+                                returnActionLoading: false,
 
-				// Actions
-				setLoading: (loading) => set({ loading }),
+                                // Actions
+                                setLoading: (loading) => set({ loading }),
 				setError: (error) => set({ error }),
 				setFilters: (newFilters) =>
 					set((state) => ({
@@ -205,10 +210,10 @@ export const useOrderStore = create(
 				},
 
 				// Download invoice - now generates client-side
-				downloadInvoice: async (orderId, orderNumber) => {
-					try {
-						// Set loading state for download
-						set({ loading: true, error: null });
+                                downloadInvoice: async (orderId, orderNumber) => {
+                                        try {
+                                                // Set loading state for download
+                                                set({ loading: true, error: null });
 
 						// Fetch order data with populated products
 						const orderData = await get().fetchOrderForInvoice(orderId);
@@ -241,7 +246,72 @@ export const useOrderStore = create(
 							message: error.message || "Failed to download invoice",
 						};
 					}
-				},
+                                },
+
+                                fetchReturnSettings: async () => {
+                                        try {
+                                                const response = await fetch("/api/returns/settings");
+                                                if (!response.ok) {
+                                                        throw new Error("Failed to load return settings");
+                                                }
+
+                                                const data = await response.json();
+
+                                                if (data.success && data.settings) {
+                                                        set({ returnSettings: data.settings });
+                                                }
+                                        } catch (error) {
+                                                console.error("Fetch return settings error:", error);
+                                        }
+                                },
+
+                                requestReturn: async (orderId, payload) => {
+                                        set({ returnActionLoading: true });
+
+                                        try {
+                                                const response = await fetch(`/api/orders/${orderId}/return`, {
+                                                        method: "POST",
+                                                        headers: {
+                                                                "Content-Type": "application/json",
+                                                        },
+                                                        body: JSON.stringify(payload),
+                                                });
+
+                                                const data = await response.json();
+
+                                                if (!response.ok || !data.success) {
+                                                        throw new Error(data.message || "Failed to submit return request");
+                                                }
+
+                                                set((state) => ({
+                                                        returnActionLoading: false,
+                                                        orders: state.orders.map((order) => {
+                                                                if (order._id?.toString() === orderId.toString()) {
+                                                                        const existingRequests = Array.isArray(order.returnRequests)
+                                                                                ? order.returnRequests
+                                                                                : [];
+                                                                        return {
+                                                                                ...order,
+                                                                                status: "returned",
+                                                                                returnRequests: [data.request, ...existingRequests],
+                                                                        };
+                                                                }
+                                                                return order;
+                                                        }),
+                                                }));
+
+                                                return { success: true, request: data.request };
+                                        } catch (error) {
+                                                console.error("Submit return request error:", error);
+                                                set({
+                                                        returnActionLoading: false,
+                                                });
+                                                return {
+                                                        success: false,
+                                                        message: error.message || "Failed to submit return request",
+                                                };
+                                        }
+                                },
 
 				// Alternative method to preview invoice without downloading
 				previewInvoice: async (orderId) => {
@@ -295,27 +365,32 @@ export const useOrderStore = create(
 				},
 
 				// Reset store
-				reset: () =>
-					set({
-						orders: [],
-						currentOrder: null,
-						loading: false,
-						error: null,
-						filters: {
-							status: "all",
-							dateRange: "all",
-							page: 1,
-							limit: 10,
-						},
-						pagination: {
-							currentPage: 1,
-							totalPages: 1,
-							totalOrders: 0,
-							hasNext: false,
-							hasPrev: false,
-						},
-						stats: null,
-					}),
+                                reset: () =>
+                                        set({
+                                                orders: [],
+                                                currentOrder: null,
+                                                loading: false,
+                                                error: null,
+                                                filters: {
+                                                        status: "all",
+                                                        dateRange: "all",
+                                                        page: 1,
+                                                        limit: 10,
+                                                },
+                                                pagination: {
+                                                        currentPage: 1,
+                                                        totalPages: 1,
+                                                        totalOrders: 0,
+                                                        hasNext: false,
+                                                        hasPrev: false,
+                                                },
+                                                stats: null,
+                                                returnSettings: {
+                                                        enabled: true,
+                                                        windowDays: 7,
+                                                },
+                                                returnActionLoading: false,
+                                        }),
 			}),
 			{
 				name: "order-store",

@@ -44,8 +44,9 @@ import {
 	Languages,
 	DollarSign,
 	Eye,
-	Palette,
-	Cog,
+        Palette,
+        Cog,
+        RotateCcw,
 } from "lucide-react";
 import Logo from "@/public/SafetyLogo.png";
 import { useIsAuthenticated } from "@/store/adminAuthStore.js";
@@ -80,6 +81,11 @@ const menuItems = [
                 title: "Orders",
                 icon: ShoppingCart,
                 href: "/admin/orders",
+        },
+        {
+                title: "Returns",
+                icon: RotateCcw,
+                href: "/admin/returns",
         },
         {
                 title: "Payments",
