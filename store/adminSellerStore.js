@@ -198,36 +198,44 @@ export const useAdminSellerStore = create((set, get) => ({
 					"Last Name",
 					"Email",
 					"Mobile",
-					"Status",
-					"User Type",
-					"Verified",
-					"Last Login",
-					"Created At",
-					"Updated At",
-					"Address Count",
-				].join(","),
-				...sellers.map((seller) =>
-					[
-						seller._id || "",
-						`"${seller.firstName || ""}"`,
-						`"${seller.lastName || ""}"`,
-						`"${seller.email || ""}"`,
-						`"${seller.mobile || ""}"`,
-						seller.status || "",
-						seller.userType || "",
-						seller.isVerified ? "Yes" : "No",
-						seller.lastLogin
-							? new Date(seller.lastLogin).toLocaleDateString()
-							: "Never",
-						seller.createdAt
-							? new Date(seller.createdAt).toLocaleDateString()
-							: "",
-						seller.updatedAt
-							? new Date(seller.updatedAt).toLocaleDateString()
-							: "",
-						seller.addresses ? seller.addresses.length : 0,
-					].join(",")
-				),
+                                        "Status",
+                                        "User Type",
+                                        "Verified",
+                                        "Last Login",
+                                        "Created At",
+                                        "Updated At",
+                                        "Address Count",
+                                        "Brand Name",
+                                        "Company Email",
+                                        "Company Phone",
+                                        "GSTIN",
+                                ].join(","),
+                                ...sellers.map((seller) =>
+                                        [
+                                                seller._id || "",
+                                                `"${seller.firstName || ""}"`,
+                                                `"${seller.lastName || ""}"`,
+                                                `"${seller.email || ""}"`,
+                                                `"${seller.mobile || ""}"`,
+                                                seller.status || "",
+                                                seller.userType || "",
+                                                seller.isVerified ? "Yes" : "No",
+                                                seller.lastLogin
+                                                        ? new Date(seller.lastLogin).toLocaleDateString()
+                                                        : "Never",
+                                                seller.createdAt
+                                                        ? new Date(seller.createdAt).toLocaleDateString()
+                                                        : "",
+                                                seller.updatedAt
+                                                        ? new Date(seller.updatedAt).toLocaleDateString()
+                                                        : "",
+                                                seller.addresses ? seller.addresses.length : 0,
+                                                `"${seller.company?.brandName || seller.company?.companyName || ""}"`,
+                                                `"${seller.company?.companyEmail || ""}"`,
+                                                `"${seller.company?.phone || ""}"`,
+                                                `"${seller.company?.gstinNumber || ""}"`,
+                                        ].join(",")
+                                ),
 			].join("\n");
 
 			const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -264,15 +272,16 @@ export const useAdminSellerStore = create((set, get) => ({
 				email: seller.email,
 				mobile: seller.mobile,
 				status: seller.status,
-				userType: seller.userType,
-				isVerified: seller.isVerified,
-				lastLogin: seller.lastLogin,
-				createdAt: seller.createdAt,
-				updatedAt: seller.updatedAt,
-				profilePic: seller.profilePic,
-				addresses: seller.addresses || [],
-				addressCount: seller.addresses ? seller.addresses.length : 0,
-			}));
+                                userType: seller.userType,
+                                isVerified: seller.isVerified,
+                                lastLogin: seller.lastLogin,
+                                createdAt: seller.createdAt,
+                                updatedAt: seller.updatedAt,
+                                profilePic: seller.profilePic,
+                                addresses: seller.addresses || [],
+                                addressCount: seller.addresses ? seller.addresses.length : 0,
+                                company: seller.company || null,
+                        }));
 
 			const jsonContent = JSON.stringify(
 				{

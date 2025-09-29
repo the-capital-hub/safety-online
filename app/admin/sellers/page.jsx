@@ -294,7 +294,8 @@ export default function AdminSellersPage() {
 										/>
 									</TableHead>
 									<TableHead>Seller</TableHead>
-									<TableHead>Contact</TableHead>
+                                                                        <TableHead>Contact</TableHead>
+                                                                        <TableHead>Brand Details</TableHead>
 									<TableHead>Status</TableHead>
 									<TableHead>Joined</TableHead>
 									<TableHead>Last Login</TableHead>
@@ -333,20 +334,52 @@ export default function AdminSellersPage() {
 												</div>
 											</div>
 										</TableCell>
-										<TableCell>
-											<div className="space-y-1">
-												<div className="flex items-center gap-2 text-sm">
-													<Mail className="w-3 h-3 text-gray-400" />
-													{seller.email}
-												</div>
-												{seller.mobile && (
-													<div className="flex items-center gap-2 text-sm text-gray-600">
-														<Phone className="w-3 h-3 text-gray-400" />
-														{seller.mobile}
-													</div>
-												)}
-											</div>
-										</TableCell>
+                                                                                <TableCell>
+                                                                                        <div className="space-y-1">
+                                                                                                <div className="flex items-center gap-2 text-sm">
+                                                                                                        <Mail className="w-3 h-3 text-gray-400" />
+                                                                                                        {seller.email}
+                                                                                                </div>
+                                                                                                {seller.mobile && (
+                                                                                                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                                                                                                                <Phone className="w-3 h-3 text-gray-400" />
+                                                                                                                {seller.mobile}
+                                                                                                        </div>
+                                                                                                )}
+                                                                                        </div>
+                                                                                </TableCell>
+                                                                                <TableCell>
+                                                                                        {seller.company ? (
+                                                                                                <div className="space-y-1 text-sm text-gray-700">
+                                                                                                        <div className="font-medium text-gray-900">
+                                                                                                                {seller.company.brandName ||
+                                                                                                                seller.company.companyName ||
+                                                                                                                "Not set"}
+                                                                                                        </div>
+                                                                                                        <div className="text-xs text-gray-500">
+                                                                                                                Legal: {seller.company.companyName || "—"}
+                                                                                                        </div>
+                                                                                                        <div className="text-xs text-gray-500">
+                                                                                                                Email: {seller.company.companyEmail || "—"}
+                                                                                                        </div>
+                                                                                                        <div className="text-xs text-gray-500">
+                                                                                                                Phone: {seller.company.phone || "—"}
+                                                                                                        </div>
+                                                                                                        <div className="text-xs text-gray-500">
+                                                                                                                GSTIN: {seller.company.gstinNumber || "—"}
+                                                                                                        </div>
+                                                                                                        {seller.company.brandDescription && (
+                                                                                                                <div className="text-xs text-gray-500">
+                                                                                                                        {seller.company.brandDescription}
+                                                                                                                </div>
+                                                                                                        )}
+                                                                                                </div>
+                                                                                        ) : (
+                                                                                                <div className="text-sm text-gray-500">
+                                                                                                        No brand details
+                                                                                                </div>
+                                                                                        )}
+                                                                                </TableCell>
 										<TableCell>
 											<Badge className={getStatusColor(seller.status)}>
 												{seller.status}
