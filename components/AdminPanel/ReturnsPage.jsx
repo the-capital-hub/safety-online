@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -113,6 +114,13 @@ export function ReturnsPage() {
                                         <h1 className="text-3xl font-bold text-gray-900">Return requests</h1>
                                         <p className="text-sm text-muted-foreground">
                                                 Manage buyer-initiated returns and keep customers informed.
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                                Use the enable/disable button in the{" "}
+                                                <Link href="/admin/settings" className="font-medium text-primary">
+                                                        settings panel
+                                                </Link>
+                                                to control buyer return submissions.
                                         </p>
                                 </div>
                                 <div className="flex items-center gap-3">
