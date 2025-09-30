@@ -1035,15 +1035,12 @@ export default function CheckoutPage() {
                                                 )}
                                         </div>
 
-					{/* Free shipping message */}
-					{orderSummary.subtotal < 500 && (
-						<div className="p-3 bg-yellow-50 rounded-lg">
-							<p className="text-sm text-yellow-800">
-								Add ₹{(500 - orderSummary.subtotal).toLocaleString()} more for
-								free shipping!
-							</p>
-						</div>
-					)}
+                                        {/* Free shipping message */}
+                                        <div className="p-3 bg-green-50 rounded-lg">
+                                                <p className="text-sm text-green-800">
+                                                        Enjoy free shipping on every order—no minimum purchase required.
+                                                </p>
+                                        </div>
 				</CardContent>
 			</Card>
 		);
