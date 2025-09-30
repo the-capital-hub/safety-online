@@ -37,6 +37,8 @@ const EMPTY_FORM = {
         upiId: "",
 };
 
+const NOT_SPECIFIED_ACCOUNT_TYPE_VALUE = "not_specified";
+
 const ACCOUNT_TYPE_OPTIONS = [
         { label: "Savings", value: "savings" },
         { label: "Current", value: "current" },
@@ -120,7 +122,10 @@ export default function BankDetailsCard() {
         };
 
         const handleAccountTypeChange = (value) => {
-                setForm((prev) => ({ ...prev, accountType: value }));
+                setForm((prev) => ({
+                        ...prev,
+                        accountType: value === NOT_SPECIFIED_ACCOUNT_TYPE_VALUE ? "" : value,
+                }));
         };
 
         const handleSubmit = async (event) => {
@@ -343,7 +348,11 @@ export default function BankDetailsCard() {
                                                         <div className="grid gap-2">
                                                                 <Label>Account Type (optional)</Label>
                                                                 <Select
-                                                                        value={form.accountType || ""}
+                                                                        value={
+                                                                                form.accountType
+                                                                                        ? form.accountType
+                                                                                        : NOT_SPECIFIED_ACCOUNT_TYPE_VALUE
+                                                                        }
                                                                         onValueChange={handleAccountTypeChange}
                                                                         disabled={bankSaving}
                                                                 >
@@ -351,7 +360,9 @@ export default function BankDetailsCard() {
                                                                                 <SelectValue placeholder="Select account type" />
                                                                         </SelectTrigger>
                                                                         <SelectContent>
-                                                                                <SelectItem value="">Not specified</SelectItem>
+                                                                                <SelectItem value={NOT_SPECIFIED_ACCOUNT_TYPE_VALUE}>
+                                                                                        Not specified
+                                                                                </SelectItem>
                                                                                 {ACCOUNT_TYPE_OPTIONS.map((option) => (
                                                                                         <SelectItem key={option.value} value={option.value}>
                                                                                                 {option.label}
