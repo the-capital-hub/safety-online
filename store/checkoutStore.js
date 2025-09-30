@@ -240,8 +240,8 @@ export const useCheckoutStore = create(
 						0
 					);
 
-					// Calculate shipping cost: free if subtotal >= 500, else 50
-					const shippingCost = subtotal >= 500 ? 0 : 50;
+                                        // Shipping is free for all orders
+                                        const shippingCost = 0;
 
 					// Set coupon based on checkout type
 					let discount = 0;
@@ -477,8 +477,8 @@ export const useCheckoutStore = create(
 						checkoutType,
 					} = get();
 
-					// Calculate shipping cost
-                                        const shippingCost = orderSummary.subtotal >= 500 ? 0 : 50;
+                                        // Shipping is free for all orders
+                                        const shippingCost = 0;
 
                                         // Calculate discount based on checkout type
                                         let discount = 0;
@@ -553,15 +553,16 @@ export const useCheckoutStore = create(
 						const couponToUse =
 							checkoutType === "cart" ? cartAppliedCoupon : appliedCoupon;
 
-						// Prepare order data
-                                        const shippingCost = orderSummary.subtotal >= 500 ? 0 : 50;
-                                        const totals = calculateGstTotals({
-                                                subtotal: orderSummary.subtotal,
-                                                discount: orderSummary.discount,
-                                                shippingCost,
-                                                address: selectedAddress,
-                                                gstMode: orderSummary.gst?.mode,
-                                        });
+                                                // Prepare order data
+                                                // Shipping is free for all orders
+                                                const shippingCost = 0;
+                                                const totals = calculateGstTotals({
+                                                        subtotal: orderSummary.subtotal,
+                                                        discount: orderSummary.discount,
+                                                        shippingCost,
+                                                        address: selectedAddress,
+                                                        gstMode: orderSummary.gst?.mode,
+                                                });
 
                                         set({
                                                 orderSummary: {
