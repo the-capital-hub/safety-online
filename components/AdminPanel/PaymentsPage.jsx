@@ -159,63 +159,32 @@ function AdminPaymentsPage() {
         const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
         const [manualUpdateForm, setManualUpdateForm] = useState(initialManualUpdateForm);
 
-        const {
-                payments,
-                loading,
-                error,
-                stats,
-                pagination,
-                filters,
-                setFilters,
-                resetFilters,
-                fetchPayments,
-        } = useAdminPaymentStore((state) => ({
-                payments: state.payments,
-                loading: state.loading,
-                error: state.error,
-                stats: state.stats,
-                pagination: state.pagination,
-                filters: state.filters,
-                setFilters: state.setFilters,
-                resetFilters: state.resetFilters,
-                fetchPayments: state.fetchPayments,
-        }));
+        const payments = useAdminPaymentStore((state) => state.payments);
+        const loading = useAdminPaymentStore((state) => state.loading);
+        const error = useAdminPaymentStore((state) => state.error);
+        const stats = useAdminPaymentStore((state) => state.stats);
+        const pagination = useAdminPaymentStore((state) => state.pagination);
+        const filters = useAdminPaymentStore((state) => state.filters);
+        const setFilters = useAdminPaymentStore((state) => state.setFilters);
+        const resetFilters = useAdminPaymentStore((state) => state.resetFilters);
+        const fetchPayments = useAdminPaymentStore((state) => state.fetchPayments);
 
-        const {
-                sellers: manualSellers,
-                loading: manualLoading,
-                error: manualError,
-                stats: manualStats,
-                pagination: manualPagination,
-                filters: manualFilters,
-                selectedSellerIds,
-                setFilters: setManualFilters,
-                resetFilters: resetManualFilters,
-                fetchSellers: fetchManualSellers,
-                toggleSellerSelection,
-                selectAllOnPage,
-                clearSelection,
-                downloadCsv,
-                bulkUpdateStatus,
-                updating: manualUpdating,
-        } = useAdminManualPayoutStore((state) => ({
-                sellers: state.sellers,
-                loading: state.loading,
-                error: state.error,
-                stats: state.stats,
-                pagination: state.pagination,
-                filters: state.filters,
-                selectedSellerIds: state.selectedSellerIds,
-                setFilters: state.setFilters,
-                resetFilters: state.resetFilters,
-                fetchSellers: state.fetchSellers,
-                toggleSellerSelection: state.toggleSellerSelection,
-                selectAllOnPage: state.selectAllOnPage,
-                clearSelection: state.clearSelection,
-                downloadCsv: state.downloadCsv,
-                bulkUpdateStatus: state.bulkUpdateStatus,
-                updating: state.updating,
-        }));
+        const manualSellers = useAdminManualPayoutStore((state) => state.sellers);
+        const manualLoading = useAdminManualPayoutStore((state) => state.loading);
+        const manualError = useAdminManualPayoutStore((state) => state.error);
+        const manualStats = useAdminManualPayoutStore((state) => state.stats);
+        const manualPagination = useAdminManualPayoutStore((state) => state.pagination);
+        const manualFilters = useAdminManualPayoutStore((state) => state.filters);
+        const selectedSellerIds = useAdminManualPayoutStore((state) => state.selectedSellerIds);
+        const setManualFilters = useAdminManualPayoutStore((state) => state.setFilters);
+        const resetManualFilters = useAdminManualPayoutStore((state) => state.resetFilters);
+        const fetchManualSellers = useAdminManualPayoutStore((state) => state.fetchSellers);
+        const toggleSellerSelection = useAdminManualPayoutStore((state) => state.toggleSellerSelection);
+        const selectAllOnPage = useAdminManualPayoutStore((state) => state.selectAllOnPage);
+        const clearSelection = useAdminManualPayoutStore((state) => state.clearSelection);
+        const downloadCsv = useAdminManualPayoutStore((state) => state.downloadCsv);
+        const bulkUpdateStatus = useAdminManualPayoutStore((state) => state.bulkUpdateStatus);
+        const manualUpdating = useAdminManualPayoutStore((state) => state.updating);
 
         useEffect(() => {
                 if (!isAuthenticated) {
