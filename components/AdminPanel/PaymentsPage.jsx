@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
@@ -224,17 +224,46 @@ function AdminPaymentsPage() {
                 }
         }, [isAuthenticated, router]);
 
-        useEffect(() => {
-                if (isAuthenticated && activeTab === "escrow") {
-                        fetchPayments();
-                }
-        }, [isAuthenticated, activeTab, filters, fetchPayments]);
+        const escrowFiltersKey = useMemo(() => JSON.stringify(filters), [filters]);
+        const manualFiltersKey = useMemo(() => JSON.stringify(manualFilters), [manualFilters]);
+
+        const lastEscrowFiltersRef = useRef(null);
+        const lastManualFiltersRef = useRef(null);
 
         useEffect(() => {
-                if (isAuthenticated && activeTab === "manual") {
-                        fetchManualSellers();
+                if (activeTab !== "escrow") {
+                        lastEscrowFiltersRef.current = null;
                 }
-        }, [isAuthenticated, activeTab, manualFilters, fetchManualSellers]);
+                if (activeTab !== "manual") {
+                        lastManualFiltersRef.current = null;
+                }
+        }, [activeTab]);
+
+        useEffect(() => {
+                if (!isAuthenticated || activeTab !== "escrow") {
+                        return;
+                }
+
+                if (lastEscrowFiltersRef.current === escrowFiltersKey) {
+                        return;
+                }
+
+                lastEscrowFiltersRef.current = escrowFiltersKey;
+                fetchPayments();
+        }, [isAuthenticated, activeTab, escrowFiltersKey, fetchPayments]);
+
+        useEffect(() => {
+                if (!isAuthenticated || activeTab !== "manual") {
+                        return;
+                }
+
+                if (lastManualFiltersRef.current === manualFiltersKey) {
+                        return;
+                }
+
+                lastManualFiltersRef.current = manualFiltersKey;
+                fetchManualSellers();
+        }, [isAuthenticated, activeTab, manualFiltersKey, fetchManualSellers]);
 
         const handleFilterChange = (key, value) => {
                 setFilters({ [key]: value, page: 1 });
