@@ -339,8 +339,8 @@ function SellerOrdersPage() {
 							<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
 						</div>
 					) : (
-						<>
-							<Table>
+                                                <>
+                                                        <Table>
 								<TableHeader>
 									<TableRow>
 										<TableHead>Order #</TableHead>
@@ -353,13 +353,32 @@ function SellerOrdersPage() {
 									</TableRow>
 								</TableHeader>
 								<TableBody>
-									{orders.map((order) => (
-										<motion.tr
-											key={order._id}
-											initial={{ opacity: 0, y: 10 }}
-											animate={{ opacity: 1, y: 0 }}
-											transition={{ duration: 0.2 }}
-										>
+                                                                        {orders.map((order) => {
+                                                                                const products = Array.isArray(order.products)
+                                                                                        ? order.products
+                                                                                        : [];
+                                                                                const rawTotalAmount = Number(
+                                                                                        order.totalAmount ??
+                                                                                                order.orderId?.totalAmount ??
+                                                                                                0,
+                                                                                );
+                                                                                const totalAmount = Number.isFinite(rawTotalAmount)
+                                                                                        ? rawTotalAmount
+                                                                                        : 0;
+                                                                                const normalizedStatus = (order.status || "")
+                                                                                        .toString()
+                                                                                        .toLowerCase();
+                                                                                const statusLabel = normalizedStatus
+                                                                                        ? normalizedStatus.toUpperCase()
+                                                                                        : "N/A";
+
+                                                                                return (
+                                                                                        <motion.tr
+                                                                                                key={order._id}
+                                                                                                initial={{ opacity: 0, y: 10 }}
+                                                                                                animate={{ opacity: 1, y: 0 }}
+                                                                                                transition={{ duration: 0.2 }}
+                                                                                        >
 											<TableCell className="font-medium">
 												{order.orderId?.orderNumber || order.orderNumber || "N/A"}
 											</TableCell>
@@ -373,8 +392,8 @@ function SellerOrdersPage() {
 												</span>
 											</TableCell>
 											<TableCell>
-												<div className="space-y-2">
-													{order.products.slice(0, 2).map((product, index) => (
+                                                                                                <div className="space-y-2">
+                                                                                                        {products.slice(0, 2).map((product, index) => (
 														<div
 															key={index}
 															className="flex items-center gap-3"
@@ -397,9 +416,9 @@ function SellerOrdersPage() {
 															</div>
 														</div>
 													))}
-													{order.products.length > 2 && (
-														<p className="text-xs text-gray-500">
-															+{order.products.length - 2} more items
+                                                                                                        {products.length > 2 && (
+                                                                                                                <p className="text-xs text-gray-500">
+                                                                                                                        +{products.length - 2} more items
 														</p>
 													)}
 												</div>
@@ -410,16 +429,16 @@ function SellerOrdersPage() {
 												</Badge>
 											</TableCell>
 											<TableCell className="font-medium text-green-600">
-												₹{order.totalAmount.toFixed(2)}
+                                                                                                ₹{totalAmount.toFixed(2)}
 											</TableCell>
 											<TableCell>
-												<Badge className={getStatusColor(order.status)}>
-													{order.status.toUpperCase()}
+                                                                                                <Badge className={getStatusColor(normalizedStatus || "unknown")}>
+                                                                                                        {statusLabel}
 												</Badge>
 											</TableCell>
 											<TableCell>
 												<div className="flex gap-1">
-													{order.status === "pending" && (
+                                                                                                        {normalizedStatus === "pending" && (
 														<>
 															<Button
 																size="sm"
@@ -440,7 +459,7 @@ function SellerOrdersPage() {
 															</Button>
 														</>
 													)}
-                                        {order.status === "processing" && (
+                                        {normalizedStatus === "processing" && (
                                                 <>
                                                         <Button
                                                                 size="sm"
@@ -460,7 +479,7 @@ function SellerOrdersPage() {
                                                         </Button>
                                                 </>
                                         )}
-                                        {order.status === "shipped" && (
+                                        {normalizedStatus === "shipped" && (
                                                 <Button
                                                         size="sm"
                                                         className="bg-emerald-600 hover:bg-emerald-700"
@@ -472,8 +491,9 @@ function SellerOrdersPage() {
                                         )}
 												</div>
 											</TableCell>
-										</motion.tr>
-									))}
+                                                                                </motion.tr>
+                                                                                );
+                                                                        })}
 								</TableBody>
 							</Table>
 
