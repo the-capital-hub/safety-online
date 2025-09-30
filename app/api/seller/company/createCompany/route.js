@@ -6,6 +6,24 @@ import { dbConnect } from "@/lib/dbConnect";
 import User from "@/model/User";
 import { companyCreateSchema } from "@/zodSchema/companyScema.js";
 
+const sanitizeBankDetails = (bankDetails) => {
+        if (!bankDetails) return undefined;
+
+        const sanitized = {
+                ...bankDetails,
+                accountHolderName: bankDetails.accountHolderName?.trim(),
+                accountNumber: bankDetails.accountNumber?.trim(),
+                bankName: bankDetails.bankName?.trim(),
+                ifscCode: bankDetails.ifscCode?.trim().toUpperCase(),
+                branchName: bankDetails.branchName?.trim() || undefined,
+                accountType: bankDetails.accountType?.trim() || undefined,
+                upiId: bankDetails.upiId?.trim() || undefined,
+                lastUpdatedAt: new Date(),
+        };
+
+        return sanitized;
+};
+
 export async function POST(req) {
 	try {
 		await dbConnect();
@@ -45,15 +63,18 @@ export async function POST(req) {
 			return NextResponse.json({ error: first.message }, { status: 400 });
 		}
 
-		const company = await companyDetails.create({
-			user: user._id,
-			companyName: parsed.data.companyName,
-			companyAddress: parsed.data.companyAddress || [], // optional now
-			companyEmail: parsed.data.companyEmail,
-			phone: parsed.data.phone,
-			companyLogo: parsed.data.companyLogo,
-			gstinNumber: parsed.data.gstinNumber,
-		});
+                const bankDetails = sanitizeBankDetails(parsed.data.bankDetails);
+
+                const company = await companyDetails.create({
+                        user: user._id,
+                        companyName: parsed.data.companyName,
+                        companyAddress: parsed.data.companyAddress || [], // optional now
+                        companyEmail: parsed.data.companyEmail,
+                        phone: parsed.data.phone,
+                        companyLogo: parsed.data.companyLogo,
+                        gstinNumber: parsed.data.gstinNumber,
+                        ...(bankDetails ? { bankDetails } : {}),
+                });
 
 		user.company = company._id;
 		await user.save();

@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import ShopForm from "@/components/SellerPanel/Settings/form";
 import CompanyAddresses from "@/components/SellerPanel/Settings/address";
+import BankDetailsCard from "@/components/SellerPanel/Settings/bank-details.jsx";
 import LoadingSpinner from "@/components/SellerPanel/Layout/LoadingSpinner.jsx";
 import { useSellerCompanyStore } from "@/store/sellerCompanyStore.js";
 import { useIsSellerAuthenticated } from "@/store/sellerAuthStore";
@@ -106,6 +107,14 @@ export default function AccountSettings() {
                                                         transition={{ duration: 0.25, delay: 0.1 }}
                                                 >
                                                         <CompanyAddresses />
+                                                </motion.div>
+
+                                                <motion.div
+                                                        initial={{ opacity: 0, y: 10 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        transition={{ duration: 0.25, delay: 0.15 }}
+                                                >
+                                                        <BankDetailsCard />
                                                 </motion.div>
                                         </>
                                 )}
