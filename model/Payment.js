@@ -26,6 +26,45 @@ const PaymentHistorySchema = new mongoose.Schema(
         { _id: false }
 );
 
+const ManualPayoutHistorySchema = new mongoose.Schema(
+        {
+                status: {
+                        type: String,
+                        enum: ["pending", "scheduled", "paid"],
+                        default: "pending",
+                },
+                amount: {
+                        type: Number,
+                        default: 0,
+                },
+                reference: {
+                        type: String,
+                        default: "",
+                        trim: true,
+                },
+                processedAt: {
+                        type: Date,
+                        default: Date.now,
+                },
+                processedBy: {
+                        type: mongoose.Schema.Types.ObjectId,
+                        ref: "User",
+                        default: null,
+                },
+                processedByName: {
+                        type: String,
+                        default: "",
+                        trim: true,
+                },
+                remarks: {
+                        type: String,
+                        default: "",
+                        trim: true,
+                },
+        },
+        { _id: false }
+);
+
 const PaymentSchema = new mongoose.Schema(
         {
                 orderId: {
@@ -105,6 +144,34 @@ const PaymentSchema = new mongoose.Schema(
                         type: [PaymentHistorySchema],
                         default: [],
                 },
+                payoutMode: {
+                        type: String,
+                        enum: ["escrow", "manual"],
+                        default: "escrow",
+                },
+                manualStatus: {
+                        type: String,
+                        enum: ["pending", "scheduled", "paid"],
+                        default: "pending",
+                },
+                manualPaidAt: {
+                        type: Date,
+                        default: null,
+                },
+                manualPayoutReference: {
+                        type: String,
+                        default: null,
+                        trim: true,
+                },
+                manualNotes: {
+                        type: String,
+                        default: "",
+                        trim: true,
+                },
+                manualHistory: {
+                        type: [ManualPayoutHistorySchema],
+                        default: [],
+                },
         },
         { timestamps: true }
 );
@@ -113,6 +180,7 @@ PaymentSchema.index({ sellerId: 1, status: 1 });
 PaymentSchema.index({ orderId: 1 });
 PaymentSchema.index({ subOrderId: 1 });
 PaymentSchema.index({ orderNumber: 1 });
+PaymentSchema.index({ payoutMode: 1, sellerId: 1 });
 
 const PaymentModel =
         mongoose.models.Payment || mongoose.model("Payment", PaymentSchema);
