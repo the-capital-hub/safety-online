@@ -6,6 +6,7 @@ const initialState = {
         loading: false,
         saving: false,
         addressesSaving: false,
+        bankSaving: false,
         uploadingLogo: false,
         initialized: false,
         error: null,
@@ -187,6 +188,40 @@ export const useSellerCompanyStore = create(
                                                 ...s,
                                                 addressesSaving: false,
                                                 error: error.message || "Failed to update addresses",
+                                        }));
+                                        return { success: false, message: error.message };
+                                }
+                        },
+                        updateBankDetails: async (bankDetails) => {
+                                set((s) => ({ ...s, bankSaving: true, error: null }));
+                                try {
+                                        const res = await fetch("/api/seller/company/updateCompany", {
+                                                method: "PUT",
+                                                headers: { "Content-Type": "application/json" },
+                                                credentials: "include",
+                                                body: JSON.stringify({ bankDetails }),
+                                        });
+                                        const data = await res.json().catch(() => ({}));
+                                        if (!res.ok) {
+                                                throw new Error(data?.error || "Failed to update bank details");
+                                        }
+
+                                        set((s) => ({
+                                                ...s,
+                                                bankSaving: false,
+                                                company: data.company || s.company,
+                                        }));
+
+                                        return {
+                                                success: true,
+                                                message: data?.message || "Bank details updated successfully",
+                                                company: data.company,
+                                        };
+                                } catch (error) {
+                                        set((s) => ({
+                                                ...s,
+                                                bankSaving: false,
+                                                error: error.message || "Failed to update bank details",
                                         }));
                                         return { success: false, message: error.message };
                                 }

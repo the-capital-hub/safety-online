@@ -6,6 +6,24 @@ import { dbConnect } from "@/lib/dbConnect";
 import companyDetails from "@/model/companyDetails";
 import { companyUpdateSchema } from "@/zodSchema/companyScema.js";
 
+const sanitizeBankDetails = (bankDetails) => {
+        if (!bankDetails) return undefined;
+
+        const trimmed = (value) => (typeof value === "string" ? value.trim() : value);
+
+        return {
+                ...bankDetails,
+                accountHolderName: trimmed(bankDetails.accountHolderName),
+                accountNumber: trimmed(bankDetails.accountNumber),
+                bankName: trimmed(bankDetails.bankName),
+                ifscCode: trimmed(bankDetails.ifscCode)?.toUpperCase(),
+                branchName: trimmed(bankDetails.branchName) || undefined,
+                accountType: trimmed(bankDetails.accountType) || undefined,
+                upiId: trimmed(bankDetails.upiId) || undefined,
+                lastUpdatedAt: new Date(),
+        };
+};
+
 export async function PUT(req) {
 	try {
 		await dbConnect();
@@ -42,7 +60,11 @@ export async function PUT(req) {
 			return NextResponse.json({ error: first.message }, { status: 400 });
 		}
 
-		const updateData = { ...parsed.data };
+                const updateData = { ...parsed.data };
+
+                if (typeof updateData.bankDetails !== "undefined") {
+                        updateData.bankDetails = sanitizeBankDetails(updateData.bankDetails);
+                }
 		const updatedCompany = await companyDetails.findByIdAndUpdate(
 			user.company,
 			{ $set: updateData },

@@ -3,17 +3,27 @@ import mongoose from "mongoose";
 const { Schema } = mongoose;
 
 const CompanySchema = new Schema(
-	{
-		user: {
-			type: Schema.Types.ObjectId,
-			ref: "User",
-			required: true,
-		},
-		companyName: {
-			type: String,
-			required: true,
-			trim: true,
-		},
+        {
+                user: {
+                        type: Schema.Types.ObjectId,
+                        ref: "User",
+                        required: true,
+                },
+                bankDetails: {
+                        accountHolderName: { type: String, trim: true },
+                        accountNumber: { type: String, trim: true },
+                        bankName: { type: String, trim: true },
+                        branchName: { type: String, trim: true },
+                        ifscCode: { type: String, trim: true, uppercase: true },
+                        accountType: { type: String, trim: true },
+                        upiId: { type: String, trim: true },
+                        lastUpdatedAt: { type: Date },
+                },
+                companyName: {
+                        type: String,
+                        required: true,
+                        trim: true,
+                },
 		companyAddress: [
 			{
 				tagName: { type: String, required: true },
