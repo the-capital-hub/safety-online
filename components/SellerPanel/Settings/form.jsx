@@ -26,27 +26,15 @@ const EMPTY_FORM = {
 };
 
 export default function ShopForm() {
-        const {
-                company,
-                loading,
-                initialized,
-                saving,
-                uploadingLogo,
-                fetchCompany,
-                saveCompany,
-                uploadLogo,
-                setCompany,
-        } = useSellerCompanyStore((state) => ({
-                company: state.company,
-                loading: state.loading,
-                initialized: state.initialized,
-                saving: state.saving,
-                uploadingLogo: state.uploadingLogo,
-                fetchCompany: state.fetchCompany,
-                saveCompany: state.saveCompany,
-                uploadLogo: state.uploadLogo,
-                setCompany: state.setCompany,
-        }));
+        const company = useSellerCompanyStore((state) => state.company);
+        const loading = useSellerCompanyStore((state) => state.loading);
+        const initialized = useSellerCompanyStore((state) => state.initialized);
+        const saving = useSellerCompanyStore((state) => state.saving);
+        const uploadingLogo = useSellerCompanyStore((state) => state.uploadingLogo);
+        const fetchCompany = useSellerCompanyStore((state) => state.fetchCompany);
+        const saveCompany = useSellerCompanyStore((state) => state.saveCompany);
+        const uploadLogo = useSellerCompanyStore((state) => state.uploadLogo);
+        const setCompany = useSellerCompanyStore((state) => state.setCompany);
 
         const [form, setForm] = useState(EMPTY_FORM);
 

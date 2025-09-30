@@ -76,21 +76,12 @@ const getAccountTypeLabel = (value) => {
 };
 
 export default function BankDetailsCard() {
-        const {
-                company,
-                loading,
-                initialized,
-                bankSaving,
-                fetchCompany,
-                updateBankDetails,
-        } = useSellerCompanyStore((state) => ({
-                company: state.company,
-                loading: state.loading,
-                initialized: state.initialized,
-                bankSaving: state.bankSaving,
-                fetchCompany: state.fetchCompany,
-                updateBankDetails: state.updateBankDetails,
-        }));
+        const company = useSellerCompanyStore((state) => state.company);
+        const loading = useSellerCompanyStore((state) => state.loading);
+        const initialized = useSellerCompanyStore((state) => state.initialized);
+        const bankSaving = useSellerCompanyStore((state) => state.bankSaving);
+        const fetchCompany = useSellerCompanyStore((state) => state.fetchCompany);
+        const updateBankDetails = useSellerCompanyStore((state) => state.updateBankDetails);
 
         const [isEditing, setIsEditing] = useState(false);
         const [form, setForm] = useState(EMPTY_FORM);
