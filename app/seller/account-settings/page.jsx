@@ -21,12 +21,10 @@ import { useIsSellerAuthenticated } from "@/store/sellerAuthStore";
 export default function AccountSettings() {
         const router = useRouter();
         const isAuthenticated = useIsSellerAuthenticated();
-        const { loading, initialized, error, fetchCompany } = useSellerCompanyStore((state) => ({
-                loading: state.loading,
-                initialized: state.initialized,
-                error: state.error,
-                fetchCompany: state.fetchCompany,
-        }));
+        const loading = useSellerCompanyStore((state) => state.loading);
+        const initialized = useSellerCompanyStore((state) => state.initialized);
+        const error = useSellerCompanyStore((state) => state.error);
+        const fetchCompany = useSellerCompanyStore((state) => state.fetchCompany);
 
         useEffect(() => {
                 if (!isAuthenticated) {
