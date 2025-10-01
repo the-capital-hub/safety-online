@@ -4,7 +4,14 @@ const PaymentHistorySchema = new mongoose.Schema(
         {
                 status: {
                         type: String,
-                        enum: ["escrow", "released", "refunded", "cancelled", "disputed"],
+                        enum: [
+                                "escrow",
+                                "admin_approval",
+                                "released",
+                                "refunded",
+                                "cancelled",
+                                "disputed",
+                        ],
                         required: true,
                 },
                 note: { type: String, default: "" },
@@ -74,7 +81,7 @@ const PaymentSchema = new mongoose.Schema(
                 },
                 status: {
                         type: String,
-                        enum: ["escrow", "released", "refunded", "cancelled", "disputed"],
+                        enum: ["escrow", "admin_approval", "released", "refunded", "cancelled", "disputed"],
                         default: "escrow",
                 },
                 currency: {
@@ -97,7 +104,28 @@ const PaymentSchema = new mongoose.Schema(
                         type: Date,
                         default: null,
                 },
+                adminApprovalRequestedAt: {
+                        type: Date,
+                        default: null,
+                },
+                adminApprovedAt: {
+                        type: Date,
+                        default: null,
+                },
+                adminApprovedBy: {
+                        type: mongoose.Schema.Types.ObjectId,
+                        ref: "User",
+                        default: null,
+                },
                 payoutReference: {
+                        type: String,
+                        default: null,
+                },
+                payoutTransactionId: {
+                        type: String,
+                        default: null,
+                },
+                payoutMethod: {
                         type: String,
                         default: null,
                 },

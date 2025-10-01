@@ -37,6 +37,7 @@ import { useIsSellerAuthenticated } from "@/store/sellerAuthStore.js";
 
 const statusStyles = {
         escrow: "bg-amber-100 text-amber-800",
+        admin_approval: "bg-blue-100 text-blue-800",
         released: "bg-emerald-100 text-emerald-800",
         refunded: "bg-red-100 text-red-800",
         cancelled: "bg-gray-100 text-gray-800",
@@ -46,6 +47,7 @@ const statusStyles = {
 const STATUS_OPTIONS = [
         { label: "All", value: "all" },
         { label: "In Escrow", value: "escrow" },
+        { label: "Awaiting Admin Approval", value: "admin_approval" },
         { label: "Released", value: "released" },
         { label: "Refunded", value: "refunded" },
         { label: "Cancelled", value: "cancelled" },
@@ -90,6 +92,13 @@ const formatSubOrderReference = (subOrderValue) => {
 
         return `#${rawValue.slice(-6)}`;
 };
+
+const formatStatus = (status) =>
+        (status || "")
+                .split("_")
+                .filter(Boolean)
+                .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+                .join(" ") || "--";
 
 function SellerPaymentsPage() {
         const router = useRouter();
@@ -332,7 +341,7 @@ function SellerPaymentsPage() {
                                                         </TableCell>
                                                                                         <TableCell>
                                                                                                 <Badge className={statusStyles[payment.status] || "bg-gray-100 text-gray-800"}>
-                                                                                                        {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
+                                                                                                        {formatStatus(payment.status)}
                                                                                                 </Badge>
                                                                                         </TableCell>
                                                                                         <TableCell>{formatCurrency(payment.totalAmount)}</TableCell>

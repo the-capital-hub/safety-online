@@ -111,6 +111,8 @@ function SellerOrdersPage() {
                         toast.success("Delivery confirmed successfully");
                         if (result.releaseError) {
                                 toast.error(result.releaseError);
+                        } else if (result.payment?.status === "admin_approval") {
+                                toast.success("Payout sent to admin for approval");
                         } else if (result.payment?.status === "released") {
                                 toast.success("Escrow released to your account");
                         }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,6 +31,7 @@ import {
         Search,
         RotateCcw,
 } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 import { useAdminPaymentStore } from "@/store/adminPaymentStore.js";
 import { useIsAuthenticated } from "@/store/adminAuthStore.js";
@@ -38,6 +39,7 @@ import { useIsAuthenticated } from "@/store/adminAuthStore.js";
 const STATUS_OPTIONS = [
         { label: "All", value: "all" },
         { label: "In Escrow", value: "escrow" },
+        { label: "Admin Approval Required", value: "admin_approval" },
         { label: "Released", value: "released" },
         { label: "Refunded", value: "refunded" },
         { label: "Cancelled", value: "cancelled" },
@@ -46,6 +48,7 @@ const STATUS_OPTIONS = [
 
 const statusStyles = {
         escrow: "bg-amber-100 text-amber-800",
+        admin_approval: "bg-blue-100 text-blue-800",
         released: "bg-emerald-100 text-emerald-800",
         refunded: "bg-red-100 text-red-800",
         cancelled: "bg-gray-100 text-gray-800",
@@ -94,6 +97,13 @@ const getSellerDisplay = (payment) => {
         return { name, email };
 };
 
+const formatStatus = (status) =>
+        (status || "")
+                .split("_")
+                .filter(Boolean)
+                .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+                .join(" ") || "--";
+
 function AdminPaymentsPage() {
         const router = useRouter();
         const isAuthenticated = useIsAuthenticated();
@@ -109,6 +119,9 @@ function AdminPaymentsPage() {
                 resetFilters,
                 fetchPayments,
         } = useAdminPaymentStore();
+
+        const [approvalForms, setApprovalForms] = useState({});
+        const [approvingId, setApprovingId] = useState(null);
 
         useEffect(() => {
                 if (!isAuthenticated) {
@@ -137,6 +150,67 @@ function AdminPaymentsPage() {
         const handlePageChange = (page) => {
                 if (page < 1 || page > pagination.totalPages) return;
                 setFilters({ page });
+        };
+
+        const handleApprovalInputChange = (paymentId, field, value) => {
+                setApprovalForms((previous) => ({
+                        ...previous,
+                        [paymentId]: {
+                                transactionId: previous[paymentId]?.transactionId || "",
+                                paymentMethod: previous[paymentId]?.paymentMethod || "",
+                                note: previous[paymentId]?.note || "",
+                                [field]: value,
+                        },
+                }));
+        };
+
+        const getApprovalForm = (paymentId) =>
+                approvalForms[paymentId] || { transactionId: "", paymentMethod: "", note: "" };
+
+        const handleApprovePayment = async (paymentId) => {
+                const form = getApprovalForm(paymentId);
+                const transactionId = form.transactionId?.trim();
+                const paymentMethod = form.paymentMethod?.trim();
+                const note = form.note?.trim();
+
+                if (!transactionId) {
+                        toast.error("Transaction ID is required before approval");
+                        return;
+                }
+
+                if (!paymentMethod) {
+                        toast.error("Payment method is required before approval");
+                        return;
+                }
+
+                try {
+                        setApprovingId(paymentId);
+
+                        const response = await fetch(`/api/admin/payments/${paymentId}/approve`, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                credentials: "include",
+                                body: JSON.stringify({ transactionId, paymentMethod, note }),
+                        });
+
+                        const data = await response.json();
+
+                        if (!response.ok || !data.success) {
+                                throw new Error(data.message || "Failed to approve payout");
+                        }
+
+                        toast.success("Payout released to seller");
+                        setApprovalForms((previous) => ({
+                                ...previous,
+                                [paymentId]: { transactionId: "", paymentMethod: "", note: "" },
+                        }));
+                        fetchPayments();
+                } catch (error) {
+                        console.error("Approve payout error:", error);
+                        toast.error(error.message || "Failed to approve payout");
+                } finally {
+                        setApprovingId(null);
+                }
         };
 
         if (!isAuthenticated) {
@@ -299,27 +373,29 @@ function AdminPaymentsPage() {
                                                                         <TableHead>Commission</TableHead>
                                                                         <TableHead>Escrow Date</TableHead>
                                                                         <TableHead>Released</TableHead>
-                                                                        <TableHead>Reference</TableHead>
+                                                                        <TableHead>Gateway Reference</TableHead>
+                                                                        <TableHead>Payout Details</TableHead>
+                                                                        <TableHead>Admin Actions</TableHead>
                                                                 </TableRow>
                                                         </TableHeader>
                                                         <TableBody>
                                                                 {loading && (
                                                                         <TableRow>
-                                                                                <TableCell colSpan={9} className="text-center py-6 text-gray-500">
+                                                                                <TableCell colSpan={11} className="text-center py-6 text-gray-500">
                                                                                         Loading payments...
                                                                                 </TableCell>
                                                                         </TableRow>
                                                                 )}
                                                                 {!loading && error && (
                                                                         <TableRow>
-                                                                                <TableCell colSpan={9} className="text-center py-6 text-red-500">
+                                                                                <TableCell colSpan={11} className="text-center py-6 text-red-500">
                                                                                         {error}
                                                                                 </TableCell>
                                                                         </TableRow>
                                                                 )}
                                                                 {!loading && !error && payments.length === 0 && (
                                                                         <TableRow>
-                                                                                <TableCell colSpan={9} className="text-center py-8 text-gray-500">
+                                                                                <TableCell colSpan={11} className="text-center py-8 text-gray-500">
                                                                                         No payment activity found for the selected filters.
                                                                                 </TableCell>
                                                                         </TableRow>
@@ -327,6 +403,7 @@ function AdminPaymentsPage() {
                                                                 {!loading && !error &&
                                                                         payments.map((payment) => {
                                                                                 const seller = getSellerDisplay(payment);
+                                                                                const approvalForm = getApprovalForm(payment._id);
                                                                                 return (
                                                                                         <TableRow key={payment._id}>
                                                                                                 <TableCell>
@@ -345,7 +422,7 @@ function AdminPaymentsPage() {
                                                                                                 </TableCell>
                                                                                                 <TableCell>
                                                                                                         <Badge className={statusStyles[payment.status] || "bg-gray-100 text-gray-800"}>
-                                                                                                                {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
+                                                                                                                {formatStatus(payment.status)}
                                                                                                         </Badge>
                                                                                                 </TableCell>
                                                                                                 <TableCell>{formatCurrency(payment.totalAmount)}</TableCell>
@@ -355,6 +432,75 @@ function AdminPaymentsPage() {
                                                                                                 <TableCell>{formatDate(payment.releasedAt)}</TableCell>
                                                                                                 <TableCell className="text-xs text-gray-500">
                                                                                                         {payment.razorpayPaymentId || payment.razorpayOrderId || "--"}
+                                                                                                </TableCell>
+                                                                                                <TableCell>
+                                                                                                        {payment.status === "released" ? (
+                                                                                                                <div className="text-xs text-gray-600 space-y-1">
+                                                                                                                        <div>
+                                                                                                                                <span className="font-medium text-gray-700">Method:</span> {payment.payoutMethod || "--"}
+                                                                                                                        </div>
+                                                                                                                        <div>
+                                                                                                                                <span className="font-medium text-gray-700">Txn ID:</span> {payment.payoutTransactionId || payment.payoutReference || "--"}
+                                                                                                                        </div>
+                                                                                                                        {payment.adminApprovedAt && (
+                                                                                                                                <div>
+                                                                                                                                        <span className="font-medium text-gray-700">Approved:</span> {formatDate(payment.adminApprovedAt)}
+                                                                                                                                </div>
+                                                                                                                        )}
+                                                                                                                </div>
+                                                                                                        ) : payment.status === "admin_approval" ? (
+                                                                                                                <div className="text-xs text-gray-500">Awaiting admin approval</div>
+                                                                                                        ) : (
+                                                                                                                <div className="text-xs text-gray-500">--</div>
+                                                                                                        )}
+                                                                                                </TableCell>
+                                                                                                <TableCell>
+                                                                                                        {payment.status === "admin_approval" ? (
+                                                                                                                <div className="space-y-2">
+                                                                                                                        <Input
+                                                                                                                                placeholder="Transaction ID"
+                                                                                                                                value={approvalForm.transactionId}
+                                                                                                                                onChange={(event) =>
+                                                                                                                                        handleApprovalInputChange(
+                                                                                                                                                payment._id,
+                                                                                                                                                "transactionId",
+                                                                                                                                                event.target.value
+                                                                                                                                        )
+                                                                                                                                }
+                                                                                                                        />
+                                                                                                                        <Input
+                                                                                                                                placeholder="Payment Method"
+                                                                                                                                value={approvalForm.paymentMethod}
+                                                                                                                                onChange={(event) =>
+                                                                                                                                        handleApprovalInputChange(
+                                                                                                                                                payment._id,
+                                                                                                                                                "paymentMethod",
+                                                                                                                                                event.target.value
+                                                                                                                                        )
+                                                                                                                                }
+                                                                                                                        />
+                                                                                                                        <Input
+                                                                                                                                placeholder="Optional note"
+                                                                                                                                value={approvalForm.note}
+                                                                                                                                onChange={(event) =>
+                                                                                                                                        handleApprovalInputChange(
+                                                                                                                                                payment._id,
+                                                                                                                                                "note",
+                                                                                                                                                event.target.value
+                                                                                                                                        )
+                                                                                                                                }
+                                                                                                                        />
+                                                                                                                        <Button
+                                                                                                                                className="w-full"
+                                                                                                                                onClick={() => handleApprovePayment(payment._id)}
+                                                                                                                                disabled={approvingId === payment._id}
+                                                                                                                        >
+                                                                                                                                {approvingId === payment._id ? "Approving..." : "Approve Payout"}
+                                                                                                                        </Button>
+                                                                                                                </div>
+                                                                                                        ) : (
+                                                                                                                <div className="text-xs text-gray-500">No action required</div>
+                                                                                                        )}
                                                                                                 </TableCell>
                                                                                         </TableRow>
                                                                                 );
