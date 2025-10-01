@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 import { useAuthStore } from "@/store/authStore.js";
 import { generateInvoicePDF } from "@/lib/invoicePDF.js";
+import { useNotificationStore } from "@/store/notificationStore.js";
 
 export const useOrderStore = create(
 	devtools(
@@ -265,43 +266,82 @@ export const useOrderStore = create(
                                         }
                                 },
 
-                                requestReturn: async (orderId, payload) => {
-                                        set({ returnActionLoading: true });
+                        requestReturn: async (orderId, payload) => {
+                                set({ returnActionLoading: true });
 
-                                        try {
-                                                const response = await fetch(`/api/orders/${orderId}/return`, {
-                                                        method: "POST",
-                                                        headers: {
-                                                                "Content-Type": "application/json",
-                                                        },
+                                try {
+                                        const authState = useAuthStore.getState();
+                                        const response = await fetch(`/api/orders/${orderId}/return`, {
+                                                method: "POST",
+                                                headers: {
+                                                        "Content-Type": "application/json",
+                                                },
                                                         body: JSON.stringify(payload),
                                                 });
 
                                                 const data = await response.json();
 
-                                                if (!response.ok || !data.success) {
-                                                        throw new Error(data.message || "Failed to submit return request");
-                                                }
+                                        if (!response.ok || !data.success) {
+                                                throw new Error(data.message || "Failed to submit return request");
+                                        }
 
-                                                set((state) => ({
-                                                        returnActionLoading: false,
-                                                        orders: state.orders.map((order) => {
-                                                                if (order._id?.toString() === orderId.toString()) {
-                                                                        const existingRequests = Array.isArray(order.returnRequests)
-                                                                                ? order.returnRequests
-                                                                                : [];
-                                                                        return {
-                                                                                ...order,
-                                                                                status: "returned",
-                                                                                returnRequests: [data.request, ...existingRequests],
-                                                                        };
-                                                                }
-                                                                return order;
-                                                        }),
-                                                }));
+                                        set((state) => ({
+                                                returnActionLoading: false,
+                                                orders: state.orders.map((order) => {
+                                                        if (order._id?.toString() === orderId.toString()) {
+                                                                const existingRequests = Array.isArray(order.returnRequests)
+                                                                        ? order.returnRequests
+                                                                        : [];
+                                                                return {
+                                                                        ...order,
+                                                                        status: "returned",
+                                                                        returnRequests: [data.request, ...existingRequests],
+                                                                };
+                                                        }
+                                                        return order;
+                                                }),
+                                        }));
 
-                                                return { success: true, request: data.request };
-                                        } catch (error) {
+                                        const buyerName = authState?.user
+                                                ? `${authState.user.firstName || ""} ${
+                                                          authState.user.lastName || ""
+                                                  }`.trim() || authState.user.email || "Buyer"
+                                                : "Buyer";
+                                        const { logEvent } = useNotificationStore.getState();
+                                        logEvent({
+                                                panel: "buyer",
+                                                severity: "warning",
+                                                category: "returns",
+                                                title: `${buyerName} requested a return`,
+                                                message: `Return request submitted for order ${
+                                                        data.request?.orderNumber || orderId
+                                                }`,
+                                                metadata: [
+                                                        {
+                                                                label: "Order",
+                                                                value: data.request?.orderNumber || orderId,
+                                                        },
+                                                        (payload?.reason || payload?.returnReason ||
+                                                                data.request?.reason) && {
+                                                                label: "Reason",
+                                                                value:
+                                                                        payload?.reason ||
+                                                                        payload?.returnReason ||
+                                                                        data.request?.reason,
+                                                        },
+                                                        data.request?.items?.length
+                                                                ? {
+                                                                          label: "Items",
+                                                                          value: `${data.request.items.length}`,
+                                                                  }
+                                                                : null,
+                                                ].filter(Boolean),
+                                                actor: { name: buyerName, role: "Buyer" },
+                                                link: { href: "/admin/returns", label: "Review request" },
+                                        });
+
+                                        return { success: true, request: data.request };
+                                } catch (error) {
                                                 console.error("Submit return request error:", error);
                                                 set({
                                                         returnActionLoading: false,

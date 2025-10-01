@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { dbConnect } from "@/lib/dbConnect.js";
+import { sendOrderCancellationEmail } from "@/lib/orders/email.js";
 import Order from "@/model/Order.js";
-import "@/model/SubOrder.js";
+import SubOrder from "@/model/SubOrder.js";
+import { companyInfo } from "@/constants/companyInfo.js";
 
 export async function GET(request, { params }) {
         try {
@@ -62,6 +64,38 @@ export async function PUT(request, { params }) {
                         );
                 }
 
+                const existingOrder = await Order.findById(id)
+                        .populate("userId", "firstName lastName email")
+                        .populate({
+                                path: "subOrders",
+                                populate: [
+                                        {
+                                                path: "products.productId",
+                                                select: "name title images price",
+                                        },
+                                        {
+                                                path: "sellerId",
+                                                select: "name businessName",
+                                        },
+                                ],
+                        });
+
+                if (!existingOrder) {
+                        return NextResponse.json(
+                                { success: false, message: "Order not found" },
+                                { status: 404 }
+                        );
+                }
+
+                const shouldCancelOrder = updateData.status === "cancelled";
+
+                if (shouldCancelOrder) {
+                        await SubOrder.updateMany(
+                                { orderId: id, status: { $ne: "cancelled" } },
+                                { status: "cancelled" }
+                        );
+                }
+
                 const order = await Order.findByIdAndUpdate(id, updateData, {
                         new: true,
                         runValidators: true,
@@ -69,24 +103,49 @@ export async function PUT(request, { params }) {
                         .populate("userId", "firstName lastName email")
                         .populate({
                                 path: "subOrders",
-                                populate: {
-                                        path: "products.productId",
-                                        select: "name title images price",
-                                },
+                                populate: [
+                                        {
+                                                path: "products.productId",
+                                                select: "name title images price",
+                                        },
+                                        {
+                                                path: "sellerId",
+                                                select: "name businessName",
+                                        },
+                                ],
                         });
 
-		if (!order) {
-			return NextResponse.json(
-				{ success: false, message: "Order not found" },
-				{ status: 404 }
-			);
-		}
+                if (!order) {
+                        return NextResponse.json(
+                                { success: false, message: "Order not found" },
+                                { status: 404 }
+                        );
+                }
 
-		return NextResponse.json({
-			success: true,
-			message: "Order updated successfully",
-			order,
-		});
+                if (shouldCancelOrder && existingOrder.status !== "cancelled") {
+                        const adminCc = companyInfo.adminEmail ? [companyInfo.adminEmail] : undefined;
+
+                        try {
+                                await sendOrderCancellationEmail({
+                                        order,
+                                        to: order.customerEmail || order.userId?.email,
+                                        cc: adminCc,
+                                        cancelledBy: "admin",
+                                        reason:
+                                                updateData?.adminNotes ||
+                                                updateData?.cancellationReason ||
+                                                undefined,
+                                });
+                        } catch (emailError) {
+                                console.error("Error sending cancellation email:", emailError);
+                        }
+                }
+
+                return NextResponse.json({
+                        success: true,
+                        message: "Order updated successfully",
+                        order,
+                });
 	} catch (error) {
 		console.error("Error updating order:", error);
 		return NextResponse.json(

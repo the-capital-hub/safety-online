@@ -1,332 +1,539 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import {
+        Bell,
+        ArrowUpRight,
+        Archive,
+        Filter,
+        Inbox,
+        Sparkles,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Heart, MessageSquare, MoreHorizontal, Filter } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+        useNotificationStore,
+        useUnreadNotifications,
+} from "@/store/notificationStore.js";
 import { useIsSellerAuthenticated } from "@/store/sellerAuthStore";
 
-const notificationsData = [
-	{
-		id: 1,
-		user: "Leslie Alexander",
-		avatar: "/placeholder.svg?height=40&width=40",
-		action: "Comment on",
-		product: "Yellow Helmet",
-		message: "Great work, I just purchased this product!",
-		time: "Aug 15",
-		type: "comment",
-		hasReply: true,
-	},
-	{
-		id: 2,
-		user: "Annette Black",
-		avatar: "/placeholder.svg?height=40&width=40",
-		action: "Comment on",
-		product: "Yellow Helmet",
-		message: "Great work, I just purchased this product!",
-		time: "Apr 17",
-		type: "comment",
-		hasReply: true,
-		replyMessage: "Thanks, I'm glad you liked it! 😊",
-	},
-	{
-		id: 3,
-		user: "Jordan Smith",
-		avatar: "/placeholder.svg?height=40&width=40",
-		action: "I found this links Thanks for your help! 😊",
-		product: "Red Backpack",
-		time: "Aug 16",
-		type: "message",
-	},
-	{
-		id: 4,
-		user: "Alex Johnson",
-		avatar: "/placeholder.svg?height=40&width=40",
-		action: "Can you send me the link again? I missed it!",
-		product: "Blue Sneakers",
-		time: "Aug 17",
-		type: "message",
-	},
-	{
-		id: 5,
-		user: "Taylor Brown",
-		avatar: "/placeholder.svg?height=40&width=40",
-		action: "I encountered an error while downloading, can you assist?",
-		product: "Green Jacket",
-		time: "Aug 18",
-		type: "message",
-	},
-	{
-		id: 6,
-		user: "Morgan Lee",
-		avatar: "/placeholder.svg?height=40&width=40",
-		action: "Thanks for the update! The link works perfectly now 😊",
-		product: "Purple Scarf",
-		time: "Aug 19",
-		type: "message",
-	},
+const severityFilters = [
+        { value: "all", label: "All" },
+        { value: "info", label: "Informational" },
+        { value: "success", label: "Success" },
+        { value: "warning", label: "Attention" },
+        { value: "critical", label: "Critical" },
 ];
 
-const filterOptions = [
-	{ label: "Comments", checked: true },
-	{ label: "Review", checked: true },
-	{ label: "Likes", checked: true },
-	{ label: "Mentions", checked: false },
-	{ label: "Purchases", checked: false },
-	{ label: "Message", checked: false },
-];
+const formatRelativeTime = (timestamp) => {
+        const now = new Date();
+        const target = new Date(timestamp);
+        const diffMs = target.getTime() - now.getTime();
+
+        const units = [
+                { limit: 60, divisor: 1, unit: "second" },
+                { limit: 3600, divisor: 60, unit: "minute" },
+                { limit: 86400, divisor: 3600, unit: "hour" },
+                { limit: 604800, divisor: 86400, unit: "day" },
+                { limit: 2629800, divisor: 604800, unit: "week" },
+        ];
+
+        const diffSeconds = Math.round(Math.abs(diffMs) / 1000);
+
+        for (const { limit, divisor, unit } of units) {
+                if (diffSeconds < limit) {
+                        const value = Math.round(diffSeconds / divisor) * Math.sign(diffMs || 1);
+                        return new Intl.RelativeTimeFormat("en", { numeric: "auto" }).format(
+                                value,
+                                unit
+                        );
+                }
+        }
+
+        return target.toLocaleString();
+};
+
+const groupByDate = (notifications) => {
+        return notifications.reduce((groups, notification) => {
+                const key = new Date(notification.createdAt).toISOString().slice(0, 10);
+                if (!groups[key]) {
+                        groups[key] = [];
+                }
+                groups[key].push(notification);
+                return groups;
+        }, {});
+};
+
+const formatDateHeading = (timestamp) => {
+        const date = new Date(timestamp);
+        return date.toLocaleDateString("en-IN", {
+                weekday: "short",
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+        });
+};
 
 export default function SellerNotificationsPage() {
-	const router = useRouter();
-	const isAuthenticated = useIsSellerAuthenticated();
+        const router = useRouter();
+        const isAuthenticated = useIsSellerAuthenticated();
+        const notifications = useNotificationStore((state) => state.notifications);
+        const markAsRead = useNotificationStore((state) => state.markAsRead);
+        const markAsUnread = useNotificationStore((state) => state.markAsUnread);
+        const dismissNotification = useNotificationStore((state) => state.dismissNotification);
+        const markPanelAsRead = useNotificationStore((state) => state.markPanelAsRead);
+        const unreadCount = useUnreadNotifications("seller");
+        const fetchNotifications = useNotificationStore((state) => state.fetchNotifications);
+        const loading = useNotificationStore((state) => state.loading);
+        const error = useNotificationStore((state) => state.error);
+        const hasHydrated = useNotificationStore((state) => state.hasHydrated);
 
-	useEffect(() => {
-		if (!isAuthenticated) {
-			router.push("/seller/login");
-			return;
-		}
-	}, [isAuthenticated, router]);
+        useEffect(() => {
+                if (!isAuthenticated) {
+                        router.push("/seller/login");
+                }
+        }, [isAuthenticated, router]);
 
-	const [filters, setFilters] = useState(filterOptions);
-	const [replyingTo, setReplyingTo] = useState(null);
+        useEffect(() => {
+                if (isAuthenticated) {
+                        fetchNotifications();
+                }
+        }, [fetchNotifications, isAuthenticated]);
 
-	const handleFilterChange = (index) => {
-		setFilters((prev) =>
-			prev.map((filter, i) =>
-				i === index ? { ...filter, checked: !filter.checked } : filter
-			)
-		);
-	};
+        const [searchTerm, setSearchTerm] = useState("");
+        const [activeSeverity, setActiveSeverity] = useState("all");
+        const [showUnreadOnly, setShowUnreadOnly] = useState(false);
+        const [activeCategory, setActiveCategory] = useState("all");
 
-	const handleSelectAll = () => {
-		const allSelected = filters.every((f) => f.checked);
-		setFilters((prev) =>
-			prev.map((filter) => ({ ...filter, checked: !allSelected }))
-		);
-	};
+        const isLoading = !hasHydrated || loading;
 
-	return (
-		<div className="p-6">
-			<div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-				{/* Main Notifications */}
-				<div className="lg:col-span-3">
-					<motion.div
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-					>
-						<Card className="bg-white border-0 shadow-sm">
-							<div className="p-6 border-b">
-								<div className="flex items-center justify-between">
-									<h2 className="text-xl font-semibold text-gray-900">
-										Notification
-									</h2>
-									<div className="flex items-center space-x-2">
-										<Button variant="outline" size="sm">
-											New
-										</Button>
-										<Button variant="outline" size="sm">
-											All time
-										</Button>
-										<Button variant="ghost" size="sm">
-											<MoreHorizontal className="w-4 h-4" />
-										</Button>
-									</div>
-								</div>
-							</div>
-							<div className="p-6">
-								<div className="space-y-4">
-									{notificationsData.map((notification, index) => (
-										<motion.div
-											key={notification.id}
-											initial={{ opacity: 0, x: -20 }}
-											animate={{ opacity: 1, x: 0 }}
-											transition={{ delay: index * 0.1 }}
-											className="flex items-start space-x-4 p-4 hover:bg-gray-50 rounded-lg"
-										>
-											<div className="flex-shrink-0">
-												<img
-													src={notification.avatar || "/placeholder.svg"}
-													alt={notification.user}
-													className="w-10 h-10 rounded-full"
-												/>
-											</div>
+        const sellerNotifications = useMemo(
+                () =>
+                        notifications
+                                .filter((notification) => notification.panel === "seller")
+                                .sort(
+                                        (a, b) =>
+                                                new Date(b.createdAt).getTime() -
+                                                new Date(a.createdAt).getTime()
+                                ),
+                [notifications]
+        );
 
-											<div className="flex-1 min-w-0">
-												<div className="flex items-center space-x-2 mb-1">
-													<span className="font-medium text-gray-900">
-														{notification.user}
-													</span>
-													<span className="text-sm text-gray-500">
-														{notification.time}
-													</span>
-													<Badge className="bg-yellow-100 text-yellow-800">
-														⭐
-													</Badge>
-												</div>
+        const categoryOptions = useMemo(() => {
+                const uniqueCategories = new Set(
+                        sellerNotifications.map((notification) => notification.category || "general")
+                );
+                return ["all", ...Array.from(uniqueCategories)];
+        }, [sellerNotifications]);
 
-												<p className="text-sm text-gray-600 mb-2">
-													{notification.action}{" "}
-													<span className="font-medium text-blue-600">
-														{notification.product}
-													</span>
-												</p>
+        useEffect(() => {
+                if (!categoryOptions.includes(activeCategory)) {
+                        setActiveCategory("all");
+                }
+        }, [categoryOptions, activeCategory]);
 
-												{notification.message && (
-													<p className="text-sm text-gray-800 mb-2">
-														"{notification.message}"
-													</p>
-												)}
+        const filteredNotifications = useMemo(() => {
+                        const term = searchTerm.trim().toLowerCase();
+                        return sellerNotifications.filter((notification) => {
+                                const matchesSeverity =
+                                        activeSeverity === "all" || notification.severity === activeSeverity;
+                                const matchesCategory =
+                                        activeCategory === "all" || notification.category === activeCategory;
+                                const matchesUnread = !showUnreadOnly || !notification.read;
+                                const haystack = `${notification.title} ${notification.message} ${
+                                        notification.metadata
+                                                ?.map((item) => `${item.label} ${item.value}`)
+                                                .join(" ") || ""
+                                }`.toLowerCase();
+                                const matchesSearch = term.length === 0 || haystack.includes(term);
 
-												<div className="flex items-center space-x-4 text-sm text-gray-500">
-													<button className="flex items-center space-x-1 hover:text-blue-600">
-														<MessageSquare className="w-4 h-4" />
-														<span>Reply</span>
-													</button>
-													<button className="flex items-center space-x-1 hover:text-red-600">
-														<Heart className="w-4 h-4" />
-														<span>Like</span>
-													</button>
-												</div>
+                                return matchesSeverity && matchesCategory && matchesUnread && matchesSearch;
+                        });
+                },
+                [sellerNotifications, activeSeverity, activeCategory, showUnreadOnly, searchTerm]
+        );
 
-												{notification.hasReply && notification.replyMessage && (
-													<div className="mt-3 ml-4 p-3 bg-gray-50 rounded-lg">
-														<div className="flex items-center space-x-2 mb-1">
-															<div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
-																<span className="text-white text-xs">A</span>
-															</div>
-															<span className="text-sm font-medium">
-																Annette Black
-															</span>
-															<span className="text-xs text-gray-500">
-																{notification.replyMessage}
-															</span>
-														</div>
-														<div className="flex items-center space-x-2 mt-2">
-															<Button size="sm" className="bg-black text-white">
-																Reply
-															</Button>
-															<Button size="sm" variant="outline">
-																Cancel
-															</Button>
-														</div>
-													</div>
-												)}
-											</div>
+        const groupedNotifications = useMemo(() => {
+                const groups = groupByDate(filteredNotifications);
+                return Object.entries(groups)
+                        .map(([date, items]) => ({
+                                date,
+                                items: items.sort(
+                                        (a, b) =>
+                                                new Date(b.createdAt).getTime() -
+                                                new Date(a.createdAt).getTime()
+                                ),
+                        }))
+                        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        }, [filteredNotifications]);
 
-											<div className="flex-shrink-0">
-												{notification.product && (
-													<div className="flex items-center space-x-2">
-														<img
-															src="/placeholder.svg?height=32&width=32"
-															alt={notification.product}
-															className="w-8 h-8 rounded"
-														/>
-														<div>
-															<p className="text-sm font-medium text-gray-900">
-																{notification.product}
-															</p>
-															<p className="text-xs text-gray-500">
-																3D Product
-															</p>
-														</div>
-													</div>
-												)}
-											</div>
-										</motion.div>
-									))}
-								</div>
+        const todayKey = new Date().toISOString().slice(0, 10);
+        const todaysNotifications = useMemo(
+                () =>
+                        sellerNotifications.filter(
+                                (notification) =>
+                                        new Date(notification.createdAt).toISOString().slice(0, 10) === todayKey
+                        ),
+                [sellerNotifications, todayKey]
+        );
 
-								<div className="mt-6 text-center">
-									<Button variant="outline" size="sm">
-										Load more
-									</Button>
-								</div>
-							</div>
-						</Card>
-					</motion.div>
-				</div>
+        const criticalAttention = useMemo(
+                () =>
+                        sellerNotifications.filter(
+                                (notification) =>
+                                        ["warning", "critical"].includes(notification.severity) && !notification.read
+                        ).length,
+                [sellerNotifications]
+        );
 
-				{/* Filter Sidebar */}
-				<div className="lg:col-span-1">
-					<motion.div
-						initial={{ opacity: 0, x: 20 }}
-						animate={{ opacity: 1, x: 0 }}
-						transition={{ delay: 0.2 }}
-					>
-						<Card className="bg-white border-0 shadow-sm">
-							<div className="p-6">
-								<div className="flex items-center space-x-2 mb-6">
-									<Filter className="w-5 h-5 text-gray-600" />
-									<h3 className="font-semibold text-gray-900">Filter</h3>
-								</div>
+        const handleNavigate = (href, id) => {
+                if (id) {
+                        markAsRead(id);
+                }
+                if (href) {
+                        router.push(href);
+                }
+        };
 
-								<div className="space-y-4">
-									{filters.map((filter, index) => (
-										<div
-											key={filter.label}
-											className="flex items-center justify-between"
-										>
-											<span className="text-sm text-gray-700">
-												{filter.label}
-											</span>
-											<Checkbox
-												checked={filter.checked}
-												onCheckedChange={() => handleFilterChange(index)}
-											/>
-										</div>
-									))}
-								</div>
+        return (
+                <div className="space-y-6 p-6">
+                        {error && (
+                                <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                                        We couldn't refresh notifications. Please try again later.
+                                </div>
+                        )}
+                        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                                <div>
+                                        <h1 className="text-2xl font-semibold tracking-tight">Seller notifications</h1>
+                                        <p className="text-sm text-muted-foreground">
+                                                Monitor orders, payouts and buyer activity for your storefront.
+                                        </p>
+                                </div>
+                                <div className="flex flex-wrap items-center gap-2">
+                                        <Button
+                                                variant="outline"
+                                                className="gap-2"
+                                                onClick={() => markPanelAsRead("seller")}
+                                                disabled={unreadCount === 0}
+                                        >
+                                                <Sparkles className="h-4 w-4" />
+                                                Mark all as read
+                                        </Button>
+                                        <Button variant="secondary" className="gap-2" onClick={() => router.push("/seller/orders")}
+                                        >
+                                                <ArrowUpRight className="h-4 w-4" />
+                                                Go to orders
+                                        </Button>
+                                </div>
+                        </div>
 
-								<div className="mt-6 pt-4 border-t">
-									<div className="flex items-center justify-between mb-4">
-										<Button
-											variant="outline"
-											size="sm"
-											onClick={handleSelectAll}
-										>
-											Select all
-										</Button>
-										<Button
-											variant="outline"
-											size="sm"
-											onClick={() =>
-												setFilters(
-													filters.map((filter) => ({
-														...filter,
-														checked: false,
-													}))
-												)
-											}
-										>
-											Unselect all
-										</Button>
-									</div>
-								</div>
+                        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                                <Card>
+                                        <CardHeader className="pb-2">
+                                                <CardTitle className="text-sm font-medium text-muted-foreground">
+                                                        Total alerts
+                                                </CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                                {isLoading && sellerNotifications.length === 0 ? (
+                                                        <div className="space-y-2">
+                                                                <div className="h-6 w-16 animate-pulse rounded bg-muted" />
+                                                                <div className="h-3 w-20 animate-pulse rounded bg-muted" />
+                                                        </div>
+                                                ) : (
+                                                        <>
+                                                                <p className="text-2xl font-semibold">{sellerNotifications.length}</p>
+                                                                <p className="text-xs text-muted-foreground">
+                                                                        {todaysNotifications.length} new today
+                                                                </p>
+                                                        </>
+                                                )}
+                                        </CardContent>
+                                </Card>
+                                <Card>
+                                        <CardHeader className="pb-2">
+                                                <CardTitle className="text-sm font-medium text-muted-foreground">
+                                                        Unread updates
+                                                </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-1">
+                                                {isLoading && sellerNotifications.length === 0 ? (
+                                                        <div className="space-y-2">
+                                                                <div className="h-6 w-14 animate-pulse rounded bg-muted" />
+                                                                <div className="h-3 w-36 animate-pulse rounded bg-muted" />
+                                                        </div>
+                                                ) : (
+                                                        <>
+                                                                <p className="text-2xl font-semibold">{unreadCount}</p>
+                                                                <p className="text-xs text-muted-foreground">
+                                                                        Stay up to date by reviewing new activity promptly.
+                                                                </p>
+                                                        </>
+                                                )}
+                                        </CardContent>
+                                </Card>
+                                <Card>
+                                        <CardHeader className="pb-2">
+                                                <CardTitle className="text-sm font-medium text-muted-foreground">
+                                                        Needs attention
+                                                </CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                                {isLoading && sellerNotifications.length === 0 ? (
+                                                        <div className="space-y-2">
+                                                                <div className="h-6 w-14 animate-pulse rounded bg-muted" />
+                                                                <div className="h-3 w-44 animate-pulse rounded bg-muted" />
+                                                        </div>
+                                                ) : (
+                                                        <>
+                                                                <p className="text-2xl font-semibold">{criticalAttention}</p>
+                                                                <p className="text-xs text-muted-foreground">
+                                                                        Pending warnings or escalations requiring action.
+                                                                </p>
+                                                        </>
+                                                )}
+                                        </CardContent>
+                                </Card>
+                                <Card>
+                                        <CardHeader className="pb-2">
+                                                <CardTitle className="text-sm font-medium text-muted-foreground">
+                                                        Latest sync
+                                                </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-1">
+                                                {isLoading && sellerNotifications.length === 0 ? (
+                                                        <div className="space-y-2">
+                                                                <div className="h-6 w-20 animate-pulse rounded bg-muted" />
+                                                                <div className="h-3 w-40 animate-pulse rounded bg-muted" />
+                                                        </div>
+                                                ) : (
+                                                        <>
+                                                                <p className="text-2xl font-semibold">
+                                                                        {sellerNotifications[0]
+                                                                                ? formatRelativeTime(sellerNotifications[0].createdAt)
+                                                                                : "Just now"}
+                                                                </p>
+                                                                <p className="text-xs text-muted-foreground">
+                                                                        Notifications update automatically as events occur.
+                                                                </p>
+                                                        </>
+                                                )}
+                                        </CardContent>
+                                </Card>
+                        </div>
 
-								<div className="mt-6 pt-4 border-t">
-									<h4 className="font-medium text-gray-900 mb-3">Customers</h4>
-									<div className="space-y-2">
-										<div className="flex items-center space-x-2">
-											<input
-												type="radio"
-												name="customer"
-												className="text-orange-500"
-												defaultChecked
-											/>
-											<span className="text-sm text-gray-700">Everyone</span>
-										</div>
-									</div>
-								</div>
-							</div>
-						</Card>
-					</motion.div>
-				</div>
-			</div>
-		</div>
-	);
+                        <Card>
+                                <CardHeader className="flex flex-col gap-4">
+                                        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                                                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+                                                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                                                <Filter className="h-4 w-4" />
+                                                                Filters
+                                                        </div>
+                                                        <Tabs
+                                                                value={activeSeverity}
+                                                                onValueChange={setActiveSeverity}
+                                                                className="w-fit"
+                                                        >
+                                                                <TabsList>
+                                                                        {severityFilters.map((filter) => (
+                                                                                <TabsTrigger key={filter.value} value={filter.value}>
+                                                                                        {filter.label}
+                                                                                </TabsTrigger>
+                                                                        ))}
+                                                                </TabsList>
+                                                        </Tabs>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                        <div className="flex items-center gap-2 text-sm">
+                                                                <Switch
+                                                                        id="seller-unread-only"
+                                                                        checked={showUnreadOnly}
+                                                                        onCheckedChange={setShowUnreadOnly}
+                                                                />
+                                                                <label htmlFor="seller-unread-only" className="text-sm text-muted-foreground">
+                                                                        Show unread only
+                                                                </label>
+                                                        </div>
+                                                        <div className="w-full sm:w-60">
+                                                                <Input
+                                                                        placeholder="Search notifications"
+                                                                        value={searchTerm}
+                                                                        onChange={(event) => setSearchTerm(event.target.value)}
+                                                                />
+                                                        </div>
+                                                </div>
+                                        </div>
+                                        <div className="flex flex-wrap items-center gap-2">
+                                                {categoryOptions.map((category) => (
+                                                        <Badge
+                                                                key={category}
+                                                                variant={category === activeCategory ? "default" : "outline"}
+                                                                className="cursor-pointer text-xs capitalize"
+                                                                onClick={() => setActiveCategory(category)}
+                                                        >
+                                                                {category === "all" ? "All categories" : category.replace(/-/g, " ")}
+                                                        </Badge>
+                                                ))}
+                                        </div>
+                                </CardHeader>
+                                <CardContent className="p-0">
+                                        <ScrollArea className="max-h-[60vh]">
+                                                <div className="divide-y">
+                                                        {isLoading && sellerNotifications.length === 0 ? (
+                                                                <div className="space-y-6 p-6">
+                                                                        {[...Array(3)].map((_, index) => (
+                                                                                <div key={index} className="space-y-4">
+                                                                                        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                                                                                <div className="h-3 w-24 animate-pulse rounded-full bg-muted" />
+                                                                                        </div>
+                                                                                        <div className="space-y-4">
+                                                                                                {[...Array(2)].map((__, itemIndex) => (
+                                                                                                        <div
+                                                                                                                key={itemIndex}
+                                                                                                                className="rounded-lg border bg-background p-4"
+                                                                                                        >
+                                                                                                                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                                                                                                                        <div className="space-y-2">
+                                                                                                                                <div className="h-4 w-32 animate-pulse rounded bg-muted" />
+                                                                                                                                <div className="h-3 w-full animate-pulse rounded bg-muted" />
+                                                                                                                                <div className="h-3 w-3/4 animate-pulse rounded bg-muted" />
+                                                                                                                        </div>
+                                                                                                                        <div className="h-3 w-16 animate-pulse rounded bg-muted" />
+                                                                                                                </div>
+                                                                                                                <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm">
+                                                                                                                        <div className="h-3 w-24 animate-pulse rounded bg-muted" />
+                                                                                                                        <div className="h-8 w-20 animate-pulse rounded bg-muted" />
+                                                                                                                </div>
+                                                                                                        </div>
+                                                                                                ))}
+                                                                                        </div>
+                                                                                </div>
+                                                                        ))}
+                                                                </div>
+                                                        ) : groupedNotifications.length === 0 ? (
+                                                                <div className="flex flex-col items-center justify-center gap-2 py-16 text-center text-muted-foreground">
+                                                                        <Inbox className="h-6 w-6" />
+                                                                        <p className="text-sm">No notifications match your filters yet.</p>
+                                                                </div>
+                                                        ) : (
+                                                                groupedNotifications.map((group) => (
+                                                                        <div key={group.date} className="space-y-4 p-6">
+                                                                                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                                                                        <Bell className="h-3 w-3" />
+                                                                                        {formatDateHeading(group.date)}
+                                                                                </div>
+                                                                                <div className="space-y-4">
+                                                                                        {group.items.map((notification) => (
+                                                                                                <motion.div
+                                                                                                        key={notification.id}
+                                                                                                        initial={{ opacity: 0, y: 8 }}
+                                                                                                        animate={{ opacity: 1, y: 0 }}
+                                                                                                        transition={{ duration: 0.2 }}
+                                                                                                        className="rounded-lg border bg-background p-4 shadow-sm"
+                                                                                                >
+                                                                                                        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                                                                                                                <div className="space-y-2">
+                                                                                                                        <div className="flex flex-wrap items-center gap-2">
+                                                                                                                                <h3 className="text-base font-semibold text-foreground">
+                                                                                                                                        {notification.title}
+                                                                                                                                </h3>
+                                                                                                                                <Badge
+                                                                                                                                        variant="outline"
+                                                                                                                                        className="text-xs capitalize"
+                                                                                                                                >
+                                                                                                                                        {notification.severity}
+                                                                                                                                </Badge>
+                                                                                                                                <Badge
+                                                                                                                                        variant="secondary"
+                                                                                                                                        className="text-xs capitalize"
+                                                                                                                                >
+                                                                                                                                        {notification.category || "general"}
+                                                                                                                                </Badge>
+                                                                                                                        </div>
+                                                                                                                        <p className="text-sm text-muted-foreground">
+                                                                                                                                {notification.message}
+                                                                                                                        </p>
+                                                                                                                        {notification.metadata?.length ? (
+                                                                                                                                <div className="flex flex-wrap gap-2">
+                                                                                                                                        {notification.metadata.map((item) => (
+                                                                                                                                                <span
+                                                                                                                                                        key={`${notification.id}-${item.label}`}
+                                                                                                                                                        className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground"
+                                                                                                                                                >
+                                                                                                                                                        {item.label}: {item.value}
+                                                                                                                                                </span>
+                                                                                                                                        ))}
+                                                                                                                                </div>
+                                                                                                                        ) : null}
+                                                                                                                </div>
+                                                                                                                <div className="flex flex-col items-end gap-2 text-right text-xs text-muted-foreground">
+                                                                                                                        <span>{formatRelativeTime(notification.createdAt)}</span>
+                                                                                                                        {!notification.read && (
+                                                                                                                                <span className="inline-flex h-2 w-2 rounded-full bg-primary" />
+                                                                                                                        )}
+                                                                                                                </div>
+                                                                                                        </div>
+                                                                                                        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm">
+                                                                                                                <div className="flex flex-wrap items-center gap-3">
+                                                                                                                        {notification.link?.href && (
+                                                                                                                                <Button
+                                                                                                                                        variant="link"
+                                                                                                                                        size="sm"
+                                                                                                                                        className="px-0"
+                                                                                                                                        onClick={() => handleNavigate(notification.link.href, notification.id)}
+                                                                                                                                >
+                                                                                                                                        {notification.link?.label || "View details"}
+                                                                                                                                        <ArrowUpRight className="ml-1 h-3 w-3" />
+                                                                                                                                </Button>
+                                                                                                                        )}
+                                                                                                                        {notification.read ? (
+                                                                                                                                <Button
+                                                                                                                                        variant="link"
+                                                                                                                                        size="sm"
+                                                                                                                                        className="px-0"
+                                                                                                                                        onClick={() => markAsUnread(notification.id)}
+                                                                                                                                >
+                                                                                                                                        Mark as unread
+                                                                                                                                </Button>
+                                                                                                                        ) : (
+                                                                                                                                <Button
+                                                                                                                                        variant="link"
+                                                                                                                                        size="sm"
+                                                                                                                                        className="px-0"
+                                                                                                                                        onClick={() => markAsRead(notification.id)}
+                                                                                                                                >
+                                                                                                                                        Mark as read
+                                                                                                                                </Button>
+                                                                                                                        )}
+                                                                                                                </div>
+                                                                                                                <Button
+                                                                                                                        variant="ghost"
+                                                                                                                        size="sm"
+                                                                                                                        className="h-8 px-3 text-xs"
+                                                                                                                        onClick={() => dismissNotification(notification.id)}
+                                                                                                                >
+                                                                                                                        <Archive className="mr-2 h-3 w-3" />
+                                                                                                                        Archive
+                                                                                                                </Button>
+                                                                                                        </div>
+                                                                                                </motion.div>
+                                                                                        ))}
+                                                                                </div>
+                                                                        </div>
+                                                                ))
+                                                        )}
+                                                </div>
+                                        </ScrollArea>
+                                </CardContent>
+                        </Card>
+                </div>
+        );
 }

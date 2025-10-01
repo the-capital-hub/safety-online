@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
+import { useNotificationStore } from "@/store/notificationStore.js";
 
 export const useAdminReturnStore = create(
         devtools((set, get) => ({
@@ -63,6 +64,43 @@ export const useAdminReturnStore = create(
                                         ),
                                 }));
 
+                                const status = data.request?.status || payload.status;
+                                const { logEvent } = useNotificationStore.getState();
+                                logEvent({
+                                        panel: "admin",
+                                        severity:
+                                                status === "approved"
+                                                        ? "success"
+                                                        : status === "rejected"
+                                                        ? "critical"
+                                                        : "info",
+                                        category: "returns",
+                                        title: `Return ${status || "updated"}`,
+                                        message: `Admin ${status || "updated"} return request ${
+                                                data.request?.orderNumber || id
+                                        }`,
+                                        metadata: [
+                                                {
+                                                        label: "Order",
+                                                        value: data.request?.orderNumber || id,
+                                                },
+                                                status
+                                                        ? {
+                                                                  label: "Status",
+                                                                  value: status,
+                                                          }
+                                                        : null,
+                                                data.request?.customerName
+                                                        ? {
+                                                                  label: "Buyer",
+                                                                  value: data.request.customerName,
+                                                          }
+                                                        : null,
+                                        ].filter(Boolean),
+                                        actor: { name: "Admin panel", role: "Admin" },
+                                        link: { href: "/admin/returns", label: "Review returns" },
+                                });
+
                                 return { success: true, request: data.request };
                         } catch (error) {
                                 console.error("Update return request error:", error);
@@ -122,6 +160,31 @@ export const useAdminReturnStore = create(
                                 set({
                                         updatingSettings: false,
                                         returnSettings: data.settings,
+                                });
+
+                                const { logEvent } = useNotificationStore.getState();
+                                logEvent({
+                                        panel: "admin",
+                                        severity: "info",
+                                        category: "returns",
+                                        title: "Return policy updated",
+                                        message: "Admin adjusted buyer return settings.",
+                                        metadata: [
+                                                payload?.windowDays
+                                                        ? {
+                                                                  label: "Return window",
+                                                                  value: `${payload.windowDays} days`,
+                                                          }
+                                                        : null,
+                                                payload?.enabled !== undefined
+                                                        ? {
+                                                                  label: "Returns",
+                                                                  value: payload.enabled ? "Enabled" : "Disabled",
+                                                          }
+                                                        : null,
+                                        ].filter(Boolean),
+                                        actor: { name: "Admin panel", role: "Admin" },
+                                        link: { href: "/admin/returns", label: "Review policy" },
                                 });
 
                                 return { success: true, settings: data.settings };

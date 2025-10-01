@@ -111,6 +111,8 @@ function SellerOrdersPage() {
                         toast.success("Delivery confirmed successfully");
                         if (result.releaseError) {
                                 toast.error(result.releaseError);
+                        } else if (result.payment?.status === "admin_approval") {
+                                toast.success("Payout sent to admin for approval");
                         } else if (result.payment?.status === "released") {
                                 toast.success("Escrow released to your account");
                         }
@@ -374,7 +376,13 @@ function SellerOrdersPage() {
 											</TableCell>
 											<TableCell>
 												<div className="space-y-2">
-													{order.products.slice(0, 2).map((product, index) => (
+                                                                        {(
+                                                                                Array.isArray(order.products)
+                                                                                        ? order.products
+                                                                                        : []
+                                                                        )
+                                                                                .slice(0, 2)
+                                                                                .map((product, index) => (
 														<div
 															key={index}
 															className="flex items-center gap-3"
@@ -397,7 +405,7 @@ function SellerOrdersPage() {
 															</div>
 														</div>
 													))}
-													{order.products.length > 2 && (
+                                        {Array.isArray(order.products) && order.products.length > 2 && (
 														<p className="text-xs text-gray-500">
 															+{order.products.length - 2} more items
 														</p>
@@ -410,7 +418,11 @@ function SellerOrdersPage() {
 												</Badge>
 											</TableCell>
 											<TableCell className="font-medium text-green-600">
-												₹{order.totalAmount.toFixed(2)}
+                                                                                                ₹{Number(
+                                                                                                        order.totalAmount ??
+                                                                                                                order.orderId?.totalAmount ??
+                                                                                                                0
+                                                                                                ).toFixed(2)}
 											</TableCell>
 											<TableCell>
 												<Badge className={getStatusColor(order.status)}>

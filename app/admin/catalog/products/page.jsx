@@ -28,9 +28,8 @@ import {
 	Plus,
 	Filter,
 	RotateCcw,
-	Eye,
-	Edit,
-	Trash2,
+        Edit,
+        Trash2,
 	Upload,
 	Download,
 	FileText,
@@ -45,6 +44,7 @@ import { UpdateProductPopup } from "@/components/AdminPanel/Popups/UpdateProduct
 import { BulkUploadPopup } from "@/components/AdminPanel/Popups/BulkProductUploadPopup.jsx";
 import { useIsAuthenticated } from "@/store/adminAuthStore.js";
 import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
 
 export default function AdminProductsPage() {
 	const {
@@ -73,7 +73,14 @@ export default function AdminProductsPage() {
 		update: { open: false, product: null },
 		bulkUpload: false,
 	});
-	const [categories, setCategories] = useState([]);
+        const [categories, setCategories] = useState([]);
+        const [editingProductId, setEditingProductId] = useState(null);
+        const [savingProductId, setSavingProductId] = useState(null);
+        const [editValues, setEditValues] = useState({
+                price: "",
+                salePrice: "",
+                stocks: "",
+        });
 	const isAuthenticated = useIsAuthenticated();
 	const [isRedirecting, setIsRedirecting] = useState(false);
 	const router = useRouter();
@@ -115,13 +122,134 @@ export default function AdminProductsPage() {
 		setFilters({ [key]: value });
 	};
 
-	const handleApplyFilters = () => {
-		fetchProducts();
-	};
+        const handleApplyFilters = () => {
+                fetchProducts();
+        };
 
-	const handleSelectAll = (checked) => {
-		if (checked) {
-			selectAllProducts();
+        const startQuickEdit = (product) => {
+                setEditingProductId(product._id);
+                setEditValues({
+                        price:
+                                product.price !== undefined && product.price !== null
+                                        ? product.price.toString()
+                                        : "",
+                        salePrice:
+                                product.salePrice !== undefined && product.salePrice !== null
+                                        ? product.salePrice.toString()
+                                        : "",
+                        stocks:
+                                product.stocks !== undefined && product.stocks !== null
+                                        ? product.stocks.toString()
+                                        : "",
+                });
+        };
+
+        const cancelQuickEdit = () => {
+                setEditingProductId(null);
+                setSavingProductId(null);
+                setEditValues({ price: "", salePrice: "", stocks: "" });
+        };
+
+        const handleEditValueChange = (field, value) => {
+                if (value === "") {
+                        setEditValues((prev) => ({ ...prev, [field]: "" }));
+                        return;
+                }
+
+                if (field === "stocks") {
+                        const numericValue = Math.floor(Number(value));
+                        if (Number.isNaN(numericValue)) {
+                                return;
+                        }
+                        const clampedValue = Math.min(Math.max(numericValue, 0), 1000000);
+                        setEditValues((prev) => ({ ...prev, stocks: clampedValue.toString() }));
+                        return;
+                }
+
+                const numericValue = Number(value);
+                if (Number.isNaN(numericValue)) {
+                        return;
+                }
+
+                const clampedValue = Math.max(numericValue, 0).toString();
+
+                setEditValues((prev) => {
+                        const updated = { ...prev, [field]: clampedValue };
+                        if (field === "price") {
+                                const salePriceValue = Number(updated.salePrice);
+                                const priceValue = Number(clampedValue);
+                                if (!Number.isNaN(salePriceValue) && salePriceValue > priceValue) {
+                                        updated.salePrice = clampedValue;
+                                }
+                        }
+                        return updated;
+                });
+        };
+
+        const saveQuickEdit = async (product) => {
+                const priceValue = Number(editValues.price);
+                const salePriceValue = editValues.salePrice === "" ? 0 : Number(editValues.salePrice);
+                const stockValue = Number(editValues.stocks);
+
+                if (Number.isNaN(priceValue) || priceValue < 0) {
+                        toast.error("Please enter a valid MRP.");
+                        return;
+                }
+
+                if (Number.isNaN(salePriceValue) || salePriceValue < 0) {
+                        toast.error("Please enter a valid sale price.");
+                        return;
+                }
+
+                if (salePriceValue > priceValue) {
+                        toast.error("Sale price cannot be greater than MRP.");
+                        return;
+                }
+
+                if (Number.isNaN(stockValue) || stockValue < 0) {
+                        toast.error("Please enter a valid stock quantity.");
+                        return;
+                }
+
+                if (stockValue > 1000000) {
+                        toast.error("Stock cannot exceed 1,000,000 units.");
+                        return;
+                }
+
+                setSavingProductId(product._id);
+
+                const updatePayload = {
+                        ...product,
+                        price: priceValue,
+                        salePrice: salePriceValue,
+                        stocks: stockValue,
+                        images: product.images || [],
+                        features: product.features || [],
+                        longDescription: product.longDescription || product.description || "",
+                        subCategory: product.subCategory || "",
+                        hsnCode: product.hsnCode || "",
+                        brand: product.brand || "",
+                        colour: product.colour || "",
+                        material: product.material || "",
+                        size: product.size || "",
+                        length: product.length ?? "",
+                        width: product.width ?? "",
+                        height: product.height ?? "",
+                        weight: product.weight ?? "",
+                };
+
+                const success = await updateProduct(product._id, updatePayload);
+
+                setSavingProductId(null);
+
+                if (success) {
+                        cancelQuickEdit();
+                }
+        };
+
+        const handleSelectAll = (checked) => {
+                if (checked) {
+                        selectAllProducts();
 		} else {
 			clearSelection();
 		}
@@ -489,24 +617,74 @@ export default function AdminProductsPage() {
 														{product.subCategory.replace("-", " ") || "N/A"}
 													</Badge>
 												</TableCell>
-												<TableCell className="font-medium">
-													₹{product.price.toLocaleString()}
-												</TableCell>
-												<TableCell className="font-medium">
-													{product.salePrice > 0
-														? `₹${product.salePrice.toLocaleString()}`
-														: "-"}
-												</TableCell>
-												<TableCell>
-													<div className="flex items-center gap-2">
-														<span>{product.stocks}</span>
-														<div
-															className={`w-2 h-2 rounded-full ${
-																product.inStock ? "bg-green-500" : "bg-red-500"
-															}`}
-														/>
-													</div>
-												</TableCell>
+                                                                                                <TableCell className="font-medium">
+                                                                                                        {editingProductId === product._id ? (
+                                                                                                                <Input
+                                                                                                                        type="number"
+                                                                                                                        min={0}
+                                                                                                                        step="0.01"
+                                                                                                                        value={editValues.price}
+                                                                                                                        onChange={(e) =>
+                                                                                                                                handleEditValueChange(
+                                                                                                                                        "price",
+                                                                                                                                        e.target.value
+                                                                                                                                )
+                                                                                                                        }
+                                                                                                                        className="min-w-[160px]"
+                                                                                                                />
+                                                                                                        ) : (
+                                                                                                                <>₹{product.price.toLocaleString()}</>
+                                                                                                        )}
+                                                                                                </TableCell>
+                                                                                                <TableCell className="font-medium">
+                                                                                                        {editingProductId === product._id ? (
+                                                                                                                <Input
+                                                                                                                        type="number"
+                                                                                                                        min={0}
+                                                                                                                        step="0.01"
+                                                                                                                        value={editValues.salePrice}
+                                                                                                                        onChange={(e) =>
+                                                                                                                                handleEditValueChange(
+                                                                                                                                        "salePrice",
+                                                                                                                                        e.target.value
+                                                                                                                                )
+                                                                                                                        }
+                                                                                                                        placeholder="0"
+                                                                                                                        className="min-w-[160px]"
+                                                                                                                />
+                                                                                                        ) : product.salePrice > 0 ? (
+                                                                                                                `₹${product.salePrice.toLocaleString()}`
+                                                                                                        ) : (
+                                                                                                                "-"
+                                                                                                        )}
+                                                                                                </TableCell>
+                                                                                                <TableCell>
+                                                                                                        {editingProductId === product._id ? (
+                                                                                                                <Input
+                                                                                                                        type="number"
+                                                                                                                        min={0}
+                                                                                                                        max={1000000}
+                                                                                                                        step={1}
+                                                                                                                        value={editValues.stocks}
+                                                                                                                        onChange={(e) =>
+                                                                                                                                handleEditValueChange(
+                                                                                                                                        "stocks",
+                                                                                                                                        e.target.value
+                                                                                                                                )
+                                                                                                                        }
+                                                                                                                        className="max-w-[140px]"
+                                                                                                                />
+                                                                                                        ) : (
+                                                                                                                <div className="flex items-center gap-2">
+                                                                                                                        <span>{product.stocks}</span>
+                                                                                                                        <div
+                                                                                                                                className={`w-2 h-2 rounded-full ${
+                                                                                                                                        product.inStock ? "bg-green-500" : "bg-red-500"
+                                                                                                                                }`}
+                                                                                                                        />
+                                                                                                                </div>
+                                                                                                        )}
+                                                                                                </TableCell>
 												{/* <TableCell>
 													<Badge
 														className={
@@ -526,28 +704,62 @@ export default function AdminProductsPage() {
 														}
 													/>
 												</TableCell>
-												<TableCell>
-													<div className="flex gap-2">
-														{/* <Button size="icon" variant="outline">
-															<Eye className="w-4 h-4" />
-														</Button> */}
-														<Button
-															size="icon"
-															variant="outline"
-															onClick={() => handleUpdate(product)}
-														>
-															<Edit className="w-4 h-4" />
-														</Button>
-														<Button
-															size="icon"
-															variant="outline"
-															className="text-red-600 hover:text-red-700 bg-transparent"
-															onClick={() => handleDelete(product)}
-														>
-															<Trash2 className="w-4 h-4" />
-														</Button>
-													</div>
-												</TableCell>
+                                                                                                <TableCell>
+                                                                                                        <div className="flex flex-wrap gap-2">
+                                                                                                                {editingProductId === product._id ? (
+                                                                                                                        <>
+                                                                                                                                <Button
+                                                                                                                                        size="sm"
+                                                                                                                                        onClick={() => saveQuickEdit(product)}
+                                                                                                                                        disabled={savingProductId === product._id}
+                                                                                                                                >
+                                                                                                                                        {savingProductId === product._id
+                                                                                                                                                ? "Saving..."
+                                                                                                                                                : "Save"}
+                                                                                                                                </Button>
+                                                                                                                                <Button
+                                                                                                                                        size="sm"
+                                                                                                                                        variant="outline"
+                                                                                                                                        onClick={cancelQuickEdit}
+                                                                                                                                        disabled={savingProductId === product._id}
+                                                                                                                                >
+                                                                                                                                        Cancel
+                                                                                                                                </Button>
+                                                                                                                        </>
+                                                                                                                ) : (
+                                                                                                                        <>
+                                                                                                                                <Button
+                                                                                                                                        size="sm"
+                                                                                                                                        variant="outline"
+                                                                                                                                        onClick={() => startQuickEdit(product)}
+                                                                                                                                        disabled={
+                                                                                                                                                !!editingProductId &&
+                                                                                                                                                editingProductId !== product._id
+                                                                                                                                        }
+                                                                                                                                >
+                                                                                                                                        Quick Edit
+                                                                                                                                </Button>
+                                                                                                                                <Button
+                                                                                                                                        size="icon"
+                                                                                                                                        variant="outline"
+                                                                                                                                        onClick={() => handleUpdate(product)}
+                                                                                                                                        disabled={savingProductId !== null}
+                                                                                                                                >
+                                                                                                                                        <Edit className="w-4 h-4" />
+                                                                                                                                </Button>
+                                                                                                                                <Button
+                                                                                                                                        size="icon"
+                                                                                                                                        variant="outline"
+                                                                                                                                        className="text-red-600 hover:text-red-700 bg-transparent"
+                                                                                                                                        onClick={() => handleDelete(product)}
+                                                                                                                                        disabled={savingProductId !== null}
+                                                                                                                                >
+                                                                                                                                        <Trash2 className="w-4 h-4" />
+                                                                                                                                </Button>
+                                                                                                                        </>
+                                                                                                                )}
+                                                                                                        </div>
+                                                                                                </TableCell>
 											</motion.tr>
 										))}
 									</TableBody>
