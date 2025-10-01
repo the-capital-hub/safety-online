@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
+import { useNotificationStore } from "@/store/notificationStore.js";
 
 export const useAdminOrderStore = create(
 	devtools(
@@ -124,6 +125,46 @@ export const useAdminOrderStore = create(
                                                         currentOrder: data.order,
                                                         loading: false,
                                                 }));
+
+                                                const orderNumber =
+                                                        data.order?.orderNumber ||
+                                                        data.order?.orderId ||
+                                                        id;
+                                                const updatedStatus = data.order?.status || updateData.status;
+                                                const { logEvent } = useNotificationStore.getState();
+                                                logEvent({
+                                                        panel: "admin",
+                                                        severity:
+                                                                updatedStatus &&
+                                                                ["cancelled", "failed", "refunded"].includes(
+                                                                        updatedStatus
+                                                                )
+                                                                        ? "warning"
+                                                                        : "success",
+                                                        category: "orders",
+                                                        title: `Order ${orderNumber} updated`,
+                                                        message:
+                                                                updatedStatus
+                                                                        ? `Order status changed to ${updatedStatus}.`
+                                                                        : "Order details were modified.",
+                                                        metadata: [
+                                                                { label: "Order", value: orderNumber },
+                                                                updatedStatus
+                                                                        ? {
+                                                                                  label: "Status",
+                                                                                  value: updatedStatus,
+                                                                          }
+                                                                        : null,
+                                                                data.order?.customerName
+                                                                        ? {
+                                                                                  label: "Buyer",
+                                                                                  value: data.order.customerName,
+                                                                          }
+                                                                        : null,
+                                                        ].filter(Boolean),
+                                                        actor: { name: "Admin panel", role: "Admin" },
+                                                        link: { href: `/admin/orders/${id}`, label: "View order" },
+                                                });
                                                 return {
                                                         success: true,
                                                         message: data.message,
@@ -158,13 +199,41 @@ export const useAdminOrderStore = create(
 
 					const data = await response.json();
 
-					if (data.success) {
-						set((state) => ({
-							orders: state.orders.filter((order) => order._id !== id),
-							loading: false,
-						}));
-						return { success: true, message: data.message };
-					} else {
+                                        if (data.success) {
+                                                const existingOrders = get().orders;
+                                                const removedOrder = existingOrders.find((order) => order._id === id);
+
+                                                set((state) => ({
+                                                        orders: state.orders.filter((order) => order._id !== id),
+                                                        loading: false,
+                                                }));
+
+                                                const { logEvent } = useNotificationStore.getState();
+                                                logEvent({
+                                                        panel: "admin",
+                                                        severity: "critical",
+                                                        category: "orders",
+                                                        title: `Order ${
+                                                                removedOrder?.orderNumber || id
+                                                        } deleted`,
+                                                        message: "An order was removed from the system.",
+                                                        metadata: [
+                                                                {
+                                                                        label: "Order",
+                                                                        value: removedOrder?.orderNumber || id,
+                                                                },
+                                                                removedOrder?.customerName
+                                                                        ? {
+                                                                                  label: "Buyer",
+                                                                                  value: removedOrder.customerName,
+                                                                          }
+                                                                        : null,
+                                                        ].filter(Boolean),
+                                                        actor: { name: "Admin panel", role: "Admin" },
+                                                        link: { href: "/admin/orders", label: "Review orders" },
+                                                });
+                                                return { success: true, message: data.message };
+                                        } else {
 						set({ error: data.message, loading: false });
 						return { success: false, message: data.message };
 					}

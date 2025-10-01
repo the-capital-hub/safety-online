@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
+import { useNotificationStore } from "@/store/notificationStore.js";
 
 export const useSellerOrderStore = create(
 	devtools(
@@ -119,27 +120,62 @@ export const useSellerOrderStore = create(
                                 set({ loading: true, error: null });
 
                                 try {
-					const response = await fetch(`/api/seller/orders/${orderId}/accept`, {
-						method: "PUT",
-						headers: {
-							"Content-Type": "application/json",
-						},
+                                        const existingOrder = get().orders.find(
+                                                (order) => order._id === orderId
+                                        );
+                                        const response = await fetch(`/api/seller/orders/${orderId}/accept`, {
+                                                method: "PUT",
+                                                headers: {
+                                                        "Content-Type": "application/json",
+                                                },
 						credentials: "include",
 					});
 
 					const data = await response.json();
 
-					if (data.success) {
-						set((state) => ({
-							orders: state.orders.map((order) =>
-								order._id === orderId
-									? { ...order, status: "processing" }
-									: order
-							),
-							loading: false,
-						}));
-						return { success: true, message: data.message };
-					} else {
+                                        if (data.success) {
+                                                set((state) => ({
+                                                        orders: state.orders.map((order) =>
+                                                                order._id === orderId
+                                                                        ? { ...order, status: "processing" }
+                                                                        : order
+                                                        ),
+                                                        loading: false,
+                                                }));
+
+                                                const { logEvent } = useNotificationStore.getState();
+                                                logEvent({
+                                                        panel: "seller",
+                                                        severity: "success",
+                                                        category: "orders",
+                                                        title: `Seller accepted ${
+                                                                existingOrder?.orderNumber || orderId
+                                                        }`,
+                                                        message:
+                                                                "Order was accepted and moved to processing stage.",
+                                                        metadata: [
+                                                                {
+                                                                        label: "Order",
+                                                                        value: existingOrder?.orderNumber || orderId,
+                                                                },
+                                                                existingOrder?.customerName
+                                                                        ? {
+                                                                                  label: "Buyer",
+                                                                                  value: existingOrder.customerName,
+                                                                          }
+                                                                        : null,
+                                                        ].filter(Boolean),
+                                                        actor: {
+                                                                name:
+                                                                        existingOrder?.seller?.storeName ||
+                                                                        existingOrder?.sellerName ||
+                                                                        "Seller",
+                                                                role: "Seller",
+                                                        },
+                                                        link: { href: "/admin/orders", label: "View order" },
+                                                });
+                                                return { success: true, message: data.message };
+                                        } else {
 						set({ error: data.message, loading: false });
 						return { success: false, message: data.message };
 					}
@@ -154,6 +190,9 @@ export const useSellerOrderStore = create(
                                 set({ loading: true, error: null });
 
                                 try {
+                                        const existingOrder = get().orders.find(
+                                                (order) => order._id === orderId
+                                        );
                                         const response = await fetch(`/api/seller/orders/${orderId}/deliver`, {
                                                 method: "PUT",
                                                 headers: {
@@ -182,6 +221,44 @@ export const useSellerOrderStore = create(
                                                 ),
                                                 loading: false,
                                         }));
+
+                                        const { logEvent } = useNotificationStore.getState();
+                                        logEvent({
+                                                panel: "seller",
+                                                severity: "success",
+                                                category: "orders",
+                                                title: `Delivery confirmed for ${
+                                                        existingOrder?.orderNumber || orderId
+                                                }`,
+                                                message: "Seller marked the order as delivered.",
+                                                metadata: [
+                                                        {
+                                                                label: "Order",
+                                                                value: existingOrder?.orderNumber || orderId,
+                                                        },
+                                                        {
+                                                                label: "Delivered",
+                                                                value:
+                                                                        data.order?.actualDelivery ||
+                                                                        deliveryDate ||
+                                                                        new Date().toISOString(),
+                                                        },
+                                                        existingOrder?.customerName
+                                                                ? {
+                                                                          label: "Buyer",
+                                                                          value: existingOrder.customerName,
+                                                                  }
+                                                                : null,
+                                                ].filter(Boolean),
+                                                actor: {
+                                                        name:
+                                                                existingOrder?.seller?.storeName ||
+                                                                existingOrder?.sellerName ||
+                                                                "Seller",
+                                                        role: "Seller",
+                                                },
+                                                link: { href: "/admin/orders", label: "Track order" },
+                                        });
 
                                         return {
                                                 success: true,
