@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Bell, CheckCheck, ArrowUpRight, Archive, EyeOff } from "lucide-react";
@@ -66,7 +66,15 @@ export function NotificationDropdown() {
         const markAsRead = useNotificationStore((state) => state.markAsRead);
         const markAllAsRead = useNotificationStore((state) => state.markAllAsRead);
         const dismissNotification = useNotificationStore((state) => state.dismissNotification);
+        const fetchNotifications = useNotificationStore((state) => state.fetchNotifications);
+        const loading = useNotificationStore((state) => state.loading);
+        const error = useNotificationStore((state) => state.error);
+        const hasHydrated = useNotificationStore((state) => state.hasHydrated);
         const unreadCount = useUnreadNotifications();
+
+        useEffect(() => {
+                fetchNotifications();
+        }, [fetchNotifications]);
 
         const recentNotifications = useMemo(
                 () => notifications.slice(0, 6),
@@ -79,6 +87,8 @@ export function NotificationDropdown() {
                         router.push(notification.link.href);
                 }
         };
+
+        const isLoading = !hasHydrated || loading;
 
         return (
                 <DropdownMenu>
@@ -118,9 +128,25 @@ export function NotificationDropdown() {
                                 </div>
                                 <ScrollArea className="max-h-96">
                                         <div className="divide-y">
-                                                {recentNotifications.length === 0 ? (
+                                                {error ? (
+                                                        <div className="px-4 py-8 text-sm text-destructive">
+                                                                Unable to load notifications. Please try again shortly.
+                                                        </div>
+                                                ) : isLoading && recentNotifications.length === 0 ? (
+                                                        <div className="flex flex-col gap-3 px-4 py-6">
+                                                                <div className="h-3 w-32 animate-pulse rounded-full bg-muted" />
+                                                                <div className="space-y-2">
+                                                                        <div className="h-3 w-full animate-pulse rounded-full bg-muted" />
+                                                                        <div className="h-3 w-3/4 animate-pulse rounded-full bg-muted" />
+                                                                </div>
+                                                                <div className="space-y-2">
+                                                                        <div className="h-3 w-full animate-pulse rounded-full bg-muted" />
+                                                                        <div className="h-3 w-2/3 animate-pulse rounded-full bg-muted" />
+                                                                </div>
+                                                        </div>
+                                                ) : recentNotifications.length === 0 ? (
                                                         <div className="flex flex-col items-center justify-center py-10 text-center text-muted-foreground">
-                                                                <EyeOff className="h-10 w-10 mb-2" />
+                                                                <EyeOff className="mb-2 h-10 w-10" />
                                                                 <p className="font-medium">You're all caught up</p>
                                                                 <p className="text-sm">
                                                                         New notifications will appear here from all panels.

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
         AlertTriangle,
@@ -128,11 +128,21 @@ export default function AdminNotificationsPage() {
         const markAllAsRead = useNotificationStore((state) => state.markAllAsRead);
         const markPanelAsRead = useNotificationStore((state) => state.markPanelAsRead);
         const unreadCounts = useNotificationStore((state) => state.unreadCounts);
+        const fetchNotifications = useNotificationStore((state) => state.fetchNotifications);
+        const loading = useNotificationStore((state) => state.loading);
+        const error = useNotificationStore((state) => state.error);
+        const hasHydrated = useNotificationStore((state) => state.hasHydrated);
 
         const [activePanel, setActivePanel] = useState("all");
         const [activeSeverity, setActiveSeverity] = useState("all");
         const [searchTerm, setSearchTerm] = useState("");
         const [showUnreadOnly, setShowUnreadOnly] = useState(false);
+
+        useEffect(() => {
+                fetchNotifications();
+        }, [fetchNotifications]);
+
+        const isLoading = !hasHydrated || loading;
 
         const filteredNotifications = useMemo(() => {
                 return notifications.filter((notification) => {
@@ -179,6 +189,11 @@ export default function AdminNotificationsPage() {
 
         return (
                 <div className="space-y-6">
+                        {error && (
+                                <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                                        Unable to load some notifications. Please refresh to try again.
+                                </div>
+                        )}
                         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                                 <div>
                                         <h1 className="text-2xl font-semibold tracking-tight">Notification center</h1>
@@ -217,10 +232,19 @@ export default function AdminNotificationsPage() {
                                                 </CardTitle>
                                         </CardHeader>
                                         <CardContent>
-                                                <p className="text-2xl font-semibold">{notifications.length}</p>
-                                                <p className="text-xs text-muted-foreground">
-                                                        {todaysNotifications.length} new today
-                                                </p>
+                                                {isLoading && notifications.length === 0 ? (
+                                                        <div className="space-y-2">
+                                                                <div className="h-6 w-16 animate-pulse rounded bg-muted" />
+                                                                <div className="h-3 w-24 animate-pulse rounded bg-muted" />
+                                                        </div>
+                                                ) : (
+                                                        <>
+                                                                <p className="text-2xl font-semibold">{notifications.length}</p>
+                                                                <p className="text-xs text-muted-foreground">
+                                                                        {todaysNotifications.length} new today
+                                                                </p>
+                                                        </>
+                                                )}
                                         </CardContent>
                                 </Card>
                                 <Card>
@@ -230,14 +254,23 @@ export default function AdminNotificationsPage() {
                                                 </CardTitle>
                                         </CardHeader>
                                         <CardContent className="space-y-1">
-                                                <p className="text-2xl font-semibold">{totalUnread}</p>
-                                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                                        <span>{unreadCounts.seller} seller</span>
-                                                        <span className="text-muted-foreground/60">•</span>
-                                                        <span>{unreadCounts.buyer} buyer</span>
-                                                        <span className="text-muted-foreground/60">•</span>
-                                                        <span>{unreadCounts.admin} admin</span>
-                                                </div>
+                                                {isLoading && notifications.length === 0 ? (
+                                                        <div className="space-y-2">
+                                                                <div className="h-6 w-16 animate-pulse rounded bg-muted" />
+                                                                <div className="h-3 w-32 animate-pulse rounded bg-muted" />
+                                                        </div>
+                                                ) : (
+                                                        <>
+                                                                <p className="text-2xl font-semibold">{totalUnread}</p>
+                                                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                                                        <span>{unreadCounts.seller} seller</span>
+                                                                        <span className="text-muted-foreground/60">•</span>
+                                                                        <span>{unreadCounts.buyer} buyer</span>
+                                                                        <span className="text-muted-foreground/60">•</span>
+                                                                        <span>{unreadCounts.admin} admin</span>
+                                                                </div>
+                                                        </>
+                                                )}
                                         </CardContent>
                                 </Card>
                                 <Card>
@@ -247,18 +280,27 @@ export default function AdminNotificationsPage() {
                                                 </CardTitle>
                                         </CardHeader>
                                         <CardContent>
-                                                <p className="text-2xl font-semibold">
-                                                        {
-                                                                notifications.filter((notification) =>
-                                                                        ["warning", "critical"].includes(
-                                                                                notification.severity
-                                                                        ) && !notification.read
-                                                                ).length
-                                                        }
-                                                </p>
-                                                <p className="text-xs text-muted-foreground">
-                                                        Pending escalations requiring review
-                                                </p>
+                                                {isLoading && notifications.length === 0 ? (
+                                                        <div className="space-y-2">
+                                                                <div className="h-6 w-16 animate-pulse rounded bg-muted" />
+                                                                <div className="h-3 w-40 animate-pulse rounded bg-muted" />
+                                                        </div>
+                                                ) : (
+                                                        <>
+                                                                <p className="text-2xl font-semibold">
+                                                                        {
+                                                                                notifications.filter((notification) =>
+                                                                                        ["warning", "critical"].includes(
+                                                                                                notification.severity
+                                                                                        ) && !notification.read
+                                                                                ).length
+                                                                        }
+                                                                </p>
+                                                                <p className="text-xs text-muted-foreground">
+                                                                        Pending escalations requiring review
+                                                                </p>
+                                                        </>
+                                                )}
                                         </CardContent>
                                 </Card>
                                 <Card>
@@ -268,16 +310,25 @@ export default function AdminNotificationsPage() {
                                                 </CardTitle>
                                         </CardHeader>
                                         <CardContent className="space-y-1">
-                                                <p className="text-2xl font-semibold">
-                                                        {formatRelativeTime(
-                                                                useNotificationStore.getState().lastViewedAt ||
-                                                                        notifications[0]?.createdAt ||
-                                                                        new Date().toISOString()
-                                                        )}
-                                                </p>
-                                                <p className="text-xs text-muted-foreground">
-                                                        Keeping audit trail fresh
-                                                </p>
+                                                {isLoading && notifications.length === 0 ? (
+                                                        <div className="space-y-2">
+                                                                <div className="h-6 w-20 animate-pulse rounded bg-muted" />
+                                                                <div className="h-3 w-28 animate-pulse rounded bg-muted" />
+                                                        </div>
+                                                ) : (
+                                                        <>
+                                                                <p className="text-2xl font-semibold">
+                                                                        {formatRelativeTime(
+                                                                                useNotificationStore.getState().lastViewedAt ||
+                                                                                        notifications[0]?.createdAt ||
+                                                                                        new Date().toISOString()
+                                                                        )}
+                                                                </p>
+                                                                <p className="text-xs text-muted-foreground">
+                                                                        Keeping audit trail fresh
+                                                                </p>
+                                                        </>
+                                                )}
                                         </CardContent>
                                 </Card>
                         </div>
@@ -333,7 +384,33 @@ export default function AdminNotificationsPage() {
                                 </CardHeader>
                                 <CardContent className="p-0">
                                         <ScrollArea className="max-h-[62vh]">
-                                                {filteredNotifications.length === 0 ? (
+                                                {isLoading && notifications.length === 0 ? (
+                                                        <div className="space-y-6 px-6 py-6">
+                                                                {[...Array(3)].map((_, index) => (
+                                                                        <div key={index} className="space-y-4">
+                                                                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                                                                        <div className="h-3 w-24 animate-pulse rounded-full bg-muted" />
+                                                                                </div>
+                                                                                <div className="space-y-3">
+                                                                                        {[...Array(2)].map((__, itemIndex) => (
+                                                                                                <div
+                                                                                                        key={itemIndex}
+                                                                                                        className="flex gap-3 rounded-lg border p-4"
+                                                                                                >
+                                                                                                        <div className="h-9 w-9 animate-pulse rounded-full bg-muted" />
+                                                                                                        <div className="flex-1 space-y-2">
+                                                                                                                <div className="h-4 w-1/3 animate-pulse rounded bg-muted" />
+                                                                                                                <div className="h-3 w-full animate-pulse rounded bg-muted" />
+                                                                                                                <div className="h-3 w-2/3 animate-pulse rounded bg-muted" />
+                                                                                                        </div>
+                                                                                                        <div className="h-3 w-16 animate-pulse rounded bg-muted" />
+                                                                                                </div>
+                                                                                        ))}
+                                                                                </div>
+                                                                        </div>
+                                                                ))}
+                                                        </div>
+                                                ) : filteredNotifications.length === 0 ? (
                                                         <div className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground">
                                                                 <Inbox className="mb-3 h-10 w-10" />
                                                                 <p className="font-medium">No notifications match the current filters.</p>
