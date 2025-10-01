@@ -120,9 +120,23 @@ export const useNotificationStore = create(
                                 lastFetchedAt: null,
 
                                 fetchNotifications: async ({ force = false } = {}) => {
-                                        const { loading, hasHydrated } = get();
+                                        const { loading, hasHydrated, lastFetchedAt } = get();
 
-                                        if (loading || (!force && hasHydrated)) {
+                                        if (loading) {
+                                                return;
+                                        }
+
+                                        const isDataFresh =
+                                                !force &&
+                                                lastFetchedAt &&
+                                                Date.now() -
+                                                        new Date(lastFetchedAt).getTime() <
+                                                        60 * 1000;
+
+                                        if (isDataFresh) {
+                                                if (!hasHydrated) {
+                                                        set({ hasHydrated: true });
+                                                }
                                                 return;
                                         }
 
