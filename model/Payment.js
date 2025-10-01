@@ -4,7 +4,14 @@ const PaymentHistorySchema = new mongoose.Schema(
         {
                 status: {
                         type: String,
-                        enum: ["escrow", "released", "refunded", "cancelled", "disputed"],
+                        enum: [
+                                "escrow",
+                                "admin_approval",
+                                "released",
+                                "refunded",
+                                "cancelled",
+                                "disputed",
+                        ],
                         required: true,
                 },
                 note: { type: String, default: "" },
@@ -74,7 +81,7 @@ const PaymentSchema = new mongoose.Schema(
                 },
                 status: {
                         type: String,
-                        enum: ["escrow", "released", "refunded", "cancelled", "disputed"],
+                        enum: ["escrow", "admin_approval", "released", "refunded", "cancelled", "disputed"],
                         default: "escrow",
                 },
                 currency: {
@@ -97,7 +104,28 @@ const PaymentSchema = new mongoose.Schema(
                         type: Date,
                         default: null,
                 },
+                adminApprovalRequestedAt: {
+                        type: Date,
+                        default: null,
+                },
+                adminApprovedAt: {
+                        type: Date,
+                        default: null,
+                },
+                adminApprovedBy: {
+                        type: mongoose.Schema.Types.ObjectId,
+                        ref: "User",
+                        default: null,
+                },
                 payoutReference: {
+                        type: String,
+                        default: null,
+                },
+                payoutTransactionId: {
+                        type: String,
+                        default: null,
+                },
+                payoutMethod: {
                         type: String,
                         default: null,
                 },
@@ -113,6 +141,25 @@ PaymentSchema.index({ sellerId: 1, status: 1 });
 PaymentSchema.index({ orderId: 1 });
 PaymentSchema.index({ subOrderId: 1 });
 PaymentSchema.index({ orderNumber: 1 });
+
+const existingPaymentModel = mongoose.models?.Payment;
+
+if (existingPaymentModel) {
+        const statusPath = existingPaymentModel.schema?.path("status");
+        const historyStatusPath = existingPaymentModel.schema
+                ?.path("history")
+                ?.schema?.path("status");
+
+        const statusSupportsAdminApproval = statusPath?.enumValues?.includes(
+                "admin_approval"
+        );
+        const historySupportsAdminApproval =
+                historyStatusPath?.enumValues?.includes("admin_approval");
+
+        if (!statusSupportsAdminApproval || !historySupportsAdminApproval) {
+                mongoose.deleteModel("Payment");
+        }
+}
 
 const PaymentModel =
         mongoose.models.Payment || mongoose.model("Payment", PaymentSchema);

@@ -65,6 +65,20 @@ export async function GET(request) {
                         Payment.countDocuments(query),
                 ]);
 
+                payments.sort((a, b) => {
+                        const priority = (status) => (status === "admin_approval" ? 0 : 1);
+                        const priorityDifference = priority(a.status) - priority(b.status);
+
+                        if (priorityDifference !== 0) {
+                                return priorityDifference;
+                        }
+
+                        const dateA = new Date(a.escrowActivatedAt || a.createdAt || 0).getTime();
+                        const dateB = new Date(b.escrowActivatedAt || b.createdAt || 0).getTime();
+
+                        return dateB - dateA;
+                });
+
                 const [stats] = await Payment.aggregate([
                         { $match: query },
                         {
@@ -73,7 +87,13 @@ export async function GET(request) {
                                         totalOrders: { $sum: 1 },
                                         escrowAmount: {
                                                 $sum: {
-                                                        $cond: [{ $eq: ["$status", "escrow"] }, "$sellerAmount", 0],
+                                                        $cond: [
+                                                                {
+                                                                        $in: ["$status", ["escrow", "admin_approval"]],
+                                                                },
+                                                                "$sellerAmount",
+                                                                0,
+                                                        ],
                                                 },
                                         },
                                         releasedAmount: {
