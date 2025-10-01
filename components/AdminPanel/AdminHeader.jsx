@@ -4,16 +4,15 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
+        DropdownMenu,
+        DropdownMenuContent,
+        DropdownMenuItem,
+        DropdownMenuSeparator,
+        DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Search, User, Settings, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { NotificationDropdown } from "@/components/AdminPanel/NotificationDropdown.jsx";
 import { LogoutPopup } from "@/components/Shared/Popups/LogoutPopup.jsx";
 import {
@@ -24,8 +23,7 @@ import {
 } from "@/store/adminAuthStore.js";
 
 export function AdminHeader() {
-	const [showLogoutPopup, setShowLogoutPopup] = useState(false);
-	const [searchQuery, setSearchQuery] = useState("");
+        const [showLogoutPopup, setShowLogoutPopup] = useState(false);
 	const fullName = useUserFullName();
 	const email = useUserEmail();
 	const profilePic = useUserProfilePic();
@@ -40,24 +38,14 @@ export function AdminHeader() {
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.3 }}
 			>
-				{/* Left side: Sidebar + Search */}
-				<div className="flex items-center gap-4">
-					<SidebarTrigger />
-					{/* <div className="relative">
-						<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-						<Input name="searchQuery"
-							placeholder="Search"
-							value={searchQuery}
-							onChange={(e) => setSearchQuery(e.target.value)}
-							className="pl-10 w-80"
-						/>
-					</div> */}
-				</div>
+                                {/* Left side: Sidebar trigger */}
+                                <div className="flex items-center gap-4">
+                                        <SidebarTrigger />
+                                </div>
 
 				{/* Right side: Notifications + Profile */}
-				<div className="flex items-center gap-4">
-					{/* <NotificationDropdown /> */}
-
+                                <div className="flex items-center gap-4">
+                                        <NotificationDropdown />
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
 							<Button variant="ghost" className="relative h-8 w-8 rounded-full">
