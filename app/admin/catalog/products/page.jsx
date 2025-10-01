@@ -630,7 +630,7 @@ export default function AdminProductsPage() {
                                                                                                                                         e.target.value
                                                                                                                                 )
                                                                                                                         }
-                                                                                                                        className="max-w-[140px]"
+                                                                                                                        className="min-w-[160px]"
                                                                                                                 />
                                                                                                         ) : (
                                                                                                                 <>₹{product.price.toLocaleString()}</>
@@ -650,7 +650,7 @@ export default function AdminProductsPage() {
                                                                                                                                 )
                                                                                                                         }
                                                                                                                         placeholder="0"
-                                                                                                                        className="max-w-[140px]"
+                                                                                                                        className="min-w-[160px]"
                                                                                                                 />
                                                                                                         ) : product.salePrice > 0 ? (
                                                                                                                 `₹${product.salePrice.toLocaleString()}`
