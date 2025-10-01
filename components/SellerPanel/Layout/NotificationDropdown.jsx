@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -52,7 +52,15 @@ export function NotificationDropdown() {
         const markAsRead = useNotificationStore((state) => state.markAsRead);
         const markPanelAsRead = useNotificationStore((state) => state.markPanelAsRead);
         const dismissNotification = useNotificationStore((state) => state.dismissNotification);
+        const fetchNotifications = useNotificationStore((state) => state.fetchNotifications);
+        const loading = useNotificationStore((state) => state.loading);
+        const error = useNotificationStore((state) => state.error);
+        const hasHydrated = useNotificationStore((state) => state.hasHydrated);
         const unreadCount = useUnreadNotifications("seller");
+
+        useEffect(() => {
+                fetchNotifications();
+        }, [fetchNotifications]);
 
         const sellerNotifications = useMemo(
                 () =>
@@ -71,6 +79,8 @@ export function NotificationDropdown() {
         const handleOpenCenter = () => {
                 router.push("/seller/notifications");
         };
+
+        const isLoading = !hasHydrated || loading;
 
         return (
                 <DropdownMenu>
@@ -108,7 +118,23 @@ export function NotificationDropdown() {
                                 </div>
                                 <ScrollArea className="max-h-96">
                                         <div className="divide-y">
-                                                {recentNotifications.length === 0 ? (
+                                                {error ? (
+                                                        <div className="px-4 py-8 text-sm text-destructive">
+                                                                Unable to load notifications. Try refreshing the page.
+                                                        </div>
+                                                ) : isLoading && recentNotifications.length === 0 ? (
+                                                        <div className="flex flex-col gap-3 px-4 py-6">
+                                                                <div className="h-3 w-32 animate-pulse rounded-full bg-muted" />
+                                                                <div className="space-y-2">
+                                                                        <div className="h-3 w-full animate-pulse rounded-full bg-muted" />
+                                                                        <div className="h-3 w-4/5 animate-pulse rounded-full bg-muted" />
+                                                                </div>
+                                                                <div className="space-y-2">
+                                                                        <div className="h-3 w-full animate-pulse rounded-full bg-muted" />
+                                                                        <div className="h-3 w-2/3 animate-pulse rounded-full bg-muted" />
+                                                                </div>
+                                                        </div>
+                                                ) : recentNotifications.length === 0 ? (
                                                         <div className="flex flex-col items-center justify-center py-10 text-center text-sm text-muted-foreground">
                                                                 <Bell className="mb-2 h-6 w-6 text-muted-foreground" />
                                                                 <p>No notifications yet</p>

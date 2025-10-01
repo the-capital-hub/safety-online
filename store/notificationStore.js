@@ -1,3 +1,5 @@
+"use client";
+
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 
@@ -51,98 +53,44 @@ const severityDefaults = {
         },
 };
 
-const seedNotifications = () => {
-        const now = Date.now();
-        return [
-                {
-                        id: createNotificationId(),
-                        panel: "seller",
-                        category: "orders",
-                        title: "Seller accepted order SFT-2819",
-                        message:
-                                "John's Safety Supplies confirmed order SFT-2819 and is preparing it for shipment.",
-                        createdAt: new Date(now - 1000 * 60 * 35).toISOString(),
-                        read: false,
-                        severity: "success",
-                        metadata: [
-                                { label: "Order", value: "SFT-2819" },
-                                { label: "Buyer", value: "Brighton Builders" },
-                                { label: "Value", value: "₹42,800" },
-                        ],
-                        actor: { name: "John's Safety Supplies", role: "Seller" },
-                        link: { href: "/admin/orders", label: "Review order" },
-                },
-                {
-                        id: createNotificationId(),
-                        panel: "buyer",
-                        category: "returns",
-                        title: "Return requested for order SFT-2742",
-                        message:
-                                "Buyer Aditi Sharma reported a size issue for the high-visibility jacket bundle.",
-                        createdAt: new Date(now - 1000 * 60 * 90).toISOString(),
-                        read: false,
-                        severity: "warning",
-                        metadata: [
-                                { label: "Order", value: "SFT-2742" },
-                                { label: "Reason", value: "Incorrect size delivered" },
-                                { label: "Buyer", value: "Aditi Sharma" },
-                        ],
-                        actor: { name: "Aditi Sharma", role: "Buyer" },
-                        link: { href: "/admin/returns", label: "Review request" },
-                },
-                {
-                        id: createNotificationId(),
-                        panel: "admin",
-                        category: "catalog",
-                        title: "New product published",
-                        message:
-                                "Admin Anita Kapoor added 'Fire-Resistant Coverall v2' to the catalog and pushed it live.",
-                        createdAt: new Date(now - 1000 * 60 * 140).toISOString(),
-                        read: true,
-                        severity: "info",
-                        metadata: [
-                                { label: "SKU", value: "FR-COV-9281" },
-                                { label: "Category", value: "Protective Gear" },
-                        ],
-                        actor: { name: "Anita Kapoor", role: "Admin" },
-                        link: { href: "/admin/catalog/products", label: "View in catalog" },
-                },
-                {
-                        id: createNotificationId(),
-                        panel: "seller",
-                        category: "payments",
-                        title: "Payout released",
-                        message:
-                                "Payment for order SFT-2610 was released to Zenith Safety Gear after delivery confirmation.",
-                        createdAt: new Date(now - 1000 * 60 * 60 * 6).toISOString(),
-                        read: true,
-                        severity: "success",
-                        metadata: [
-                                { label: "Order", value: "SFT-2610" },
-                                { label: "Amount", value: "₹18,540" },
-                        ],
-                        actor: { name: "System", role: "Payment" },
-                        link: { href: "/admin/payments", label: "Open payouts" },
-                },
-                {
-                        id: createNotificationId(),
-                        panel: "buyer",
-                        category: "orders",
-                        title: "High risk payment attempt",
-                        message:
-                                "Buyer Rahul Singh attempted a COD order that exceeded daily limits and was auto-reviewed.",
-                        createdAt: new Date(now - 1000 * 60 * 60 * 12).toISOString(),
-                        read: true,
-                        severity: "critical",
-                        metadata: [
-                                { label: "Order", value: "SFT-2598" },
-                                { label: "Amount", value: "₹72,300" },
-                                { label: "Risk", value: "High" },
-                        ],
-                        actor: { name: "Risk Engine", role: "System" },
-                        link: { href: "/admin/orders", label: "Investigate" },
-                },
-        ];
+const normalizeNotification = (notification) => {
+        if (!notification) {
+                return null;
+        }
+
+        const normalized = {
+                id: notification._id || notification.id || createNotificationId(),
+                panel: notification.panel || "admin",
+                category: notification.category || "general",
+                title: notification.title || "New activity",
+                message: notification.message || "",
+                createdAt: notification.createdAt
+                        ? new Date(notification.createdAt).toISOString()
+                        : new Date().toISOString(),
+                read: Boolean(notification.read),
+                readAt: notification.readAt ? new Date(notification.readAt).toISOString() : null,
+                severity: notification.severity || "info",
+                metadata: normalizeMetadata(notification.metadata),
+                actor: notification.actor
+                        ? {
+                                  name: notification.actor.name || "",
+                                  role: notification.actor.role || "",
+                          }
+                        : null,
+                link: notification.link
+                        ? {
+                                  href: notification.link.href || "",
+                                  label: notification.link.label || "View details",
+                          }
+                        : null,
+                status: notification.status || "open",
+        };
+
+        if (notification.clientId) {
+                normalized.clientId = notification.clientId;
+        }
+
+        return normalized;
 };
 
 const computeUnreadCounts = (notifications) => {
@@ -162,41 +110,73 @@ export const useNotificationStore = create(
         devtools(
                 persist(
                         (set, get) => ({
-                                notifications: seedNotifications().sort(
-                                        (a, b) =>
-                                                new Date(b.createdAt).getTime() -
-                                                new Date(a.createdAt).getTime()
-                                ),
-                                unreadCounts: computeUnreadCounts(seedNotifications()),
+                                notifications: [],
+                                unreadCounts: { all: 0, admin: 0, seller: 0, buyer: 0 },
                                 filters: { panel: "all", severity: "all" },
                                 lastViewedAt: null,
+                                loading: false,
+                                error: null,
+                                hasHydrated: false,
+                                lastFetchedAt: null,
 
-                                logEvent: (event) => {
-                                        const normalizedEvent = {
-                                                id: event.id || createNotificationId(),
-                                                panel: event.panel || "admin",
-                                                category: event.category || "general",
-                                                title: event.title || "New activity",
-                                                message: event.message || "",
-                                                createdAt:
-                                                        event.createdAt ||
-                                                        event.timestamp ||
-                                                        new Date().toISOString(),
-                                                read: Boolean(event.read) ?? false,
-                                                readAt: event.read ? event.readAt || new Date().toISOString() : null,
-                                                severity: event.severity || "info",
-                                                metadata: normalizeMetadata(event.metadata),
-                                                actor: event.actor || null,
-                                                link: event.link || null,
-                                                status: event.status || "open",
-                                        };
+                                fetchNotifications: async ({ force = false } = {}) => {
+                                        const { loading, hasHydrated } = get();
+
+                                        if (loading || (!force && hasHydrated)) {
+                                                return;
+                                        }
+
+                                        set({ loading: true, error: null });
+
+                                        try {
+                                                const response = await fetch("/api/notifications", {
+                                                        headers: { "Content-Type": "application/json" },
+                                                        cache: "no-store",
+                                                });
+
+                                                if (!response.ok) {
+                                                        throw new Error("Failed to load notifications");
+                                                }
+
+                                                const data = await response.json();
+                                                const normalizedNotifications = Array.isArray(data.notifications)
+                                                        ? data.notifications
+                                                                  .map((notification) => normalizeNotification(notification))
+                                                                  .filter(Boolean)
+                                                                  .sort(
+                                                                          (a, b) =>
+                                                                                  new Date(b.createdAt).getTime() -
+                                                                                  new Date(a.createdAt).getTime()
+                                                                  )
+                                                        : [];
+
+                                                set({
+                                                        notifications: normalizedNotifications,
+                                                        unreadCounts: computeUnreadCounts(normalizedNotifications),
+                                                        loading: false,
+                                                        error: null,
+                                                        hasHydrated: true,
+                                                        lastFetchedAt: new Date().toISOString(),
+                                                });
+                                        } catch (error) {
+                                                console.error("Notification fetch error", error);
+                                                set({
+                                                        loading: false,
+                                                        error: error?.message || "Unable to load notifications",
+                                                        hasHydrated: true,
+                                                });
+                                        }
+                                },
+
+                                logEvent: async (event) => {
+                                        const clientId = createNotificationId();
+                                        const normalizedEvent = normalizeNotification({ ...event, id: clientId });
 
                                         set((state) => {
                                                 const notifications = [
                                                         normalizedEvent,
                                                         ...state.notifications.filter(
-                                                                (notification) =>
-                                                                        notification.id !== normalizedEvent.id
+                                                                (notification) => notification.id !== normalizedEvent.id
                                                         ),
                                                 ].sort(
                                                         (a, b) =>
@@ -210,10 +190,56 @@ export const useNotificationStore = create(
                                                 };
                                         });
 
+                                        try {
+                                                const response = await fetch("/api/notifications", {
+                                                        method: "POST",
+                                                        headers: { "Content-Type": "application/json" },
+                                                        body: JSON.stringify({ ...event, clientId }),
+                                                });
+
+                                                if (!response.ok) {
+                                                        throw new Error("Failed to persist notification");
+                                                }
+
+                                                const data = await response.json();
+                                                const serverNotification = normalizeNotification({
+                                                        ...data.notification,
+                                                        clientId: data.clientId,
+                                                });
+
+                                                if (!serverNotification) {
+                                                        return normalizedEvent;
+                                                }
+
+                                                set((state) => {
+                                                        const notifications = state.notifications
+                                                                .map((notification) =>
+                                                                        notification.id === clientId ||
+                                                                        notification.clientId === data.clientId
+                                                                                ? serverNotification
+                                                                                : notification
+                                                                )
+                                                                .sort(
+                                                                        (a, b) =>
+                                                                                new Date(b.createdAt).getTime() -
+                                                                                new Date(a.createdAt).getTime()
+                                                                );
+
+                                                        return {
+                                                                notifications,
+                                                                unreadCounts: computeUnreadCounts(notifications),
+                                                        };
+                                                });
+                                        } catch (error) {
+                                                console.error("Notification persistence error", error);
+                                        }
+
                                         return normalizedEvent;
                                 },
 
-                                markAsRead: (id) => {
+                                markAsRead: async (id) => {
+                                        const previousState = get().notifications;
+
                                         set((state) => {
                                                 const notifications = state.notifications.map((notification) =>
                                                         notification.id === id
@@ -236,9 +262,25 @@ export const useNotificationStore = create(
                                                         unreadCounts: computeUnreadCounts(notifications),
                                                 };
                                         });
+
+                                        try {
+                                                await fetch(`/api/notifications/${id}`, {
+                                                        method: "PATCH",
+                                                        headers: { "Content-Type": "application/json" },
+                                                        body: JSON.stringify({ read: true }),
+                                                });
+                                        } catch (error) {
+                                                console.error(`Failed to mark notification ${id} as read`, error);
+                                                set({
+                                                        notifications: previousState,
+                                                        unreadCounts: computeUnreadCounts(previousState),
+                                                });
+                                        }
                                 },
 
-                                markAsUnread: (id) => {
+                                markAsUnread: async (id) => {
+                                        const previousState = get().notifications;
+
                                         set((state) => {
                                                 const notifications = state.notifications.map((notification) =>
                                                         notification.id === id
@@ -256,9 +298,28 @@ export const useNotificationStore = create(
                                                         unreadCounts: computeUnreadCounts(notifications),
                                                 };
                                         });
+
+                                        try {
+                                                await fetch(`/api/notifications/${id}`, {
+                                                        method: "PATCH",
+                                                        headers: { "Content-Type": "application/json" },
+                                                        body: JSON.stringify({ read: false }),
+                                                });
+                                        } catch (error) {
+                                                console.error(`Failed to mark notification ${id} as unread`, error);
+                                                set({
+                                                        notifications: previousState,
+                                                        unreadCounts: computeUnreadCounts(previousState),
+                                                });
+                                        }
                                 },
 
-                                markAllAsRead: () => {
+                                markAllAsRead: async () => {
+                                        const previousState = get().notifications;
+                                        const unreadNotifications = previousState.filter(
+                                                (notification) => !notification.read
+                                        );
+
                                         set((state) => {
                                                 const notifications = state.notifications.map((notification) =>
                                                         notification.read
@@ -280,13 +341,36 @@ export const useNotificationStore = create(
                                                         lastViewedAt: new Date().toISOString(),
                                                 };
                                         });
+
+                                        try {
+                                                await Promise.all(
+                                                        unreadNotifications.map((notification) =>
+                                                                fetch(`/api/notifications/${notification.id}`, {
+                                                                        method: "PATCH",
+                                                                        headers: { "Content-Type": "application/json" },
+                                                                        body: JSON.stringify({ read: true }),
+                                                                })
+                                                        )
+                                                );
+                                        } catch (error) {
+                                                console.error("Failed to mark all notifications as read", error);
+                                                set({
+                                                        notifications: previousState,
+                                                        unreadCounts: computeUnreadCounts(previousState),
+                                                });
+                                        }
                                 },
 
-                                markPanelAsRead: (panel) => {
+                                markPanelAsRead: async (panel) => {
                                         if (!panel || panel === "all") {
-                                                get().markAllAsRead();
+                                                await get().markAllAsRead();
                                                 return;
                                         }
+
+                                        const previousState = get().notifications;
+                                        const targetedNotifications = previousState.filter(
+                                                (notification) => notification.panel === panel && !notification.read
+                                        );
 
                                         set((state) => {
                                                 const notifications = state.notifications.map((notification) =>
@@ -308,9 +392,32 @@ export const useNotificationStore = create(
                                                         unreadCounts: computeUnreadCounts(notifications),
                                                 };
                                         });
+
+                                        try {
+                                                await Promise.all(
+                                                        targetedNotifications.map((notification) =>
+                                                                fetch(`/api/notifications/${notification.id}`, {
+                                                                        method: "PATCH",
+                                                                        headers: { "Content-Type": "application/json" },
+                                                                        body: JSON.stringify({ read: true }),
+                                                                })
+                                                        )
+                                                );
+                                        } catch (error) {
+                                                console.error(
+                                                        `Failed to mark notifications for panel ${panel} as read`,
+                                                        error
+                                                );
+                                                set({
+                                                        notifications: previousState,
+                                                        unreadCounts: computeUnreadCounts(previousState),
+                                                });
+                                        }
                                 },
 
-                                dismissNotification: (id) => {
+                                dismissNotification: async (id) => {
+                                        const previousState = get().notifications;
+
                                         set((state) => {
                                                 const notifications = state.notifications.filter(
                                                         (notification) => notification.id !== id
@@ -321,6 +428,18 @@ export const useNotificationStore = create(
                                                         unreadCounts: computeUnreadCounts(notifications),
                                                 };
                                         });
+
+                                        try {
+                                                await fetch(`/api/notifications/${id}`, {
+                                                        method: "DELETE",
+                                                });
+                                        } catch (error) {
+                                                console.error(`Failed to dismiss notification ${id}`, error);
+                                                set({
+                                                        notifications: previousState,
+                                                        unreadCounts: computeUnreadCounts(previousState),
+                                                });
+                                        }
                                 },
 
                                 setFilters: (filters) =>
@@ -328,11 +447,30 @@ export const useNotificationStore = create(
                                                 filters: { ...state.filters, ...filters },
                                         })),
 
-                                clearNotifications: () =>
+                                clearNotifications: async () => {
+                                        const previousState = get().notifications;
+
                                         set({
                                                 notifications: [],
                                                 unreadCounts: { all: 0, admin: 0, seller: 0, buyer: 0 },
-                                        }),
+                                        });
+
+                                        try {
+                                                await Promise.all(
+                                                        previousState.map((notification) =>
+                                                                fetch(`/api/notifications/${notification.id}`, {
+                                                                        method: "DELETE",
+                                                                })
+                                                        )
+                                                );
+                                        } catch (error) {
+                                                console.error("Failed to clear notifications", error);
+                                                set({
+                                                        notifications: previousState,
+                                                        unreadCounts: computeUnreadCounts(previousState),
+                                                });
+                                        }
+                                },
 
                                 getPanelLabel: (panel) => panelLabels[panel] || "General",
 
@@ -345,6 +483,8 @@ export const useNotificationStore = create(
                                         notifications: state.notifications,
                                         unreadCounts: state.unreadCounts,
                                         lastViewedAt: state.lastViewedAt,
+                                        hasHydrated: state.hasHydrated,
+                                        lastFetchedAt: state.lastFetchedAt,
                                 }),
                         }
                 )

@@ -90,6 +90,10 @@ export default function SellerNotificationsPage() {
         const dismissNotification = useNotificationStore((state) => state.dismissNotification);
         const markPanelAsRead = useNotificationStore((state) => state.markPanelAsRead);
         const unreadCount = useUnreadNotifications("seller");
+        const fetchNotifications = useNotificationStore((state) => state.fetchNotifications);
+        const loading = useNotificationStore((state) => state.loading);
+        const error = useNotificationStore((state) => state.error);
+        const hasHydrated = useNotificationStore((state) => state.hasHydrated);
 
         useEffect(() => {
                 if (!isAuthenticated) {
@@ -97,10 +101,18 @@ export default function SellerNotificationsPage() {
                 }
         }, [isAuthenticated, router]);
 
+        useEffect(() => {
+                if (isAuthenticated) {
+                        fetchNotifications();
+                }
+        }, [fetchNotifications, isAuthenticated]);
+
         const [searchTerm, setSearchTerm] = useState("");
         const [activeSeverity, setActiveSeverity] = useState("all");
         const [showUnreadOnly, setShowUnreadOnly] = useState(false);
         const [activeCategory, setActiveCategory] = useState("all");
+
+        const isLoading = !hasHydrated || loading;
 
         const sellerNotifications = useMemo(
                 () =>
@@ -192,6 +204,11 @@ export default function SellerNotificationsPage() {
 
         return (
                 <div className="space-y-6 p-6">
+                        {error && (
+                                <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                                        We couldn't refresh notifications. Please try again later.
+                                </div>
+                        )}
                         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                                 <div>
                                         <h1 className="text-2xl font-semibold tracking-tight">Seller notifications</h1>
@@ -225,10 +242,19 @@ export default function SellerNotificationsPage() {
                                                 </CardTitle>
                                         </CardHeader>
                                         <CardContent>
-                                                <p className="text-2xl font-semibold">{sellerNotifications.length}</p>
-                                                <p className="text-xs text-muted-foreground">
-                                                        {todaysNotifications.length} new today
-                                                </p>
+                                                {isLoading && sellerNotifications.length === 0 ? (
+                                                        <div className="space-y-2">
+                                                                <div className="h-6 w-16 animate-pulse rounded bg-muted" />
+                                                                <div className="h-3 w-20 animate-pulse rounded bg-muted" />
+                                                        </div>
+                                                ) : (
+                                                        <>
+                                                                <p className="text-2xl font-semibold">{sellerNotifications.length}</p>
+                                                                <p className="text-xs text-muted-foreground">
+                                                                        {todaysNotifications.length} new today
+                                                                </p>
+                                                        </>
+                                                )}
                                         </CardContent>
                                 </Card>
                                 <Card>
@@ -238,10 +264,19 @@ export default function SellerNotificationsPage() {
                                                 </CardTitle>
                                         </CardHeader>
                                         <CardContent className="space-y-1">
-                                                <p className="text-2xl font-semibold">{unreadCount}</p>
-                                                <p className="text-xs text-muted-foreground">
-                                                        Stay up to date by reviewing new activity promptly.
-                                                </p>
+                                                {isLoading && sellerNotifications.length === 0 ? (
+                                                        <div className="space-y-2">
+                                                                <div className="h-6 w-14 animate-pulse rounded bg-muted" />
+                                                                <div className="h-3 w-36 animate-pulse rounded bg-muted" />
+                                                        </div>
+                                                ) : (
+                                                        <>
+                                                                <p className="text-2xl font-semibold">{unreadCount}</p>
+                                                                <p className="text-xs text-muted-foreground">
+                                                                        Stay up to date by reviewing new activity promptly.
+                                                                </p>
+                                                        </>
+                                                )}
                                         </CardContent>
                                 </Card>
                                 <Card>
@@ -251,10 +286,19 @@ export default function SellerNotificationsPage() {
                                                 </CardTitle>
                                         </CardHeader>
                                         <CardContent>
-                                                <p className="text-2xl font-semibold">{criticalAttention}</p>
-                                                <p className="text-xs text-muted-foreground">
-                                                        Pending warnings or escalations requiring action.
-                                                </p>
+                                                {isLoading && sellerNotifications.length === 0 ? (
+                                                        <div className="space-y-2">
+                                                                <div className="h-6 w-14 animate-pulse rounded bg-muted" />
+                                                                <div className="h-3 w-44 animate-pulse rounded bg-muted" />
+                                                        </div>
+                                                ) : (
+                                                        <>
+                                                                <p className="text-2xl font-semibold">{criticalAttention}</p>
+                                                                <p className="text-xs text-muted-foreground">
+                                                                        Pending warnings or escalations requiring action.
+                                                                </p>
+                                                        </>
+                                                )}
                                         </CardContent>
                                 </Card>
                                 <Card>
@@ -264,14 +308,23 @@ export default function SellerNotificationsPage() {
                                                 </CardTitle>
                                         </CardHeader>
                                         <CardContent className="space-y-1">
-                                                <p className="text-2xl font-semibold">
-                                                        {sellerNotifications[0]
-                                                                ? formatRelativeTime(sellerNotifications[0].createdAt)
-                                                                : "Just now"}
-                                                </p>
-                                                <p className="text-xs text-muted-foreground">
-                                                        Notifications update automatically as events occur.
-                                                </p>
+                                                {isLoading && sellerNotifications.length === 0 ? (
+                                                        <div className="space-y-2">
+                                                                <div className="h-6 w-20 animate-pulse rounded bg-muted" />
+                                                                <div className="h-3 w-40 animate-pulse rounded bg-muted" />
+                                                        </div>
+                                                ) : (
+                                                        <>
+                                                                <p className="text-2xl font-semibold">
+                                                                        {sellerNotifications[0]
+                                                                                ? formatRelativeTime(sellerNotifications[0].createdAt)
+                                                                                : "Just now"}
+                                                                </p>
+                                                                <p className="text-xs text-muted-foreground">
+                                                                        Notifications update automatically as events occur.
+                                                                </p>
+                                                        </>
+                                                )}
                                         </CardContent>
                                 </Card>
                         </div>
@@ -334,7 +387,38 @@ export default function SellerNotificationsPage() {
                                 <CardContent className="p-0">
                                         <ScrollArea className="max-h-[60vh]">
                                                 <div className="divide-y">
-                                                        {groupedNotifications.length === 0 ? (
+                                                        {isLoading && sellerNotifications.length === 0 ? (
+                                                                <div className="space-y-6 p-6">
+                                                                        {[...Array(3)].map((_, index) => (
+                                                                                <div key={index} className="space-y-4">
+                                                                                        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                                                                                <div className="h-3 w-24 animate-pulse rounded-full bg-muted" />
+                                                                                        </div>
+                                                                                        <div className="space-y-4">
+                                                                                                {[...Array(2)].map((__, itemIndex) => (
+                                                                                                        <div
+                                                                                                                key={itemIndex}
+                                                                                                                className="rounded-lg border bg-background p-4"
+                                                                                                        >
+                                                                                                                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                                                                                                                        <div className="space-y-2">
+                                                                                                                                <div className="h-4 w-32 animate-pulse rounded bg-muted" />
+                                                                                                                                <div className="h-3 w-full animate-pulse rounded bg-muted" />
+                                                                                                                                <div className="h-3 w-3/4 animate-pulse rounded bg-muted" />
+                                                                                                                        </div>
+                                                                                                                        <div className="h-3 w-16 animate-pulse rounded bg-muted" />
+                                                                                                                </div>
+                                                                                                                <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm">
+                                                                                                                        <div className="h-3 w-24 animate-pulse rounded bg-muted" />
+                                                                                                                        <div className="h-8 w-20 animate-pulse rounded bg-muted" />
+                                                                                                                </div>
+                                                                                                        </div>
+                                                                                                ))}
+                                                                                        </div>
+                                                                                </div>
+                                                                        ))}
+                                                                </div>
+                                                        ) : groupedNotifications.length === 0 ? (
                                                                 <div className="flex flex-col items-center justify-center gap-2 py-16 text-center text-muted-foreground">
                                                                         <Inbox className="h-6 w-6" />
                                                                         <p className="text-sm">No notifications match your filters yet.</p>
