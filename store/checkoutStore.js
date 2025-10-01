@@ -150,23 +150,23 @@ export const useCheckoutStore = create(
 				hasBillToAddress: false,
 
 				// Order Summary
-                                orderSummary: {
-                                        items: [],
-                                        subtotal: 0,
-                                        shippingCost: 0,
-                                        discount: 0,
-                                        total: 0,
-                                        taxableAmount: 0,
-                                        gst: {
-                                                mode: "igst",
-                                                rate: GST_RATE_PERCENT,
-                                                cgst: 0,
-                                                sgst: 0,
-                                                igst: 0,
-                                                total: 0,
-                                                taxableAmount: 0,
-                                        },
-                                },
+				orderSummary: {
+					items: [],
+					subtotal: 0,
+					shippingCost: 0,
+					discount: 0,
+					total: 0,
+					taxableAmount: 0,
+					gst: {
+						mode: "igst",
+						rate: GST_RATE_PERCENT,
+						cgst: 0,
+						sgst: 0,
+						igst: 0,
+						total: 0,
+						taxableAmount: 0,
+					},
+				},
 
 				// Applied Coupon (only for buyNow flow)
 				appliedCoupon: null,
@@ -240,7 +240,7 @@ export const useCheckoutStore = create(
 						0
 					);
 
-					// Calculate shipping cost: free if subtotal >= 500, else 50
+					// Default shipping cost before Hexalog estimate
 					const shippingCost = subtotal >= 500 ? 0 : 50;
 
 					// Set coupon based on checkout type
@@ -255,29 +255,29 @@ export const useCheckoutStore = create(
 						discount = appliedCoupon?.discountAmount || 0;
 					}
 
-                                        const { savedAddresses, selectedAddressId } = get();
-                                        const selectedAddress = savedAddresses.find(
-                                                (addr) => addr._id === selectedAddressId
-                                        );
+					const { savedAddresses, selectedAddressId } = get();
+					const selectedAddress = savedAddresses.find(
+						(addr) => addr._id === selectedAddressId
+					);
 
-                                        const totals = calculateGstTotals({
-                                                subtotal,
-                                                discount,
-                                                shippingCost,
-                                                address: selectedAddress,
-                                        });
+					const totals = calculateGstTotals({
+						subtotal,
+						discount,
+						shippingCost,
+						address: selectedAddress,
+					});
 
-                                        set({
-                                                orderSummary: {
-                                                        items,
-                                                        subtotal: totals.subtotal,
-                                                        shippingCost: totals.shippingCost,
-                                                        discount: totals.discount,
-                                                        total: totals.total,
-                                                        taxableAmount: totals.taxableAmount,
-                                                        gst: totals.gst,
-                                                },
-                                        });
+					set({
+						orderSummary: {
+							items,
+							subtotal: totals.subtotal,
+							shippingCost: totals.shippingCost,
+							discount: totals.discount,
+							total: totals.total,
+							taxableAmount: totals.taxableAmount,
+							gst: totals.gst,
+						},
+					});
 				},
 
 				// Load user addresses
@@ -374,10 +374,10 @@ export const useCheckoutStore = create(
 				},
 
 				// Select address
-                                selectAddress: (addressId) => {
-                                        set({ selectedAddressId: addressId });
-                                        get().recalculateTotal();
-                                },
+				selectAddress: (addressId) => {
+					set({ selectedAddressId: addressId });
+					get().recalculateTotal();
+				},
 
 				// Toggle add new address form
 				toggleAddNewAddress: () => {
@@ -477,45 +477,45 @@ export const useCheckoutStore = create(
 						checkoutType,
 					} = get();
 
-					// Calculate shipping cost
-                                        const shippingCost = orderSummary.subtotal >= 500 ? 0 : 50;
+					// Calculate shipping cost (will be overridden by estimate if present)
+					const shippingCost = orderSummary.subtotal >= 500 ? 0 : 50;
 
-                                        // Calculate discount based on checkout type
-                                        let discount = 0;
-                                        if (checkoutType === "cart" && cartAppliedCoupon) {
-                                                discount =
-                                                        cartAppliedCoupon.discountAmount ||
-                                                        (orderSummary.subtotal * cartAppliedCoupon.discount) / 100;
-                                        } else if (checkoutType === "buyNow" && appliedCoupon) {
-                                                discount =
-                                                        appliedCoupon.discountAmount ||
-                                                        (orderSummary.subtotal * appliedCoupon.discount) / 100;
-                                        }
+					// Calculate discount based on checkout type
+					let discount = 0;
+					if (checkoutType === "cart" && cartAppliedCoupon) {
+						discount =
+							cartAppliedCoupon.discountAmount ||
+							(orderSummary.subtotal * cartAppliedCoupon.discount) / 100;
+					} else if (checkoutType === "buyNow" && appliedCoupon) {
+						discount =
+							appliedCoupon.discountAmount ||
+							(orderSummary.subtotal * appliedCoupon.discount) / 100;
+					}
 
-                                        const { savedAddresses, selectedAddressId } = get();
-                                        const selectedAddress = savedAddresses.find(
-                                                (addr) => addr._id === selectedAddressId
-                                        );
+					const { savedAddresses, selectedAddressId } = get();
+					const selectedAddress = savedAddresses.find(
+						(addr) => addr._id === selectedAddressId
+					);
 
-                                        const totals = calculateGstTotals({
-                                                subtotal: orderSummary.subtotal,
-                                                discount,
-                                                shippingCost,
-                                                address: selectedAddress,
-                                                gstMode: orderSummary.gst?.mode,
-                                        });
+					const totals = calculateGstTotals({
+						subtotal: orderSummary.subtotal,
+						discount,
+						shippingCost,
+						address: selectedAddress,
+						gstMode: orderSummary.gst?.mode,
+					});
 
-                                        set({
-                                                orderSummary: {
-                                                        ...orderSummary,
-                                                        shippingCost: totals.shippingCost,
-                                                        discount: totals.discount,
-                                                        total: totals.total,
-                                                        taxableAmount: totals.taxableAmount,
-                                                        gst: totals.gst,
-                                                },
-                                        });
-                                },
+					set({
+						orderSummary: {
+							...orderSummary,
+							shippingCost: totals.shippingCost,
+							discount: totals.discount,
+							total: totals.total,
+							taxableAmount: totals.taxableAmount,
+							gst: totals.gst,
+						},
+					});
+				},
 
 				// Get selected address
 				getSelectedAddress: () => {
@@ -554,91 +554,92 @@ export const useCheckoutStore = create(
 							checkoutType === "cart" ? cartAppliedCoupon : appliedCoupon;
 
 						// Prepare order data
-                                        const shippingCost = orderSummary.subtotal >= 500 ? 0 : 50;
-                                        const totals = calculateGstTotals({
-                                                subtotal: orderSummary.subtotal,
-                                                discount: orderSummary.discount,
-                                                shippingCost,
-                                                address: selectedAddress,
-                                                gstMode: orderSummary.gst?.mode,
-                                        });
+						const shippingCost = orderSummary.subtotal >= 500 ? 0 : 50;
+						const totals = calculateGstTotals({
+							subtotal: orderSummary.subtotal,
+							discount: orderSummary.discount,
+							shippingCost,
+							address: selectedAddress,
+							gstMode: orderSummary.gst?.mode,
+						});
 
-                                        set({
-                                                orderSummary: {
-                                                        ...orderSummary,
-                                                        shippingCost: totals.shippingCost,
-                                                        discount: totals.discount,
-                                                        total: totals.total,
-                                                        taxableAmount: totals.taxableAmount,
-                                                        gst: totals.gst,
-                                                },
-                                        });
+						set({
+							orderSummary: {
+								...orderSummary,
+								shippingCost: totals.shippingCost,
+								discount: totals.discount,
+								total: totals.total,
+								taxableAmount: totals.taxableAmount,
+								gst: totals.gst,
+							},
+						});
 
-                                        const orderData = {
-                                                userId: userId,
-                                                customerName: customerInfo.name,
-                                                customerEmail: customerInfo.email,
-                                                customerMobile: customerInfo.mobile,
-                                                products: orderSummary.items,
-                                                subtotal: totals.subtotal,
-                                                shippingCost: totals.shippingCost,
-                                                discount: totals.discount,
-                                                totalAmount: totals.total,
-                                                paymentMethod: paymentMethod,
-                                                deliveryAddress: {
-                                                        tag: selectedAddress.tag,
-                                                        name: selectedAddress.name,
-                                                        street: selectedAddress.street,
+						const orderData = {
+							userId: userId,
+							customerName: customerInfo.name,
+							customerEmail: customerInfo.email,
+							customerMobile: customerInfo.mobile,
+							products: orderSummary.items,
+							subtotal: totals.subtotal,
+							shippingCost: totals.shippingCost,
+							discount: totals.discount,
+							totalAmount: totals.total,
+							paymentMethod: paymentMethod,
+							deliveryAddress: {
+								tag: selectedAddress.tag,
+								name: selectedAddress.name,
+								street: selectedAddress.street,
 								city: selectedAddress.city,
 								state: selectedAddress.state,
 								zipCode: selectedAddress.zipCode,
 								country: selectedAddress.country,
 								fullAddress: `${selectedAddress.street}, ${selectedAddress.city}, ${selectedAddress.state} - ${selectedAddress.zipCode}`,
-                                                        },
-                                                        couponApplied: couponToUse
-                                                                ? {
-                                                                                couponCode: couponToUse.code,
-                                                                                discountAmount:
-                                                                                        couponToUse.discountAmount || orderSummary.discount,
-                                                                                discountType: "percentage",
-                                                                  }
-                                                                : null,
-                                                tax: totals.gst.total,
-                                                gst: totals.gst,
-                                                taxableAmount: totals.taxableAmount,
-                                        };
+							},
+							couponApplied: couponToUse
+								? {
+										couponCode: couponToUse.code,
+										discountAmount:
+											couponToUse.discountAmount || orderSummary.discount,
+										discountType: "percentage",
+								  }
+								: null,
+							tax: totals.gst.total,
+							gst: totals.gst,
+							taxableAmount: totals.taxableAmount,
+						};
 
-                                               if (paymentMethod === "razorpay") {
-                                                        // Create Razorpay order
-                                                        const { order: razorpayOrder } = await paymentAPI.createRazorpayOrder({
-                                                                amount: orderSummary.total,
-                                                                currency: "INR",
-                                                                receipt: `order_${Date.now()}`,
-                                                        });
+						if (paymentMethod === "razorpay") {
+							// Create Razorpay order
+							const { order: razorpayOrder } =
+								await paymentAPI.createRazorpayOrder({
+									amount: orderSummary.total,
+									currency: "INR",
+									receipt: `order_${Date.now()}`,
+								});
 
-                                                        // Initialize Razorpay payment
-                                                        const options = {
-                                                                key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-                                                                amount: razorpayOrder.amount,
-                                                                currency: razorpayOrder.currency,
-                                                                name: "Your Store Name",
-                                                                description: "Purchase from Your Store",
-                                                                order_id: razorpayOrder.id,
-                                                                handler: async function (response) {
-                                                                        try {
-                                                                                // Verify payment
-                                                                                const verificationData = {
-                                                                                        razorpay_order_id: response.razorpay_order_id,
-                                                                                        razorpay_payment_id: response.razorpay_payment_id,
-                                                                                        razorpay_signature: response.razorpay_signature,
-                                                                                        orderData,
-                                                                                        userId: userId,
-                                                                                        clearCart: checkoutType === "cart",
-                                                                                        status: "success",
-                                                                                };
+							// Initialize Razorpay payment
+							const options = {
+								key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+								amount: razorpayOrder.amount,
+								currency: razorpayOrder.currency,
+								name: "Your Store Name",
+								description: "Purchase from Your Store",
+								order_id: razorpayOrder.id,
+								handler: async function (response) {
+									try {
+										// Verify payment
+										const verificationData = {
+											razorpay_order_id: response.razorpay_order_id,
+											razorpay_payment_id: response.razorpay_payment_id,
+											razorpay_signature: response.razorpay_signature,
+											orderData,
+											userId: userId,
+											clearCart: checkoutType === "cart",
+											status: "success",
+										};
 
-                                                                                const verificationResult = await paymentAPI.verifyPayment(
-                                                                                        verificationData
+										const verificationResult = await paymentAPI.verifyPayment(
+											verificationData
 										);
 
 										if (verificationResult.success) {
@@ -647,10 +648,10 @@ export const useCheckoutStore = create(
 												clearCartCallback();
 											}
 
-                                                                                        // Reset checkout
-                                                                                        get().resetCheckout();
+											// Reset checkout
+											get().resetCheckout();
 
-                                                                                        toast.success("Payment successful! Order placed.");
+											toast.success("Payment successful! Order placed.");
 
 											// Redirect to success page
 											window.location.href = `/order-success?orderId=${verificationResult.orderId}&orderNumber=${verificationResult.orderNumber}`;
@@ -680,36 +681,39 @@ export const useCheckoutStore = create(
 								},
 							};
 
-                                                        const razorpay = new window.Razorpay(options);
-                                                        razorpay.on("payment.failed", async function (response) {
-                                                                const failureData = {
-                                                                        status: "failed",
-                                                                        orderData,
-                                                                        userId: userId,
-                                                                        clearCart: false,
-                                                                        razorpay_order_id:
-                                                                                response?.error?.metadata?.order_id || razorpayOrder.id,
-                                                                        razorpay_payment_id:
-                                                                                response?.error?.metadata?.payment_id || null,
-                                                                        failureReason:
-                                                                                response?.error?.description ||
-                                                                                response?.error?.reason ||
-                                                                                response?.error?.code ||
-                                                                                "Payment failed",
-                                                                };
+							const razorpay = new window.Razorpay(options);
+							razorpay.on("payment.failed", async function (response) {
+								const failureData = {
+									status: "failed",
+									orderData,
+									userId: userId,
+									clearCart: false,
+									razorpay_order_id:
+										response?.error?.metadata?.order_id || razorpayOrder.id,
+									razorpay_payment_id:
+										response?.error?.metadata?.payment_id || null,
+									failureReason:
+										response?.error?.description ||
+										response?.error?.reason ||
+										response?.error?.code ||
+										"Payment failed",
+								};
 
-                                                                try {
-                                                                        await paymentAPI.verifyPayment(failureData);
-                                                                } catch (recordError) {
-                                                                        console.error("Payment failure recording error:", recordError);
-                                                                } finally {
-                                                                        set({ paymentLoading: false });
-                                                                        toast.error("Payment failed. Please try again.");
-                                                                }
-                                                        });
-                                                        razorpay.open();
+								try {
+									await paymentAPI.verifyPayment(failureData);
+								} catch (recordError) {
+									console.error(
+										"Payment failure recording error:",
+										recordError
+									);
+								} finally {
+									set({ paymentLoading: false });
+									toast.error("Payment failed. Please try again.");
+								}
+							});
+							razorpay.open();
 
-                                                        return { success: true, paymentMethod: "razorpay" };
+							return { success: true, paymentMethod: "razorpay" };
 						} else if (paymentMethod === "cod") {
 							// Handle Cash on Delivery
 							const codOrderData = {
@@ -823,23 +827,23 @@ export const useCheckoutStore = create(
 							isDefault: false,
 						},
 						isAddingNewAddress: false,
-                                                orderSummary: {
-                                                        items: [],
-                                                        subtotal: 0,
-                                                        shippingCost: 0,
-                                                        discount: 0,
-                                                        total: 0,
-                                                        taxableAmount: 0,
-                                                        gst: {
-                                                                mode: "igst",
-                                                                rate: GST_RATE_PERCENT,
-                                                                cgst: 0,
-                                                                sgst: 0,
-                                                                igst: 0,
-                                                                total: 0,
-                                                                taxableAmount: 0,
-                                                        },
-                                                },
+						orderSummary: {
+							items: [],
+							subtotal: 0,
+							shippingCost: 0,
+							discount: 0,
+							total: 0,
+							taxableAmount: 0,
+							gst: {
+								mode: "igst",
+								rate: GST_RATE_PERCENT,
+								cgst: 0,
+								sgst: 0,
+								igst: 0,
+								total: 0,
+								taxableAmount: 0,
+							},
+						},
 						appliedCoupon: null,
 						cartAppliedCoupon: null,
 						currentStep: 1,
