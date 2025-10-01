@@ -142,6 +142,25 @@ PaymentSchema.index({ orderId: 1 });
 PaymentSchema.index({ subOrderId: 1 });
 PaymentSchema.index({ orderNumber: 1 });
 
+const existingPaymentModel = mongoose.models?.Payment;
+
+if (existingPaymentModel) {
+        const statusPath = existingPaymentModel.schema?.path("status");
+        const historyStatusPath = existingPaymentModel.schema
+                ?.path("history")
+                ?.schema?.path("status");
+
+        const statusSupportsAdminApproval = statusPath?.enumValues?.includes(
+                "admin_approval"
+        );
+        const historySupportsAdminApproval =
+                historyStatusPath?.enumValues?.includes("admin_approval");
+
+        if (!statusSupportsAdminApproval || !historySupportsAdminApproval) {
+                mongoose.deleteModel("Payment");
+        }
+}
+
 const PaymentModel =
         mongoose.models.Payment || mongoose.model("Payment", PaymentSchema);
 
