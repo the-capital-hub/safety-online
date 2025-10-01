@@ -1,163 +1,184 @@
 "use client";
 
 import Image from "next/image";
-import { motion } from "framer-motion";
-import useEmblaCarousel from "embla-carousel-react";
-import ProductCard from "@/components/BuyerPanel/products/ProductCard.jsx";
-import { useDotButton } from "@/components/BuyerPanel/home/ProductShowcaseCarousel/carouselDotButtons.jsx";
-import { usePrevNextButtons } from "@/components/BuyerPanel/home/ProductShowcaseCarousel/carouselArrowButtons.jsx";
-import { DotButton } from "@/components/BuyerPanel/home/ProductShowcaseCarousel/carouselDotButtons.jsx";
-import {
-	PrevButton,
-	NextButton,
-} from "@/components/BuyerPanel/home/ProductShowcaseCarousel/carouselArrowButtons.jsx";
-import { Product16 } from "@/public/images/home/index.js";
-import ProductImg from "@/public/images/products/IS-P2.png";
+import Link from "next/link";
+
+const formatCurrency = (value) => {
+        if (typeof value !== "number") return null;
+        return new Intl.NumberFormat("en-IN", {
+                style: "currency",
+                currency: "INR",
+                maximumFractionDigits: 0,
+        }).format(value);
+};
+
+const getProductImage = (product) => {
+        return product?.images?.[0] || product?.image || "https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png";
+};
+
+const getProductId = (product) => product?.id || product?._id;
 
 export default function ProductShowcase({ products = [] }) {
-	const [emblaRef, emblaApi] = useEmblaCarousel({
-		slidesToScroll: 1,
-		containScroll: "trimSnaps",
-		breakpoints: {
-			"(min-width: 768px)": { slidesToScroll: 2 },
-		},
-	});
+        if (!products?.length) {
+                return null;
+        }
 
-	const { selectedIndex, scrollSnaps, onDotButtonClick } =
-		useDotButton(emblaApi);
+        const heroProduct = products[0];
+        const featureGrid = products.slice(1, 5);
+        const sliderProducts = products.slice(5, 12);
 
-	const {
-		prevBtnDisabled,
-		nextBtnDisabled,
-		onPrevButtonClick,
-		onNextButtonClick,
-	} = usePrevNextButtons(emblaApi);
+        return (
+                <section className="bg-[#0f172a] py-16 text-white">
+                        <div className="mx-auto max-w-7xl px-6">
+                                <div className="flex flex-col gap-12">
+                                        <div className="flex flex-col items-start gap-6 lg:flex-row lg:items-center lg:justify-between">
+                                                <div>
+                                                        <span className="inline-flex items-center rounded-full bg-white/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-[#facc15]">
+                                                                Deals of the day
+                                                        </span>
+                                                        <h2 className="mt-3 text-3xl font-bold sm:text-4xl">Exclusive savings on worksite essentials</h2>
+                                                        <p className="mt-2 max-w-2xl text-base text-slate-200">
+                                                                Secure time-bound discounts on certified PPE, welding gear, fire safety equipment and more.
+                                                        </p>
+                                                </div>
+                                                <Link
+                                                        href="/products"
+                                                        className="inline-flex items-center rounded-full border border-white/40 px-5 py-3 text-sm font-semibold text-white transition hover:border-white hover:bg-white/10"
+                                                >
+                                                        Explore catalogue
+                                                </Link>
+                                        </div>
 
-	// Show loading state if no products
-	if (!products || products.length === 0) {
-		return (
-			<section className="py-6 sm:py-8 lg:py-12 bg-white min-h-[calc(100vh-136px)]">
-				<div className="h-full px-10 sm:px-6 lg:px-10">
-					<div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 h-full">
-						<div className="lg:col-span-1 flex flex-col justify-center">
-							<div className="animate-pulse">
-								<div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-								<div className="h-8 bg-gray-200 rounded w-full mb-4"></div>
-								<div className="h-4 bg-gray-200 rounded w-2/3"></div>
-							</div>
-						</div>
-						<div className="lg:col-span-2">
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-								{[1, 2, 3, 4].map((i) => (
-									<div key={i} className="animate-pulse">
-										<div className="bg-gray-200 rounded-lg h-64"></div>
-									</div>
-								))}
-							</div>
-						</div>
-					</div>
-				</div>
-			</section>
-		);
-	}
+                                        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+                                                <Link
+                                                        href={`/products/${getProductId(heroProduct)}`}
+                                                        className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#facc15] via-[#f97316] to-[#ef4444] p-1"
+                                                >
+                                                        <div className="relative flex h-full flex-col justify-between overflow-hidden rounded-[26px] bg-slate-950/90">
+                                                                <div className="p-8">
+                                                                        <p className="text-xs font-semibold uppercase tracking-[0.4em] text-[#f97316]/80">spotlight</p>
+                                                                        <h3 className="mt-4 text-2xl font-semibold text-white sm:text-3xl">
+                                                                                {heroProduct.title}
+                                                                        </h3>
+                                                                        <p className="mt-3 text-sm text-slate-300 line-clamp-4">{heroProduct.description}</p>
+                                                                        <div className="mt-6 flex items-baseline gap-3">
+                                                                                {heroProduct.salePrice ? (
+                                                                                        <>
+                                                                                                <span className="text-3xl font-semibold text-white">{formatCurrency(heroProduct.salePrice)}</span>
+                                                                                                {heroProduct.price && heroProduct.price > heroProduct.salePrice ? (
+                                                                                                        <span className="text-sm text-slate-300 line-through">{formatCurrency(heroProduct.price)}</span>
+                                                                                                ) : null}
+                                                                                        </>
+                                                                                ) : heroProduct.price ? (
+                                                                                        <span className="text-3xl font-semibold text-white">{formatCurrency(heroProduct.price)}</span>
+                                                                                ) : (
+                                                                                        <span className="text-lg font-semibold text-white">Talk to sales</span>
+                                                                                )}
+                                                                        </div>
+                                                                </div>
+                                                                <div className="relative flex h-64 items-center justify-center overflow-hidden">
+                                                                        <Image
+                                                                                src={getProductImage(heroProduct)}
+                                                                                alt={heroProduct.title}
+                                                                                fill
+                                                                                sizes="(max-width: 1024px) 100vw, 360px"
+                                                                                className="object-contain transition duration-500 group-hover:scale-105"
+                                                                        />
+                                                                        {heroProduct.discountPercentage ? (
+                                                                                <span className="absolute right-5 top-5 rounded-full bg-white px-4 py-1 text-xs font-semibold uppercase text-[#ea580c]">
+                                                                                        {heroProduct.discountPercentage}% off
+                                                                                </span>
+                                                                        ) : null}
+                                                                </div>
+                                                        </div>
+                                                </Link>
 
-	return (
-		<section className="py-6 sm:py-8 lg:py-12 bg-white min-h-[calc(100vh-136px)]">
-			<div className="h-full px-10 sm:px-6 lg:px-10">
-				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 h-full">
-					{/* Left Column - Promotional Content */}
-					<motion.div
-						initial={{ opacity: 0, y: 20 }}
-						whileInView={{ opacity: 1, y: 0 }}
-						viewport={{ once: true }}
-						className="lg:col-span-1 flex flex-col justify-between"
-					>
-						{/* Header Content */}
-						<div>
-							<h3 className="text-gray-300 text-sm sm:text-base font-medium mb-4">
-								<span className="text-yellow-500">CHECK OUR PRODUCTS</span>{" "}
-								SAFETY FIRST
-							</h3>
+                                                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:col-span-2">
+                                                        {featureGrid.map((product) => (
+                                                                <Link
+                                                                        key={getProductId(product)}
+                                                                        href={`/products/${getProductId(product)}`}
+                                                                        className="group relative overflow-hidden rounded-3xl border border-white/5 bg-white/5 p-6 transition hover:border-white/30 hover:bg-white/10"
+                                                                >
+                                                                        <div className="flex h-full flex-col justify-between gap-6 sm:flex-row sm:items-center">
+                                                                                <div className="space-y-3">
+                                                                                        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#facc15]/80">Limited offer</p>
+                                                                                        <h3 className="text-xl font-semibold text-white">{product.title}</h3>
+                                                                                        <p className="text-sm text-slate-200 line-clamp-3">{product.description}</p>
+                                                                                        <div className="flex items-baseline gap-3 text-white">
+                                                                                                {product.salePrice ? (
+                                                                                                        <>
+                                                                                                                <span className="text-2xl font-semibold">{formatCurrency(product.salePrice)}</span>
+                                                                                                                {product.price && product.price > product.salePrice ? (
+                                                                                                                        <span className="text-sm text-slate-300 line-through">{formatCurrency(product.price)}</span>
+                                                                                                                ) : null}
+                                                                                                        </>
+                                                                                                ) : product.price ? (
+                                                                                                        <span className="text-2xl font-semibold">{formatCurrency(product.price)}</span>
+                                                                                                ) : (
+                                                                                                        <span className="text-lg font-semibold">Contact us</span>
+                                                                                                )}
+                                                                                        </div>
+                                                                                </div>
+                                                                                <div className="relative h-40 w-full flex-shrink-0 overflow-hidden rounded-2xl bg-slate-900/60 sm:w-40">
+                                                                                        <Image
+                                                                                                src={getProductImage(product)}
+                                                                                                alt={product.title}
+                                                                                                fill
+                                                                                                sizes="(max-width: 640px) 100vw, 160px"
+                                                                                                className="object-contain transition duration-500 group-hover:scale-105"
+                                                                                        />
+                                                                                </div>
+                                                                        </div>
+                                                                </Link>
+                                                        ))}
+                                                </div>
+                                        </div>
 
-							<h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight">
-								UP TO <span className="text-yellow-500">50%</span>{" "}
-								<span className="text-black">OFF!</span>
-							</h2>
-
-							<p className="text-gray-600 mt-4 text-sm sm:text-base lg:text-lg max-w-md">
-								This refers to protective equipment like helmets, gloves,
-								goggles, boots, etc., used to prevent injury in hazardous
-								environments.
-							</p>
-						</div>
-
-						{/* Product Image */}
-						<div className="mt-6 lg:mt-8 flex justify-center lg:justify-start">
-							<div className="relative w-full max-w-xs sm:max-w-sm">
-								<Image
-									src={ProductImg.src}
-									alt="Product 16"
-									width={400}
-									height={300}
-									className="w-full h-auto max-h-[300px] rounded-lg object-contain"
-									sizes="(max-width: 640px) 300px, (max-width: 1024px) 400px, 250px"
-								/>
-							</div>
-						</div>
-
-						{/* Carousel Controls */}
-						<div className="mt-6 lg:mt-8 flex items-center justify-between">
-							<div className="flex items-center gap-2">
-								<PrevButton
-									onClick={onPrevButtonClick}
-									disabled={prevBtnDisabled}
-								/>
-								<NextButton
-									onClick={onNextButtonClick}
-									disabled={nextBtnDisabled}
-								/>
-							</div>
-							<div className="flex items-center gap-2">
-								{scrollSnaps.map((_, index) => (
-									<DotButton
-										key={index}
-										onClick={() => onDotButtonClick(index)}
-										className={`w-3 h-3 rounded-full transition-all duration-200 ${
-											index === selectedIndex
-												? "bg-black w-8"
-												: "bg-gray-300 hover:bg-gray-400"
-										}`}
-									/>
-								))}
-							</div>
-						</div>
-					</motion.div>
-
-					{/* Right Column - Product Cards Carousel */}
-					<div className="lg:col-span-2">
-						<div className="overflow-hidden" ref={emblaRef}>
-							<div className="flex gap-4 sm:gap-6 lg:gap-8 md:px-10">
-								{products.map((product, index) => (
-									<div
-										key={product.id}
-										className="flex-shrink-0 w-full md:w-1/2 h-auto"
-									>
-										<motion.div
-											initial={{ opacity: 0, y: 20 }}
-											whileInView={{ opacity: 1, y: 0 }}
-											viewport={{ once: true }}
-											transition={{ delay: index * 0.1 }}
-											className="max-w-[500px] h-full"
-										>
-											<ProductCard product={product} />
-										</motion.div>
-									</div>
-								))}
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</section>
-	);
+                                        {sliderProducts.length > 0 ? (
+                                                <div className="space-y-4">
+                                                        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+                                                                <div>
+                                                                        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#facc15]/80">
+                                                                                More ways to save
+                                                                        </p>
+                                                                        <h3 className="text-xl font-semibold text-white">Hand-picked combos &amp; accessories</h3>
+                                                                </div>
+                                                        </div>
+                                                        <div className="-mx-6 overflow-x-auto pb-2">
+                                                                <div className="ml-6 flex gap-4">
+                                                                        {sliderProducts.map((product) => (
+                                                                                <Link
+                                                                                        key={getProductId(product)}
+                                                                                        href={`/products/${getProductId(product)}`}
+                                                                                        className="group flex w-64 flex-col overflow-hidden rounded-2xl border border-white/5 bg-white/5 p-5 text-left transition hover:border-white/20 hover:bg-white/10"
+                                                                                >
+                                                                                        <div className="relative h-32 w-full overflow-hidden rounded-xl bg-slate-900/60">
+                                                                                                <Image
+                                                                                                        src={getProductImage(product)}
+                                                                                                        alt={product.title}
+                                                                                                        fill
+                                                                                                        sizes="256px"
+                                                                                                        className="object-contain transition duration-500 group-hover:scale-105"
+                                                                                                />
+                                                                                        </div>
+                                                                                        <h4 className="mt-4 line-clamp-2 text-sm font-semibold text-white">{product.title}</h4>
+                                                                                        <p className="mt-1 text-xs text-slate-300 line-clamp-2">{product.description}</p>
+                                                                                        <div className="mt-3 text-sm font-semibold text-white">
+                                                                                                {product.salePrice
+                                                                                                        ? formatCurrency(product.salePrice)
+                                                                                                        : product.price
+                                                                                                        ? formatCurrency(product.price)
+                                                                                                        : "Enquire"}
+                                                                                        </div>
+                                                                                </Link>
+                                                                        ))}
+                                                                </div>
+                                                        </div>
+                                                </div>
+                                        ) : null}
+                                </div>
+                        </div>
+                </section>
+        );
 }

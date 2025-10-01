@@ -1,160 +1,172 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import Link from "next/link";
+import { ArrowRight, ShieldCheck, PackageCheck, Sparkles, Clock3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-	ArrowRight,
-	ChevronLeft,
-	ChevronRight,
-	ChevronDown,
-} from "lucide-react";
 import { HeroImg } from "@/public/images/home";
 
-export default function HeroSection() {
-	const router = useRouter();
-	const sidebarCategories = [
-		"INDUSTRIAL SAFETY",
-		"FIRE SAFETY",
-		"ROAD SAFETY",
-		"FIRST AID KIT",
-	];
+const highlightItems = [
+        {
+                icon: ShieldCheck,
+                title: "Certified Safety",
+                description: "BIS and CE compliant range",
+        },
+        {
+                icon: PackageCheck,
+                title: "2,500+ SKUs",
+                description: "In-stock industrial essentials",
+        },
+        {
+                icon: Clock3,
+                title: "Express Dispatch",
+                description: "Ships within 24 hours",
+        },
+        {
+                icon: Sparkles,
+                title: "Bulk Pricing",
+                description: "Exclusive deals for businesses",
+        },
+];
 
-	const [activeIdx, setActiveIdx] = useState(0);
-	const [paused, setPaused] = useState(false);
+const formatCurrency = (value) => {
+        if (typeof value !== "number") return null;
+        return new Intl.NumberFormat("en-IN", {
+                style: "currency",
+                currency: "INR",
+                maximumFractionDigits: 0,
+        }).format(value);
+};
 
-	useEffect(() => {
-		if (paused) return;
-		const id = setInterval(() => {
-			setActiveIdx((i) => (i + 1) % sidebarCategories.length);
-		}, 1500); // change speed here (ms)
-		return () => clearInterval(id);
-	}, [paused, sidebarCategories.length]);
+export default function HeroSection({ spotlightProduct, categories = [] }) {
+        const quickCategories = categories.slice(0, 6);
+        const heroImage = spotlightProduct?.images?.[0] || spotlightProduct?.image;
+        const heroPrice = spotlightProduct?.salePrice || spotlightProduct?.price;
 
-	return (
-		<section className="relative bg-gray-100 overflow-hidden max-h-fit lg:max-h-[calc(100vh-136px)] h-full px-10">
-			<div className="h-full flex flex-col lg:flex-row">
-				{/* Main Hero Content */}
-				<div className="h-full flex-1 py-8 lg:py-10 relative">
-					<motion.h1
-						initial={{ opacity: 0, y: 30 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.8 }}
-						className="text-3xl md:text-4xl lg:text-8xl font-black leading-tight mb-6 lg:mb-8 absolute top-0 left-10 transform -translate-x-1/2 -translate-y-1/2 hidden md:block"
-					>
-						SAFETY GEAR,
-					</motion.h1>
+        return (
+                <section className="relative overflow-hidden bg-gradient-to-br from-[#fff7ed] via-white to-white">
+                        <div className="absolute -left-24 top-1/2 h-80 w-80 -translate-y-1/2 rounded-full bg-[#fde68a]/40 blur-3xl" />
+                        <div className="absolute -right-32 -top-24 h-96 w-96 rounded-full bg-[#fb923c]/20 blur-3xl" />
 
-					<motion.h1
-						initial={{ opacity: 0, y: 30 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.8 }}
-						className="text-3xl md:text-4xl lg:text-8xl font-black leading-tight mb-6 lg:mb-8 absolute top-28 right-16 transform -translate-x-1/2 -translate-y-1/2 z-10 hidden md:block"
-					>
-						SERIO
-						<span className="text-black/50 stroke-white">US</span>{" "}
-						<span className="text-black/50 stroke-white">P</span>
-						ROTECTION
-					</motion.h1>
+                        <div className="relative mx-auto max-w-7xl px-6 py-16 lg:flex lg:items-center lg:gap-16 lg:py-24">
+                                <div className="max-w-3xl space-y-8">
+                                        <span className="inline-flex items-center gap-2 rounded-full bg-[#fff7ed] px-4 py-1 text-xs font-semibold tracking-wide text-[#b45309] ring-1 ring-[#fbbf24]/60">
+                                                India&apos;s trusted safety marketplace
+                                        </span>
+                                        <h1 className="text-4xl font-extrabold text-slate-900 sm:text-5xl lg:text-6xl">
+                                                Industrial Safety Gear for Every Worksite
+                                        </h1>
+                                        <p className="max-w-2xl text-lg leading-relaxed text-slate-600">
+                                                Discover premium PPE, fire safety and road protection equipment curated for manufacturing plants, warehouses, infrastructure projects and facility management teams.
+                                        </p>
 
-					<motion.h1
-						initial={{ opacity: 0, y: 30 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.8 }}
-						className="text-3xl text-center font-black leading-tight mb-6 lg:mb-8 block md:hidden"
-					>
-						SAFETY GEAR, SERIOUS PROTECTION
-					</motion.h1>
+                                        <div className="flex flex-wrap gap-3">
+                                                <Button asChild className="rounded-full bg-[#f97316] px-6 py-3 text-base font-semibold hover:bg-[#ea580c]">
+                                                        <Link href="/products">Shop Safety Gear</Link>
+                                                </Button>
+                                                <Button
+                                                        asChild
+                                                        variant="outline"
+                                                        className="rounded-full border-[#f97316]/30 bg-white px-6 py-3 text-base font-semibold text-[#b45309] hover:border-[#f97316] hover:text-[#9a3412]"
+                                                >
+                                                        <Link href="/contact">Talk to an Expert</Link>
+                                                </Button>
+                                        </div>
 
-					<div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
-						{/* Sidebar categories */}
-						<div
-							className="flex flex-col items-center lg:items-start lg:space-y-4 order-3 lg:order-1"
-							onMouseEnter={() => setPaused(true)}
-							onMouseLeave={() => setPaused(false)}
-						>
-							{sidebarCategories.map((category, index) => {
-								const isActive = index === activeIdx;
-								return (
-									<motion.div
-										key={category}
-										initial={{ opacity: 0, x: -20 }}
-										animate={{ opacity: 1, x: 0 }}
-										transition={{ delay: index * 0.1 }}
-									>
-										<motion.p
-											// Smoothly animate color/scale between active/inactive
-											animate={{
-												color: isActive ? "#000000" : "#D1D5DB", // black vs gray-300
-												scale: isActive ? 1.05 : 1,
-											}}
-											transition={{
-												type: "spring",
-												stiffness: 200,
-												damping: 20,
-											}}
-											className="text-lg lg:text-2xl font-bold whitespace-nowrap lg:whitespace-normal"
-										>
-											{category}
-										</motion.p>
-									</motion.div>
-								);
-							})}
-						</div>
+                                        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                                                {highlightItems.map(({ icon: Icon, title, description }) => (
+                                                        <div
+                                                                key={title}
+                                                                className="rounded-2xl border border-white/60 bg-white/70 p-4 shadow-sm backdrop-blur transition hover:-translate-y-1 hover:shadow-md"
+                                                        >
+                                                                <Icon className="mb-3 h-6 w-6 text-[#f97316]" />
+                                                                <p className="text-sm font-semibold text-slate-900">{title}</p>
+                                                                <p className="text-xs text-slate-500">{description}</p>
+                                                        </div>
+                                                ))}
+                                        </div>
+                                </div>
 
-						<div className="order-2 lg:order-3">
-							<motion.div
-								initial={{ opacity: 0, y: 20 }}
-								animate={{ opacity: 1, y: 0 }}
-								transition={{ delay: 0.3, duration: 0.8 }}
-								className="flex flex-col mb-0"
-							>
-								<p className="text-center md:text-left text-gray-600 mb-6 max-w-md text-sm md:text-base">
-									Safety is the most basic yet the most important rule of life.
-									It is the sum of safety precautions that determines the safety
-									of the people working near you.
-								</p>
-								<Button
-									className="bg-black text-white px-6 md:px-8 py-2 md:py-3 rounded-full w-full md:w-fit"
-									onClick={() => router.push("/products")}
-								>
-									BUY NOW
-									<ArrowRight className="ml-2 h-4 w-4" />
-								</Button>
-							</motion.div>
-						</div>
+                                <div className="relative mt-12 w-full max-w-xl flex-shrink-0 lg:mt-0">
+                                        <div className="absolute inset-0 rounded-[40px] bg-gradient-to-br from-[#fde68a] via-[#fcd34d] to-[#f97316] opacity-90 blur-2xl" />
+                                        <div className="relative overflow-hidden rounded-[40px] bg-white shadow-2xl">
+                                                <div className="relative h-80 w-full bg-gradient-to-tr from-[#0f172a] via-[#1e293b] to-[#334155]">
+                                                        <Image
+                                                                src={heroImage || HeroImg}
+                                                                alt={spotlightProduct?.title || "Safety professional"}
+                                                                fill
+                                                                sizes="(max-width: 1024px) 100vw, 480px"
+                                                                priority
+                                                                className="object-cover object-center"
+                                                        />
+                                                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-900/10 to-transparent" />
+                                                </div>
+                                                <div className="space-y-4 px-8 py-6">
+                                                        <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-[#f97316]">
+                                                                <span>{spotlightProduct ? "In-demand pick" : "Ready stock"}</span>
+                                                                {spotlightProduct?.discountPercentage ? (
+                                                                        <span className="rounded-full bg-[#f97316]/10 px-3 py-1 text-[#b45309]">
+                                                                                {spotlightProduct.discountPercentage}% off
+                                                                        </span>
+                                                                ) : null}
+                                                        </div>
+                                                        <div>
+                                                                <h2 className="text-2xl font-bold text-slate-900">
+                                                                        {spotlightProduct?.title || "Head-to-toe safety kits"}
+                                                                </h2>
+                                                                <p className="mt-2 text-sm text-slate-600 line-clamp-3">
+                                                                        {spotlightProduct?.description ||
+                                                                                "Shop helmets, gloves, suits, eyewear and harnesses tailored for demanding worksites across India."}
+                                                                </p>
+                                                        </div>
+                                                        <div className="flex items-end justify-between">
+                                                                <div>
+                                                                        {heroPrice ? (
+                                                                                <p className="text-2xl font-semibold text-slate-900">{formatCurrency(heroPrice)}</p>
+                                                                        ) : (
+                                                                                <p className="text-2xl font-semibold text-slate-900">Bulk rates available</p>
+                                                                        )}
+                                                                        {spotlightProduct?.price && spotlightProduct?.salePrice && spotlightProduct.price > spotlightProduct.salePrice ? (
+                                                                                <p className="text-sm text-slate-500 line-through">
+                                                                                        {formatCurrency(spotlightProduct.price)}
+                                                                                </p>
+                                                                        ) : null}
+                                                                </div>
+                                                                {spotlightProduct?.id ? (
+                                                                        <Button asChild className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white hover:bg-slate-800">
+                                                                                <Link href={`/products/${spotlightProduct.id}`}>
+                                                                                        View product
+                                                                                        <ArrowRight className="ml-2 h-4 w-4" />
+                                                                                </Link>
+                                                                        </Button>
+                                                                ) : null}
+                                                        </div>
+                                                </div>
+                                        </div>
+                                </div>
+                        </div>
 
-						<motion.div
-							initial={{ opacity: 0, scale: 0.8 }}
-							animate={{ opacity: 1, scale: 1 }}
-							transition={{ delay: 0.5, duration: 0.8 }}
-							className="relative order-1 lg:order-2"
-						>
-							<Image
-								src={HeroImg.src}
-								width={600}
-								height={600}
-								alt="Safety Professional"
-								className="w-full h-auto max-h-96 lg:max-h-none object-cover rounded-lg lg:rounded-none"
-							/>
-						</motion.div>
-					</div>
-				</div>
-			</div>
-
-			{/* Scroll Down Indicator */}
-			<motion.div
-				initial={{ opacity: 0 }}
-				animate={{ opacity: 1 }}
-				transition={{ delay: 1 }}
-				className="flex justify-center lg:absolute bottom-4 lg:bottom-6 left-1/2 transform -translate-x-1/2 animate-bounce"
-			>
-				<div className="rounded-full bg-black text-white">
-					<ChevronDown className="h-8 w-8" />
-				</div>
-			</motion.div>
-		</section>
-	);
+                        {quickCategories.length > 0 ? (
+                                <div className="relative mx-auto max-w-7xl px-6 pb-10">
+                                        <div className="rounded-3xl border border-[#fed7aa] bg-[#fff7ed] px-6 py-5 shadow-sm md:flex md:items-center md:justify-between">
+                                                <div className="max-w-lg">
+                                                        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#f97316]">Shop by category</p>
+                                                        <h3 className="mt-1 text-xl font-semibold text-slate-900">Find exactly what your team needs</h3>
+                                                </div>
+                                                <div className="mt-4 flex flex-wrap gap-3 md:mt-0 md:max-w-2xl md:justify-end">
+                                                        {quickCategories.map((category) => (
+                                                                <Link
+                                                                        key={category}
+                                                                        href={`/products?category=${encodeURIComponent(category)}`}
+                                                                        className="inline-flex items-center rounded-full border border-[#f97316]/30 bg-white px-4 py-2 text-sm font-medium text-[#9a3412] transition hover:border-[#f97316] hover:bg-[#f97316]/10"
+                                                                >
+                                                                        {category}
+                                                                </Link>
+                                                        ))}
+                                                </div>
+                                        </div>
+                                </div>
+                        ) : null}
+                </section>
+        );
 }
