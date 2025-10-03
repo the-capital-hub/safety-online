@@ -246,16 +246,15 @@ const ShipmentPackageSchema = new mongoose.Schema(
 		},
 
 		// Hexalog shipment details
-		hexalogShipmentId: String, // Hexalog shipment ID
-		trackingId: String, // AWB number
+		trackingId: String, // Tracking ID from Hexalog
 		courierPartner: String, // Selected courier partner
-		courierGroup: String, // Courier group from Hexalog
+		barcodes: { type: Object }, // Barcodes object from Hexalog
 
 		// Shipment status and tracking
 		status: {
 			type: String,
 			enum: [
-				"pending",
+				"order_placed",
 				"label_generated",
 				"picked_up",
 				"in_transit",
@@ -265,7 +264,7 @@ const ShipmentPackageSchema = new mongoose.Schema(
 				"rto",
 				"cancelled",
 			],
-			default: "pending",
+			default: "order_placed",
 		},
 
 		// Timestamps
