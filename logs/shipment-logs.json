@@ -1,0 +1,682 @@
+[
+  {
+    "timestamp": "2025-10-01T06:50:53.126Z",
+    "subOrderId": "68dccf4b0ed2f91561200bae",
+    "action": "error",
+    "errorType": "hexalog_creation_failed",
+    "errorMessage": "Hexalog request failed 404: {\"statusCode\":404,\"code\":\"ERR10048\",\"message\":\"PATH_NOT_IMPLEMENTED\",\"description\":\"No handler defined for path '/api/v1/package/create' and method POST\",\"severity\":\"ERROR\"}",
+    "context": {
+      "hexalogPayload": {
+        "package_details": {
+          "length": 25,
+          "width": 20,
+          "height": 15,
+          "weight": 500,
+          "package_value": 669
+        },
+        "pickup_address": {
+          "name": "Seller",
+          "street": "Business Address",
+          "city": "City",
+          "state": "State",
+          "zipCode": "110001",
+          "country": "India",
+          "phone": "9999999999",
+          "email": "sales@ladwapartners.com"
+        },
+        "delivery_address": {
+          "name": "Nitin Kumar",
+          "street": "1006, Rohini Sector-16",
+          "city": "New Delhi",
+          "state": "Delhi",
+          "zipCode": "110089",
+          "country": "India",
+          "phone": "9999999999",
+          "email": "customer@example.com"
+        }
+      }
+    }
+  },
+  {
+    "timestamp": "2025-10-01T06:50:53.129Z",
+    "subOrderId": "68dccf4b0ed2f91561200bae",
+    "action": "created",
+    "trackingId": null,
+    "hexalogShipmentId": null,
+    "status": "pending",
+    "courierPartner": null,
+    "courierGroup": null,
+    "packageDetails": {
+      "weight": 500,
+      "dimensions": "25x20x15",
+      "boxType": "S",
+      "packageValue": 669
+    },
+    "addresses": {
+      "pickup": {
+        "city": "City",
+        "state": "State",
+        "zipCode": "110001"
+      },
+      "delivery": {
+        "city": "New Delhi",
+        "state": "Delhi",
+        "zipCode": "110089"
+      }
+    }
+  },
+  {
+    "timestamp": "2025-10-01T10:56:15.246Z",
+    "subOrderId": "68dd08ce0ed2f91561200cc0",
+    "action": "error",
+    "errorType": "hexalog_creation_failed",
+    "errorMessage": "Hexalog request failed 404: {\"statusCode\":404,\"code\":\"ERR10048\",\"message\":\"PATH_NOT_IMPLEMENTED\",\"description\":\"No handler defined for path '/api/v1/package/create' and method POST\",\"severity\":\"ERROR\"}",
+    "context": {
+      "hexalogPayload": {
+        "package_details": {
+          "length": 25,
+          "width": 20,
+          "height": 15,
+          "weight": 500,
+          "package_value": 669
+        },
+        "pickup_address": {
+          "name": "Seller",
+          "street": "Business Address",
+          "city": "City",
+          "state": "State",
+          "zipCode": "110001",
+          "country": "India",
+          "phone": "9999999999",
+          "email": "sales@ladwapartners.com"
+        },
+        "delivery_address": {
+          "name": "Nitin Kumar",
+          "street": "1006, Rohini Sector-16",
+          "city": "New Delhi",
+          "state": "Delhi",
+          "zipCode": "110089",
+          "country": "India",
+          "phone": "9999999999",
+          "email": "customer@example.com"
+        }
+      }
+    }
+  },
+  {
+    "timestamp": "2025-10-01T10:56:15.249Z",
+    "subOrderId": "68dd08ce0ed2f91561200cc0",
+    "action": "created",
+    "trackingId": null,
+    "hexalogShipmentId": null,
+    "status": "pending",
+    "courierPartner": null,
+    "courierGroup": null,
+    "packageDetails": {
+      "weight": 500,
+      "dimensions": "25x20x15",
+      "boxType": "S",
+      "packageValue": 669
+    },
+    "addresses": {
+      "pickup": {
+        "city": "City",
+        "state": "State",
+        "zipCode": "110001"
+      },
+      "delivery": {
+        "city": "New Delhi",
+        "state": "Delhi",
+        "zipCode": "110089"
+      }
+    }
+  },
+  {
+    "timestamp": "2025-10-01T10:57:58.591Z",
+    "subOrderId": "68dd09350ed2f91561200d30",
+    "action": "error",
+    "errorType": "hexalog_creation_failed",
+    "errorMessage": "Hexalog request failed 404: {\"statusCode\":404,\"code\":\"ERR10048\",\"message\":\"PATH_NOT_IMPLEMENTED\",\"description\":\"No handler defined for path '/api/v1/package/create' and method POST\",\"severity\":\"ERROR\"}",
+    "context": {
+      "hexalogPayload": {
+        "package_details": {
+          "length": 25,
+          "width": 20,
+          "height": 15,
+          "weight": 500,
+          "package_value": 669
+        },
+        "pickup_address": {
+          "name": "Seller",
+          "street": "Business Address",
+          "city": "City",
+          "state": "State",
+          "zipCode": "110001",
+          "country": "India",
+          "phone": "9999999999",
+          "email": "sales@ladwapartners.com"
+        },
+        "delivery_address": {
+          "name": "Nitin Kumar",
+          "street": "1006, Rohini Sector-16",
+          "city": "New Delhi",
+          "state": "Delhi",
+          "zipCode": "110089",
+          "country": "India",
+          "phone": "9999999999",
+          "email": "customer@example.com"
+        }
+      }
+    }
+  },
+  {
+    "timestamp": "2025-10-01T10:57:58.594Z",
+    "subOrderId": "68dd09350ed2f91561200d30",
+    "action": "created",
+    "trackingId": null,
+    "hexalogShipmentId": null,
+    "status": "pending",
+    "courierPartner": null,
+    "courierGroup": null,
+    "packageDetails": {
+      "weight": 500,
+      "dimensions": "25x20x15",
+      "boxType": "S",
+      "packageValue": 669
+    },
+    "addresses": {
+      "pickup": {
+        "city": "City",
+        "state": "State",
+        "zipCode": "110001"
+      },
+      "delivery": {
+        "city": "New Delhi",
+        "state": "Delhi",
+        "zipCode": "110089"
+      }
+    }
+  },
+  {
+    "timestamp": "2025-10-01T13:49:06.205Z",
+    "subOrderId": "68dd31500ed2f91561200da1",
+    "action": "error",
+    "errorType": "hexalog_creation_failed",
+    "errorMessage": "Hexalog request failed 400: {\"statusCode\":400,\"code\":\"ERR11004\",\"message\":\"VALIDATOR_SCHEMA\",\"description\":\"Schema Validation Error - $.payment_mode: does not have a value in the enumeration [COD, Prepaid, Pickup]\",\"severity\":\"ERROR\"}",
+    "context": {
+      "hexalogPayload": {
+        "seller_name": "Ladwa Solutions Inc",
+        "seller_address": "PF office road, 37/1, 6th Main Rd, AECS Layout - A Block, Industrial Area, Singasandra, Bengaluru, Karnataka, 560068",
+        "seller_gst_tin": "",
+        "consignee_gst_amount": 100,
+        "order_number": "68dd31500ed2f91561200da1",
+        "invoice_number": "68dd31500ed2f91561200da1",
+        "invoice_date": "2025-10-01",
+        "consignee_name": "Nitin Kumar",
+        "products_desc": "Ladwa Safety 18Inch & 24 Inch Convex Mirror Wall Fixing 2 Inch Clamp with Fixing Screw & Ghatta ( Pack of 1 )",
+        "payment_mode": "cod",
+        "category_of_goods": "",
+        "total_amount": 789.42,
+        "taxable_amount": 669,
+        "commodity_value": 789.42,
+        "cod_amount": 0,
+        "quantity": 1,
+        "weight": 500,
+        "length": 25,
+        "width": 20,
+        "height": 15,
+        "pickup_address": {
+          "location_type": "head office",
+          "name": "Ladwa Solutions Inc",
+          "phone": 916366097631,
+          "address": "PF office road, 37/1, 6th Main Rd, AECS Layout - A Block, Industrial Area, Singasandra, Bengaluru, Karnataka, 560068",
+          "city": "Bengaluru",
+          "state": "Karnataka",
+          "country": "India",
+          "pin": 560068
+        },
+        "delivery_address": {
+          "location_type": "Home",
+          "address": "1006, Rohini Sector-16, 1006, Rohini Sector-16, New Delhi, Delhi - 110089",
+          "city": "New Delhi",
+          "state": "Delhi",
+          "country": "India",
+          "name": "Nitin Kumar",
+          "phone": 0,
+          "pin": 110089
+        }
+      }
+    }
+  },
+  {
+    "timestamp": "2025-10-01T13:49:06.209Z",
+    "subOrderId": "68dd31500ed2f91561200da1",
+    "action": "created",
+    "trackingId": null,
+    "hexalogShipmentId": null,
+    "status": "pending",
+    "courierPartner": null,
+    "courierGroup": null,
+    "packageDetails": {
+      "weight": 500,
+      "dimensions": "25x20x15",
+      "boxType": "S",
+      "packageValue": 669
+    },
+    "addresses": {
+      "pickup": {
+        "city": "Bengaluru",
+        "state": "Karnataka"
+      },
+      "delivery": {
+        "city": "New Delhi",
+        "state": "Delhi"
+      }
+    }
+  },
+  {
+    "timestamp": "2025-10-01T14:06:54.860Z",
+    "subOrderId": "68dd357e0ed2f91561200e1c",
+    "action": "error",
+    "errorType": "hexalog_creation_failed",
+    "errorMessage": "Hexalog request failed 400: {\"statusCode\":400,\"code\":\"ERR11004\",\"message\":\"VALIDATOR_SCHEMA\",\"description\":\"Schema Validation Error - $.commodity_value: number found, string expected\",\"severity\":\"ERROR\"}",
+    "context": {
+      "hexalogPayload": {
+        "seller_name": "Ladwa Solutions Inc",
+        "seller_address": "PF office road, 37/1, 6th Main Rd, AECS Layout - A Block, Industrial Area, Singasandra, Bengaluru, Karnataka, 560068",
+        "seller_gst_tin": "",
+        "consignee_gst_amount": 100,
+        "order_number": "68dd357e0ed2f91561200e1c",
+        "invoice_number": "68dd357e0ed2f91561200e1c",
+        "invoice_date": "2025-10-01",
+        "consignee_name": "Nitin Kumar",
+        "products_desc": "Ladwa Safety 32Inch & 40 Inch Convex Mirror Wall Fixing 3 Inch Clamp with Fixing Screw & Ghatta (Pack 1)",
+        "payment_mode": "COD",
+        "category_of_goods": "",
+        "total_amount": 999.46,
+        "taxable_amount": 847,
+        "commodity_value": 999.46,
+        "cod_amount": 999.46,
+        "quantity": 1,
+        "weight": 500,
+        "length": 25,
+        "width": 20,
+        "height": 15,
+        "pickup_address": {
+          "location_type": "head office",
+          "name": "Ladwa Solutions Inc",
+          "phone": 916366097631,
+          "address": "PF office road, 37/1, 6th Main Rd, AECS Layout - A Block, Industrial Area, Singasandra, Bengaluru, Karnataka, 560068",
+          "city": "Bengaluru",
+          "state": "Karnataka",
+          "country": "India",
+          "pin": 560068
+        },
+        "delivery_address": {
+          "location_type": "Home",
+          "address": "1006, Rohini Sector-16, 1006, Rohini Sector-16, New Delhi, Delhi - 110089",
+          "city": "New Delhi",
+          "state": "Delhi",
+          "country": "India",
+          "name": "Nitin Kumar",
+          "phone": "9650515013",
+          "pin": 110089
+        }
+      }
+    }
+  },
+  {
+    "timestamp": "2025-10-01T14:06:54.863Z",
+    "subOrderId": "68dd357e0ed2f91561200e1c",
+    "action": "created",
+    "trackingId": null,
+    "hexalogShipmentId": null,
+    "status": "pending",
+    "courierPartner": null,
+    "courierGroup": null,
+    "packageDetails": {
+      "weight": 500,
+      "dimensions": "25x20x15",
+      "boxType": "S",
+      "packageValue": 847
+    },
+    "addresses": {
+      "pickup": {
+        "city": "Bengaluru",
+        "state": "Karnataka"
+      },
+      "delivery": {
+        "city": "New Delhi",
+        "state": "Delhi"
+      }
+    }
+  },
+  {
+    "timestamp": "2025-10-01T14:10:34.030Z",
+    "subOrderId": "68dd36590ed2f91561200e71",
+    "action": "error",
+    "errorType": "hexalog_creation_failed",
+    "errorMessage": "Hexalog request failed 400: {\"statusCode\":400,\"code\":\"ERR11004\",\"message\":\"VALIDATOR_SCHEMA\",\"description\":\"Schema Validation Error - $: required property 'tax_value' not found\",\"severity\":\"ERROR\"}",
+    "context": {
+      "hexalogPayload": {
+        "seller_name": "Ladwa Solutions Inc",
+        "seller_address": "PF office road, 37/1, 6th Main Rd, AECS Layout - A Block, Industrial Area, Singasandra, Bengaluru, Karnataka, 560068",
+        "seller_gst_tin": "",
+        "consignee_gst_amount": 100,
+        "order_number": "68dd36590ed2f91561200e71",
+        "invoice_number": "68dd36590ed2f91561200e71",
+        "invoice_date": "2025-10-01",
+        "consignee_name": "Nitin Kumar",
+        "products_desc": "Ladwa Safety 32Inch & 40 Inch Convex Mirror Wall Fixing 3 Inch Clamp with Fixing Screw & Ghatta (Pack 1)",
+        "payment_mode": "COD",
+        "category_of_goods": "",
+        "total_amount": 999.46,
+        "taxable_amount": 847,
+        "commodity_value": "999.46",
+        "cod_amount": 999.46,
+        "quantity": 1,
+        "weight": 500,
+        "length": 25,
+        "width": 20,
+        "height": 15,
+        "pickup_address": {
+          "location_type": "head office",
+          "name": "Ladwa Solutions Inc",
+          "phone": 916366097631,
+          "address": "PF office road, 37/1, 6th Main Rd, AECS Layout - A Block, Industrial Area, Singasandra, Bengaluru, Karnataka, 560068",
+          "city": "Bengaluru",
+          "state": "Karnataka",
+          "country": "India",
+          "pin": 560068
+        },
+        "delivery_address": {
+          "location_type": "Home",
+          "address": "1006, Rohini Sector-16, 1006, Rohini Sector-16, New Delhi, Delhi - 110089",
+          "city": "New Delhi",
+          "state": "Delhi",
+          "country": "India",
+          "name": "Nitin Kumar",
+          "phone": "9650515013",
+          "pin": 110089
+        }
+      }
+    }
+  },
+  {
+    "timestamp": "2025-10-01T14:10:34.035Z",
+    "subOrderId": "68dd36590ed2f91561200e71",
+    "action": "created",
+    "trackingId": null,
+    "hexalogShipmentId": null,
+    "status": "pending",
+    "courierPartner": null,
+    "courierGroup": null,
+    "packageDetails": {
+      "weight": 500,
+      "dimensions": "25x20x15",
+      "boxType": "S",
+      "packageValue": 847
+    },
+    "addresses": {
+      "pickup": {
+        "city": "Bengaluru",
+        "state": "Karnataka"
+      },
+      "delivery": {
+        "city": "New Delhi",
+        "state": "Delhi"
+      }
+    }
+  },
+  {
+    "timestamp": "2025-10-01T14:18:12.344Z",
+    "subOrderId": "68dd38238bfe74d9501cc476",
+    "action": "error",
+    "errorType": "hexalog_creation_failed",
+    "errorMessage": "Hexalog request failed 400: {\"statusCode\":400,\"code\":\"ERR11004\",\"message\":\"VALIDATOR_SCHEMA\",\"description\":\"Schema Validation Error - $.drop_location.phone: string found, integer expected\",\"severity\":\"ERROR\"}",
+    "context": {
+      "hexalogPayload": {
+        "seller_name": "Ladwa Solutions Inc",
+        "seller_address": "PF office road, 37/1, 6th Main Rd, AECS Layout - A Block, Industrial Area, Singasandra, Bengaluru, Karnataka, 560068",
+        "seller_gst_tin": "",
+        "consignee_gst_amount": 100,
+        "order_number": "68dd38238bfe74d9501cc476",
+        "invoice_number": "68dd38238bfe74d9501cc476",
+        "invoice_date": "2025-10-01",
+        "consignee_name": "Nitin Kumar",
+        "products_desc": "Ladwa Safety 32Inch & 40 Inch Convex Mirror Wall Fixing 3 Inch Clamp with Fixing Screw & Ghatta (Pack of 2)",
+        "payment_mode": "COD",
+        "category_of_goods": "Safety Equipment",
+        "total_amount": 1892.72,
+        "tax_value": 288.72,
+        "taxable_amount": 1604,
+        "commodity_value": "1892.72",
+        "cod_amount": 1892.72,
+        "quantity": 1,
+        "weight": 500,
+        "length": 25,
+        "width": 20,
+        "height": 15,
+        "pickup_location": {
+          "location_type": "head office",
+          "name": "Ladwa Solutions Inc",
+          "phone": 916366097631,
+          "address": "PF office road, 37/1, 6th Main Rd, AECS Layout - A Block, Industrial Area, Singasandra, Bengaluru, Karnataka, 560068",
+          "city": "Bengaluru",
+          "state": "Karnataka",
+          "country": "India",
+          "pin": 560068
+        },
+        "drop_location": {
+          "location_type": "Home",
+          "address": "1006, Rohini Sector-16, 1006, Rohini Sector-16, New Delhi, Delhi - 110089",
+          "city": "New Delhi",
+          "state": "Delhi",
+          "country": "India",
+          "name": "Nitin Kumar",
+          "phone": "9650515013",
+          "pin": 110089
+        }
+      }
+    }
+  },
+  {
+    "timestamp": "2025-10-01T14:18:12.348Z",
+    "subOrderId": "68dd38238bfe74d9501cc476",
+    "action": "created",
+    "trackingId": null,
+    "hexalogShipmentId": null,
+    "status": "pending",
+    "courierPartner": null,
+    "courierGroup": null,
+    "packageDetails": {
+      "weight": 500,
+      "dimensions": "25x20x15",
+      "boxType": "S",
+      "packageValue": 1604
+    },
+    "addresses": {
+      "pickup": {
+        "city": "Bengaluru",
+        "state": "Karnataka"
+      },
+      "delivery": {
+        "city": "New Delhi",
+        "state": "Delhi"
+      }
+    }
+  },
+  {
+    "timestamp": "2025-10-01T14:22:31.416Z",
+    "subOrderId": "68dd39268bfe74d9501cc4c5",
+    "action": "error",
+    "errorType": "hexalog_creation_failed",
+    "errorMessage": "Hexalog request failed 400: {\"statusCode\":400,\"code\":\"ERR11004\",\"message\":\"VALIDATOR_SCHEMA\",\"description\":\"Schema Validation Error - $.pickup_location.location_type: does not have a value in the enumeration [Office, Home]\",\"severity\":\"ERROR\"}",
+    "context": {
+      "hexalogPayload": {
+        "seller_name": "Ladwa Solutions Inc",
+        "seller_address": "PF office road, 37/1, 6th Main Rd, AECS Layout - A Block, Industrial Area, Singasandra, Bengaluru, Karnataka, 560068",
+        "seller_gst_tin": "",
+        "consignee_gst_amount": 100,
+        "order_number": "68dd39268bfe74d9501cc4c5",
+        "invoice_number": "68dd39268bfe74d9501cc4c5",
+        "invoice_date": "2025-10-01",
+        "consignee_name": "Nitin Kumar",
+        "products_desc": "Ladwa Safety 32Inch & 40 Inch Convex Mirror Wall Fixing 3 Inch Clamp with Fixing Screw & Ghatta (Pack of 2)",
+        "payment_mode": "COD",
+        "category_of_goods": "Safety Equipment",
+        "total_amount": 1892.72,
+        "tax_value": 288.72,
+        "taxable_amount": 1604,
+        "commodity_value": "1892.72",
+        "cod_amount": 1892.72,
+        "quantity": 1,
+        "weight": 500,
+        "length": 25,
+        "width": 20,
+        "height": 15,
+        "pickup_location": {
+          "location_type": "head office",
+          "name": "Ladwa Solutions Inc",
+          "phone": 916366097631,
+          "address": "PF office road, 37/1, 6th Main Rd, AECS Layout - A Block, Industrial Area, Singasandra, Bengaluru, Karnataka, 560068",
+          "city": "Bengaluru",
+          "state": "Karnataka",
+          "country": "India",
+          "pin": 560068
+        },
+        "drop_location": {
+          "location_type": "Home",
+          "address": "1006, Rohini Sector-16, 1006, Rohini Sector-16, New Delhi, Delhi - 110089",
+          "city": "New Delhi",
+          "state": "Delhi",
+          "country": "India",
+          "name": "Nitin Kumar",
+          "phone": 9650515013,
+          "pin": 110089
+        }
+      }
+    }
+  },
+  {
+    "timestamp": "2025-10-01T14:22:31.420Z",
+    "subOrderId": "68dd39268bfe74d9501cc4c5",
+    "action": "created",
+    "trackingId": null,
+    "hexalogShipmentId": null,
+    "status": "pending",
+    "courierPartner": null,
+    "courierGroup": null,
+    "packageDetails": {
+      "weight": 500,
+      "dimensions": "25x20x15",
+      "boxType": "S",
+      "packageValue": 1604
+    },
+    "addresses": {
+      "pickup": {
+        "city": "Bengaluru",
+        "state": "Karnataka"
+      },
+      "delivery": {
+        "city": "New Delhi",
+        "state": "Delhi"
+      }
+    }
+  },
+  {
+    "timestamp": "2025-10-01T14:26:21.712Z",
+    "subOrderId": "68dd3a098bfe74d9501cc546",
+    "action": "created",
+    "trackingId": "511124FH1533540",
+    "status": "pending",
+    "packageDetails": {
+      "weight": 500,
+      "dimensions": "25x20x15",
+      "boxType": "S",
+      "packageValue": 1604
+    },
+    "addresses": {
+      "pickup": {
+        "city": "Bengaluru",
+        "state": "Karnataka"
+      },
+      "delivery": {
+        "city": "New Delhi",
+        "state": "Delhi"
+      }
+    }
+  },
+  {
+    "timestamp": "2025-10-01T14:30:01.930Z",
+    "subOrderId": "511124FH1533540",
+    "action": "tracking_request",
+    "trackingId": "511124FH1533540",
+    "trackingData": {
+      "timeline": 0
+    }
+  },
+  {
+    "timestamp": "2025-10-01T14:30:12.319Z",
+    "subOrderId": "511124FH1533540",
+    "action": "tracking_request",
+    "trackingId": "511124FH1533540",
+    "trackingData": {
+      "timeline": 0
+    }
+  },
+  {
+    "timestamp": "2025-10-03T08:06:20.667Z",
+    "subOrderId": "511124FH1533540",
+    "action": "tracking_request",
+    "trackingId": "511124FH1533540",
+    "trackingData": {
+      "timeline": 0
+    }
+  },
+  {
+    "timestamp": "2025-10-03T08:08:22.150Z",
+    "subOrderId": "511124FH1533540",
+    "action": "tracking_request",
+    "trackingId": "511124FH1533540",
+    "trackingData": {
+      "timeline": 0
+    }
+  },
+  {
+    "timestamp": "2025-10-03T08:19:52.489Z",
+    "subOrderId": "511124FH1533540",
+    "action": "tracking_request",
+    "trackingId": "511124FH1533540",
+    "trackingData": {
+      "timeline": 0
+    }
+  },
+  {
+    "timestamp": "2025-10-03T08:24:55.115Z",
+    "subOrderId": "511124FH1533540",
+    "action": "tracking_request",
+    "trackingId": "511124FH1533540",
+    "trackingData": {
+      "timeline": 0
+    }
+  },
+  {
+    "timestamp": "2025-10-03T08:25:17.225Z",
+    "subOrderId": "511124FH1533540",
+    "action": "tracking_request",
+    "trackingId": "511124FH1533540",
+    "trackingData": {
+      "timeline": 0
+    }
+  },
+  {
+    "timestamp": "2025-10-03T08:28:51.666Z",
+    "subOrderId": "511124FH1533540",
+    "action": "tracking_request",
+    "trackingId": "511124FH1533540",
+    "trackingData": {
+      "timeline": 0
+    }
+  }
+]

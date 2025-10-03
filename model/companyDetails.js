@@ -25,32 +25,32 @@ const CompanySchema = new Schema(
 				country: { type: String, required: true },
 			},
 		],
-                companyEmail: {
-                        type: String,
-                        required: true,
-                        lowercase: true,
-                        trim: true,
-                },
-                phone: {
-                        type: String,
-                        required: true,
-                },
-                companyLogo: {
-                        type: String,
-                },
-                brandName: {
-                        type: String,
-                        trim: true,
-                },
-                brandDescription: {
-                        type: String,
-                        trim: true,
-                },
-                gstinNumber: {
-                        type: String,
-                        trim: true,
-                },
-        },
+		companyEmail: {
+			type: String,
+			required: true,
+			lowercase: true,
+			trim: true,
+		},
+		phone: {
+			type: String,
+			required: true,
+		},
+		companyLogo: {
+			type: String,
+		},
+		brandName: {
+			type: String,
+			trim: true,
+		},
+		brandDescription: {
+			type: String,
+			trim: true,
+		},
+		gstinNumber: {
+			type: String,
+			trim: true,
+		},
+	},
 	{ timestamps: true }
 );
 

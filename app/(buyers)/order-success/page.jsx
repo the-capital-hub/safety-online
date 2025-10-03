@@ -41,35 +41,35 @@ export default function OrderSuccessPage() {
 				const products =
 					orderData?.subOrders?.flatMap((sub) => sub.products) || [];
 
-                                setOrderDetails({
-                                        orderId,
-                                        orderNumber,
-                                        estimatedDelivery: new Date(
-                                                Date.now() + 7 * 24 * 60 * 60 * 1000
-                                        ).toLocaleDateString("en-IN", {
-                                                year: "numeric",
-                                                month: "short",
-                                                day: "numeric",
-                                        }),
-                                        products, // save all products
-                                        amount: orderData?.totalAmount || 0,
-                                        discount: orderData?.discount || 0,
-                                        paymentMethod: orderData?.paymentMethod,
-                                        orderDate: orderData?.orderDate,
-                                        customer: {
-                                                name: orderData?.customerName,
-                                                email: orderData?.customerEmail,
-                                                mobile: orderData?.customerMobile,
-                                        },
-                                        address: orderData?.deliveryAddress,
-                                        status: orderData?.status,
-                                        coupon: orderData?.couponApplied
-                                                ? {
-                                                          code: orderData.couponApplied.couponCode,
-                                                          amount: orderData.couponApplied.discountAmount || 0,
-                                                  }
-                                                : null,
-                                });
+				setOrderDetails({
+					orderId,
+					orderNumber,
+					estimatedDelivery: new Date(
+						Date.now() + 7 * 24 * 60 * 60 * 1000
+					).toLocaleDateString("en-IN", {
+						year: "numeric",
+						month: "short",
+						day: "numeric",
+					}),
+					products, // save all products
+					amount: orderData?.totalAmount || 0,
+					discount: orderData?.discount || 0,
+					paymentMethod: orderData?.paymentMethod,
+					orderDate: orderData?.orderDate,
+					customer: {
+						name: orderData?.customerName,
+						email: orderData?.customerEmail,
+						mobile: orderData?.customerMobile,
+					},
+					address: orderData?.deliveryAddress,
+					status: orderData?.status,
+					coupon: orderData?.couponApplied
+						? {
+								code: orderData.couponApplied.couponCode,
+								amount: orderData.couponApplied.discountAmount || 0,
+						  }
+						: null,
+				});
 			} catch (err) {
 				console.error("Failed to fetch order details", err);
 			}
@@ -164,7 +164,7 @@ export default function OrderSuccessPage() {
 							<div className="flex justify-between items-center">
 								<span className="text-gray-600">Estimated Delivery:</span>
 								<span className="font-medium">
-									{orderDetails.estimatedDelivery}
+									{orderDetails.estimatedDelivery || "TBD"}
 								</span>
 							</div>
 
@@ -224,32 +224,48 @@ export default function OrderSuccessPage() {
 							</div>
 
 							{/* Order summary */}
-                                                        <div className="border-t pt-3 space-y-2">
-                                                                <div className="flex justify-between items-center">
-                                                                        <span className="text-gray-600">Order Amount:</span>
-                                                                        <span className="font-medium">
-                                                                                ₹{Number(orderDetails.amount || 0).toLocaleString("en-IN")}
-                                                                        </span>
-                                                                </div>
-                                                                {orderDetails.coupon && (
-                                                                        <div className="flex justify-between items-center">
-                                                                                <span className="text-gray-600">Coupon:</span>
-                                                                                <span className="flex items-center gap-2 font-medium text-green-700">
-                                                                                        <Badge variant="secondary" className="bg-green-100 text-green-700">
-                                                                                                {orderDetails.coupon.code}
-                                                                                        </Badge>
-                                                                                        -₹{Number(orderDetails.coupon.amount || 0).toLocaleString("en-IN")}
-                                                                                </span>
-                                                                        </div>
-                                                                )}
-                                                                <div className="flex justify-between items-center">
-                                                                        <span className="text-gray-600">Discount:</span>
-                                                                        <span className="font-medium text-green-700">
-                                                                                -₹{Number(orderDetails.discount || 0).toLocaleString("en-IN")}
-                                                                        </span>
-                                                                </div>
-                                                                <div className="flex justify-between items-center">
-                                                                        <span className="text-gray-600">Payment Method:</span>
+							<div className="border-t pt-3 space-y-2">
+								<div className="flex justify-between items-center">
+									<span className="text-gray-600">Order Amount:</span>
+									<span className="font-medium">
+										₹{Number(orderDetails.amount || 0).toLocaleString("en-IN")}
+									</span>
+								</div>
+								<div className="flex justify-between items-center">
+									<span className="text-gray-600">Shipping:</span>
+									<span className="font-medium">
+										₹
+										{Number(orderDetails?.shippingCost || 0).toLocaleString(
+											"en-IN"
+										)}
+									</span>
+								</div>
+								{orderDetails.coupon && (
+									<div className="flex justify-between items-center">
+										<span className="text-gray-600">Coupon:</span>
+										<span className="flex items-center gap-2 font-medium text-green-700">
+											<Badge
+												variant="secondary"
+												className="bg-green-100 text-green-700"
+											>
+												{orderDetails.coupon.code}
+											</Badge>
+											-₹
+											{Number(orderDetails.coupon.amount || 0).toLocaleString(
+												"en-IN"
+											)}
+										</span>
+									</div>
+								)}
+								<div className="flex justify-between items-center">
+									<span className="text-gray-600">Discount:</span>
+									<span className="font-medium text-green-700">
+										-₹
+										{Number(orderDetails.discount || 0).toLocaleString("en-IN")}
+									</span>
+								</div>
+								<div className="flex justify-between items-center">
+									<span className="text-gray-600">Payment Method:</span>
 									<Badge className="font-medium bg-blue-300 text-blue-600 rounded-xl">
 										{orderDetails.paymentMethod}
 									</Badge>

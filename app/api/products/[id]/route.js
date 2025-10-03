@@ -3,148 +3,148 @@
 import Product from "@/model/Product.js";
 import { dbConnect } from "@/lib/dbConnect.js";
 import companyDetails from "@/model/companyDetails";
+import Review from "@/model/Review";
 import { ensureSlug } from "@/lib/slugify.js";
 
-const escapeRegex = (value = "") => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const escapeRegex = (value = "") =>
+	value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const createNameVariants = (value = "") => {
-        if (!value) {
-                return [];
-        }
+	if (!value) {
+		return [];
+	}
 
-        const trimmed = value.toString().trim();
+	const trimmed = value.toString().trim();
 
-        if (!trimmed) {
-                return [];
-        }
+	if (!trimmed) {
+		return [];
+	}
 
-        const hyphenated = trimmed.replace(/\s+/g, "-");
-        const spaced = trimmed.replace(/-/g, " ");
-        const withoutSpacesOrHyphens = trimmed.replace(/[\s-]+/g, "");
+	const hyphenated = trimmed.replace(/\s+/g, "-");
+	const spaced = trimmed.replace(/-/g, " ");
+	const withoutSpacesOrHyphens = trimmed.replace(/[\s-]+/g, "");
 
-        const ampersandReplaced = trimmed.replace(/&/g, "and");
-        const ampHyphenated = ampersandReplaced.replace(/\s+/g, "-");
-        const ampSpaced = ampersandReplaced.replace(/-/g, " ");
-        const ampWithoutSpacesOrHyphens = ampersandReplaced.replace(/[\s-]+/g, "");
+	const ampersandReplaced = trimmed.replace(/&/g, "and");
+	const ampHyphenated = ampersandReplaced.replace(/\s+/g, "-");
+	const ampSpaced = ampersandReplaced.replace(/-/g, " ");
+	const ampWithoutSpacesOrHyphens = ampersandReplaced.replace(/[\s-]+/g, "");
 
-        return Array.from(
-                new Set([
-                        trimmed,
-                        hyphenated,
-                        spaced,
-                        withoutSpacesOrHyphens,
-                        ampersandReplaced,
-                        ampHyphenated,
-                        ampSpaced,
-                        ampWithoutSpacesOrHyphens,
-                ])
-        );
+	return Array.from(
+		new Set([
+			trimmed,
+			hyphenated,
+			spaced,
+			withoutSpacesOrHyphens,
+			ampersandReplaced,
+			ampHyphenated,
+			ampSpaced,
+			ampWithoutSpacesOrHyphens,
+		])
+	);
 };
 
 const buildRegexArray = (values = []) => {
-        const uniqueValues = Array.from(
-                new Set(
-                        values
-                                .map((value) => value?.toString().trim())
-                                .filter((value) => value && value.length > 0)
-                )
-        );
+	const uniqueValues = Array.from(
+		new Set(
+			values
+				.map((value) => value?.toString().trim())
+				.filter((value) => value && value.length > 0)
+		)
+	);
 
-        return uniqueValues.map((value) => new RegExp(`^${escapeRegex(value)}$`, "i"));
+	return uniqueValues.map(
+		(value) => new RegExp(`^${escapeRegex(value)}$`, "i")
+	);
 };
 
 export async function GET(req, { params }) {
 	await dbConnect();
 
-        const { id } = await params;
+	const { id } = await params;
 
-        console.log("Product ID:", id);
+	console.log("Product ID:", id);
 
-        try {
-                // Find product with reviews and user info
-                const product = await Product.findById(id).populate({
-                        path: "reviews",
-                        model: "Review",
-                        populate: {
-                                path: "user",
-                                model: "User",
-                                select: "firstName lastName profilePic",
-                        },
-                });
+	try {
+		// Find product with reviews and user info
+		const product = await Product.findById(id).populate({
+			path: "reviews",
+			model: "Review",
+			populate: {
+				path: "user",
+				model: "User",
+				select: "firstName lastName profilePic",
+			},
+		});
 
-                if (!product) {
-                        return Response.json({ message: "Product not found" }, { status: 404 });
-                }
+		if (!product) {
+			return Response.json({ message: "Product not found" }, { status: 404 });
+		}
 
-                // Calculate average rating
-                const total = product.reviews.reduce(
-                        (acc, review) => acc + review.rating,
-                        0
-                );
-                const averageRating =
-                        product.reviews.length > 0
-                                ? Number(
-                                          (
-                                                  total / product.reviews.length
-                                          ).toFixed(1)
-                                  )
-                                : 0;
+		// Calculate average rating
+		const total = product.reviews.reduce(
+			(acc, review) => acc + review.rating,
+			0
+		);
+		const averageRating =
+			product.reviews.length > 0
+				? Number((total / product.reviews.length).toFixed(1))
+				: 0;
 
 		console.log("Average rating:", averageRating);
 
-                const sellerCompany = await companyDetails.findOne(
-                        { user: product.sellerId },
-                        "companyName companyAddress"
-                );
-                // Get related products prioritising the same subcategory when available
-                const relatedProductBaseQuery = {
-                        published: true,
-                        _id: { $ne: product._id },
-                };
+		const sellerCompany = await companyDetails.findOne(
+			{ user: product.sellerId },
+			"companyName companyAddress"
+		);
+		// Get related products prioritising the same subcategory when available
+		const relatedProductBaseQuery = {
+			published: true,
+			_id: { $ne: product._id },
+		};
 
-                let relatedProducts = [];
+		let relatedProducts = [];
 
-                if (product.category) {
-                        const categoryRegexes = buildRegexArray([
-                                product.category,
-                                ...createNameVariants(product.category),
-                        ]);
+		if (product.category) {
+			const categoryRegexes = buildRegexArray([
+				product.category,
+				...createNameVariants(product.category),
+			]);
 
-                        if (categoryRegexes.length > 0) {
-                                relatedProductBaseQuery.category = { $in: categoryRegexes };
-                        } else {
-                                relatedProductBaseQuery.category = product.category;
-                        }
-                }
+			if (categoryRegexes.length > 0) {
+				relatedProductBaseQuery.category = { $in: categoryRegexes };
+			} else {
+				relatedProductBaseQuery.category = product.category;
+			}
+		}
 
-                if (product.subCategory) {
-                        const normalizedSubCategory = ensureSlug(product.subCategory);
-                        const subCategoryRegexes = buildRegexArray([
-                                product.subCategory,
-                                normalizedSubCategory,
-                                ...createNameVariants(product.subCategory),
-                                ...createNameVariants(normalizedSubCategory),
-                        ]);
+		if (product.subCategory) {
+			const normalizedSubCategory = ensureSlug(product.subCategory);
+			const subCategoryRegexes = buildRegexArray([
+				product.subCategory,
+				normalizedSubCategory,
+				...createNameVariants(product.subCategory),
+				...createNameVariants(normalizedSubCategory),
+			]);
 
-                        if (subCategoryRegexes.length > 0) {
-                                relatedProducts = await Product.find({
-                                        ...relatedProductBaseQuery,
-                                        subCategory: { $in: subCategoryRegexes },
-                                })
-                                        .limit(4)
-                                        .lean();
-                        }
-                }
+			if (subCategoryRegexes.length > 0) {
+				relatedProducts = await Product.find({
+					...relatedProductBaseQuery,
+					subCategory: { $in: subCategoryRegexes },
+				})
+					.limit(4)
+					.lean();
+			}
+		}
 
-                if (relatedProducts.length === 0) {
-                        relatedProducts = await Product.find(relatedProductBaseQuery)
-                                .limit(4)
-                                .lean();
-                }
+		if (relatedProducts.length === 0) {
+			relatedProducts = await Product.find(relatedProductBaseQuery)
+				.limit(4)
+				.lean();
+		}
 
-                const productSpecifications = {
-                        brand: product.brand,
-                        length: product.length,
+		const productSpecifications = {
+			brand: product.brand,
+			length: product.length,
 			width: product.width,
 			height: product.height,
 			weight: product.weight,
@@ -184,11 +184,11 @@ export async function GET(req, { params }) {
 		};
 
 		// Transform related products
-                const transformedRelatedProducts = relatedProducts.map((p) => ({
-                        id: p._id.toString(),
-                        name: p.title,
-                        description: p.description,
-                        price: p.salePrice > 0 ? p.salePrice : p.price,
+		const transformedRelatedProducts = relatedProducts.map((p) => ({
+			id: p._id.toString(),
+			name: p.title,
+			description: p.description,
+			price: p.salePrice > 0 ? p.salePrice : p.price,
 			originalPrice: p.price,
 			discountPercentage: p.discount.toFixed(0) || 0,
 			image:

@@ -20,11 +20,19 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { Eye, Download, Loader2, AlertCircle, RotateCcw } from "lucide-react";
+import {
+	Eye,
+	Download,
+	Loader2,
+	AlertCircle,
+	RotateCcw,
+	Truck,
+} from "lucide-react";
 import { useOrderStore } from "@/store/orderStore.js";
 import { toast } from "react-hot-toast";
 import { OrderDetailPopup } from "./SubComponents/OrderDetailPopup";
 import { ReturnRequestDialog } from "./SubComponents/ReturnRequestDialog";
+import { TrackingModal } from "./SubComponents/TrackingModal";
 
 const getStatusColor = (status) => {
 	const colors = {
@@ -76,35 +84,37 @@ const getAllProducts = (order) => {
 };
 
 export function OrderHistory({ userId }) {
-        const {
-                orders,
-                loading,
-                error,
-                pagination,
-                fetchOrders,
-                fetchOrder,
-                downloadInvoice,
-                returnSettings,
-                fetchReturnSettings,
-                requestReturn,
-                returnActionLoading,
-        } = useOrderStore();
+	const {
+		orders,
+		loading,
+		error,
+		pagination,
+		fetchOrders,
+		fetchOrder,
+		downloadInvoice,
+		returnSettings,
+		fetchReturnSettings,
+		requestReturn,
+		returnActionLoading,
+	} = useOrderStore();
 
-        const [downloadingInvoices, setDownloadingInvoices] = useState(new Set());
-        const [selectedOrder, setSelectedOrder] = useState(null);
-        const [isPopupOpen, setIsPopupOpen] = useState(false);
-        const [loadingOrderDetails, setLoadingOrderDetails] = useState(false);
-        const [isReturnDialogOpen, setIsReturnDialogOpen] = useState(false);
-        const [returnOrder, setReturnOrder] = useState(null);
-        const [returnDialogLoading, setReturnDialogLoading] = useState(false);
+	const [downloadingInvoices, setDownloadingInvoices] = useState(new Set());
+	const [selectedOrder, setSelectedOrder] = useState(null);
+	const [isPopupOpen, setIsPopupOpen] = useState(false);
+	const [loadingOrderDetails, setLoadingOrderDetails] = useState(false);
+	const [isReturnDialogOpen, setIsReturnDialogOpen] = useState(false);
+	const [returnOrder, setReturnOrder] = useState(null);
+	const [returnDialogLoading, setReturnDialogLoading] = useState(false);
+	const [isTrackingModalOpen, setIsTrackingModalOpen] = useState(false);
+	const [trackingSubOrder, setTrackingSubOrder] = useState(null);
 
-        useEffect(() => {
-                fetchOrders();
-        }, [fetchOrders]);
+	useEffect(() => {
+		fetchOrders();
+	}, [fetchOrders]);
 
-        useEffect(() => {
-                fetchReturnSettings();
-        }, [fetchReturnSettings]);
+	useEffect(() => {
+		fetchReturnSettings();
+	}, [fetchReturnSettings]);
 
 	const handleViewOrder = async (orderId) => {
 		try {
@@ -137,11 +147,11 @@ export function OrderHistory({ userId }) {
 		setSelectedOrder(null);
 	};
 
-        const handleDownloadInvoice = async (orderId, orderNumber) => {
-                setDownloadingInvoices((prev) => new Set(prev).add(orderId));
+	const handleDownloadInvoice = async (orderId, orderNumber) => {
+		setDownloadingInvoices((prev) => new Set(prev).add(orderId));
 
-                try {
-                        const result = await downloadInvoice(orderId, orderNumber);
+		try {
+			const result = await downloadInvoice(orderId, orderNumber);
 			if (result.success) {
 				toast.success("Invoice downloaded successfully");
 			} else {
@@ -159,96 +169,113 @@ export function OrderHistory({ userId }) {
 	};
 
 	const handleExportAll = () => {
-                console.log("Export all orders");
-                toast.success("Export functionality coming soon");
-        };
+		console.log("Export all orders");
+		toast.success("Export functionality coming soon");
+	};
 
-        const hasActiveReturnRequest = (order) => {
-                if (!Array.isArray(order?.returnRequests)) {
-                        return false;
-                }
+	const hasActiveReturnRequest = (order) => {
+		if (!Array.isArray(order?.returnRequests)) {
+			return false;
+		}
 
-                return order.returnRequests.some((request) =>
-                        ["pending", "approved", "processing"].includes(request.status)
-                );
-        };
+		return order.returnRequests.some((request) =>
+			["pending", "approved", "processing"].includes(request.status)
+		);
+	};
 
-        const isReturnEligible = (order) => {
-                if (!returnSettings?.enabled) {
-                        return false;
-                }
+	const isReturnEligible = (order) => {
+		if (!returnSettings?.enabled) {
+			return false;
+		}
 
-                if (!order) {
-                        return false;
-                }
+		if (!order) {
+			return false;
+		}
 
-                if (hasActiveReturnRequest(order)) {
-                        return false;
-                }
+		if (hasActiveReturnRequest(order)) {
+			return false;
+		}
 
-                const orderStatus = order.status?.toLowerCase();
-                if (orderStatus === "delivered") {
-                        return true;
-                }
+		const orderStatus = order.status?.toLowerCase();
+		if (orderStatus === "delivered") {
+			return true;
+		}
 
-                if (Array.isArray(order.subOrders)) {
-                        return order.subOrders.some((subOrder) => subOrder.status === "delivered");
-                }
+		if (Array.isArray(order.subOrders)) {
+			return order.subOrders.some(
+				(subOrder) => subOrder.status === "delivered"
+			);
+		}
 
-                return false;
-        };
+		return false;
+	};
 
-        const handleOpenReturnDialog = async (order) => {
-                try {
-                        setReturnDialogLoading(true);
-                        const details = await fetchOrder(order._id);
-                        const resolvedOrder = details?.order || details;
+	const handleOpenReturnDialog = async (order) => {
+		try {
+			setReturnDialogLoading(true);
+			const details = await fetchOrder(order._id);
+			const resolvedOrder = details?.order || details;
 
-                        if (!resolvedOrder) {
-                                toast.error("Unable to load order details for return");
-                                return;
-                        }
+			if (!resolvedOrder) {
+				toast.error("Unable to load order details for return");
+				return;
+			}
 
-                        setReturnOrder(resolvedOrder);
-                        setIsReturnDialogOpen(true);
-                } catch (error) {
-                        console.error("Open return dialog error:", error);
-                        toast.error("Failed to open return request form");
-                } finally {
-                        setReturnDialogLoading(false);
-                }
-        };
+			setReturnOrder(resolvedOrder);
+			setIsReturnDialogOpen(true);
+		} catch (error) {
+			console.error("Open return dialog error:", error);
+			toast.error("Failed to open return request form");
+		} finally {
+			setReturnDialogLoading(false);
+		}
+	};
 
-        const handleReturnDialogChange = (open) => {
-                if (!open) {
-                        setIsReturnDialogOpen(false);
-                        setReturnOrder(null);
-                } else {
-                        setIsReturnDialogOpen(true);
-                }
-        };
+	const handleReturnDialogChange = (open) => {
+		if (!open) {
+			setIsReturnDialogOpen(false);
+			setReturnOrder(null);
+		} else {
+			setIsReturnDialogOpen(true);
+		}
+	};
 
-        const handleSubmitReturn = async ({ subOrderId, reason, description }) => {
-                if (!returnOrder) {
-                        toast.error("No order selected for return");
-                        return;
-                }
+	const handleSubmitReturn = async ({ subOrderId, reason, description }) => {
+		if (!returnOrder) {
+			toast.error("No order selected for return");
+			return;
+		}
 
-                const result = await requestReturn(returnOrder._id, {
-                        subOrderId,
-                        reason,
-                        description,
-                });
+		const result = await requestReturn(returnOrder._id, {
+			subOrderId,
+			reason,
+			description,
+		});
 
-                if (result.success) {
-                        toast.success("Return request submitted successfully");
-                        setIsReturnDialogOpen(false);
-                        setReturnOrder(null);
-                        fetchOrders();
-                } else {
-                        toast.error(result.message || "Failed to submit return request");
-                }
-        };
+		if (result.success) {
+			toast.success("Return request submitted successfully");
+			setIsReturnDialogOpen(false);
+			setReturnOrder(null);
+			fetchOrders();
+		} else {
+			toast.error(result.message || "Failed to submit return request");
+		}
+	};
+
+	const handleTrackShipment = (subOrder) => {
+		if (!subOrder?.shipmentPackage) {
+			toast.error("No shipment package available for this order");
+			return;
+		}
+
+		setTrackingSubOrder(subOrder);
+		setIsTrackingModalOpen(true);
+	};
+
+	const handleCloseTrackingModal = () => {
+		setIsTrackingModalOpen(false);
+		setTrackingSubOrder(null);
+	};
 
 	if (loading && orders.length === 0) {
 		return (
@@ -370,8 +397,7 @@ export function OrderHistory({ userId }) {
 												{/* Total Items */}
 												<TableCell>
 													{products.reduce(
-														(total, product) =>
-															total + (product.quantity || 0),
+														(total, product) => total + (product.quantity || 0),
 														0
 													)}
 												</TableCell>
@@ -398,41 +424,62 @@ export function OrderHistory({ userId }) {
 														>
 															<Eye className="h-4 w-4" />
 														</Button>
-                                                                                                               <Button
-                                                                                                                       variant="ghost"
-                                                                                                                       size="sm"
-                                                                                                                       onClick={() =>
-                                                                                                                               handleDownloadInvoice(
-                                                                                                                                       order._id,
-                                                                                                                                       order.orderNumber
-                                                                                                                               )
-                                                                                                                       }
-                                                                                                                       disabled={downloadingInvoices.has(order._id)}
-                                                                                                               >
-                                                                                                                       {downloadingInvoices.has(order._id) ? (
-                                                                                                                               <Loader2 className="h-4 w-4 animate-spin" />
-                                                                                                                       ) : (
-                                                                                                                               <Download className="h-4 w-4" />
-                                                                                                                       )}
-                                                                                                               </Button>
-                                                                                                               <Button
-                                                                                                                       variant="outline"
-                                                                                                                       size="sm"
-                                                                                                                       className="flex items-center gap-1"
-                                                                                                                       onClick={() => handleOpenReturnDialog(order)}
-                                                                                                                       disabled={
-                                                                                                                               returnDialogLoading ||
-                                                                                                                               returnActionLoading ||
-                                                                                                                               !isReturnEligible(order)
-                                                                                                                       }
-                                                                                                               >
-                                                                                                                       <RotateCcw className="h-3.5 w-3.5" />
-                                                                                                                       Return
-                                                                                                               </Button>
-                                                                                                               <Link
-                                                                                                                       href={`/reviews/${order._id}`}
-                                                                                                                       className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition-colors hover:bg-muted"
-                                                                                                               >
+														<Button
+															variant="ghost"
+															size="sm"
+															onClick={() =>
+																handleDownloadInvoice(
+																	order._id,
+																	order.orderNumber
+																)
+															}
+															disabled={downloadingInvoices.has(order._id)}
+														>
+															{downloadingInvoices.has(order._id) ? (
+																<Loader2 className="h-4 w-4 animate-spin" />
+															) : (
+																<Download className="h-4 w-4" />
+															)}
+														</Button>
+														<Button
+															variant="outline"
+															size="sm"
+															className="flex items-center gap-1"
+															onClick={() => handleOpenReturnDialog(order)}
+															disabled={
+																returnDialogLoading ||
+																returnActionLoading ||
+																!isReturnEligible(order)
+															}
+														>
+															<RotateCcw className="h-3.5 w-3.5" />
+															Return
+														</Button>
+														{/* Tracking button for orders with shipment packages */}
+														{order.subOrders?.some(
+															(sub) => sub.shipmentPackage
+														) && (
+															<Button
+																variant="outline"
+																size="sm"
+																className="flex items-center gap-1"
+																onClick={() => {
+																	const shippedSubOrder = order.subOrders.find(
+																		(sub) => sub.shipmentPackage
+																	);
+																	if (shippedSubOrder) {
+																		handleTrackShipment(shippedSubOrder);
+																	}
+																}}
+															>
+																<Truck className="h-3.5 w-3.5" />
+																Track
+															</Button>
+														)}
+														<Link
+															href={`/reviews/${order._id}`}
+															className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition-colors hover:bg-muted"
+														>
 															Rate & Review
 														</Link>
 													</div>
@@ -479,19 +526,24 @@ export function OrderHistory({ userId }) {
 			</Card>
 
 			{/* Order Detail Popup */}
-                        <OrderDetailPopup
-                                open={isPopupOpen}
-                                onOpenChange={handleClosePopup}
-                                order={selectedOrder}
-                        />
-                        <ReturnRequestDialog
-                                open={isReturnDialogOpen}
-                                onOpenChange={handleReturnDialogChange}
-                                order={returnOrder}
-                                settings={returnSettings}
-                                loading={returnActionLoading}
-                                onSubmit={handleSubmitReturn}
-                        />
-                </>
-        );
+			<OrderDetailPopup
+				open={isPopupOpen}
+				onOpenChange={handleClosePopup}
+				order={selectedOrder}
+			/>
+			<ReturnRequestDialog
+				open={isReturnDialogOpen}
+				onOpenChange={handleReturnDialogChange}
+				order={returnOrder}
+				settings={returnSettings}
+				loading={returnActionLoading}
+				onSubmit={handleSubmitReturn}
+			/>
+			<TrackingModal
+				open={isTrackingModalOpen}
+				onOpenChange={handleCloseTrackingModal}
+				subOrder={trackingSubOrder}
+			/>
+		</>
+	);
 }

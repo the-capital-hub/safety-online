@@ -651,7 +651,7 @@ export default function ProductDetail({
 											<div className="text-sm font-medium mb-2">
 												Check delivery at your pincode
 											</div>
-											<div className="flex items-center gap-2">
+											<div className="flex flex-col 2xl:flex-row items-center gap-2">
 												<input
 													type="text"
 													inputMode="numeric"
@@ -695,71 +695,13 @@ export default function ProductDetail({
 																: "Not Serviceable"}
 														</Badge>
 													</div>
-													{serviceability.remark && (
+													{serviceability.status && (
 														<div className="text-xs text-gray-600">
-															{serviceability.remark}
+															{serviceability.status
+																? "Congratulation, Product is deliverable at your location."
+																: "Product is not deliverable at your location. Please try another pincode."}
 														</div>
 													)}
-													{/* {serviceability.details && (
-														<div className="grid grid-cols-2 gap-2 text-xs text-gray-700">
-															<div>
-																City:{" "}
-																<span className="font-medium">
-																	{serviceability.details.city || "-"}
-																</span>
-															</div>
-															<div>
-																State:{" "}
-																<span className="font-medium">
-																	{serviceability.details.state || "-"}
-																</span>
-															</div>
-															<div>
-																COD:{" "}
-																<span className="font-medium">
-																	{serviceability.details.cod ? "Yes" : "No"}
-																</span>
-															</div>
-															<div>
-																Max COD:{" "}
-																<span className="font-medium">
-																	{serviceability.details.max_cod_amount ?? "-"}
-																</span>
-															</div>
-															<div>
-																Forward Pickup:{" "}
-																<span className="font-medium">
-																	{serviceability.details.forward_pickup
-																		? "Yes"
-																		: "No"}
-																</span>
-															</div>
-															<div>
-																Forward Drop:{" "}
-																<span className="font-medium">
-																	{serviceability.details.forward_drop
-																		? "Yes"
-																		: "No"}
-																</span>
-															</div>
-															<div>
-																Reverse Pickup:{" "}
-																<span className="font-medium">
-																	{serviceability.details.reverse_pickup
-																		? "Yes"
-																		: "No"}
-																</span>
-															</div>
-															<div>
-																Reverse Drop:{" "}
-																<span className="font-medium">
-																	{serviceability.details.reverse_drop
-																		? "Yes"
-																		: "No"}
-																</span>
-															</div>
-														</div>
-													)} */}
 												</div>
 											)}
 										</div>
@@ -779,10 +721,10 @@ export default function ProductDetail({
 												Seller Details
 											</h2>
 
-											<div className="space-y-4">
+											<div className="space-y-1">
 												{/* Company Name */}
 												<div className="flex items-center gap-3">
-													<span className="text-black-900 text-xl font-bold">
+													<span className="text-gray-700 font-semibold">
 														{seller?.companyName || "Company Name"}
 													</span>
 												</div>
@@ -790,7 +732,7 @@ export default function ProductDetail({
 												{/* Company Address */}
 												<div className="flex items-start gap-2">
 													<span className="text-gray-600 whitespace-pre-line">
-														{seller?.companyAddress
+														{seller?.companyAddress.length > 0
 															? seller?.companyAddress
 																	?.filter(
 																		(addr) =>
@@ -799,7 +741,7 @@ export default function ProductDetail({
 																	)
 																	.map((addr, idx) => (
 																		<div key={idx} className="mb-2">
-																			<div className="text-black text-lg font-semibold">
+																			<div className="text-gray-700 font-semibold">
 																				{addr.tagName}
 																			</div>
 																			<div className="text-base">
