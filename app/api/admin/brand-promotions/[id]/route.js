@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 
 import { dbConnect } from "@/lib/dbConnect.js";
 import BrandPromotion from "@/model/BrandPromotion.js";
-import cloudinary, { isCloudinaryConfigured, missingCloudinaryConfig } from "@/lib/cloudinary.js";
+import cloudinary from "@/lib/cloudinary.js";
 
 async function authenticateAdmin(request) {
         const token = request.cookies.get("admin_token")?.value;
@@ -144,17 +144,10 @@ export async function PUT(request, { params }) {
                 });
 
                 if (update.bannerImagePublicId && existingBanner.bannerImagePublicId && update.bannerImagePublicId !== existingBanner.bannerImagePublicId) {
-                        if (isCloudinaryConfigured) {
-                                try {
-                                        await cloudinary.uploader.destroy(existingBanner.bannerImagePublicId);
-                                } catch (destroyError) {
-                                        console.error("[brand-promotions][PUT] failed to remove old banner", destroyError);
-                                }
-                        } else {
-                                console.warn(
-                                        "[brand-promotions][PUT] Skipping Cloudinary cleanup because configuration is incomplete:",
-                                        missingCloudinaryConfig.join(", ") || "Unknown"
-                                );
+                        try {
+                                await cloudinary.uploader.destroy(existingBanner.bannerImagePublicId);
+                        } catch (destroyError) {
+                                console.error("[brand-promotions][PUT] failed to remove old banner", destroyError);
                         }
                 }
 
@@ -192,17 +185,10 @@ export async function DELETE(request, { params }) {
                 }
 
                 if (deletedBanner.bannerImagePublicId) {
-                        if (isCloudinaryConfigured) {
-                                try {
-                                        await cloudinary.uploader.destroy(deletedBanner.bannerImagePublicId);
-                                } catch (destroyError) {
-                                        console.error("[brand-promotions][DELETE] failed to remove banner image", destroyError);
-                                }
-                        } else {
-                                console.warn(
-                                        "[brand-promotions][DELETE] Skipping Cloudinary cleanup because configuration is incomplete:",
-                                        missingCloudinaryConfig.join(", ") || "Unknown"
-                                );
+                        try {
+                                await cloudinary.uploader.destroy(deletedBanner.bannerImagePublicId);
+                        } catch (destroyError) {
+                                console.error("[brand-promotions][DELETE] failed to remove banner image", destroyError);
                         }
                 }
 
