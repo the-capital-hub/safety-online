@@ -80,13 +80,15 @@ export function middleware(req) {
 	}
 
 	// Seller-only
-	if (pathname.startsWith("/seller")) {
-		// Allow /seller/login without token
-		if (pathname === "/seller/login") {
-			return NextResponse.next({
-				request: { headers: requestHeaders },
-			});
-		}
+        if (pathname.startsWith("/seller")) {
+                // Allow unauthenticated access to seller auth routes
+                const sellerPublicPaths = new Set(["/seller/login", "/seller/register"]);
+
+                if (sellerPublicPaths.has(pathname)) {
+                        return NextResponse.next({
+                                request: { headers: requestHeaders },
+                        });
+                }
 
 		if (!sellerToken || !isValidJWT(sellerToken)) {
 			return NextResponse.redirect(new URL("/seller/login", req.url));
