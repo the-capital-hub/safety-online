@@ -176,6 +176,18 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
                         return;
                 }
 
+                const priceValue = Number.parseFloat(formData.price);
+                const salePriceValue = formData.salePrice
+                        ? Number.parseFloat(formData.salePrice)
+                        : null;
+
+                if (salePriceValue !== null && !Number.isNaN(salePriceValue)) {
+                        if (Number.isNaN(priceValue) || salePriceValue >= priceValue) {
+                                alert("Sale price must be lower than MRP.");
+                                return;
+                        }
+                }
+
                 setIsSubmitting(true);
 
                 try {
@@ -399,12 +411,12 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 								/>
 							</div>
 
-							<div>
-								<Label htmlFor="price">Regular Price *</Label>
-								<Input
-									id="price"
-									placeholder="0.00"
-									value={formData.price}
+                                                        <div>
+                                                                <Label htmlFor="price">MRP *</Label>
+                                                                <Input
+                                                                        id="price"
+                                                                        placeholder="0.00"
+                                                                        value={formData.price}
 									onChange={(e) =>
 										setFormData({ ...formData, price: e.target.value })
 									}
