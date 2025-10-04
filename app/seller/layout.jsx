@@ -12,7 +12,12 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 export default function SellerLayout({ children }) {
 	const pathname = usePathname();
 	const show = pathname === "/seller";
-	const hide = pathname === "/seller/login" || pathname === "/seller/register";
+        const authOnlyRoutes = [
+                "/seller/login",
+                "/seller/register",
+                "/seller/forgot-password",
+        ];
+        const hide = authOnlyRoutes.includes(pathname);
 
 	// If on login or register page, render minimal layout
 	if (hide) {

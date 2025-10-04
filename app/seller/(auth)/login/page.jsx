@@ -295,7 +295,7 @@ export default function SellerLogin() {
                                                                                                 />
                                                                                         </div>
 
-                                                                                        <div className="space-y-2">
+                                                                <div className="space-y-2">
                                                                                                 <Label className="text-sm font-medium text-slate-700" htmlFor="password">
                                                                                                         Password
                                                                                                 </Label>
@@ -324,6 +324,15 @@ export default function SellerLogin() {
                                                                                                                 )}
                                                                                                         </Button>
                                                                                                 </div>
+                                                                                        </div>
+
+                                                                                        <div className="flex justify-end">
+                                                                                                <Link
+                                                                                                        href="/seller/forgot-password"
+                                                                                                        className="text-sm font-medium text-orange-500 transition hover:text-orange-600"
+                                                                                                >
+                                                                                                        Forgot password?
+                                                                                                </Link>
                                                                                         </div>
 
                                                                                         <Button
