@@ -24,6 +24,7 @@ const initialFormState = {
         tagline: "",
         displayOrder: "",
         isActive: true,
+        bannerImagePublicId: "",
 };
 
 export default function PromotionBannersPage() {
@@ -124,10 +125,19 @@ export default function PromotionBannersPage() {
                 setImageFile(file);
                 setImagePreview(URL.createObjectURL(file));
                 setPreviewIsLocal(true);
+                setFormState((prev) => ({
+                        ...prev,
+                        bannerImagePublicId: "",
+                }));
         };
 
         const uploadImage = async () => {
-                if (!imageFile) return imagePreview;
+                if (!imageFile) {
+                        return {
+                                url: imagePreview,
+                                publicId: formState.bannerImagePublicId || undefined,
+                        };
+                }
 
                 const uploadData = new FormData();
                 uploadData.append("file", imageFile);
@@ -143,7 +153,10 @@ export default function PromotionBannersPage() {
                         throw new Error(data.message || "Failed to upload image");
                 }
 
-                return data.url;
+                return {
+                        url: data.url,
+                        publicId: data.publicId || "",
+                };
         };
 
         const handleSubmit = async (event) => {
@@ -171,15 +184,28 @@ export default function PromotionBannersPage() {
                 setSubmitting(true);
 
                 try {
-                        const bannerImageUrl = await uploadImage();
+                        const { url: uploadedUrl, publicId: uploadedPublicId } = await uploadImage();
+                        const bannerImageUrl = uploadedUrl || imagePreview || FALLBACK_IMAGE;
+                        const bannerImagePublicId = uploadedPublicId || formState.bannerImagePublicId || "";
+                        const shouldIncludeImage =
+                                !editingBannerId || Boolean(imageFile) || Boolean(bannerImagePublicId);
+
+                        if (shouldIncludeImage && !bannerImagePublicId) {
+                                throw new Error("Failed to upload banner image. Please try again.");
+                        }
+
                         const payload = {
                                 brandName: formState.brandName.trim(),
                                 discountPercentage: discountValue ? Number(discountValue) : 0,
                                 tagline: formState.tagline.trim(),
                                 displayOrder: formState.displayOrder ? Number(formState.displayOrder) : 0,
                                 isActive: formState.isActive,
-                                bannerImage: bannerImageUrl || imagePreview || FALLBACK_IMAGE,
                         };
+
+                        if (shouldIncludeImage) {
+                                payload.bannerImage = bannerImageUrl;
+                                payload.bannerImagePublicId = bannerImagePublicId;
+                        }
 
                         let response;
                         if (editingBannerId) {
@@ -221,6 +247,7 @@ export default function PromotionBannersPage() {
                         tagline: banner.tagline || "",
                         displayOrder: banner.displayOrder?.toString() || "0",
                         isActive: banner.isActive,
+                        bannerImagePublicId: banner.bannerImagePublicId || "",
                 });
                 setImageFile(null);
                 if (imagePreview && previewIsLocal) {

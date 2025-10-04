@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 
 import { dbConnect } from "@/lib/dbConnect.js";
 import BrandPromotion from "@/model/BrandPromotion.js";
+import cloudinary from "@/lib/cloudinary.js";
 
 async function authenticateAdmin(request) {
         const token = request.cookies.get("admin_token")?.value;
@@ -35,6 +36,7 @@ function serializeBanner(banner) {
                 discountPercentage: banner.discountPercentage ?? 0,
                 tagline: banner.tagline || "",
                 bannerImage: banner.bannerImage,
+                bannerImagePublicId: banner.bannerImagePublicId || "",
                 isActive: banner.isActive,
                 displayOrder: banner.displayOrder ?? 0,
                 createdAt: banner.createdAt,
@@ -53,6 +55,25 @@ export async function PUT(request, { params }) {
         try {
                 const { id } = params;
                 const payload = await request.json();
+
+                if (
+                        (payload.bannerImage !== undefined && payload.bannerImagePublicId === undefined) ||
+                        (payload.bannerImagePublicId !== undefined && payload.bannerImage === undefined)
+                ) {
+                        return NextResponse.json(
+                                { success: false, message: "Banner image and public id must be provided together" },
+                                { status: 400 }
+                        );
+                }
+
+                const existingBanner = await BrandPromotion.findById(id);
+
+                if (!existingBanner) {
+                        return NextResponse.json(
+                                { success: false, message: "Brand promotion not found" },
+                                { status: 404 }
+                        );
+                }
 
                 const update = {};
 
@@ -91,6 +112,16 @@ export async function PUT(request, { params }) {
                         update.bannerImage = payload.bannerImage.trim();
                 }
 
+                if (payload.bannerImagePublicId !== undefined) {
+                        if (!payload.bannerImagePublicId || !payload.bannerImagePublicId.trim()) {
+                                return NextResponse.json(
+                                        { success: false, message: "Banner image public id cannot be empty" },
+                                        { status: 400 }
+                                );
+                        }
+                        update.bannerImagePublicId = payload.bannerImagePublicId.trim();
+                }
+
                 if (payload.isActive !== undefined) {
                         update.isActive = Boolean(payload.isActive);
                 }
@@ -112,11 +143,12 @@ export async function PUT(request, { params }) {
                         runValidators: true,
                 });
 
-                if (!updatedBanner) {
-                        return NextResponse.json(
-                                { success: false, message: "Brand promotion not found" },
-                                { status: 404 }
-                        );
+                if (update.bannerImagePublicId && existingBanner.bannerImagePublicId && update.bannerImagePublicId !== existingBanner.bannerImagePublicId) {
+                        try {
+                                await cloudinary.uploader.destroy(existingBanner.bannerImagePublicId);
+                        } catch (destroyError) {
+                                console.error("[brand-promotions][PUT] failed to remove old banner", destroyError);
+                        }
                 }
 
                 return NextResponse.json({
@@ -150,6 +182,14 @@ export async function DELETE(request, { params }) {
                                 { success: false, message: "Brand promotion not found" },
                                 { status: 404 }
                         );
+                }
+
+                if (deletedBanner.bannerImagePublicId) {
+                        try {
+                                await cloudinary.uploader.destroy(deletedBanner.bannerImagePublicId);
+                        } catch (destroyError) {
+                                console.error("[brand-promotions][DELETE] failed to remove banner image", destroyError);
+                        }
                 }
 
                 return NextResponse.json({
