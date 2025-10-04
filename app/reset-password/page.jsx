@@ -59,6 +59,7 @@ const logoVariants = {
 export default function ResetPasswordPage() {
         const router = useRouter();
         const searchParams = useSearchParams();
+        const redirectTo = searchParams.get("redirect") ?? "/login";
         const [formData, setFormData] = useState({
                 token: searchParams.get("token") ?? "",
                 newPassword: "",
@@ -147,7 +148,7 @@ export default function ResetPasswordPage() {
                                                                 <p>Your password has been updated successfully.</p>
                                                                 <Button
                                                                         className="w-full"
-                                                                        onClick={() => router.push("/login")}
+                                                                        onClick={() => router.push(redirectTo)}
                                                                 >
                                                                         Return to login
                                                                 </Button>
@@ -220,7 +221,7 @@ export default function ResetPasswordPage() {
                                                                 </motion.div>
                                                                 <motion.div variants={itemVariants} className="text-center">
                                                                         <Button variant="link" asChild className="text-sm">
-                                                                                <Link href="/login">Back to login</Link>
+                                                                        <Link href={redirectTo}>Back to login</Link>
                                                                         </Button>
                                                                 </motion.div>
                                                         </motion.form>
