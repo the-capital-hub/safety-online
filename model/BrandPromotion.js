@@ -23,6 +23,11 @@ const BrandPromotionSchema = new mongoose.Schema(
                         required: true,
                         trim: true,
                 },
+                bannerImagePublicId: {
+                        type: String,
+                        trim: true,
+                        default: "",
+                },
                 isActive: {
                         type: Boolean,
                         default: true,

@@ -113,6 +113,7 @@ export async function GET(request) {
                         discountPercentage: banner.discountPercentage ?? 0,
                         tagline: banner.tagline || "",
                         bannerImage: banner.bannerImage,
+                        bannerImagePublicId: banner.bannerImagePublicId || "",
                         displayOrder: banner.displayOrder ?? 0,
                 });
 

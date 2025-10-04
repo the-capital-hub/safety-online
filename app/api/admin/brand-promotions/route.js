@@ -35,6 +35,7 @@ function serializeBanner(banner) {
                 discountPercentage: banner.discountPercentage ?? 0,
                 tagline: banner.tagline || "",
                 bannerImage: banner.bannerImage,
+                bannerImagePublicId: banner.bannerImagePublicId || "",
                 isActive: banner.isActive,
                 displayOrder: banner.displayOrder ?? 0,
                 createdAt: banner.createdAt,
@@ -77,7 +78,15 @@ export async function POST(request) {
         }
 
         try {
-                const { brandName, discountPercentage, tagline, bannerImage, isActive = true, displayOrder = 0 } =
+                const {
+                        brandName,
+                        discountPercentage,
+                        tagline,
+                        bannerImage,
+                        bannerImagePublicId,
+                        isActive = true,
+                        displayOrder = 0,
+                } =
                         await request.json();
 
                 if (!brandName || !brandName.trim()) {
@@ -90,6 +99,13 @@ export async function POST(request) {
                 if (!bannerImage || !bannerImage.trim()) {
                         return NextResponse.json(
                                 { success: false, message: "Banner image is required" },
+                                { status: 400 }
+                        );
+                }
+
+                if (!bannerImagePublicId || !bannerImagePublicId.trim()) {
+                        return NextResponse.json(
+                                { success: false, message: "Banner image public id is required" },
                                 { status: 400 }
                         );
                 }
@@ -107,6 +123,7 @@ export async function POST(request) {
                         discountPercentage: discountValue,
                         tagline: tagline?.trim() || "",
                         bannerImage: bannerImage.trim(),
+                        bannerImagePublicId: bannerImagePublicId.trim(),
                         isActive: Boolean(isActive),
                         displayOrder: Number.isFinite(Number(displayOrder)) ? Number(displayOrder) : 0,
                 });
