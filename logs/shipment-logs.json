@@ -678,5 +678,256 @@
     "trackingData": {
       "timeline": 0
     }
+  },
+  {
+    "timestamp": "2025-10-04T04:51:30.630Z",
+    "subOrderId": "68e0a7d09a4777afdf38a7ac",
+    "action": "error",
+    "errorType": "hexalog_creation_failed",
+    "errorMessage": "Hexalog request failed 400: {\"statusCode\":400,\"code\":\"97849c93f172d1364732811a58da2e42/13526931706613413733\",\"message\":\"SWIFT_VALIDATION_EXCEPTION\",\"description\":\"Could not create prepaid Shipment for info@ladwas.com. You don't have enough balance in your wallet to create this shipment, Please recharge wallet!\",\"severity\":\"ERROR\"}",
+    "context": {
+      "hexalogPayload": {
+        "seller_name": "Ladwa Solutions Inc",
+        "seller_address": "PF office road, 37/1, 6th Main Rd, AECS Layout - A Block, Industrial Area, Singasandra, Bengaluru, Karnataka, 560068",
+        "seller_gst_tin": "",
+        "consignee_gst_amount": 100,
+        "order_number": "68e0a7d09a4777afdf38a7ac",
+        "invoice_number": "68e0a7d09a4777afdf38a7ac",
+        "invoice_date": "2025-10-04",
+        "consignee_name": "Nitin Kumar",
+        "products_desc": "LADWA Unbreakable 24 Inch/600mm Diameter Wide Angle Convex Mirror/Security Mirror/Traffic Mirror for Road Safety with Installation Kit & Adjustable Fixing Bracket (Nuts & Bolts) (Pack of 10)",
+        "payment_mode": "COD",
+        "category_of_goods": "Safety Equipment",
+        "total_amount": 22893.18,
+        "tax_value": 3492.18,
+        "taxable_amount": 19401,
+        "commodity_value": "22893.18",
+        "cod_amount": 22893.18,
+        "quantity": 1,
+        "weight": 500,
+        "length": 25,
+        "width": 20,
+        "height": 15,
+        "pickup_location": {
+          "location_type": "Office",
+          "name": "Ladwa Solutions Inc",
+          "phone": 916366097631,
+          "address": "PF office road, 37/1, 6th Main Rd, AECS Layout - A Block, Industrial Area, Singasandra, Bengaluru, Karnataka, 560068",
+          "city": "Bengaluru",
+          "state": "Karnataka",
+          "country": "India",
+          "pin": 560068
+        },
+        "drop_location": {
+          "location_type": "Home",
+          "address": "1006, Rohini Sector-16, 1006, Rohini Sector-16, New Delhi, Delhi - 110089",
+          "city": "New Delhi",
+          "state": "Delhi",
+          "country": "India",
+          "name": "Nitin Kumar",
+          "phone": 9650515013,
+          "pin": 110089
+        }
+      }
+    }
+  },
+  {
+    "timestamp": "2025-10-04T04:51:30.956Z",
+    "subOrderId": "68e0a7d09a4777afdf38a7ac",
+    "action": "error",
+    "errorType": "shipment_creation_failed",
+    "errorMessage": "barcodes is not defined",
+    "context": {
+      "error": "ReferenceError: barcodes is not defined\n    at createShipmentPackage (C:\\Users\\asus\\Desktop\\safety\\.next\\server\\chunks\\[root of the server]__a57947._.js:1979:23)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async createOrderWithSubOrders (C:\\Users\\asus\\Desktop\\safety\\.next\\server\\chunks\\[root of the server]__a57947._.js:2203:45)\n    at async POST (C:\\Users\\asus\\Desktop\\safety\\.next\\server\\chunks\\[root of the server]__a57947._.js:2425:62)\n    at async AppRouteRouteModule.do (C:\\Users\\asus\\Desktop\\safety\\node_modules\\next\\dist\\compiled\\next-server\\app-route.runtime.dev.js:10:32847)\n    at async AppRouteRouteModule.handle (C:\\Users\\asus\\Desktop\\safety\\node_modules\\next\\dist\\compiled\\next-server\\app-route.runtime.dev.js:10:39868)\n    at async doRender (C:\\Users\\asus\\Desktop\\safety\\node_modules\\next\\dist\\server\\base-server.js:1452:42)\n    at async responseGenerator (C:\\Users\\asus\\Desktop\\safety\\node_modules\\next\\dist\\server\\base-server.js:1822:28)\n    at async DevServer.renderToResponseWithComponentsImpl (C:\\Users\\asus\\Desktop\\safety\\node_modules\\next\\dist\\server\\base-server.js:1832:28)\n    at async DevServer.renderPageComponent (C:\\Users\\asus\\Desktop\\safety\\node_modules\\next\\dist\\server\\base-server.js:2257:24)\n    at async DevServer.renderToResponseImpl (C:\\Users\\asus\\Desktop\\safety\\node_modules\\next\\dist\\server\\base-server.js:2295:32)\n    at async DevServer.pipeImpl (C:\\Users\\asus\\Desktop\\safety\\node_modules\\next\\dist\\server\\base-server.js:959:25)\n    at async NextNodeServer.handleCatchallRenderRequest (C:\\Users\\asus\\Desktop\\safety\\node_modules\\next\\dist\\server\\next-server.js:281:17)\n    at async DevServer.handleRequestImpl (C:\\Users\\asus\\Desktop\\safety\\node_modules\\next\\dist\\server\\base-server.js:853:17)\n    at async C:\\Users\\asus\\Desktop\\safety\\node_modules\\next\\dist\\server\\dev\\next-dev-server.js:371:20\n    at async Span.traceAsyncFn (C:\\Users\\asus\\Desktop\\safety\\node_modules\\next\\dist\\trace\\trace.js:153:20)\n    at async DevServer.handleRequest (C:\\Users\\asus\\Desktop\\safety\\node_modules\\next\\dist\\server\\dev\\next-dev-server.js:368:24)\n    at async invokeRender (C:\\Users\\asus\\Desktop\\safety\\node_modules\\next\\dist\\server\\lib\\router-server.js:230:21)\n    at async handleRequest (C:\\Users\\asus\\Desktop\\safety\\node_modules\\next\\dist\\server\\lib\\router-server.js:408:24)\n    at async requestHandlerImpl (C:\\Users\\asus\\Desktop\\safety\\node_modules\\next\\dist\\server\\lib\\router-server.js:432:13)\n    at async Server.requestListener (C:\\Users\\asus\\Desktop\\safety\\node_modules\\next\\dist\\server\\lib\\start-server.js:146:13)"
+    }
+  },
+  {
+    "timestamp": "2025-10-04T07:30:10.676Z",
+    "subOrderId": "68e0ccff9a4777afdf38a82f",
+    "action": "error",
+    "errorType": "hexalog_creation_failed",
+    "errorMessage": "barcodes is not defined",
+    "context": {
+      "hexalogPayload": {
+        "seller_name": "Ladwa Solutions Inc",
+        "seller_address": "PF office road, 37/1, 6th Main Rd, AECS Layout - A Block, Industrial Area, Singasandra, Bengaluru, Karnataka, 560068",
+        "seller_gst_tin": "",
+        "consignee_gst_amount": 100,
+        "order_number": "68e0ccff9a4777afdf38a82f",
+        "invoice_number": "68e0ccff9a4777afdf38a82f",
+        "invoice_date": "2025-10-04",
+        "consignee_name": "Nitin Kumar",
+        "products_desc": "LADWA 4 Pcs Unbreakable 18 Inch/45Cm Diameter Wide Angle Convex Mirror/Security Mirror/Traffic Mirror for Road Safety with Installation Kit & Adjustable Fixing Bracket",
+        "payment_mode": "COD",
+        "category_of_goods": "Safety Equipment",
+        "total_amount": 7583.86,
+        "tax_value": 1156.86,
+        "taxable_amount": 6427,
+        "commodity_value": "7583.86",
+        "cod_amount": 7583.86,
+        "quantity": 1,
+        "weight": 500,
+        "length": 25,
+        "width": 20,
+        "height": 15,
+        "pickup_location": {
+          "location_type": "Office",
+          "name": "Ladwa Solutions Inc",
+          "phone": 916366097631,
+          "address": "PF office road, 37/1, 6th Main Rd, AECS Layout - A Block, Industrial Area, Singasandra, Bengaluru, Karnataka, 560068",
+          "city": "Bengaluru",
+          "state": "Karnataka",
+          "country": "India",
+          "pin": 560068
+        },
+        "drop_location": {
+          "location_type": "Home",
+          "address": "1006, Rohini Sector-16, 1006, Rohini Sector-16, New Delhi, Delhi - 110089",
+          "city": "New Delhi",
+          "state": "Delhi",
+          "country": "India",
+          "name": "Nitin Kumar",
+          "phone": 9650515013,
+          "pin": 110089
+        }
+      }
+    }
+  },
+  {
+    "timestamp": "2025-10-04T07:30:10.790Z",
+    "subOrderId": "68e0ccff9a4777afdf38a82f",
+    "action": "error",
+    "errorType": "shipment_creation_failed",
+    "errorMessage": "barcodes is not defined",
+    "context": {
+      "error": "ReferenceError: barcodes is not defined\n    at createShipmentPackage (C:\\Users\\asus\\Desktop\\safety\\.next\\server\\chunks\\[root of the server]__a57947._.js:1979:23)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async createOrderWithSubOrders (C:\\Users\\asus\\Desktop\\safety\\.next\\server\\chunks\\[root of the server]__a57947._.js:2203:45)\n    at async POST (C:\\Users\\asus\\Desktop\\safety\\.next\\server\\chunks\\[root of the server]__a57947._.js:2425:62)\n    at async AppRouteRouteModule.do (C:\\Users\\asus\\Desktop\\safety\\node_modules\\next\\dist\\compiled\\next-server\\app-route.runtime.dev.js:10:32847)\n    at async AppRouteRouteModule.handle (C:\\Users\\asus\\Desktop\\safety\\node_modules\\next\\dist\\compiled\\next-server\\app-route.runtime.dev.js:10:39868)\n    at async doRender (C:\\Users\\asus\\Desktop\\safety\\node_modules\\next\\dist\\server\\base-server.js:1452:42)\n    at async responseGenerator (C:\\Users\\asus\\Desktop\\safety\\node_modules\\next\\dist\\server\\base-server.js:1822:28)\n    at async DevServer.renderToResponseWithComponentsImpl (C:\\Users\\asus\\Desktop\\safety\\node_modules\\next\\dist\\server\\base-server.js:1832:28)\n    at async DevServer.renderPageComponent (C:\\Users\\asus\\Desktop\\safety\\node_modules\\next\\dist\\server\\base-server.js:2257:24)\n    at async DevServer.renderToResponseImpl (C:\\Users\\asus\\Desktop\\safety\\node_modules\\next\\dist\\server\\base-server.js:2295:32)\n    at async DevServer.pipeImpl (C:\\Users\\asus\\Desktop\\safety\\node_modules\\next\\dist\\server\\base-server.js:959:25)\n    at async NextNodeServer.handleCatchallRenderRequest (C:\\Users\\asus\\Desktop\\safety\\node_modules\\next\\dist\\server\\next-server.js:281:17)\n    at async DevServer.handleRequestImpl (C:\\Users\\asus\\Desktop\\safety\\node_modules\\next\\dist\\server\\base-server.js:853:17)\n    at async C:\\Users\\asus\\Desktop\\safety\\node_modules\\next\\dist\\server\\dev\\next-dev-server.js:371:20\n    at async Span.traceAsyncFn (C:\\Users\\asus\\Desktop\\safety\\node_modules\\next\\dist\\trace\\trace.js:153:20)\n    at async DevServer.handleRequest (C:\\Users\\asus\\Desktop\\safety\\node_modules\\next\\dist\\server\\dev\\next-dev-server.js:368:24)\n    at async invokeRender (C:\\Users\\asus\\Desktop\\safety\\node_modules\\next\\dist\\server\\lib\\router-server.js:230:21)\n    at async handleRequest (C:\\Users\\asus\\Desktop\\safety\\node_modules\\next\\dist\\server\\lib\\router-server.js:408:24)\n    at async requestHandlerImpl (C:\\Users\\asus\\Desktop\\safety\\node_modules\\next\\dist\\server\\lib\\router-server.js:432:13)\n    at async Server.requestListener (C:\\Users\\asus\\Desktop\\safety\\node_modules\\next\\dist\\server\\lib\\start-server.js:146:13)"
+    }
+  },
+  {
+    "timestamp": "2025-10-04T07:52:46.059Z",
+    "subOrderId": "68e0d24c9a4777afdf38a877",
+    "action": "error",
+    "errorType": "hexalog_creation_failed",
+    "errorMessage": "Hexalog request failed 400: {\"statusCode\":400,\"code\":\"1d5710b066e633cb4fe4bd0bb929c439/11812615986941350222\",\"message\":\"SWIFT_VALIDATION_EXCEPTION\",\"description\":\"Could not create prepaid Shipment for info@ladwas.com. You don't have enough balance in your wallet to create this shipment, Please recharge wallet!\",\"severity\":\"ERROR\"}",
+    "context": {
+      "hexalogPayload": {
+        "seller_name": "Ladwa Solutions Inc",
+        "seller_address": "PF office road, 37/1, 6th Main Rd, AECS Layout - A Block, Industrial Area, Singasandra, Bengaluru, Karnataka, 560068",
+        "seller_gst_tin": "",
+        "consignee_gst_amount": 100,
+        "order_number": "68e0d24c9a4777afdf38a877",
+        "invoice_number": "68e0d24c9a4777afdf38a877",
+        "invoice_date": "2025-10-04",
+        "consignee_name": "Nitin Kumar",
+        "products_desc": "Ladwa Safety 18Inch & 24 Inch Convex Mirror Wall Fixing 2 Inch Clamp with Fixing Screw & Ghatta ( Pack of 1 )",
+        "payment_mode": "COD",
+        "category_of_goods": "Safety Equipment",
+        "total_amount": 789.42,
+        "tax_value": 120.42,
+        "taxable_amount": 669,
+        "commodity_value": "789.42",
+        "cod_amount": 789.42,
+        "quantity": 1,
+        "weight": 500,
+        "length": 25,
+        "width": 20,
+        "height": 15,
+        "pickup_location": {
+          "location_type": "Office",
+          "name": "Ladwa Solutions Inc",
+          "phone": 916366097631,
+          "address": "PF office road, 37/1, 6th Main Rd, AECS Layout - A Block, Industrial Area, Singasandra, Bengaluru, Karnataka, 560068",
+          "city": "Bengaluru",
+          "state": "Karnataka",
+          "country": "India",
+          "pin": 560068
+        },
+        "drop_location": {
+          "location_type": "Home",
+          "address": "1006, Rohini Sector-16, 1006, Rohini Sector-16, New Delhi, Delhi - 110089",
+          "city": "New Delhi",
+          "state": "Delhi",
+          "country": "India",
+          "name": "Nitin Kumar",
+          "phone": 9650515013,
+          "pin": 110089
+        }
+      }
+    }
+  },
+  {
+    "timestamp": "2025-10-04T07:52:46.064Z",
+    "subOrderId": "68e0d24c9a4777afdf38a877",
+    "action": "created",
+    "trackingId": null,
+    "status": "order_placed",
+    "courierPartner": null,
+    "packageDetails": {
+      "weight": 500,
+      "dimensions": "25x20x15",
+      "boxType": "S",
+      "packageValue": 669
+    },
+    "addresses": {
+      "pickup": {
+        "city": "Bengaluru",
+        "state": "Karnataka"
+      },
+      "delivery": {
+        "city": "New Delhi",
+        "state": "Delhi"
+      }
+    }
+  },
+  {
+    "timestamp": "2025-10-04T07:59:29.013Z",
+    "subOrderId": "68e0d3de9a4777afdf38a8e2",
+    "action": "created",
+    "trackingId": "511124FH0704924",
+    "status": "order_placed",
+    "courierPartner": "DELHIVERY",
+    "packageDetails": {
+      "weight": 500,
+      "dimensions": "25x20x15",
+      "boxType": "S",
+      "packageValue": 847
+    },
+    "addresses": {
+      "pickup": {
+        "city": "Bengaluru",
+        "state": "Karnataka"
+      },
+      "delivery": {
+        "city": "New Delhi",
+        "state": "Delhi"
+      }
+    }
+  },
+  {
+    "timestamp": "2025-10-04T08:03:17.734Z",
+    "subOrderId": "511124FH0704924",
+    "action": "tracking_request",
+    "trackingId": "511124FH0704924",
+    "trackingData": {
+      "timeline": 0
+    }
+  },
+  {
+    "timestamp": "2025-10-04T08:03:24.031Z",
+    "subOrderId": "511124FH0704924",
+    "action": "tracking_request",
+    "trackingId": "511124FH0704924",
+    "trackingData": {
+      "timeline": 0
+    }
+  },
+  {
+    "timestamp": "2025-10-04T08:04:19.069Z",
+    "subOrderId": "511124FH0704924",
+    "action": "tracking_request",
+    "trackingId": "511124FH0704924",
+    "trackingData": {
+      "timeline": 0
+    }
   }
 ]
