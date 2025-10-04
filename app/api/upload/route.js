@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
-import cloudinary from "@/lib/cloudinary.js";
+import cloudinary, {
+        isCloudinaryConfigured,
+        missingCloudinaryConfig,
+} from "@/lib/cloudinary.js";
 
 const ALLOWED_FOLDERS = {
         safety_user_pic: "safety_user_pic",
