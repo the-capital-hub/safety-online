@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
 import { dbConnect } from "@/lib/dbConnect.js";
 import User from "@/model/User";
 import Company from "@/model/companyDetails.js";
@@ -45,16 +44,13 @@ export async function POST(request) {
                         );
                 }
 
-                // Hash password
-		const hashedPassword = await bcrypt.hash(password, 12);
-
-		// Create new seller
+                // Create new seller
                 const newSeller = await User.create({
                         firstName,
                         lastName,
                         email: email.toLowerCase(),
                         mobile,
-                        password: hashedPassword,
+                        password,
                         userType: "seller",
                         status: "active",
                         lastLogin: new Date(),
