@@ -4,6 +4,7 @@ import User from "@/model/User";
 import Company from "@/model/companyDetails.js";
 import SellerBankDetails from "@/model/SellerBankDetails.js";
 import { sellerRegistrationSchema } from "@/zodSchema/sellerRegistrationSchema.js";
+import { fetchGstDetails, extractPrimaryGstAddress } from "@/lib/services/gstVerification.js";
 
 export async function POST(request) {
 	try {
@@ -57,6 +58,47 @@ export async function POST(request) {
                 });
 
                 try {
+                        const normalizedGstin = companyDetails.gstinNumber.trim().toUpperCase();
+
+                        let gstPrimaryAddress;
+                        try {
+                                const gstDetails = await fetchGstDetails(normalizedGstin);
+                                gstPrimaryAddress = extractPrimaryGstAddress(gstDetails);
+                        } catch (gstError) {
+                                return NextResponse.json(
+                                        {
+                                                success: false,
+                                                message:
+                                                        gstError.message ||
+                                                        "Failed to verify GST details. Please confirm the GSTIN and try again.",
+                                        },
+                                        { status: 400 }
+                                );
+                        }
+
+                        const additionalAddresses = Array.isArray(companyDetails.companyAddress)
+                                ? companyDetails.companyAddress
+                                : [];
+                        const mergedAddresses = gstPrimaryAddress
+                                ? [
+                                          gstPrimaryAddress,
+                                          ...additionalAddresses.filter((address) => {
+                                                  if (!address) return false;
+                                                  const normalize = (value = "") => `${value}`.trim().toLowerCase();
+                                                  return !(
+                                                          normalize(address.building) ===
+                                                                  normalize(gstPrimaryAddress.building) &&
+                                                          normalize(address.street) ===
+                                                                  normalize(gstPrimaryAddress.street) &&
+                                                          normalize(address.city) === normalize(gstPrimaryAddress.city) &&
+                                                          normalize(address.state) === normalize(gstPrimaryAddress.state) &&
+                                                          normalize(address.pincode) === normalize(gstPrimaryAddress.pincode) &&
+                                                          normalize(address.country) === normalize(gstPrimaryAddress.country)
+                                                  );
+                                          }),
+                                  ]
+                                : additionalAddresses;
+
                         const companyPayload = {
                                 user: newSeller._id,
                                 companyName: companyDetails.companyName,
@@ -64,13 +106,10 @@ export async function POST(request) {
                                 phone: companyDetails.phone,
                                 brandName: companyDetails.brandName,
                                 brandDescription: companyDetails.brandDescription,
-                                gstinNumber: companyDetails.gstinNumber,
+                                gstinNumber: normalizedGstin,
                                 companyLogo: companyDetails.companyLogo,
+                                companyAddress: mergedAddresses,
                         };
-
-                        if (companyDetails.companyAddress?.length) {
-                                companyPayload.companyAddress = companyDetails.companyAddress;
-                        }
 
                         const companyDoc = await Company.create(companyPayload);
                         newSeller.company = companyDoc._id;

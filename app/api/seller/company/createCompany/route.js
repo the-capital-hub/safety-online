@@ -5,6 +5,7 @@ import companyDetails from "@/model/companyDetails";
 import { dbConnect } from "@/lib/dbConnect";
 import User from "@/model/User";
 import { companyCreateSchema } from "@/zodSchema/companyScema.js";
+import { fetchGstDetails, extractPrimaryGstAddress } from "@/lib/services/gstVerification.js";
 
 export async function POST(req) {
 	try {
@@ -45,15 +46,51 @@ export async function POST(req) {
 			return NextResponse.json({ error: first.message }, { status: 400 });
 		}
 
-		const company = await companyDetails.create({
-			user: user._id,
-			companyName: parsed.data.companyName,
-			companyAddress: parsed.data.companyAddress || [], // optional now
-			companyEmail: parsed.data.companyEmail,
-			phone: parsed.data.phone,
-			companyLogo: parsed.data.companyLogo,
-			gstinNumber: parsed.data.gstinNumber,
-		});
+                const normalizedGstin = parsed.data.gstinNumber.trim().toUpperCase();
+
+                let gstPrimaryAddress;
+                try {
+                        const gstDetails = await fetchGstDetails(normalizedGstin);
+                        gstPrimaryAddress = extractPrimaryGstAddress(gstDetails);
+                } catch (gstError) {
+                        return NextResponse.json(
+                                {
+                                        error:
+                                                gstError.message ||
+                                                "Failed to verify GST details. Please confirm the GSTIN and try again.",
+                                },
+                                { status: 400 }
+                        );
+                }
+
+                const additionalAddresses = Array.isArray(parsed.data.companyAddress)
+                        ? parsed.data.companyAddress
+                        : [];
+                const mergedAddresses = [
+                        gstPrimaryAddress,
+                        ...additionalAddresses.filter((address) => {
+                                if (!address) return false;
+                                const normalize = (value = "") => `${value}`.trim().toLowerCase();
+                                return !(
+                                        normalize(address.building) === normalize(gstPrimaryAddress.building) &&
+                                        normalize(address.street) === normalize(gstPrimaryAddress.street) &&
+                                        normalize(address.city) === normalize(gstPrimaryAddress.city) &&
+                                        normalize(address.state) === normalize(gstPrimaryAddress.state) &&
+                                        normalize(address.pincode) === normalize(gstPrimaryAddress.pincode) &&
+                                        normalize(address.country) === normalize(gstPrimaryAddress.country)
+                                );
+                        }),
+                ];
+
+                const company = await companyDetails.create({
+                        user: user._id,
+                        companyName: parsed.data.companyName,
+                        companyAddress: mergedAddresses,
+                        companyEmail: parsed.data.companyEmail,
+                        phone: parsed.data.phone,
+                        companyLogo: parsed.data.companyLogo,
+                        gstinNumber: normalizedGstin,
+                });
 
 		user.company = company._id;
 		await user.save();
