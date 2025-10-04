@@ -8,8 +8,22 @@ const ALLOWED_FOLDERS = {
 };
 
 export async function POST(req) {
-	try {
-		const formData = await req.formData();
+        try {
+                if (!isCloudinaryConfigured) {
+                        const missingMessage = missingCloudinaryConfig.length
+                                ? `Missing environment variables: ${missingCloudinaryConfig.join(", ")}`
+                                : "Missing Cloudinary environment variables.";
+
+                        return NextResponse.json(
+                                {
+                                        success: false,
+                                        message: `Cloudinary configuration is incomplete. ${missingMessage}`,
+                                },
+                                { status: 500 }
+                        );
+                }
+
+                const formData = await req.formData();
 		const file = formData.get("file");
 		const folder = formData.get("folder") || "default";
 
