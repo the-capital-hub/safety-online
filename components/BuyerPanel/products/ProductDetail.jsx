@@ -651,7 +651,7 @@ export default function ProductDetail({
 											<div className="text-sm font-medium mb-2">
 												Check delivery at your pincode
 											</div>
-											<div className="flex flex-col 2xl:flex-row items-center gap-2">
+                                                                                        <div className="flex flex-col sm:flex-row items-stretch gap-2">
 												<input
 													type="text"
 													inputMode="numeric"
@@ -664,10 +664,10 @@ export default function ProductDetail({
 													placeholder="Enter 6-digit pincode"
 													className="flex-1 border rounded px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-orange-500"
 												/>
-												<Button
-													onClick={handleCheckServiceability}
-													disabled={isChecking}
-													className="bg-orange-500 hover:bg-orange-600 text-white"
+                                                                                                <Button
+                                                                                                        onClick={handleCheckServiceability}
+                                                                                                        disabled={isChecking}
+                                                                                                        className="bg-orange-500 hover:bg-orange-600 text-white w-full sm:w-auto"
 												>
 													{isChecking ? "Checking..." : "Check"}
 												</Button>
