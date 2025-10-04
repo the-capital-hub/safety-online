@@ -79,8 +79,14 @@ export async function GET(request) {
                         return dateB - dateA;
                 });
 
+                const statsMatch = { ...query };
+
+                if (statsMatch.status) {
+                        delete statsMatch.status;
+                }
+
                 const [stats] = await Payment.aggregate([
-                        { $match: query },
+                        { $match: statsMatch },
                         {
                                 $group: {
                                         _id: null,
