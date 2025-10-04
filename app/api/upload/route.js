@@ -3,8 +3,9 @@ import cloudinary from "@/lib/cloudinary.js";
 import { Readable } from "stream";
 
 const ALLOWED_FOLDERS = {
-	safety_user_pic: "safety_user_pic",
-	default: "safety_product_reviews",
+        safety_user_pic: "safety_user_pic",
+        default: "safety_product_reviews",
+        brand_promotions: "safety_brand_promotions",
 };
 
 export async function POST(req) {

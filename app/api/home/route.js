@@ -1,5 +1,6 @@
 import { dbConnect } from "@/lib/dbConnect.js";
 import Product from "@/model/Product.js";
+import BrandPromotion from "@/model/BrandPromotion.js";
 
 export async function GET(request) {
 	await dbConnect();
@@ -35,8 +36,13 @@ export async function GET(request) {
 			.limit(3)
 			.lean();
 
-		// Get all products for category section (with pagination)
-		const { searchParams } = new URL(request.url);
+                // Get promotional brand banners
+                const brandPromotions = await BrandPromotion.find({ isActive: true })
+                        .sort({ displayOrder: 1, createdAt: -1 })
+                        .lean();
+
+                // Get all products for category section (with pagination)
+                const { searchParams } = new URL(request.url);
 		const category = searchParams.get("category") || "all";
 		const search = searchParams.get("search") || "";
 		const page = Number.parseInt(searchParams.get("page") || "1");
@@ -101,18 +107,28 @@ export async function GET(request) {
 			updatedAt: product.updatedAt,
 		});
 
-		return Response.json({
-			success: true,
-			data: {
-				discountedProducts: discountedProducts.map(transformProduct),
-				topSellingProducts: topSellingProducts.map(transformProduct),
-				bestSellingProduct: bestSellingProduct
-					? transformProduct(bestSellingProduct)
-					: null,
-				featuredProducts: featuredProducts.map(transformProduct),
-				categoryProducts: categoryProducts.map(transformProduct),
-				categories: ["All", ...categories],
-				pagination: {
+                const transformBrandPromotion = (banner) => ({
+                        id: banner._id.toString(),
+                        brandName: banner.brandName,
+                        discountPercentage: banner.discountPercentage ?? 0,
+                        tagline: banner.tagline || "",
+                        bannerImage: banner.bannerImage,
+                        displayOrder: banner.displayOrder ?? 0,
+                });
+
+                return Response.json({
+                        success: true,
+                        data: {
+                                discountedProducts: discountedProducts.map(transformProduct),
+                                topSellingProducts: topSellingProducts.map(transformProduct),
+                                bestSellingProduct: bestSellingProduct
+                                        ? transformProduct(bestSellingProduct)
+                                        : null,
+                                featuredProducts: featuredProducts.map(transformProduct),
+                                categoryProducts: categoryProducts.map(transformProduct),
+                                categories: ["All", ...categories],
+                                brandPromotions: brandPromotions.map(transformBrandPromotion),
+                                pagination: {
 					currentPage: page,
 					totalPages: Math.ceil(totalCategoryProducts / limit),
 					totalProducts: totalCategoryProducts,
