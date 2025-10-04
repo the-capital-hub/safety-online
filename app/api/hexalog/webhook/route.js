@@ -1,5 +1,5 @@
 import dbConnect from "@/lib/dbConnect";
-import SubOrder from "@/models/SubOrder";
+import SubOrder from "@/model/SubOrder";
 import { createHmac } from "crypto";
 
 // ✅ Ensure raw body available (needed for HMAC)
