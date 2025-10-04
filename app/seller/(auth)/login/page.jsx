@@ -340,6 +340,16 @@ export default function SellerLogin() {
                                                                                                         "Sign in"
                                                                                                 )}
                                                                                         </Button>
+                                                                                        <Button
+                                                                                                type="button"
+                                                                                                variant="outline"
+                                                                                                className="h-12 w-full rounded-xl border-orange-500/60 bg-transparent text-base font-semibold text-orange-500 transition hover:bg-orange-50 hover:text-orange-600"
+                                                                                                asChild
+                                                                                        >
+                                                                                                <Link href="/seller/register">
+                                                                                                        Create new seller account
+                                                                                                </Link>
+                                                                                        </Button>
                                                                                 </form>
                                                                         </CardContent>
                                                                 </Card>
