@@ -28,14 +28,13 @@ import {
 	Loader2,
 	Tag,
 	X,
-	User,
 	Plus,
 	Home,
 	Building,
 	MapPinIcon,
 } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
-import { useAuthStore, useLoggedInUser, useUserEmail } from "@/store/authStore";
+import { useLoggedInUser } from "@/store/authStore";
 import { useProductStore } from "@/store/productStore.js";
 import { useCheckoutStore } from "@/store/checkoutStore.js";
 import Image from "next/image";
@@ -49,7 +48,6 @@ export default function CheckoutPage() {
 
 	// Auth store
 	const user = useLoggedInUser();
-	const userEmail = useUserEmail();
 
 	// Store selectors
 	const cartItems = useCartStore((state) => state.items);
@@ -65,22 +63,19 @@ export default function CheckoutPage() {
 	// Checkout store
 	const {
 		checkoutType,
-		buyNowProduct,
-		buyNowQuantity,
 		customerInfo,
 		savedAddresses,
 		selectedAddressId,
 		newAddress,
 		isAddingNewAddress,
-		orderSummary,
-		appliedCoupon,
-		cartAppliedCoupon,
-		currentStep,
-		isLoading,
-		paymentLoading,
-		paymentMethod,
-		hasBillToAddress,
-	} = useCheckoutStore();
+                orderSummary,
+                appliedCoupon,
+                cartAppliedCoupon,
+                currentStep,
+                isLoading,
+                paymentLoading,
+                paymentMethod,
+        } = useCheckoutStore();
 
 	// Checkout store actions
 	const setCheckoutType = useCheckoutStore((state) => state.setCheckoutType);
@@ -99,15 +94,14 @@ export default function CheckoutPage() {
 	const toggleAddNewAddress = useCheckoutStore(
 		(state) => state.toggleAddNewAddress
 	);
-	const copyShippingToBillTo = useCheckoutStore(
-		(state) => state.copyShippingToBillTo
-	);
-	const applyCoupon = useCheckoutStore((state) => state.applyCoupon);
+        const applyCoupon = useCheckoutStore((state) => state.applyCoupon);
 	const removeCoupon = useCheckoutStore((state) => state.removeCoupon);
 	const processPayment = useCheckoutStore((state) => state.processPayment);
-	const resetCheckout = useCheckoutStore((state) => state.resetCheckout);
 	const getSelectedAddress = useCheckoutStore(
 		(state) => state.getSelectedAddress
+	);
+	const fetchShippingEstimate = useCheckoutStore(
+		(state) => state.fetchShippingEstimate
 	);
 
 	// Check authentication - redirect if not logged in
@@ -141,6 +135,7 @@ export default function CheckoutPage() {
 		}
 	}, [user, loadUserAddresses]);
 
+	// Fetch recommended coupons
 	useEffect(() => {
 		if (!recommendedLoading && recommendedCoupons.length === 0) {
 			fetchRecommendedCoupons();
@@ -158,7 +153,6 @@ export default function CheckoutPage() {
 				// Buy Now flow
 				try {
 					const product = await getProductById(productId);
-					// console.log("Product in checkout:", product);
 					if (product) {
 						setCheckoutType("buyNow", product, quantity);
 						initializeCheckout([], product, quantity);
@@ -205,6 +199,7 @@ export default function CheckoutPage() {
 		);
 	}, []);
 
+	// Check if Razorpay is already loaded
 	useEffect(() => {
 		if (typeof window === "undefined") {
 			return;
@@ -251,12 +246,18 @@ export default function CheckoutPage() {
 		};
 	}, []);
 
-	// Handle address selection
+	// Handle address selection with automatic shipping estimate
 	const handleAddressSelect = useCallback(
-		(addressId) => {
+		async (addressId) => {
 			selectAddress(addressId);
+
+			// Automatically fetch shipping estimate when address is selected
+			if (orderSummary.items.length > 0) {
+				// The fetchShippingEstimate function now calculates everything automatically
+				await fetchShippingEstimate();
+			}
 		},
-		[selectAddress]
+		[selectAddress, fetchShippingEstimate, orderSummary.items.length]
 	);
 
 	// Handle new address form
@@ -300,7 +301,7 @@ export default function CheckoutPage() {
 
 	// Handle payment
 	const handlePayment = useCallback(async () => {
-		if (!isRazorpayLoaded) {
+		if (!isRazorpayLoaded && paymentMethod === "razorpay") {
 			toast.error("Payment system is loading. Please wait.");
 			return;
 		}
@@ -325,6 +326,7 @@ export default function CheckoutPage() {
 		}
 	}, [
 		isRazorpayLoaded,
+		paymentMethod,
 		processPayment,
 		user,
 		checkoutType,
@@ -343,30 +345,13 @@ export default function CheckoutPage() {
 					</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-4">
-					{!hasBillToAddress && (
-						<div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md text-sm text-yellow-800">
-							No billing address found. Please add one to continue.
-							{selectedAddressId && (
-								<Button
-									size="sm"
-									className="mt-2"
-									onClick={copyShippingToBillTo}
-									disabled={isLoading}
-								>
-									Use selected shipping address
-								</Button>
-							)}
-						</div>
-					)}
-					{/* Saved Addresses */}
-					{savedAddresses.length > 0 && (
-						<div className="space-y-3">
-							<h4 className="font-medium">Saved Addresses</h4>
-							{savedAddresses
-								.filter((address) => address.addressType !== "billTo")
-								.map((address) => (
-									<div
-										key={address._id}
+                                        {/* Saved Addresses */}
+                                        {savedAddresses.length > 0 && (
+                                                <div className="space-y-3">
+                                                        <h4 className="font-medium">Saved Addresses</h4>
+                                                        {savedAddresses.map((address) => (
+                                                                        <div
+                                                                                key={address._id}
 										className={`p-4 border rounded-lg cursor-pointer transition-colors ${
 											selectedAddressId === address._id
 												? "border-blue-500 bg-blue-50"
@@ -391,11 +376,6 @@ export default function CheckoutPage() {
 													</Badge>
 													{address.isDefault && (
 														<Badge variant="default">Default</Badge>
-													)}
-													{address.addressType && (
-														<Badge variant="default" className="capitalize">
-															{address.addressType}
-														</Badge>
 													)}
 												</div>
 												<p className="font-medium">{address.name}</p>
@@ -473,23 +453,6 @@ export default function CheckoutPage() {
 											<SelectItem value="home">Home</SelectItem>
 											<SelectItem value="office">Office</SelectItem>
 											<SelectItem value="other">Other</SelectItem>
-										</SelectContent>
-									</Select>
-								</div>
-								<div>
-									<Label htmlFor="addressType">Address Type</Label>
-									<Select
-										value={newAddress.addressType}
-										onValueChange={(value) =>
-											handleNewAddressChange("addressType", value)
-										}
-									>
-										<SelectTrigger>
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="shipTo">Ship To</SelectItem>
-											<SelectItem value="billTo">Bill To</SelectItem>
 										</SelectContent>
 									</Select>
 								</div>
@@ -596,11 +559,11 @@ export default function CheckoutPage() {
 					)}
 
 					{/* Continue Button */}
-					<Button
-						onClick={() => setCurrentStep(2)}
-						disabled={!selectedAddressId || !hasBillToAddress}
-						className="w-full"
-					>
+                                        <Button
+                                                onClick={() => setCurrentStep(2)}
+                                                disabled={!selectedAddressId}
+                                                className="w-full"
+                                        >
 						Continue to Payment
 						<ArrowRight className="ml-2 h-4 w-4" />
 					</Button>
@@ -611,12 +574,10 @@ export default function CheckoutPage() {
 			savedAddresses,
 			selectedAddressId,
 			isAddingNewAddress,
-			newAddress,
-			isLoading,
-			hasBillToAddress,
-			copyShippingToBillTo,
-			handleAddressSelect,
-			handleNewAddressChange,
+                        newAddress,
+                        isLoading,
+                        handleAddressSelect,
+                        handleNewAddressChange,
 			handleAddNewAddress,
 			toggleAddNewAddress,
 			setCurrentStep,
@@ -832,7 +793,13 @@ export default function CheckoutPage() {
 					</div>
 
 					<Separator />
+					<div className="flex justify-between text-sm">
+						<span className="font-medium text-sm">Estimated Delivery</span>
+						<span>{orderSummary.edd || "Please again address"}</span>
+					</div>
+					<Separator />
 
+					{/* Coupon Section - Only for Buy Now */}
 					{checkoutType === "buyNow" && (
 						<>
 							<div className="space-y-3">
@@ -896,6 +863,7 @@ export default function CheckoutPage() {
 									</>
 								)}
 
+								{/* Recommended Coupons */}
 								<div className="space-y-2">
 									<div className="flex items-center justify-between">
 										<p className="text-sm font-medium text-gray-700">
@@ -1099,27 +1067,6 @@ export default function CheckoutPage() {
 										: "Review your cart and complete your order"}
 								</p>
 							</div>
-							{/* <div className="text-right">
-								<div className="flex items-center gap-2">
-									{user.profilePic ? (
-										<Image
-											src={user.profilePic}
-											alt={user.firstName + " " + user.lastName}
-											width={40}
-											height={40}
-											className="w-10 h-10 rounded-full object-cover"
-										/>
-									) : (
-										<User className="h-4 w-4" />
-									)}
-									<div>
-										<p className="text-sm text-gray-600">Welcome back,</p>
-										<p className="font-medium">
-											{user.firstName + " " + user.lastName}
-										</p>
-									</div>
-								</div>
-							</div> */}
 						</div>
 					</div>
 

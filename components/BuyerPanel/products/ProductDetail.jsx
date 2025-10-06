@@ -120,8 +120,9 @@ export default function ProductDetail({
 		return Array.from({ length: 5 }, (_, i) => (
 			<Star
 				key={i}
-				className={`w-4 h-4 ${i < rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
-					}`}
+				className={`w-4 h-4 ${
+					i < rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+				}`}
 			/>
 		));
 	};
@@ -129,7 +130,9 @@ export default function ProductDetail({
 	const getSellerInitials = (name) => {
 		if (!name) return "";
 		const parts = name.trim().split(/\s+/);
-		const initials = parts.slice(0, 2).map((part) => part[0]?.toUpperCase() || "");
+		const initials = parts
+			.slice(0, 2)
+			.map((part) => part[0]?.toUpperCase() || "");
 		return initials.join("");
 	};
 
@@ -161,15 +164,8 @@ export default function ProductDetail({
 			return null;
 		}
 
-		const {
-			building,
-			street,
-			city,
-			state,
-			pincode,
-			country,
-			tagName,
-		} = headOffice;
+		const { building, street, city, state, pincode, country, tagName } =
+			headOffice;
 
 		return {
 			label: tagName ? toSentenceCase(tagName) : "Registered Address",
