@@ -28,14 +28,13 @@ import {
 	Loader2,
 	Tag,
 	X,
-	User,
 	Plus,
 	Home,
 	Building,
 	MapPinIcon,
 } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
-import { useAuthStore, useLoggedInUser, useUserEmail } from "@/store/authStore";
+import { useLoggedInUser } from "@/store/authStore";
 import { useProductStore } from "@/store/productStore.js";
 import { useCheckoutStore } from "@/store/checkoutStore.js";
 import Image from "next/image";
@@ -49,7 +48,6 @@ export default function CheckoutPage() {
 
 	// Auth store
 	const user = useLoggedInUser();
-	const userEmail = useUserEmail();
 
 	// Store selectors
 	const cartItems = useCartStore((state) => state.items);
@@ -65,8 +63,6 @@ export default function CheckoutPage() {
 	// Checkout store
 	const {
 		checkoutType,
-		buyNowProduct,
-		buyNowQuantity,
 		customerInfo,
 		savedAddresses,
 		selectedAddressId,
@@ -105,9 +101,11 @@ export default function CheckoutPage() {
 	const applyCoupon = useCheckoutStore((state) => state.applyCoupon);
 	const removeCoupon = useCheckoutStore((state) => state.removeCoupon);
 	const processPayment = useCheckoutStore((state) => state.processPayment);
-	const resetCheckout = useCheckoutStore((state) => state.resetCheckout);
 	const getSelectedAddress = useCheckoutStore(
 		(state) => state.getSelectedAddress
+	);
+	const fetchShippingEstimate = useCheckoutStore(
+		(state) => state.fetchShippingEstimate
 	);
 
 	// Check authentication - redirect if not logged in
@@ -141,6 +139,7 @@ export default function CheckoutPage() {
 		}
 	}, [user, loadUserAddresses]);
 
+	// Fetch recommended coupons
 	useEffect(() => {
 		if (!recommendedLoading && recommendedCoupons.length === 0) {
 			fetchRecommendedCoupons();
@@ -158,7 +157,6 @@ export default function CheckoutPage() {
 				// Buy Now flow
 				try {
 					const product = await getProductById(productId);
-					// console.log("Product in checkout:", product);
 					if (product) {
 						setCheckoutType("buyNow", product, quantity);
 						initializeCheckout([], product, quantity);
@@ -205,6 +203,7 @@ export default function CheckoutPage() {
 		);
 	}, []);
 
+	// Check if Razorpay is already loaded
 	useEffect(() => {
 		if (typeof window === "undefined") {
 			return;
@@ -251,12 +250,18 @@ export default function CheckoutPage() {
 		};
 	}, []);
 
-	// Handle address selection
+	// Handle address selection with automatic shipping estimate
 	const handleAddressSelect = useCallback(
-		(addressId) => {
+		async (addressId) => {
 			selectAddress(addressId);
+
+			// Automatically fetch shipping estimate when address is selected
+			if (orderSummary.items.length > 0) {
+				// The fetchShippingEstimate function now calculates everything automatically
+				await fetchShippingEstimate();
+			}
 		},
-		[selectAddress]
+		[selectAddress, fetchShippingEstimate, orderSummary.items.length]
 	);
 
 	// Handle new address form
@@ -300,7 +305,7 @@ export default function CheckoutPage() {
 
 	// Handle payment
 	const handlePayment = useCallback(async () => {
-		if (!isRazorpayLoaded) {
+		if (!isRazorpayLoaded && paymentMethod === "razorpay") {
 			toast.error("Payment system is loading. Please wait.");
 			return;
 		}
@@ -325,6 +330,7 @@ export default function CheckoutPage() {
 		}
 	}, [
 		isRazorpayLoaded,
+		paymentMethod,
 		processPayment,
 		user,
 		checkoutType,
@@ -358,6 +364,7 @@ export default function CheckoutPage() {
 							)}
 						</div>
 					)}
+
 					{/* Saved Addresses */}
 					{savedAddresses.length > 0 && (
 						<div className="space-y-3">
@@ -391,11 +398,6 @@ export default function CheckoutPage() {
 													</Badge>
 													{address.isDefault && (
 														<Badge variant="default">Default</Badge>
-													)}
-													{address.addressType && (
-														<Badge variant="default" className="capitalize">
-															{address.addressType}
-														</Badge>
 													)}
 												</div>
 												<p className="font-medium">{address.name}</p>
@@ -832,7 +834,13 @@ export default function CheckoutPage() {
 					</div>
 
 					<Separator />
+					<div className="flex justify-between text-sm">
+						<span className="font-medium text-sm">Estimated Delivery</span>
+						<span>{orderSummary.edd || "Please again address"}</span>
+					</div>
+					<Separator />
 
+					{/* Coupon Section - Only for Buy Now */}
 					{checkoutType === "buyNow" && (
 						<>
 							<div className="space-y-3">
@@ -896,6 +904,7 @@ export default function CheckoutPage() {
 									</>
 								)}
 
+								{/* Recommended Coupons */}
 								<div className="space-y-2">
 									<div className="flex items-center justify-between">
 										<p className="text-sm font-medium text-gray-700">
@@ -1099,27 +1108,6 @@ export default function CheckoutPage() {
 										: "Review your cart and complete your order"}
 								</p>
 							</div>
-							{/* <div className="text-right">
-								<div className="flex items-center gap-2">
-									{user.profilePic ? (
-										<Image
-											src={user.profilePic}
-											alt={user.firstName + " " + user.lastName}
-											width={40}
-											height={40}
-											className="w-10 h-10 rounded-full object-cover"
-										/>
-									) : (
-										<User className="h-4 w-4" />
-									)}
-									<div>
-										<p className="text-sm text-gray-600">Welcome back,</p>
-										<p className="font-medium">
-											{user.firstName + " " + user.lastName}
-										</p>
-									</div>
-								</div>
-							</div> */}
 						</div>
 					</div>
 
