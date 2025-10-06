@@ -764,107 +764,112 @@ export default function ProductDetail({
                                                                         animate={{ opacity: 1, y: 0 }}
                                                                         transition={{ duration: 0.5, delay: 0.4 }}
                                                                 >
-                                                                        <Card className="bg-white shadow-sm border border-orange-100">
-                                        <CardContent className="p-6 space-y-6">
-                                                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                                                        <div className="flex items-start gap-4">
-                                                                {seller?.companyLogo ? (
-                                                                        <div className="relative h-16 w-16 shrink-0 rounded-full border border-orange-200 bg-orange-50 flex items-center justify-center overflow-hidden">
-                                                                                <Image
-                                                                                        src={seller.companyLogo}
-                                                                                        alt={`${seller?.companyName || "Seller"} logo`}
-                                                                                        width={64}
-                                                                                        height={64}
-                                                                                        className="object-contain p-2"
-                                                                                />
-                                                                        </div>
-                                                                ) : (
-                                                                        <div className="h-16 w-16 shrink-0 rounded-full bg-orange-100 border border-orange-200 flex items-center justify-center text-xl font-semibold text-orange-700">
-                                                                                {getSellerInitials(seller?.companyName || seller?.brandName)}
-                                                                        </div>
-                                                                )}
-                                                                <div className="space-y-1">
-                                                                        <p className="text-xs font-semibold tracking-wide text-orange-500 uppercase">Sold by</p>
-                                                                        <h3 className="text-xl font-semibold text-gray-900 break-words">
-                                                                                {seller?.brandName || seller?.companyName || "Trusted Seller"}
-                                                                        </h3>
-                                                                        <p className="text-sm text-gray-500 leading-relaxed break-words">
-                                                                                {seller?.tagline ||
-                                                                                        "Authorised safety equipment partner offering reliable quality and dedicated service."}
-                                                                        </p>
-                                                                </div>
-                                                        </div>
-                                                        <div className="flex items-center gap-3">
-                                                                <Badge className="bg-green-50 text-green-700 border border-green-200 font-medium whitespace-nowrap">
-                                                                        Verified Seller
-                                                                </Badge>
-                                                                <div className="hidden sm:flex items-center gap-1 text-sm text-gray-500">
-                                                                        <ShieldCheck className="h-4 w-4 text-green-500" />
-                                                                        Amazon-style assurance
-                                                                </div>
-                                                        </div>
-                                                </div>
+                                                                        <Card className="bg-white shadow-md border border-orange-100 overflow-hidden">
+                                                                                <CardContent className="p-6 space-y-6">
+                                                                                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                                                                                <div className="flex items-center gap-4">
+                                                                                                        {seller?.companyLogo ? (
+                                                                                                                <div className="relative h-16 w-16 rounded-full border border-orange-200 bg-orange-50 flex items-center justify-center overflow-hidden">
+                                                                                                                        <Image
+                                                                                                                                src={seller.companyLogo}
+                                                                                                                                alt={`${seller?.companyName || "Seller"} logo`}
+                                                                                                                                width={64}
+                                                                                                                                height={64}
+                                                                                                                                className="object-contain p-2"
+                                                                                                                        />
+                                                                                                                </div>
+                                                                                                        ) : (
+                                                                                                                <div className="h-16 w-16 rounded-full bg-orange-100 border border-orange-200 flex items-center justify-center text-xl font-semibold text-orange-700">
+                                                                                                                        {getSellerInitials(seller?.companyName || seller?.brandName)}
+                                                                                                                </div>
+                                                                                                        )}
+                                                                                                        <div>
+                                                                                                                <p className="text-sm uppercase tracking-wide text-orange-600 font-semibold">
+                                                                                                                        Sold by
+                                                                                                                </p>
+                                                                                                                <h2 className="text-2xl font-bold text-gray-900">
+                                                                                                                        {seller?.brandName || seller?.companyName || "Trusted Seller"}
+                                                                                                                </h2>
+                                                                                                                <p className="text-sm text-gray-500 max-w-md">
+                                                                                                                        {seller?.brandDescription ||
+                                                                                                                                "Authorised safety equipment partner offering reliable quality and dedicated service."}
+                                                                                                                </p>
+                                                                                                        </div>
+                                                                                                </div>
+                                                                                                <div className="flex flex-col items-start sm:items-end gap-2">
+                                                                                                        <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700 border border-emerald-100">
+                                                                                                                <ShieldCheck className="h-4 w-4" />
+                                                                                                                Safety Online verified seller
+                                                                                                        </span>
+                                                                                                        {seller?.gstinNumber && (
+                                                                                                                <span className="text-xs text-gray-500">
+                                                                                                                        GSTIN: {seller.gstinNumber}
+                                                                                                                </span>
+                                                                                                        )}
+                                                                                                </div>
+                                                                                        </div>
 
-                                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                                                        <div className="rounded-xl border border-gray-100 bg-gray-50/80 p-4 flex flex-col gap-2">
-                                                                <div className="flex items-center gap-2 text-gray-800">
-                                                                        <Store className="h-5 w-5 text-orange-500" />
-                                                                        <span className="text-sm font-semibold">Business Details</span>
-                                                                </div>
-                                                                <div className="text-sm text-gray-600 space-y-1">
-                                                                        <p className="font-medium text-gray-700 leading-relaxed break-words">
-                                                                                {seller?.companyName || "Company Name"}
-                                                                        </p>
-                                                                        {seller?.brandName && (
-                                                                                <p className="text-gray-500 leading-relaxed break-words">Brand: {seller.brandName}</p>
-                                                                        )}
-                                                                </div>
-                                                        </div>
+                                                                                        <div className="grid gap-4 sm:grid-cols-2">
+                                                                                                <div className="space-y-3 rounded-lg border border-gray-100 bg-gray-50 p-4">
+                                                                                                        <div className="flex items-center gap-2 text-gray-800">
+                                                                                                                <Store className="h-5 w-5 text-orange-500" />
+                                                                                                                <span className="text-sm font-semibold">Business Details</span>
+                                                                                                        </div>
+                                                                                                        <div className="text-sm text-gray-600 space-y-1">
+                                                                                                                <p className="font-medium text-gray-700">
+                                                                                                                        {seller?.companyName || "Company Name"}
+                                                                                                                </p>
+                                                                                                                {seller?.brandName && (
+                                                                                                                        <p className="text-gray-500">
+                                                                                                                                Brand: {seller.brandName}
+                                                                                                                        </p>
+                                                                                                                )}
+                                                                                                        </div>
+                                                                                                </div>
 
-                                                        <div className="rounded-xl border border-gray-100 bg-gray-50/80 p-4 flex flex-col gap-3">
-                                                                <div className="flex items-center gap-2 text-gray-800">
-                                                                        <HelpCircle className="h-5 w-5 text-orange-500" />
-                                                                        <span className="text-sm font-semibold">Customer Assistance</span>
-                                                                </div>
-                                                                <div className="flex flex-col gap-2 text-sm text-gray-600">
-                                                                        {seller?.companyEmail && (
-                                                                                <div className="flex items-center gap-2 break-words">
-                                                                                        <Mail className="h-4 w-4 text-gray-500" />
-                                                                                        <span className="leading-relaxed">{seller.companyEmail}</span>
-                                                                                </div>
-                                                                        )}
-                                                                        {seller?.phone && (
-                                                                                <div className="flex items-center gap-2 break-words">
-                                                                                        <Phone className="h-4 w-4 text-gray-500" />
-                                                                                        <span className="leading-relaxed">{seller.phone}</span>
-                                                                                </div>
-                                                                        )}
-                                                                        <div className="flex items-start gap-2 text-gray-500">
-                                                                                <AlertCircle className="h-4 w-4 mt-0.5" />
-                                                                                <span className="leading-relaxed">
-                                                                                        Need help? Reach out for installation & after-sales support.
-                                                                                </span>
-                                                                        </div>
-                                                                </div>
-                                                        </div>
+                                                                                                <div className="space-y-3 rounded-lg border border-gray-100 bg-gray-50 p-4">
+                                                                                                        <div className="flex items-center gap-2 text-gray-800">
+                                                                                                                <HelpCircle className="h-5 w-5 text-orange-500" />
+                                                                                                                <span className="text-sm font-semibold">Customer Assistance</span>
+                                                                                                        </div>
+                                                                                                        <div className="flex flex-col gap-2 text-sm text-gray-600">
+                                                                                                                {seller?.companyEmail && (
+                                                                                                                        <div className="flex items-center gap-2">
+                                                                                                                                <Mail className="h-4 w-4 text-gray-500" />
+                                                                                                                                <span>{seller.companyEmail}</span>
+                                                                                                                        </div>
+                                                                                                                )}
+                                                                                                                {seller?.phone && (
+                                                                                                                        <div className="flex items-center gap-2">
+                                                                                                                                <Phone className="h-4 w-4 text-gray-500" />
+                                                                                                                                <span>{seller.phone}</span>
+                                                                                                                        </div>
+                                                                                                                )}
+                                                                                                                <div className="flex items-center gap-2 text-gray-500">
+                                                                                                                        <AlertCircle className="h-4 w-4" />
+                                                                                                                        <span>Need help? Reach out for installation & after-sales support.</span>
+                                                                                                                </div>
+                                                                                                        </div>
+                                                                                                </div>
 
-                                                        <div className="rounded-xl border border-gray-100 bg-gray-50/80 p-4 flex flex-col gap-3 sm:col-span-2 xl:col-span-1">
-                                                                <div className="flex items-start gap-2 text-gray-800">
-                                                                        <MapPin className="h-5 w-5 text-orange-500 mt-0.5" />
-                                                                        <div className="space-y-1">
-                                                                                <p className="text-sm font-semibold text-gray-800">
-                                                                                        {(headOfficeAddress && headOfficeAddress.label) || "Business Address"}
-                                                                                </p>
-                                                                                <p className="text-sm text-gray-600 leading-relaxed break-words">
-                                                                                        {(headOfficeAddress && headOfficeAddress.fullAddress) ||
-                                                                                                "Address information will be available soon."}
-                                                                                </p>
-                                                                        </div>
-                                                                </div>
-                                                        </div>
-                                                </div>
-                                        </CardContent>
-                                </Card>
+                                                                                                <div className="sm:col-span-2 rounded-lg border border-gray-100 bg-gray-50 p-4">
+                                                                                                        <div className="flex items-start gap-3">
+                                                                                                                <MapPin className="h-5 w-5 text-orange-500 mt-1" />
+                                                                                                                <div className="space-y-1">
+                                                                                                                        <p className="text-sm font-semibold text-gray-800">
+                                                                                                                                {(headOfficeAddress && headOfficeAddress.label) ||
+                                                                                                                                        "Business Address"}
+                                                                                                                        </p>
+                                                                                                                        <p className="text-sm text-gray-600 leading-relaxed">
+                                                                                                                                {(headOfficeAddress && headOfficeAddress.fullAddress) ||
+                                                                                                                                        "Address information will be available soon."}
+                                                                                                                        </p>
+                                                                                                                </div>
+                                                                                                        </div>
+                                                                                                </div>
+                                                                                        </div>
+                                                                                </CardContent>
+                                                                        </Card>
                                                                 </motion.div>
                                                         )}
 						</div>
