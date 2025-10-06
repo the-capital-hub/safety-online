@@ -84,14 +84,13 @@ export async function POST(request) {
 			);
 		}
 
-		const {
-			tag,
-			addressType,
-			name,
-			street,
-			city,
-			state,
-			zipCode,
+                const {
+                        tag,
+                        name,
+                        street,
+                        city,
+                        state,
+                        zipCode,
 			country = "India",
 			isDefault = false,
 		} = addressData;
@@ -119,13 +118,12 @@ export async function POST(request) {
 		}
 
 		// Add new address
-		const newAddress = {
-			tag,
-			addressType,
-			name,
-			street,
-			city,
-			state,
+                const newAddress = {
+                        tag,
+                        name,
+                        street,
+                        city,
+                        state,
 			zipCode,
 			country,
 			isDefault,

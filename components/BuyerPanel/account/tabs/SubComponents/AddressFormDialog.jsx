@@ -24,32 +24,30 @@ import { addressSchema } from "@/zodSchema/addressSchema.js";
 
 export default function AddressFormDialog({ trigger, initial, onSave }) {
 	const [open, setOpen] = useState(false);
-	const [form, setForm] = useState({
-		tag: "home",
-		addressType: "shipTo",
-		name: "",
-		street: "",
-		city: "",
-		state: "",
-		zipCode: "",
+        const [form, setForm] = useState({
+                tag: "home",
+                name: "",
+                street: "",
+                city: "",
+                state: "",
+                zipCode: "",
 		country: "India",
 		isDefault: false,
 	});
 	const [errors, setErrors] = useState({});
 
 	useEffect(() => {
-		if (initial) {
-			setForm({ ...form, ...initial });
-		} else {
-			// Reset form when adding new address
-			setForm({
-				tag: "home",
-				addressType: "shipTo",
-				name: "",
-				street: "",
-				city: "",
-				state: "",
-				zipCode: "",
+                if (initial) {
+                        setForm({ ...form, ...initial });
+                } else {
+                        // Reset form when adding new address
+                        setForm({
+                                tag: "home",
+                                name: "",
+                                street: "",
+                                city: "",
+                                state: "",
+                                zipCode: "",
 				country: "India",
 				isDefault: false,
 			});
@@ -79,21 +77,21 @@ export default function AddressFormDialog({ trigger, initial, onSave }) {
 			return;
 		}
 
-		onSave?.(form);
+                onSave?.(result.data);
 		setOpen(false);
 
 		// Reset form after successful save if it's a new address
-		if (!initial) {
-			setForm({
-				tag: "home",
-				name: "",
-				street: "",
-				city: "",
-				state: "",
-				zipCode: "",
-				country: "India",
-				isDefault: false,
-			});
+                if (!initial) {
+                        setForm({
+                                tag: "home",
+                                name: "",
+                                street: "",
+                                city: "",
+                                state: "",
+                                zipCode: "",
+                                country: "India",
+                                isDefault: false,
+                        });
 		}
 	}
 
@@ -147,26 +145,6 @@ export default function AddressFormDialog({ trigger, initial, onSave }) {
 								<p className="text-xs text-red-500">{errors.name}</p>
 							)}
 						</div>
-					</div>
-
-					{/* Address Type */}
-					<div className="space-y-2">
-						<Label htmlFor="addressType">Address Type </Label>
-						<Select
-							value={form.addressType}
-							onValueChange={(value) => set("addressType", value)}
-						>
-							<SelectTrigger>
-								<SelectValue placeholder="Select address type" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="billTo">Bill To</SelectItem>
-								<SelectItem value="shipTo">Ship To</SelectItem>
-							</SelectContent>
-						</Select>
-						{errors.addressType && (
-							<p className="text-xs text-red-500">{errors.addressType}</p>
-						)}
 					</div>
 
 					{/* Street Address */}

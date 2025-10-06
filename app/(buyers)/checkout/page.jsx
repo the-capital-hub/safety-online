@@ -68,15 +68,14 @@ export default function CheckoutPage() {
 		selectedAddressId,
 		newAddress,
 		isAddingNewAddress,
-		orderSummary,
-		appliedCoupon,
-		cartAppliedCoupon,
-		currentStep,
-		isLoading,
-		paymentLoading,
-		paymentMethod,
-		hasBillToAddress,
-	} = useCheckoutStore();
+                orderSummary,
+                appliedCoupon,
+                cartAppliedCoupon,
+                currentStep,
+                isLoading,
+                paymentLoading,
+                paymentMethod,
+        } = useCheckoutStore();
 
 	// Checkout store actions
 	const setCheckoutType = useCheckoutStore((state) => state.setCheckoutType);
@@ -95,10 +94,7 @@ export default function CheckoutPage() {
 	const toggleAddNewAddress = useCheckoutStore(
 		(state) => state.toggleAddNewAddress
 	);
-	const copyShippingToBillTo = useCheckoutStore(
-		(state) => state.copyShippingToBillTo
-	);
-	const applyCoupon = useCheckoutStore((state) => state.applyCoupon);
+        const applyCoupon = useCheckoutStore((state) => state.applyCoupon);
 	const removeCoupon = useCheckoutStore((state) => state.removeCoupon);
 	const processPayment = useCheckoutStore((state) => state.processPayment);
 	const getSelectedAddress = useCheckoutStore(
@@ -349,31 +345,13 @@ export default function CheckoutPage() {
 					</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-4">
-					{!hasBillToAddress && (
-						<div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md text-sm text-yellow-800">
-							No billing address found. Please add one to continue.
-							{selectedAddressId && (
-								<Button
-									size="sm"
-									className="mt-2"
-									onClick={copyShippingToBillTo}
-									disabled={isLoading}
-								>
-									Use selected shipping address
-								</Button>
-							)}
-						</div>
-					)}
-
-					{/* Saved Addresses */}
-					{savedAddresses.length > 0 && (
-						<div className="space-y-3">
-							<h4 className="font-medium">Saved Addresses</h4>
-							{savedAddresses
-								.filter((address) => address.addressType !== "billTo")
-								.map((address) => (
-									<div
-										key={address._id}
+                                        {/* Saved Addresses */}
+                                        {savedAddresses.length > 0 && (
+                                                <div className="space-y-3">
+                                                        <h4 className="font-medium">Saved Addresses</h4>
+                                                        {savedAddresses.map((address) => (
+                                                                        <div
+                                                                                key={address._id}
 										className={`p-4 border rounded-lg cursor-pointer transition-colors ${
 											selectedAddressId === address._id
 												? "border-blue-500 bg-blue-50"
@@ -475,23 +453,6 @@ export default function CheckoutPage() {
 											<SelectItem value="home">Home</SelectItem>
 											<SelectItem value="office">Office</SelectItem>
 											<SelectItem value="other">Other</SelectItem>
-										</SelectContent>
-									</Select>
-								</div>
-								<div>
-									<Label htmlFor="addressType">Address Type</Label>
-									<Select
-										value={newAddress.addressType}
-										onValueChange={(value) =>
-											handleNewAddressChange("addressType", value)
-										}
-									>
-										<SelectTrigger>
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="shipTo">Ship To</SelectItem>
-											<SelectItem value="billTo">Bill To</SelectItem>
 										</SelectContent>
 									</Select>
 								</div>
@@ -598,11 +559,11 @@ export default function CheckoutPage() {
 					)}
 
 					{/* Continue Button */}
-					<Button
-						onClick={() => setCurrentStep(2)}
-						disabled={!selectedAddressId || !hasBillToAddress}
-						className="w-full"
-					>
+                                        <Button
+                                                onClick={() => setCurrentStep(2)}
+                                                disabled={!selectedAddressId}
+                                                className="w-full"
+                                        >
 						Continue to Payment
 						<ArrowRight className="ml-2 h-4 w-4" />
 					</Button>
@@ -613,12 +574,10 @@ export default function CheckoutPage() {
 			savedAddresses,
 			selectedAddressId,
 			isAddingNewAddress,
-			newAddress,
-			isLoading,
-			hasBillToAddress,
-			copyShippingToBillTo,
-			handleAddressSelect,
-			handleNewAddressChange,
+                        newAddress,
+                        isLoading,
+                        handleAddressSelect,
+                        handleNewAddressChange,
 			handleAddNewAddress,
 			toggleAddNewAddress,
 			setCurrentStep,

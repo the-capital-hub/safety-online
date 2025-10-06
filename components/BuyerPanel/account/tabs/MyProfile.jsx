@@ -460,9 +460,9 @@ export function MyProfile() {
 					<CardHeader className="flex flex-row items-center justify-between">
 						<div>
 							<CardTitle>Addresses</CardTitle>
-							<CardDescription>
-								Manage your shipping and billing addresses
-							</CardDescription>
+                                                        <CardDescription>
+                                                                Manage your saved shipping addresses
+                                                        </CardDescription>
 						</div>
 						<AddressFormDialog
 							trigger={
@@ -489,11 +489,6 @@ export function MyProfile() {
 									<div className="flex items-center justify-between mb-2">
 										<div className="font-medium capitalize">
 											{addr.tag} Address{" "}
-											{addr?.addressType && (
-												<span className="ml-2 text-xs bg-primary text-primary-foreground px-2 py-1 rounded">
-													{addr.addressType}
-												</span>
-											)}
 											{addr.isDefault && (
 												<span className="ml-2 text-xs bg-primary text-primary-foreground px-2 py-1 rounded">
 													Default
