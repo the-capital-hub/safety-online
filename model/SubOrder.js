@@ -357,6 +357,7 @@ const SubOrderSchema = new mongoose.Schema(
 
 		// Delivery info (high-level tracking)
 		estimatedDelivery: Date,
+		edd: String, // Estimated Delivery Date as string for quick display
 		actualDelivery: Date,
 		paymentMethod: { type: String, enum: ["COD", "Prepaid"] },
 
