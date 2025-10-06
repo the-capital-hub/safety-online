@@ -384,10 +384,24 @@ export const useCheckoutStore = create(
 				},
 
 				// Select address
-				selectAddress: (addressId) => {
-					set({ selectedAddressId: addressId });
-					get().recalculateTotal();
-				},
+                                selectAddress: (addressId) => {
+                                        set((state) => ({
+                                                selectedAddressId: addressId,
+                                                orderSummary: {
+                                                        ...state.orderSummary,
+                                                        shippingCost: 0,
+                                                        shippingEstimate: {
+                                                                minDays: null,
+                                                                maxDays: null,
+                                                                estimatedCost: null,
+                                                                estimatedTax: null,
+                                                                estimatedTotal: null,
+                                                        },
+                                                        edd: "N/A",
+                                                },
+                                        }));
+                                        get().recalculateTotal();
+                                },
 
 				// Fetch shipping estimate
 				fetchShippingEstimate: async () => {

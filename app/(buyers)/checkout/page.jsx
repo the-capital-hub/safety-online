@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Script from "next/script";
 import { motion } from "framer-motion";
@@ -100,9 +100,25 @@ export default function CheckoutPage() {
 	const getSelectedAddress = useCheckoutStore(
 		(state) => state.getSelectedAddress
 	);
-	const fetchShippingEstimate = useCheckoutStore(
-		(state) => state.fetchShippingEstimate
-	);
+        const fetchShippingEstimate = useCheckoutStore(
+                (state) => state.fetchShippingEstimate
+        );
+
+        const lastFetchedEstimateRef = useRef({
+                addressId: null,
+                itemsKey: "",
+                status: "idle",
+        });
+
+        const itemsKey = useMemo(() => {
+                if (!orderSummary.items || orderSummary.items.length === 0) {
+                        return "";
+                }
+
+                return orderSummary.items
+                        .map((item) => `${item.productId || item._id || item.id}:${item.quantity}`)
+                        .join("|");
+        }, [orderSummary.items]);
 
 	// Check authentication - redirect if not logged in
 	useEffect(() => {
@@ -247,18 +263,77 @@ export default function CheckoutPage() {
 	}, []);
 
 	// Handle address selection with automatic shipping estimate
-	const handleAddressSelect = useCallback(
-		async (addressId) => {
-			selectAddress(addressId);
+        const handleAddressSelect = useCallback(
+                (addressId) => {
+                        lastFetchedEstimateRef.current = {
+                                addressId: null,
+                                itemsKey: "",
+                                status: "idle",
+                        };
+                        selectAddress(addressId);
+                },
+                [selectAddress]
+        );
 
-			// Automatically fetch shipping estimate when address is selected
-			if (orderSummary.items.length > 0) {
-				// The fetchShippingEstimate function now calculates everything automatically
-				await fetchShippingEstimate();
-			}
-		},
-		[selectAddress, fetchShippingEstimate, orderSummary.items.length]
-	);
+        useEffect(() => {
+                if (!selectedAddressId || !itemsKey) {
+                        return;
+                }
+
+                const lastFetch = lastFetchedEstimateRef.current;
+                const isSameContext =
+                        lastFetch.addressId === selectedAddressId && lastFetch.itemsKey === itemsKey;
+
+                const hasValidEstimate =
+                        orderSummary.shippingEstimate &&
+                        orderSummary.shippingEstimate.estimatedCost !== null &&
+                        orderSummary.shippingEstimate.minDays !== null;
+
+                if (isSameContext) {
+                        if (lastFetch.status === "pending") {
+                                return;
+                        }
+
+                        if (lastFetch.status === "failed" && !hasValidEstimate) {
+                                return;
+                        }
+
+                        if (hasValidEstimate) {
+                                return;
+                        }
+                }
+
+                const fetchEstimate = async () => {
+                        lastFetchedEstimateRef.current = {
+                                addressId: selectedAddressId,
+                                itemsKey,
+                                status: "pending",
+                        };
+
+                        const response = await fetchShippingEstimate();
+
+                        if (response) {
+                                lastFetchedEstimateRef.current = {
+                                        addressId: selectedAddressId,
+                                        itemsKey,
+                                        status: "completed",
+                                };
+                        } else {
+                                lastFetchedEstimateRef.current = {
+                                        addressId: selectedAddressId,
+                                        itemsKey,
+                                        status: "failed",
+                                };
+                        }
+                };
+
+                fetchEstimate();
+        }, [
+                selectedAddressId,
+                itemsKey,
+                orderSummary.shippingEstimate,
+                fetchShippingEstimate,
+        ]);
 
 	// Handle new address form
 	const handleNewAddressChange = useCallback(
