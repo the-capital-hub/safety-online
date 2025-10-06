@@ -6,23 +6,28 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-	ArrowLeft,
-	Minus,
-	Plus,
-	Truck,
-	CreditCard,
-	Star,
-	User,
-	RotateCcw,
-	Home,
-	AlertCircle,
-	Receipt,
-	Lock,
-	HelpCircle,
-	Heart,
-	Share,
-	ChevronLeft,
-	ChevronRight,
+        ArrowLeft,
+        Minus,
+        Plus,
+        Truck,
+        CreditCard,
+        Star,
+        User,
+        RotateCcw,
+        Home,
+        AlertCircle,
+        Receipt,
+        Lock,
+        HelpCircle,
+        Heart,
+        Share,
+        ChevronLeft,
+        ChevronRight,
+        Store,
+        ShieldCheck,
+        Mail,
+        Phone,
+        MapPin,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -111,16 +116,69 @@ export default function ProductDetail({
 		}
 	};
 
-	const renderStars = (rating) => {
-		return Array.from({ length: 5 }, (_, i) => (
-			<Star
-				key={i}
+        const renderStars = (rating) => {
+                return Array.from({ length: 5 }, (_, i) => (
+                        <Star
+                                key={i}
 				className={`w-4 h-4 ${
 					i < rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
 				}`}
 			/>
 		));
-	};
+        };
+
+        const getSellerInitials = (name) => {
+                if (!name) return "";
+                const parts = name.trim().split(/\s+/);
+                const initials = parts.slice(0, 2).map((part) => part[0]?.toUpperCase() || "");
+                return initials.join("");
+        };
+
+        const toSentenceCase = (str) => {
+                if (!str) return "";
+
+                return str
+                        .toLowerCase()
+                        .split(" ")
+                        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                        .join(" ");
+        };
+
+        const getHeadOfficeAddress = () => {
+                if (!seller?.companyAddress?.length) {
+                        return null;
+                }
+
+                const normalizedAddresses = seller.companyAddress.map((addr) => ({
+                        ...addr,
+                        tagName: addr.tagName?.toLowerCase() || "",
+                }));
+
+                const headOffice =
+                        normalizedAddresses.find((addr) => addr.tagName === "head office") ||
+                        normalizedAddresses[0];
+
+                if (!headOffice) {
+                        return null;
+                }
+
+                const {
+                        building,
+                        street,
+                        city,
+                        state,
+                        pincode,
+                        country,
+                        tagName,
+                } = headOffice;
+
+                return {
+                        label: tagName ? toSentenceCase(tagName) : "Registered Address",
+                        fullAddress: [building, street, city, state, pincode, country]
+                                .filter(Boolean)
+                                .join(", "),
+                };
+        };
 
 	const calculateRatingPercentages = () => {
 		if (!product?.reviews || product.reviews.length === 0) {
@@ -144,10 +202,11 @@ export default function ProductDetail({
 		return percentages;
 	};
 
-	const ratingPercentages = calculateRatingPercentages();
+        const ratingPercentages = calculateRatingPercentages();
+        const headOfficeAddress = getHeadOfficeAddress();
 
-	if (!product) {
-		return (
+        if (!product) {
+                return (
 			<div className="min-h-screen bg-gray-50 flex items-center justify-center">
 				<div className="text-center">
 					<h1 className="text-2xl font-bold text-gray-900 mb-4">
@@ -167,19 +226,9 @@ export default function ProductDetail({
 		);
 	}
 
-	const toSentenceCase = (str) => {
-		if (!str) return "";
-
-		return str
-			.toLowerCase()
-			.split(" ")
-			.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-			.join(" ");
-	};
-
-	const handlePrevImage = () => {
-		setSelectedImage(
-			(selectedImage + product.images.length - 1) % product.images.length
+        const handlePrevImage = () => {
+                setSelectedImage(
+                        (selectedImage + product.images.length - 1) % product.images.length
 		);
 	};
 
@@ -709,63 +758,115 @@ export default function ProductDetail({
 								</CardContent>
 							</Card>
 
-							{seller && (
-								<motion.div
-									initial={{ opacity: 0, y: 20 }}
-									animate={{ opacity: 1, y: 0 }}
-									transition={{ duration: 0.5, delay: 0.4 }}
-								>
-									<Card className="bg-white shadow-md">
-										<CardContent className="p-6 h-full flex flex-col justify-between">
-											<h2 className="text-2xl font-bold mb-2">
-												Seller Details
-											</h2>
+                                                        {seller && (
+                                                                <motion.div
+                                                                        initial={{ opacity: 0, y: 20 }}
+                                                                        animate={{ opacity: 1, y: 0 }}
+                                                                        transition={{ duration: 0.5, delay: 0.4 }}
+                                                                >
+                                                                        <Card className="bg-white shadow-sm border border-orange-100">
+                                        <CardContent className="p-6 space-y-6">
+                                                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                                                        <div className="flex items-start gap-4">
+                                                                {seller?.companyLogo ? (
+                                                                        <div className="relative h-16 w-16 shrink-0 rounded-full border border-orange-200 bg-orange-50 flex items-center justify-center overflow-hidden">
+                                                                                <Image
+                                                                                        src={seller.companyLogo}
+                                                                                        alt={`${seller?.companyName || "Seller"} logo`}
+                                                                                        width={64}
+                                                                                        height={64}
+                                                                                        className="object-contain p-2"
+                                                                                />
+                                                                        </div>
+                                                                ) : (
+                                                                        <div className="h-16 w-16 shrink-0 rounded-full bg-orange-100 border border-orange-200 flex items-center justify-center text-xl font-semibold text-orange-700">
+                                                                                {getSellerInitials(seller?.companyName || seller?.brandName)}
+                                                                        </div>
+                                                                )}
+                                                                <div className="space-y-1">
+                                                                        <p className="text-xs font-semibold tracking-wide text-orange-500 uppercase">Sold by</p>
+                                                                        <h3 className="text-xl font-semibold text-gray-900 break-words">
+                                                                                {seller?.brandName || seller?.companyName || "Trusted Seller"}
+                                                                        </h3>
+                                                                        <p className="text-sm text-gray-500 leading-relaxed break-words">
+                                                                                {seller?.tagline ||
+                                                                                        "Authorised safety equipment partner offering reliable quality and dedicated service."}
+                                                                        </p>
+                                                                </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-3">
+                                                                <Badge className="bg-green-50 text-green-700 border border-green-200 font-medium whitespace-nowrap">
+                                                                        Verified Seller
+                                                                </Badge>
+                                                                <div className="hidden sm:flex items-center gap-1 text-sm text-gray-500">
+                                                                        <ShieldCheck className="h-4 w-4 text-green-500" />
+                                                                        Amazon-style assurance
+                                                                </div>
+                                                        </div>
+                                                </div>
 
-											<div className="space-y-1">
-												{/* Company Name */}
-												<div className="flex items-center gap-3">
-													<span className="text-gray-700 font-semibold">
-														{seller?.companyName || "Company Name"}
-													</span>
-												</div>
+                                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                                                        <div className="rounded-xl border border-gray-100 bg-gray-50/80 p-4 flex flex-col gap-2">
+                                                                <div className="flex items-center gap-2 text-gray-800">
+                                                                        <Store className="h-5 w-5 text-orange-500" />
+                                                                        <span className="text-sm font-semibold">Business Details</span>
+                                                                </div>
+                                                                <div className="text-sm text-gray-600 space-y-1">
+                                                                        <p className="font-medium text-gray-700 leading-relaxed break-words">
+                                                                                {seller?.companyName || "Company Name"}
+                                                                        </p>
+                                                                        {seller?.brandName && (
+                                                                                <p className="text-gray-500 leading-relaxed break-words">Brand: {seller.brandName}</p>
+                                                                        )}
+                                                                </div>
+                                                        </div>
 
-												{/* Company Address */}
-												<div className="flex items-start gap-2">
-													<span className="text-gray-600 whitespace-pre-line">
-														{seller?.companyAddress.length > 0
-															? seller?.companyAddress
-																	?.filter(
-																		(addr) =>
-																			addr.tagName?.toLowerCase() ===
-																			"head office"
-																	)
-																	.map((addr, idx) => (
-																		<div key={idx} className="mb-2">
-																			<div className="text-gray-700 font-semibold">
-																				{addr.tagName}
-																			</div>
-																			<div className="text-base">
-																				{[
-																					addr.building,
-																					addr.street,
-																					addr.city,
-																					addr.state,
-																					addr.pincode,
-																					addr.country,
-																				]
-																					.filter(Boolean)
-																					.join(", ")}
-																			</div>
-																		</div>
-																	))
-															: "No Address"}
-													</span>
-												</div>
-											</div>
-										</CardContent>
-									</Card>
-								</motion.div>
-							)}
+                                                        <div className="rounded-xl border border-gray-100 bg-gray-50/80 p-4 flex flex-col gap-3">
+                                                                <div className="flex items-center gap-2 text-gray-800">
+                                                                        <HelpCircle className="h-5 w-5 text-orange-500" />
+                                                                        <span className="text-sm font-semibold">Customer Assistance</span>
+                                                                </div>
+                                                                <div className="flex flex-col gap-2 text-sm text-gray-600">
+                                                                        {seller?.companyEmail && (
+                                                                                <div className="flex items-center gap-2 break-words">
+                                                                                        <Mail className="h-4 w-4 text-gray-500" />
+                                                                                        <span className="leading-relaxed">{seller.companyEmail}</span>
+                                                                                </div>
+                                                                        )}
+                                                                        {seller?.phone && (
+                                                                                <div className="flex items-center gap-2 break-words">
+                                                                                        <Phone className="h-4 w-4 text-gray-500" />
+                                                                                        <span className="leading-relaxed">{seller.phone}</span>
+                                                                                </div>
+                                                                        )}
+                                                                        <div className="flex items-start gap-2 text-gray-500">
+                                                                                <AlertCircle className="h-4 w-4 mt-0.5" />
+                                                                                <span className="leading-relaxed">
+                                                                                        Need help? Reach out for installation & after-sales support.
+                                                                                </span>
+                                                                        </div>
+                                                                </div>
+                                                        </div>
+
+                                                        <div className="rounded-xl border border-gray-100 bg-gray-50/80 p-4 flex flex-col gap-3 sm:col-span-2 xl:col-span-1">
+                                                                <div className="flex items-start gap-2 text-gray-800">
+                                                                        <MapPin className="h-5 w-5 text-orange-500 mt-0.5" />
+                                                                        <div className="space-y-1">
+                                                                                <p className="text-sm font-semibold text-gray-800">
+                                                                                        {(headOfficeAddress && headOfficeAddress.label) || "Business Address"}
+                                                                                </p>
+                                                                                <p className="text-sm text-gray-600 leading-relaxed break-words">
+                                                                                        {(headOfficeAddress && headOfficeAddress.fullAddress) ||
+                                                                                                "Address information will be available soon."}
+                                                                                </p>
+                                                                        </div>
+                                                                </div>
+                                                        </div>
+                                                </div>
+                                        </CardContent>
+                                </Card>
+                                                                </motion.div>
+                                                        )}
 						</div>
 					</div>
 				</div>
