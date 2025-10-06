@@ -971,5 +971,29 @@
     "trackingData": {
       "timeline": 0
     }
+  },
+  {
+    "timestamp": "2025-10-06T12:27:28.788Z",
+    "subOrderId": "68e3b5ae534c77fc56f85172",
+    "action": "created",
+    "trackingId": "511124FH0045741",
+    "status": "order_placed",
+    "courierPartner": "DELHIVERY",
+    "packageDetails": {
+      "weight": 500,
+      "dimensions": "25x20x15",
+      "boxType": "S",
+      "packageValue": 847
+    },
+    "addresses": {
+      "pickup": {
+        "city": "Bengaluru",
+        "state": "Karnataka"
+      },
+      "delivery": {
+        "city": "New Delhi",
+        "state": "Delhi"
+      }
+    }
   }
 ]
