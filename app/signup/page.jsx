@@ -194,333 +194,319 @@ const SignupPage = () => {
 		}
 	};
 
-	const containerVariants = {
-		hidden: { opacity: 0 },
-		visible: {
-			opacity: 1,
-			transition: { duration: 0.6, staggerChildren: 0.1 },
-		},
-	};
-	const itemVariants = {
-		hidden: { y: 20, opacity: 0 },
-		visible: { y: 0, opacity: 1, transition: { duration: 0.5 } },
-	};
+        const containerVariants = {
+                hidden: { opacity: 0 },
+                visible: {
+                        opacity: 1,
+                        transition: { duration: 0.6, staggerChildren: 0.1 },
+                },
+        };
+        const itemVariants = {
+                hidden: { y: 20, opacity: 0 },
+                visible: { y: 0, opacity: 1, transition: { duration: 0.5 } },
+        };
+        const logoVariants = {
+                hidden: { scale: 0.85, opacity: 0 },
+                visible: {
+                        scale: 1,
+                        opacity: 1,
+                        transition: { duration: 0.5, ease: "easeOut" },
+                },
+        };
 
-	return (
-		<div className="max-w-7xl mx-auto min-h-screen grid grid-cols-2 lg:px-10">
-			{/* Left side */}
-			<motion.div
-				className="hidden lg:flex justify-center items-center overflow-hidden my-12 px-8"
-				initial={{ x: -100, opacity: 0 }}
-				animate={{ x: 0, opacity: 1 }}
-				transition={{ duration: 0.8, ease: "easeOut" }}
-			>
-				<div className="w-4/5 py-8 bg-[#F3F3F3] rounded-2xl">
-					<motion.div
-						className="w-full"
-						variants={containerVariants}
-						initial="hidden"
-						animate="visible"
-					>
-						<motion.h1
-							className="text-2xl lg:text-3xl font-bold text-gray-800 mb-2 text-center"
-							variants={itemVariants}
-						>
-							JOIN OUR COMMUNITY
-						</motion.h1>
-						<motion.p
-							className="text-gray-600 lg:text-xl font-medium tracking-wider text-center"
-							variants={itemVariants}
-						>
-							START YOUR JOURNEY TODAY
-						</motion.p>
-					</motion.div>
+        return (
+                <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-gray-100">
+                        <div className="max-w-7xl mx-auto grid min-h-screen grid-cols-1 lg:grid-cols-2 lg:px-10">
+                                {/* Left side */}
+                                <motion.div
+                                        className="hidden lg:flex items-center justify-center overflow-hidden p-8"
+                                        initial={{ x: -100, opacity: 0 }}
+                                        animate={{ x: 0, opacity: 1 }}
+                                        transition={{ duration: 0.8, ease: "easeOut" }}
+                                >
+                                        <div className="w-full max-w-xl rounded-3xl bg-white/70 p-10 shadow-xl backdrop-blur">
+                                                <motion.div
+                                                        className="w-full text-center"
+                                                        variants={containerVariants}
+                                                        initial="hidden"
+                                                        animate="visible"
+                                                >
+                                                        <motion.h1
+                                                                className="text-3xl font-bold tracking-tight text-gray-800"
+                                                                variants={itemVariants}
+                                                        >
+                                                                Join Our Community
+                                                        </motion.h1>
+                                                        <motion.p
+                                                                className="mt-3 text-base font-medium uppercase tracking-[0.35em] text-gray-600"
+                                                                variants={itemVariants}
+                                                        >
+                                                                Start your journey today
+                                                        </motion.p>
+                                                </motion.div>
 
-					<div className="flex items-center justify-center">
-						<motion.div
-							initial={{ scale: 0.9, opacity: 0 }}
-							animate={{ scale: 1, opacity: 1 }}
-							transition={{ duration: 1, delay: 0.3 }}
-							className="w-full max-w-[400px] h-1/2 overflow-hidden"
-						>
-							<Image
-								src={
-									LoginModel.src ||
-									"/placeholder.svg?height=400&width=400&query=signup-model"
-								}
-								alt="Welcome"
-								width={400}
-								height={400}
-								className="w-full h-full object-cover"
-							/>
-						</motion.div>
-					</div>
-				</div>
-			</motion.div>
+                                                <div className="mt-8 flex items-center justify-center">
+                                                        <motion.div
+                                                                initial={{ scale: 0.9, opacity: 0 }}
+                                                                animate={{ scale: 1, opacity: 1 }}
+                                                                transition={{ duration: 1, delay: 0.3 }}
+                                                                className="w-full max-w-[420px] overflow-hidden"
+                                                        >
+                                                                <Image
+                                                                        src={
+                                                                                LoginModel.src ||
+                                                                                "/placeholder.svg?height=420&width=420&query=signup-model"
+                                                                        }
+                                                                        alt="Welcome"
+                                                                        width={420}
+                                                                        height={420}
+                                                                        className="h-full w-full object-cover"
+                                                                />
+                                                        </motion.div>
+                                                </div>
+                                        </div>
+                                </motion.div>
 
-			{/* Right side */}
-			<motion.div
-				className="my-12 col-span-2 md:col-span-1 flex-1 flex justify-center px-8 bg-white h-[calc(100vh-96px)] overflow-auto hide-scrollbar"
-				initial={{ x: 100, opacity: 0 }}
-				animate={{ x: 0, opacity: 1 }}
-				transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
-			>
-				<div className="w-full max-w-md">
-					<motion.div
-						className="text-center mb-8"
-						initial={{ scale: 0.8, opacity: 0 }}
-						animate={{ scale: 1, opacity: 1 }}
-						transition={{ duration: 0.5, ease: "easeOut" }}
-					>
-						<Image
-							src={
-								Logo.src ||
-								"/placeholder.svg?height=100&width=100&query=brand-logo"
-							}
-							alt="Logo"
-							width={100}
-							height={100}
-							className="w-[100] h-auto object-cover"
-						/>
-					</motion.div>
+                                {/* Right side */}
+                                <motion.div
+                                        className="flex flex-1 flex-col justify-center bg-white px-6 py-12 sm:px-10 md:py-16"
+                                        initial={{ x: 100, opacity: 0 }}
+                                        animate={{ x: 0, opacity: 1 }}
+                                        transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
+                                >
+                                        <div className="mx-auto w-full max-w-md">
+                                                <motion.div
+                                                        className="mb-10 text-center"
+                                                        variants={logoVariants}
+                                                        initial="hidden"
+                                                        animate="visible"
+                                                >
+                                                        <Image
+                                                                src={
+                                                                        Logo.src ||
+                                                                        "/placeholder.svg?height=100&width=100&query=brand-logo"
+                                                                }
+                                                                alt="Logo"
+                                                                width={100}
+                                                                height={100}
+                                                                className="mx-auto h-auto w-[100px] object-cover"
+                                                        />
+                                                </motion.div>
 
-					<motion.div
-						variants={containerVariants}
-						initial="hidden"
-						animate="visible"
-					>
-						<Card className="border-0 shadow-none">
-							<CardHeader className="space-y-1 p-0 mb-6">
-								<motion.div variants={itemVariants}>
-									<CardTitle className="text-2xl font-bold text-gray-800">
-										{step === 1 ? "Create Account" : "Verify Mobile"}
-									</CardTitle>
-								</motion.div>
-								<motion.div variants={itemVariants}>
-									<CardDescription className="text-gray-600">
-										{step === 1 ? (
-											<>
-												Already have an account?{" "}
-												<Link
-													href="/login"
-													className="text-black hover:text-blue-700 font-medium underline"
-												>
-													Sign In
-												</Link>
-											</>
-										) : (
-											"Enter the verification code sent to your mobile"
-										)}
-									</CardDescription>
-								</motion.div>
-							</CardHeader>
+                                                <motion.div
+                                                        variants={containerVariants}
+                                                        initial="hidden"
+                                                        animate="visible"
+                                                >
+                                                        <Card className="rounded-3xl border border-gray-100 bg-white/90 p-6 shadow-xl shadow-gray-200/60">
+                                                                <CardHeader className="mb-6 space-y-2 p-0 text-center sm:text-left">
+                                                                        <motion.div variants={itemVariants}>
+                                                                                <CardTitle className="text-3xl font-semibold text-gray-900">
+                                                                                        {step === 1 ? "Create Account" : "Verify Mobile"}
+                                                                                </CardTitle>
+                                                                        </motion.div>
+                                                                        <motion.div variants={itemVariants}>
+                                                                                <CardDescription className="text-sm text-gray-600">
+                                                                                        {step === 1 ? (
+                                                                                                <>
+                                                                                                        Already have an account?{" "}
+                                                                                                        <Link
+                                                                                                                href="/login"
+                                                                                                                className="font-medium text-gray-900 underline underline-offset-4 transition-colors hover:text-blue-700"
+                                                                                                        >
+                                                                                                                Sign In
+                                                                                                        </Link>
+                                                                                                </>
+                                                                                        ) : (
+                                                                                                "Enter the verification code sent to your mobile"
+                                                                                        )}
+                                                                                </CardDescription>
+                                                                        </motion.div>
+                                                                </CardHeader>
 
-							<CardContent className="p-0">
-								{step === 1 ? (
-									<form onSubmit={handleSendVerification} className="space-y-4">
-										<div className="grid grid-cols-2 gap-4">
-											<motion.div variants={itemVariants} className="space-y-2">
-												<Label
-													htmlFor="firstName"
-													className="text-gray-700 font-medium"
-												>
-													First Name
-												</Label>
-												<Input
-													id="firstName"
-													name="firstName"
-													placeholder="First Name"
-													value={formData.firstName}
-													onChange={handleInputChange}
-													className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-													required
-												/>
-											</motion.div>
-											<motion.div variants={itemVariants} className="space-y-2">
-												<Label
-													htmlFor="lastName"
-													className="text-gray-700 font-medium"
-												>
-													Last Name
-												</Label>
-												<Input
-													id="lastName"
-													name="lastName"
-													placeholder="Last Name"
-													value={formData.lastName}
-													onChange={handleInputChange}
-													className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-													required
-												/>
-											</motion.div>
-										</div>
+                                                                <CardContent className="space-y-6 p-0">
+                                                                        {step === 1 ? (
+                                                                                <form onSubmit={handleSendVerification} className="space-y-6">
+                                                                                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                                                                                <motion.div variants={itemVariants} className="space-y-2">
+                                                                                                        <Label htmlFor="firstName" className="text-gray-700 font-medium">
+                                                                                                                First Name
+                                                                                                        </Label>
+                                                                                                        <Input
+                                                                                                                id="firstName"
+                                                                                                                name="firstName"
+                                                                                                                placeholder="First Name"
+                                                                                                                value={formData.firstName}
+                                                                                                                onChange={handleInputChange}
+                                                                                                                className="h-12 rounded-xl border-gray-300/80 bg-white focus:border-blue-500 focus:ring-blue-500"
+                                                                                                                required
+                                                                                                        />
+                                                                                                </motion.div>
+                                                                                                <motion.div variants={itemVariants} className="space-y-2">
+                                                                                                        <Label htmlFor="lastName" className="text-gray-700 font-medium">
+                                                                                                                Last Name
+                                                                                                        </Label>
+                                                                                                        <Input
+                                                                                                                id="lastName"
+                                                                                                                name="lastName"
+                                                                                                                placeholder="Last Name"
+                                                                                                                value={formData.lastName}
+                                                                                                                onChange={handleInputChange}
+                                                                                                                className="h-12 rounded-xl border-gray-300/80 bg-white focus:border-blue-500 focus:ring-blue-500"
+                                                                                                                required
+                                                                                                        />
+                                                                                                </motion.div>
+                                                                                        </div>
 
-										<motion.div variants={itemVariants} className="space-y-2">
-											<Label
-												htmlFor="email"
-												className="text-gray-700 font-medium"
-											>
-												Email Address
-											</Label>
-											<Input
-												id="email"
-												name="email"
-												type="email"
-												placeholder="Enter Email Address"
-												value={formData.email}
-												onChange={handleInputChange}
-												className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-												required
-											/>
-										</motion.div>
+                                                                                        <motion.div variants={itemVariants} className="space-y-2">
+                                                                                                <Label htmlFor="email" className="text-gray-700 font-medium">
+                                                                                                        Email Address
+                                                                                                </Label>
+                                                                                                <Input
+                                                                                                        id="email"
+                                                                                                        name="email"
+                                                                                                        type="email"
+                                                                                                        placeholder="Enter Email Address"
+                                                                                                        value={formData.email}
+                                                                                                        onChange={handleInputChange}
+                                                                                                        className="h-12 rounded-xl border-gray-300/80 bg-white focus:border-blue-500 focus:ring-blue-500"
+                                                                                                        required
+                                                                                                />
+                                                                                        </motion.div>
 
-										<motion.div variants={itemVariants} className="space-y-2">
-											<Label
-												htmlFor="mobile"
-												className="text-gray-700 font-medium"
-											>
-												Mobile Number
-											</Label>
-											<Input
-												id="mobile"
-												name="mobile"
-												type="tel"
-												placeholder="Enter Mobile Number"
-												value={formData.mobile}
-												onChange={handleInputChange}
-												className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-												required
-											/>
-										</motion.div>
+                                                                                        <motion.div variants={itemVariants} className="space-y-2">
+                                                                                                <Label htmlFor="mobile" className="text-gray-700 font-medium">
+                                                                                                        Mobile Number
+                                                                                                </Label>
+                                                                                                <Input
+                                                                                                        id="mobile"
+                                                                                                        name="mobile"
+                                                                                                        type="tel"
+                                                                                                        placeholder="Enter Mobile Number"
+                                                                                                        value={formData.mobile}
+                                                                                                        onChange={handleInputChange}
+                                                                                                        className="h-12 rounded-xl border-gray-300/80 bg-white focus:border-blue-500 focus:ring-blue-500"
+                                                                                                        required
+                                                                                                />
+                                                                                        </motion.div>
 
-										<motion.div variants={itemVariants} className="space-y-2">
-											<Label
-												htmlFor="password"
-												className="text-gray-700 font-medium"
-											>
-												Password
-											</Label>
-											<Input
-												id="password"
-												name="password"
-												type="password"
-												placeholder="Enter Password"
-												value={formData.password}
-												onChange={handleInputChange}
-												className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-												required
-											/>
-										</motion.div>
+                                                                                        <motion.div variants={itemVariants} className="space-y-2">
+                                                                                                <Label htmlFor="password" className="text-gray-700 font-medium">
+                                                                                                        Password
+                                                                                                </Label>
+                                                                                                <Input
+                                                                                                        id="password"
+                                                                                                        name="password"
+                                                                                                        type="password"
+                                                                                                        placeholder="Enter Password"
+                                                                                                        value={formData.password}
+                                                                                                        onChange={handleInputChange}
+                                                                                                        className="h-12 rounded-xl border-gray-300/80 bg-white focus:border-blue-500 focus:ring-blue-500"
+                                                                                                        required
+                                                                                                />
+                                                                                        </motion.div>
 
-										<motion.div variants={itemVariants} className="space-y-2">
-											<Label
-												htmlFor="confirmPassword"
-												className="text-gray-700 font-medium"
-											>
-												Confirm Password
-											</Label>
-											<Input
-												id="confirmPassword"
-												name="confirmPassword"
-												type="password"
-												placeholder="Confirm Password"
-												value={formData.confirmPassword}
-												onChange={handleInputChange}
-												className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-												required
-											/>
-										</motion.div>
+                                                                                        <motion.div variants={itemVariants} className="space-y-2">
+                                                                                                <Label htmlFor="confirmPassword" className="text-gray-700 font-medium">
+                                                                                                        Confirm Password
+                                                                                                </Label>
+                                                                                                <Input
+                                                                                                        id="confirmPassword"
+                                                                                                        name="confirmPassword"
+                                                                                                        type="password"
+                                                                                                        placeholder="Confirm Password"
+                                                                                                        value={formData.confirmPassword}
+                                                                                                        onChange={handleInputChange}
+                                                                                                        className="h-12 rounded-xl border-gray-300/80 bg-white focus:border-blue-500 focus:ring-blue-500"
+                                                                                                        required
+                                                                                                />
+                                                                                        </motion.div>
 
-										<motion.div variants={itemVariants}>
-											<Button
-												type="submit"
-												className="w-full h-12 bg-gray-800 hover:bg-gray-900 text-white font-medium text-base"
-												disabled={isLoading}
-											>
-												{isLoading ? (
-													<div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-												) : (
-													"Send Verification Code"
-												)}
-											</Button>
-										</motion.div>
-									</form>
-								) : (
-									<form onSubmit={handleVerifyAndSignup} className="space-y-6">
-										<motion.div variants={itemVariants} className="space-y-2">
-											<Label
-												htmlFor="verificationCode"
-												className="text-gray-700 font-medium"
-											>
-												Verification Code
-											</Label>
-											<Input
-												id="verificationCode"
-												placeholder="Enter 6-digit code"
-												value={verificationCode}
-												onChange={(e) =>
-													setVerificationCode(
-														e.target.value.replace(/\D/g, "").slice(0, 6)
-													)
-												}
-												className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-center text-lg tracking-widest"
-												maxLength={6}
-												inputMode="numeric"
-												pattern="[0-9]*"
-												required
-											/>
-										</motion.div>
+                                                                                        <motion.div variants={itemVariants}>
+                                                                                                <Button
+                                                                                                        type="submit"
+                                                                                                        className="h-12 w-full rounded-xl bg-gray-900 text-base font-medium text-white shadow-lg shadow-gray-300/60 transition-transform hover:scale-[1.01] hover:bg-gray-950"
+                                                                                                        disabled={isLoading}
+                                                                                                >
+                                                                                                        {isLoading ? (
+                                                                                                                <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                                                                                                        ) : (
+                                                                                                                "Send Verification Code"
+                                                                                                        )}
+                                                                                                </Button>
+                                                                                        </motion.div>
+                                                                                </form>
+                                                                        ) : (
+                                                                                <form onSubmit={handleVerifyAndSignup} className="space-y-6">
+                                                                                        <motion.div variants={itemVariants} className="space-y-2">
+                                                                                                <Label htmlFor="verificationCode" className="text-gray-700 font-medium">
+                                                                                                        Verification Code
+                                                                                                </Label>
+                                                                                                <Input
+                                                                                                        id="verificationCode"
+                                                                                                        placeholder="Enter 6-digit code"
+                                                                                                        value={verificationCode}
+                                                                                                        onChange={(e) =>
+                                                                                                                setVerificationCode(
+                                                                                                                        e.target.value.replace(/\D/g, "").slice(0, 6)
+                                                                                                                )
+                                                                                                        }
+                                                                                                        className="h-12 rounded-xl border-gray-300/80 bg-white text-center text-lg tracking-widest focus:border-blue-500 focus:ring-blue-500"
+                                                                                                        maxLength={6}
+                                                                                                        inputMode="numeric"
+                                                                                                        pattern="[0-9]*"
+                                                                                                        required
+                                                                                                />
+                                                                                        </motion.div>
 
-										<motion.div
-											variants={itemVariants}
-											className="flex justify-center"
-										>
-											{resendTimer > 0 ? (
-												<p className="text-sm text-gray-600">
-													Resend code in {resendTimer}s
-												</p>
-											) : (
-												<Button
-													type="button"
-													variant="link"
-													className="p-0 h-auto"
-													onClick={handleResend}
-												>
-													Resend Verification Code
-												</Button>
-											)}
-										</motion.div>
+                                                                                        <motion.div variants={itemVariants} className="flex justify-center">
+                                                                                                {resendTimer > 0 ? (
+                                                                                                        <p className="text-sm text-gray-600">
+                                                                                                                Resend code in {resendTimer}s
+                                                                                                        </p>
+                                                                                                ) : (
+                                                                                                        <Button
+                                                                                                                type="button"
+                                                                                                                variant="link"
+                                                                                                                className="p-0 text-sm font-medium text-gray-900 hover:text-blue-700"
+                                                                                                                onClick={handleResend}
+                                                                                                        >
+                                                                                                                Resend Verification Code
+                                                                                                        </Button>
+                                                                                                )}
+                                                                                        </motion.div>
 
-										<motion.div variants={itemVariants} className="flex gap-4">
-											<Button
-												type="button"
-												variant="outline"
-												className="flex-1 h-12 bg-transparent"
-												onClick={() => setStep(1)}
-											>
-												Back
-											</Button>
-											<Button
-												type="submit"
-												className="flex-1 h-12 bg-gray-800 hover:bg-gray-900 text-white font-medium text-base"
-												disabled={isLoading}
-											>
-												{isLoading ? (
-													<div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-												) : (
-													"Create Account"
-												)}
-											</Button>
-										</motion.div>
-									</form>
-								)}
-							</CardContent>
+                                                                                        <motion.div variants={itemVariants} className="flex flex-col gap-3 sm:flex-row sm:gap-4">
+                                                                                                <Button
+                                                                                                        type="button"
+                                                                                                        variant="outline"
+                                                                                                        className="h-12 flex-1 rounded-xl border-gray-300/80 bg-white text-gray-700 transition-colors hover:bg-gray-100"
+                                                                                                        onClick={() => setStep(1)}
+                                                                                                >
+                                                                                                        Back
+                                                                                                </Button>
+                                                                                                <Button
+                                                                                                        type="submit"
+                                                                                                        className="h-12 flex-1 rounded-xl bg-gray-900 text-base font-medium text-white shadow-lg shadow-gray-300/60 transition-transform hover:scale-[1.01] hover:bg-gray-950"
+                                                                                                        disabled={isLoading}
+                                                                                                >
+                                                                                                        {isLoading ? (
+                                                                                                                <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                                                                                                        ) : (
+                                                                                                                "Create Account"
+                                                                                                        )}
+                                                                                                </Button>
+                                                                                        </motion.div>
+                                                                                </form>
+                                                                        )}
+                                                                </CardContent>
 						</Card>
 					</motion.div>
 				</div>
-			</motion.div>
-		</div>
-	);
+                        </motion.div>
+                </div>
+        </div>
+        );
 };
 
 export default SignupPage;

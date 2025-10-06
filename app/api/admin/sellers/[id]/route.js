@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 import User from "@/model/User.js";
 import Company from "@/model/companyDetails.js";
 import { dbConnect } from "@/lib/dbConnect.js";
+import { fetchGstDetails, extractPrimaryGstAddress } from "@/lib/services/gstVerification.js";
 
 const COMPANY_PROJECTION =
-        "companyName companyEmail phone gstinNumber brandName brandDescription companyLogo";
+        "companyName companyEmail phone gstinNumber brandName brandDescription companyLogo companyAddress";
 
 // GET - Fetch single seller
 export async function GET(request, { params }) {
@@ -91,12 +92,44 @@ export async function PUT(request, { params }) {
                                         companyDoc = await Company.findById(seller.company);
                                 }
 
-                                if (!companyDoc) {
-                                        if (!companyName || !companyEmail || !phone) {
+                                let normalizedGstin = companyDoc?.gstinNumber;
+                                let gstPrimaryAddress;
+
+                                if (typeof gstinNumber !== "undefined") {
+                                        normalizedGstin = gstinNumber.trim().toUpperCase();
+
+                                        if (!normalizedGstin) {
                                                 return NextResponse.json(
                                                         {
                                                                 success: false,
-                                                                error: "Company name, email and phone are required to create company details",
+                                                                error: "GSTIN is required",
+                                                        },
+                                                        { status: 400 }
+                                                );
+                                        }
+
+                                        try {
+                                                const gstDetails = await fetchGstDetails(normalizedGstin);
+                                                gstPrimaryAddress = extractPrimaryGstAddress(gstDetails);
+                                        } catch (gstError) {
+                                                return NextResponse.json(
+                                                        {
+                                                                success: false,
+                                                                error:
+                                                                        gstError.message ||
+                                                                        "Failed to fetch GST details for the provided GSTIN",
+                                                        },
+                                                        { status: 400 }
+                                                );
+                                        }
+                                }
+
+                                if (!companyDoc) {
+                                        if (!companyName || !companyEmail || !phone || !normalizedGstin) {
+                                                return NextResponse.json(
+                                                        {
+                                                                success: false,
+                                                                error: "Company name, email, phone, and GSTIN are required to create company details",
                                                         },
                                                         { status: 400 }
                                                 );
@@ -107,6 +140,10 @@ export async function PUT(request, { params }) {
                                                 companyName,
                                                 companyEmail,
                                                 phone,
+                                                gstinNumber: normalizedGstin,
+                                                companyAddress: gstPrimaryAddress
+                                                        ? [gstPrimaryAddress]
+                                                        : [],
                                         });
                                 }
 
@@ -115,14 +152,34 @@ export async function PUT(request, { params }) {
                                 if (typeof companyEmail !== "undefined")
                                         companyDoc.companyEmail = companyEmail;
                                 if (typeof phone !== "undefined") companyDoc.phone = phone;
-                                if (typeof gstinNumber !== "undefined")
-                                        companyDoc.gstinNumber = gstinNumber;
+                                if (normalizedGstin) companyDoc.gstinNumber = normalizedGstin;
                                 if (typeof brandName !== "undefined")
                                         companyDoc.brandName = brandName;
                                 if (typeof brandDescription !== "undefined")
                                         companyDoc.brandDescription = brandDescription;
                                 if (typeof companyLogo !== "undefined")
                                         companyDoc.companyLogo = companyLogo;
+
+                                if (gstPrimaryAddress) {
+                                        const normalize = (value = "") => `${value}`.trim().toLowerCase();
+                                        const remainingAddresses = Array.isArray(companyDoc.companyAddress)
+                                                ? companyDoc.companyAddress.filter((address, index) => {
+                                                          if (!address) return false;
+                                                          if (index === 0) return false;
+                                                          return !(
+                                                                  normalize(address.building) ===
+                                                                          normalize(gstPrimaryAddress.building) &&
+                                                                  normalize(address.street) ===
+                                                                          normalize(gstPrimaryAddress.street) &&
+                                                                  normalize(address.city) === normalize(gstPrimaryAddress.city) &&
+                                                                  normalize(address.state) === normalize(gstPrimaryAddress.state) &&
+                                                                  normalize(address.pincode) === normalize(gstPrimaryAddress.pincode) &&
+                                                                  normalize(address.country) === normalize(gstPrimaryAddress.country)
+                                                          );
+                                                  })
+                                                : [];
+                                        companyDoc.companyAddress = [gstPrimaryAddress, ...remainingAddresses];
+                                }
 
                                 await companyDoc.save();
 

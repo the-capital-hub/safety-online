@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 import User from "@/model/User.js";
 import Company from "@/model/companyDetails.js";
 import { dbConnect } from "@/lib/dbConnect.js";
+import { fetchGstDetails, extractPrimaryGstAddress } from "@/lib/services/gstVerification.js";
 
 const COMPANY_PROJECTION =
-        "companyName companyEmail phone gstinNumber brandName brandDescription companyLogo";
+        "companyName companyEmail phone gstinNumber brandName brandDescription companyLogo companyAddress";
 
 // GET - Fetch all sellers (exclude admins)
 export async function GET(request) {
@@ -117,21 +118,48 @@ export async function POST(request) {
                                 companyLogo,
                         } = company;
 
-                        if (companyName && companyEmail && phone) {
-                                const company = await Company.create({
-                                        user: seller._id,
-                                        companyName,
-                                        companyEmail,
-                                        phone,
-                                        gstinNumber,
-                                        brandName,
-                                        brandDescription,
-                                        companyLogo,
-                                });
-
-                                seller.company = company._id;
-                                await seller.save();
+                        if (!companyName || !companyEmail || !phone || !gstinNumber) {
+                                return NextResponse.json(
+                                        {
+                                                success: false,
+                                                error: "Company name, email, phone, and GSTIN are required",
+                                        },
+                                        { status: 400 }
+                                );
                         }
+
+                        const normalizedGstin = gstinNumber.trim().toUpperCase();
+
+                        let gstPrimaryAddress;
+                        try {
+                                const gstDetails = await fetchGstDetails(normalizedGstin);
+                                gstPrimaryAddress = extractPrimaryGstAddress(gstDetails);
+                        } catch (gstError) {
+                                return NextResponse.json(
+                                        {
+                                                success: false,
+                                                error:
+                                                        gstError.message ||
+                                                        "Failed to fetch GST details for the provided GSTIN",
+                                        },
+                                        { status: 400 }
+                                );
+                        }
+
+                        const company = await Company.create({
+                                user: seller._id,
+                                companyName,
+                                companyEmail,
+                                phone,
+                                gstinNumber: normalizedGstin,
+                                brandName,
+                                brandDescription,
+                                companyLogo,
+                                companyAddress: [gstPrimaryAddress],
+                        });
+
+                        seller.company = company._id;
+                        await seller.save();
                 }
 
                 // Remove password from response

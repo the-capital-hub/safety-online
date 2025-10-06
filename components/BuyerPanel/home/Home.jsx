@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useHomeData } from "@/hooks/useHomeData";
 import NavigationBar from "@/components/BuyerPanel/NavigationBar.jsx";
 import HeroSection from "@/components/BuyerPanel/home/HeroSection.jsx";
+import BrandPromotionSection from "@/components/BuyerPanel/home/BrandPromotionSection.jsx";
 import ProductShowcase from "@/components/BuyerPanel/home/ProductShowcase.jsx";
 import CategorySection from "@/components/BuyerPanel/home/CategorySection.jsx";
 import SupportSection from "@/components/BuyerPanel/home/SupportSection.jsx";
@@ -22,11 +23,12 @@ export default function HomePage() {
 		featuredProducts,
 		categoryProducts,
 		categories,
-		pagination,
-		isLoading,
-		error,
-		refetch,
-	} = useHomeData(selectedCategory, searchQuery, currentPage);
+                pagination,
+                brandPromotions,
+                isLoading,
+                error,
+                refetch,
+        } = useHomeData(selectedCategory, searchQuery, currentPage);
 
 	// console.log("discounted products", discountedProducts);
 	// console.log("top selling products", topSellingProducts);
@@ -68,8 +70,11 @@ export default function HomePage() {
 	return (
 		<div className="min-h-[calc(100vh-68px)] bg-white hide-scrollbar">
 			<NavigationBar />
-			<HeroSection />
-			<ProductShowcase products={discountedProducts} />
+                        <HeroSection />
+                        {brandPromotions?.length > 0 && (
+                                <BrandPromotionSection banners={brandPromotions} />
+                        )}
+                        <ProductShowcase products={discountedProducts} />
 
 			<CategorySection
 				products={categoryProducts}
