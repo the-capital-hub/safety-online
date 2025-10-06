@@ -6,28 +6,28 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-        ArrowLeft,
-        Minus,
-        Plus,
-        Truck,
-        CreditCard,
-        Star,
-        User,
-        RotateCcw,
-        Home,
-        AlertCircle,
-        Receipt,
-        Lock,
-        HelpCircle,
-        Heart,
-        Share,
-        ChevronLeft,
-        ChevronRight,
-        Store,
-        ShieldCheck,
-        Mail,
-        Phone,
-        MapPin,
+	ArrowLeft,
+	Minus,
+	Plus,
+	Truck,
+	CreditCard,
+	Star,
+	User,
+	RotateCcw,
+	Home,
+	AlertCircle,
+	Receipt,
+	Lock,
+	HelpCircle,
+	Heart,
+	Share,
+	ChevronLeft,
+	ChevronRight,
+	Store,
+	ShieldCheck,
+	Mail,
+	Phone,
+	MapPin,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -116,69 +116,68 @@ export default function ProductDetail({
 		}
 	};
 
-        const renderStars = (rating) => {
-                return Array.from({ length: 5 }, (_, i) => (
-                        <Star
-                                key={i}
-				className={`w-4 h-4 ${
-					i < rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
-				}`}
+	const renderStars = (rating) => {
+		return Array.from({ length: 5 }, (_, i) => (
+			<Star
+				key={i}
+				className={`w-4 h-4 ${i < rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+					}`}
 			/>
 		));
-        };
+	};
 
-        const getSellerInitials = (name) => {
-                if (!name) return "";
-                const parts = name.trim().split(/\s+/);
-                const initials = parts.slice(0, 2).map((part) => part[0]?.toUpperCase() || "");
-                return initials.join("");
-        };
+	const getSellerInitials = (name) => {
+		if (!name) return "";
+		const parts = name.trim().split(/\s+/);
+		const initials = parts.slice(0, 2).map((part) => part[0]?.toUpperCase() || "");
+		return initials.join("");
+	};
 
-        const toSentenceCase = (str) => {
-                if (!str) return "";
+	const toSentenceCase = (str) => {
+		if (!str) return "";
 
-                return str
-                        .toLowerCase()
-                        .split(" ")
-                        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                        .join(" ");
-        };
+		return str
+			.toLowerCase()
+			.split(" ")
+			.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+			.join(" ");
+	};
 
-        const getHeadOfficeAddress = () => {
-                if (!seller?.companyAddress?.length) {
-                        return null;
-                }
+	const getHeadOfficeAddress = () => {
+		if (!seller?.companyAddress?.length) {
+			return null;
+		}
 
-                const normalizedAddresses = seller.companyAddress.map((addr) => ({
-                        ...addr,
-                        tagName: addr.tagName?.toLowerCase() || "",
-                }));
+		const normalizedAddresses = seller.companyAddress.map((addr) => ({
+			...addr,
+			tagName: addr.tagName?.toLowerCase() || "",
+		}));
 
-                const headOffice =
-                        normalizedAddresses.find((addr) => addr.tagName === "head office") ||
-                        normalizedAddresses[0];
+		const headOffice =
+			normalizedAddresses.find((addr) => addr.tagName === "head office") ||
+			normalizedAddresses[0];
 
-                if (!headOffice) {
-                        return null;
-                }
+		if (!headOffice) {
+			return null;
+		}
 
-                const {
-                        building,
-                        street,
-                        city,
-                        state,
-                        pincode,
-                        country,
-                        tagName,
-                } = headOffice;
+		const {
+			building,
+			street,
+			city,
+			state,
+			pincode,
+			country,
+			tagName,
+		} = headOffice;
 
-                return {
-                        label: tagName ? toSentenceCase(tagName) : "Registered Address",
-                        fullAddress: [building, street, city, state, pincode, country]
-                                .filter(Boolean)
-                                .join(", "),
-                };
-        };
+		return {
+			label: tagName ? toSentenceCase(tagName) : "Registered Address",
+			fullAddress: [building, street, city, state, pincode, country]
+				.filter(Boolean)
+				.join(", "),
+		};
+	};
 
 	const calculateRatingPercentages = () => {
 		if (!product?.reviews || product.reviews.length === 0) {
@@ -202,11 +201,11 @@ export default function ProductDetail({
 		return percentages;
 	};
 
-        const ratingPercentages = calculateRatingPercentages();
-        const headOfficeAddress = getHeadOfficeAddress();
+	const ratingPercentages = calculateRatingPercentages();
+	const headOfficeAddress = getHeadOfficeAddress();
 
-        if (!product) {
-                return (
+	if (!product) {
+		return (
 			<div className="min-h-screen bg-gray-50 flex items-center justify-center">
 				<div className="text-center">
 					<h1 className="text-2xl font-bold text-gray-900 mb-4">
@@ -226,9 +225,9 @@ export default function ProductDetail({
 		);
 	}
 
-        const handlePrevImage = () => {
-                setSelectedImage(
-                        (selectedImage + product.images.length - 1) % product.images.length
+	const handlePrevImage = () => {
+		setSelectedImage(
+			(selectedImage + product.images.length - 1) % product.images.length
 		);
 	};
 
@@ -293,8 +292,8 @@ export default function ProductDetail({
 	const discountPercentage =
 		product.discountPercentage ??
 		(typeof originalPrice === "number" &&
-		typeof salePrice === "number" &&
-		originalPrice > 0
+			typeof salePrice === "number" &&
+			originalPrice > 0
 			? Math.round(((originalPrice - salePrice) / originalPrice) * 100)
 			: null);
 	const showOriginalPrice =
@@ -308,15 +307,15 @@ export default function ProductDetail({
 			: Number(product?.rating) || 0;
 	const specificationRows = product?.specifications
 		? [
-				{ label: "Brand", value: product.specifications.brand },
-				{ label: "Length (cm)", value: product.specifications.length },
-				{ label: "Height (cm)", value: product.specifications.height },
-				{ label: "Width (cm)", value: product.specifications.width },
-				{ label: "Weight (kg)", value: product.specifications.weight },
-				{ label: "Colour", value: product.specifications.color },
-				{ label: "Material", value: product.specifications.material },
-				{ label: "Size", value: product.specifications.size },
-		  ]
+			{ label: "Brand", value: product.specifications.brand },
+			{ label: "Length (cm)", value: product.specifications.length },
+			{ label: "Height (cm)", value: product.specifications.height },
+			{ label: "Width (cm)", value: product.specifications.width },
+			{ label: "Weight (kg)", value: product.specifications.weight },
+			{ label: "Colour", value: product.specifications.color },
+			{ label: "Material", value: product.specifications.material },
+			{ label: "Size", value: product.specifications.size },
+		]
 		: [];
 
 	return (
@@ -377,11 +376,10 @@ export default function ProductDetail({
 										disabled={wishlistLoading}
 									>
 										<Heart
-											className={`h-6 w-6 ${
-												isInWishlist
+											className={`h-6 w-6 ${isInWishlist
 													? "text-red-500 fill-current hover:text-red-600"
 													: ""
-											}`}
+												}`}
 										/>
 									</button>
 								</div>
@@ -410,11 +408,10 @@ export default function ProductDetail({
 									<button
 										key={index}
 										onClick={() => setSelectedImage(index)}
-										className={`relative w-20 h-20 border-2 bg-white rounded-lg overflow-hidden flex-shrink-0 ${
-											selectedImage === index
+										className={`relative w-20 h-20 border-2 bg-white rounded-lg overflow-hidden flex-shrink-0 ${selectedImage === index
 												? "border-orange-500"
 												: "border-gray-200 hover:border-orange-300"
-										}`}
+											}`}
 									>
 										<Image
 											src={
@@ -433,7 +430,8 @@ export default function ProductDetail({
 					</div>
 
 					{/* Middle Column - Scrollable Content */}
-					<div className="lg:col-span-5 space-y-4 lg:space-y-5 lg:max-h-screen lg:overflow-y-auto hide-scrollbar">
+					<div className="lg:col-span-5 space-y-4 lg:space-y-5 lg:max-h-screen lg:overflow-y-auto feature-scrollbar"
+					>
 						{/* Brand, Title & Pricing */}
 						<div className="space-y-3">
 							<p className="text-sm uppercase tracking-wide text-gray-500">
@@ -590,14 +588,13 @@ export default function ProductDetail({
 					</div>
 
 					{/* Right Column - Sticky Purchase Card */}
-					<div className="lg:col-span-2">
+					<div className="lg:col-span-2 ">
 						<div
-							className={`h-fit ${
-								isSticky ? "sticky top-4" : ""
-							} transition-all duration-300`}
+							className={`h-fit ${isSticky ? "sticky top-4" : ""
+								} transition-all duration-300`}
 						>
-							<Card className="bg-white shadow-md mb-10">
-								<CardContent className="p-6">
+							<Card className="bg-white shadow-md mb-5 border border-orange-300">
+								<CardContent className="p-5">
 									{/* Price */}
 									<div className="mb-4 space-y-2">
 										<div className="flex flex-wrap items-center gap-3 text-sm">
@@ -677,7 +674,7 @@ export default function ProductDetail({
 
 									{/* Delivery Info */}
 									<div className="space-y-3 text-sm">
-										<div className="flex items-center space-x-2">
+										{/* <div className="flex items-center space-x-2">
 											<Truck className="h-4 w-4 text-orange-500" />
 											<div>
 												<div className="font-medium">Free Delivery</div>
@@ -694,13 +691,13 @@ export default function ProductDetail({
 													You can pay at the time of delivery
 												</div>
 											</div>
-										</div>
+										</div> */}
 										{/* Pincode Serviceability */}
 										<div className="pt-2">
 											<div className="text-sm font-medium mb-2">
 												Check delivery at your pincode
 											</div>
-                                                                                        <div className="flex flex-col sm:flex-row items-stretch gap-2">
+											<div className="flex md:flex-col items-stretch gap-2">
 												<input
 													type="text"
 													inputMode="numeric"
@@ -713,10 +710,10 @@ export default function ProductDetail({
 													placeholder="Enter 6-digit pincode"
 													className="flex-1 border rounded px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-orange-500"
 												/>
-                                                                                                <Button
-                                                                                                        onClick={handleCheckServiceability}
-                                                                                                        disabled={isChecking}
-                                                                                                        className="bg-orange-500 hover:bg-orange-600 text-white w-full sm:w-auto"
+												<Button
+													onClick={handleCheckServiceability}
+													disabled={isChecking}
+													className="bg-orange-500 hover:bg-orange-600 text-white w-full sm:w-auto"
 												>
 													{isChecking ? "Checking..." : "Check"}
 												</Button>
@@ -758,120 +755,120 @@ export default function ProductDetail({
 								</CardContent>
 							</Card>
 
-                                                        {seller && (
-                                                                <motion.div
-                                                                        initial={{ opacity: 0, y: 20 }}
-                                                                        animate={{ opacity: 1, y: 0 }}
-                                                                        transition={{ duration: 0.5, delay: 0.4 }}
-                                                                >
-                                                                        <Card className="bg-white shadow-md border border-orange-100 overflow-hidden">
-                                                                                <CardContent className="p-6 space-y-6">
-                                                                                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                                                                                                <div className="flex items-center gap-4">
-                                                                                                        {seller?.companyLogo ? (
-                                                                                                                <div className="relative h-16 w-16 rounded-full border border-orange-200 bg-orange-50 flex items-center justify-center overflow-hidden">
-                                                                                                                        <Image
-                                                                                                                                src={seller.companyLogo}
-                                                                                                                                alt={`${seller?.companyName || "Seller"} logo`}
-                                                                                                                                width={64}
-                                                                                                                                height={64}
-                                                                                                                                className="object-contain p-2"
-                                                                                                                        />
-                                                                                                                </div>
-                                                                                                        ) : (
-                                                                                                                <div className="h-16 w-16 rounded-full bg-orange-100 border border-orange-200 flex items-center justify-center text-xl font-semibold text-orange-700">
-                                                                                                                        {getSellerInitials(seller?.companyName || seller?.brandName)}
-                                                                                                                </div>
-                                                                                                        )}
-                                                                                                        <div>
-                                                                                                                <p className="text-sm uppercase tracking-wide text-orange-600 font-semibold">
-                                                                                                                        Sold by
-                                                                                                                </p>
-                                                                                                                <h2 className="text-2xl font-bold text-gray-900">
-                                                                                                                        {seller?.brandName || seller?.companyName || "Trusted Seller"}
-                                                                                                                </h2>
-                                                                                                                <p className="text-sm text-gray-500 max-w-md">
-                                                                                                                        {seller?.brandDescription ||
-                                                                                                                                "Authorised safety equipment partner offering reliable quality and dedicated service."}
-                                                                                                                </p>
-                                                                                                        </div>
-                                                                                                </div>
-                                                                                                <div className="flex flex-col items-start sm:items-end gap-2">
-                                                                                                        <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700 border border-emerald-100">
-                                                                                                                <ShieldCheck className="h-4 w-4" />
-                                                                                                                Safety Online verified seller
-                                                                                                        </span>
-                                                                                                        {seller?.gstinNumber && (
-                                                                                                                <span className="text-xs text-gray-500">
-                                                                                                                        GSTIN: {seller.gstinNumber}
-                                                                                                                </span>
-                                                                                                        )}
-                                                                                                </div>
-                                                                                        </div>
+							{seller && (
+								<motion.div
+									initial={{ opacity: 0, y: 20 }}
+									animate={{ opacity: 1, y: 0 }}
+									transition={{ duration: 0.5, delay: 0.4 }}
+								>
+									<Card className="bg-white shadow-md border border-orange-300 overflow-hidden">
+										<CardContent className="p-5">
+											<div className="flex flex-col items-center justify-between gap-4">
+												<div className="flex items-center gap-4">
+													{/* {seller?.companyLogo ? (
+														<div className="relative h-16 w-16 rounded-full border border-orange-200 bg-orange-50 flex items-center justify-center overflow-hidden">
+															<Image
+																src={seller.companyLogo}
+																alt={`${seller?.companyName || "Seller"} logo`}
+																width={64}
+																height={64}
+																className="object-contain p-2"
+															/>
+														</div>
+													) : (
+														<div className="h-16 w-16 rounded-full bg-orange-100 border border-orange-200 flex items-center justify-center text-xl font-semibold text-orange-700">
+															{getSellerInitials(seller?.companyName || seller?.brandName)}
+														</div>
+													)} */}
+													<div>
+														<p className="text-sm uppercase text-orange-600 font-semibold">
+															Sold by
+														</p>
+														<h2 className="text-lg drop-shadow-md flex justify-between items-center font-bold text-gray-900">
+															{seller?.brandName || seller?.companyName || "Trusted Seller"}
+															<span>
+														<ShieldCheck className="h-4 w-10 text-green-600" />
+													</span>
+														</h2>
+														<p className="text-xs text-gray-500 max-w-md">
+															{seller?.brandDescription ||
+																"Authorised safety equipment partner offering reliable quality and dedicated service."}
+														</p>
+													</div>
+												</div>
+												<div className="flex flex-col items-start gap-2">
+													
+													{seller?.gstinNumber && (
+														<span className="text-xs text-gray-500">
+															GSTIN: {seller.gstinNumber}
+														</span>
+													)}
+												</div>
+											</div>
 
-                                                                                        <div className="grid gap-4 sm:grid-cols-2">
-                                                                                                <div className="space-y-3 rounded-lg border border-gray-100 bg-gray-50 p-4">
-                                                                                                        <div className="flex items-center gap-2 text-gray-800">
-                                                                                                                <Store className="h-5 w-5 text-orange-500" />
-                                                                                                                <span className="text-sm font-semibold">Business Details</span>
-                                                                                                        </div>
-                                                                                                        <div className="text-sm text-gray-600 space-y-1">
-                                                                                                                <p className="font-medium text-gray-700">
-                                                                                                                        {seller?.companyName || "Company Name"}
-                                                                                                                </p>
-                                                                                                                {seller?.brandName && (
-                                                                                                                        <p className="text-gray-500">
-                                                                                                                                Brand: {seller.brandName}
-                                                                                                                        </p>
-                                                                                                                )}
-                                                                                                        </div>
-                                                                                                </div>
+											<div className="flex flex-col gap-4">
+												{/* <div className="space-y-3 rounded-lg border border-gray-100 bg-gray-50 p-4">
+													<div className="flex items-center gap-2 text-gray-800">
+														<Store className="h-5 w-5 text-orange-500" />
+														<span className="text-sm font-semibold">Business Details</span>
+													</div>
+													<div className="text-sm text-gray-600 space-y-1">
+														<p className="font-medium text-gray-700">
+															{seller?.companyName || "Company Name"}
+														</p>
+														{seller?.brandName && (
+															<p className="text-gray-500">
+																Brand: {seller.brandName}
+															</p>
+														)}
+													</div>
+												</div> */}
+{/* 
+												<div className="space-y-3 rounded-lg border border-gray-100 bg-gray-50 p-4">
+													<div className="flex items-center gap-2 text-gray-800">
+														<HelpCircle className="h-5 w-5 text-orange-500" />
+														<span className="text-sm font-semibold">Customer Assistance</span>
+													</div>
+													<div className="flex flex-col gap-2 text-sm text-gray-600">
+														{seller?.companyEmail && (
+															<div className="flex items-center gap-2">
+																<Mail className="h-4 w-4 text-gray-500" />
+																<span>{seller.companyEmail}</span>
+															</div>
+														)}
+														{seller?.phone && (
+															<div className="flex items-center gap-2">
+																<Phone className="h-4 w-4 text-gray-500" />
+																<span>{seller.phone}</span>
+															</div>
+														)}
+														<div className="flex items-center gap-2 text-gray-500">
+															<AlertCircle className="h-4 w-4" />
+															<span>Need help? Reach out for installation & after-sales support.</span>
+														</div>
+													</div>
+												</div> */}
 
-                                                                                                <div className="space-y-3 rounded-lg border border-gray-100 bg-gray-50 p-4">
-                                                                                                        <div className="flex items-center gap-2 text-gray-800">
-                                                                                                                <HelpCircle className="h-5 w-5 text-orange-500" />
-                                                                                                                <span className="text-sm font-semibold">Customer Assistance</span>
-                                                                                                        </div>
-                                                                                                        <div className="flex flex-col gap-2 text-sm text-gray-600">
-                                                                                                                {seller?.companyEmail && (
-                                                                                                                        <div className="flex items-center gap-2">
-                                                                                                                                <Mail className="h-4 w-4 text-gray-500" />
-                                                                                                                                <span>{seller.companyEmail}</span>
-                                                                                                                        </div>
-                                                                                                                )}
-                                                                                                                {seller?.phone && (
-                                                                                                                        <div className="flex items-center gap-2">
-                                                                                                                                <Phone className="h-4 w-4 text-gray-500" />
-                                                                                                                                <span>{seller.phone}</span>
-                                                                                                                        </div>
-                                                                                                                )}
-                                                                                                                <div className="flex items-center gap-2 text-gray-500">
-                                                                                                                        <AlertCircle className="h-4 w-4" />
-                                                                                                                        <span>Need help? Reach out for installation & after-sales support.</span>
-                                                                                                                </div>
-                                                                                                        </div>
-                                                                                                </div>
-
-                                                                                                <div className="sm:col-span-2 rounded-lg border border-gray-100 bg-gray-50 p-4">
-                                                                                                        <div className="flex items-start gap-3">
-                                                                                                                <MapPin className="h-5 w-5 text-orange-500 mt-1" />
-                                                                                                                <div className="space-y-1">
-                                                                                                                        <p className="text-sm font-semibold text-gray-800">
-                                                                                                                                {(headOfficeAddress && headOfficeAddress.label) ||
-                                                                                                                                        "Business Address"}
-                                                                                                                        </p>
-                                                                                                                        <p className="text-sm text-gray-600 leading-relaxed">
-                                                                                                                                {(headOfficeAddress && headOfficeAddress.fullAddress) ||
-                                                                                                                                        "Address information will be available soon."}
-                                                                                                                        </p>
-                                                                                                                </div>
-                                                                                                        </div>
-                                                                                                </div>
-                                                                                        </div>
-                                                                                </CardContent>
-                                                                        </Card>
-                                                                </motion.div>
-                                                        )}
+												<div className="col-span-2 rounded-lg border border-gray-100 bg-gray-50 p-3">
+													<div className="flex items-start gap-3">
+														{/* <MapPin className="h-5 w-20 text-orange-500 mt-1" /> */}
+														<div className="space-y-1">
+															<p className="text-base font-bold text-gray-800">
+																{(headOfficeAddress && headOfficeAddress.label) ||
+																	"Business Address"}
+															</p>
+															<p className="text-xs text-gray-600 leading-relaxed">
+																{(headOfficeAddress && headOfficeAddress.fullAddress) ||
+																	"Address information will be available soon."}
+															</p>
+														</div>
+													</div>
+												</div>
+											</div>
+										</CardContent>
+									</Card>
+								</motion.div>
+							)}
 						</div>
 					</div>
 				</div>
