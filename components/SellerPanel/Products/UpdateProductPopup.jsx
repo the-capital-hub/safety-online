@@ -26,6 +26,8 @@ import { Plus, X } from "lucide-react";
 import { useSellerProductStore } from "@/store/sellerProductStore.js";
 import { ImageUpload } from "@/components/AdminPanel/ImageUpload.jsx";
 
+const normalizeValue = (value) => (typeof value === "string" ? value.trim().toLowerCase() : "");
+
 // const categories = [
 // 	{ value: "personal-safety", label: "Personal Safety" },
 // 	{ value: "road-safety", label: "Road Safety" },
@@ -99,16 +101,24 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 		}
 	}, [open, fetchCategories]);
 
-	useEffect(() => {
-		if (formData.category) {
-			const category = categories.find((cat) => cat.name === formData.category);
-			setSelectedCategory(category);
-		}
-	}, [formData.category, categories]);
+        useEffect(() => {
+                if (!formData.category) {
+                        setSelectedCategory(null);
+                        return;
+                }
 
-	useEffect(() => {
-		if (product) {
-			// Convert existing image URLs to base64 for the ImageUpload component
+                const category = categories.find(
+                        (cat) =>
+                                normalizeValue(cat.name) ===
+                                normalizeValue(formData.category)
+                );
+
+                setSelectedCategory(category || null);
+        }, [formData.category, categories]);
+
+        useEffect(() => {
+                if (product) {
+                        // Convert existing image URLs to base64 for the ImageUpload component
 			const convertImages = async () => {
 				let convertedImages = [];
 				if (product.images && product.images.length > 0) {
@@ -167,6 +177,69 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
                         setFeatures(sanitizedFeatures.length > 0 ? sanitizedFeatures : [""]);
                 }
         }, [product]);
+
+        useEffect(() => {
+                if (!categories.length) return;
+
+                setFormData((prev) => {
+                        if (!prev.category) {
+                                if (!prev.subCategory) {
+                                        return prev;
+                                }
+
+                                return { ...prev, subCategory: "" };
+                        }
+
+                        const currentCategory = categories.find(
+                                (category) =>
+                                        normalizeValue(category.name) ===
+                                        normalizeValue(prev.category)
+                        );
+
+                        if (!currentCategory) {
+                                if (!prev.category && !prev.subCategory) {
+                                        return prev;
+                                }
+
+                                return { ...prev, category: "", subCategory: "" };
+                        }
+
+                        let updatedCategory = prev.category;
+                        let updatedSubCategory = prev.subCategory;
+
+                        if (currentCategory.name !== prev.category) {
+                                updatedCategory = currentCategory.name;
+                        }
+
+                        if (prev.subCategory) {
+                                const matchedSubCategory =
+                                        (currentCategory.subCategories || []).find(
+                                                (subCategory) =>
+                                                        normalizeValue(subCategory.name) ===
+                                                        normalizeValue(prev.subCategory)
+                                        );
+
+                                if (!matchedSubCategory) {
+                                        updatedSubCategory = "";
+                                } else if (matchedSubCategory.name !== prev.subCategory) {
+                                        updatedSubCategory = matchedSubCategory.name;
+                                }
+                        }
+
+                        if (
+                                updatedCategory !== prev.category ||
+                                updatedSubCategory !== prev.subCategory
+                        ) {
+                                return {
+                                        ...prev,
+                                        category: updatedCategory,
+                                        subCategory: updatedSubCategory,
+                                };
+                        }
+
+                        return prev;
+                });
+        }, [categories, product]);
 
         const handleSubmit = async (e) => {
                 e.preventDefault();
