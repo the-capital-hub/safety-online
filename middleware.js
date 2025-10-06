@@ -81,8 +81,8 @@ export function middleware(req) {
 
 	// Seller-only
         if (pathname.startsWith("/seller")) {
-                // Allow unauthenticated access to seller auth routes
-                const sellerPublicPaths = new Set(["/seller/login", "/seller/register"]);
+                // Allow unauthenticated access to seller marketing and auth routes
+                const sellerPublicPaths = new Set(["/seller", "/seller/", "/seller/login", "/seller/register"]);
 
                 if (sellerPublicPaths.has(pathname)) {
                         return NextResponse.next({
