@@ -315,28 +315,28 @@ export default function ReviewOrderPage() {
                                                         <motion.div
                                                                 key={productKey}
                                                                 initial={{ opacity: 0, y: 12 }}
-							animate={{ opacity: 1, y: 0 }}
-						>
-							<Card className="overflow-hidden">
-                                                                <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                                                        <div className="flex items-center gap-4">
-                                                                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                                                <Image
-                                                                                        src={item.productImage || "/placeholder.svg"}
-											alt={item.productName}
-											width={64}
-											height={64}
-											className="h-16 w-16 rounded-md object-cover"
-										/>
-										<div>
-											<CardTitle className="text-lg">
-												{item.productName}
-											</CardTitle>
-											<p className="text-sm text-muted-foreground">
-												Qty: {item.quantity}
-											</p>
-										</div>
-									</div>
+                                                                animate={{ opacity: 1, y: 0 }}
+                                                        >
+                                                                <Card className="overflow-hidden">
+                                                                        <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                                                                <div className="flex items-center gap-4">
+                                                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                                                        <Image
+                                                                                                src={item.productImage || "/placeholder.svg"}
+                                                                                                alt={item.productName}
+                                                                                                width={64}
+                                                                                                height={64}
+                                                                                                className="h-16 w-16 rounded-md object-cover"
+                                                                                        />
+                                                                                        <div>
+                                                                                                <CardTitle className="text-lg">
+                                                                                                        {item.productName}
+                                                                                                </CardTitle>
+                                                                                                <p className="text-sm text-muted-foreground">
+                                                                                                        Qty: {item.quantity}
+                                                                                                </p>
+                                                                                        </div>
+                                                                                </div>
                                                                                 <StarRating
                                                                                         value={state.rating}
                                                                                         onChange={(v) =>
@@ -347,48 +347,49 @@ export default function ReviewOrderPage() {
                                                                                                                 rating: v,
                                                                                                         },
                                                                                                 }))
-										}
-									/>
-								</CardHeader>
-								<CardContent className="space-y-4">
-                                                                        <Input
-                                                                                name="reviewTitle"
-                                                                                placeholder="Title (optional)"
-                                                                                value={state.title}
-                                                                                onChange={(e) =>
-                                                                                        setForm((prev) => ({
-                                                                                                ...prev,
-                                                                                                [productKey]: {
-                                                                                                        ...(prev[productKey] || {}),
-                                                                                                        title: e.target.value,
-                                                                                                },
-                                                                                        }))
-                                                                        }
-									/>
-                                                                        <Textarea
-                                                                                name="reviewComment"
-                                                                                placeholder="Share details about quality, comfort, size, delivery experience, etc. Minimum 10 characters."
-										rows={5}
-                                                                                value={state.comment}
-                                                                                onChange={(e) =>
-                                                                                        setForm((prev) => ({
-                                                                                                ...prev,
-                                                                                                [productKey]: {
-                                                                                                        ...(prev[productKey] || {}),
-                                                                                                        comment: e.target.value,
-                                                                                                },
-                                                                                        }))
-                                                                        }
-									/>
+                                                                                        }
+                                                                                />
+                                                                        </CardHeader>
+                                                                        <CardContent className="space-y-4">
+                                                                                <Input
+                                                                                        name="reviewTitle"
+                                                                                        placeholder="Title (optional)"
+                                                                                        value={state.title}
+                                                                                        onChange={(e) =>
+                                                                                                setForm((prev) => ({
+                                                                                                        ...prev,
+                                                                                                        [productKey]: {
+                                                                                                                ...(prev[productKey] || {}),
+                                                                                                                title: e.target.value,
+                                                                                                        },
+                                                                                                }))
+                                                                                        }
+                                                                                />
+                                                                                <Textarea
+                                                                                        name="reviewComment"
+                                                                                        placeholder="Share details about quality, comfort, size, delivery experience, etc. Minimum 10 characters."
+                                                                                        rows={5}
+                                                                                        value={state.comment}
+                                                                                        onChange={(e) =>
+                                                                                                setForm((prev) => ({
+                                                                                                        ...prev,
+                                                                                                        [productKey]: {
+                                                                                                                ...(prev[productKey] || {}),
+                                                                                                                comment: e.target.value,
+                                                                                                        },
+                                                                                                }))
+                                                                                        }
+                                                                                />
                                                                                 <ImagePicker
                                                                                         name={item.productName}
                                                                                         files={state.files || []}
                                                                                         onAdd={(files) => handleFilesAdd(productKey, files)}
                                                                                         onRemove={(idx) => handleFilesRemove(productKey, idx)}
-                                                                        />
-                                                                </CardContent>
-                                                        </Card>
-                                                </motion.div>
+                                                                                />
+                                                                        </CardContent>
+                                                                </Card>
+                                                        </motion.div>
+                                                );
                                         })
                                 )}
                         </div>
