@@ -217,3 +217,38 @@
     background-color: #164e63; 
   }
 }
+/* Firefox */
+.feature-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #fbac36 transparent; 
+  -ms-overflow-style: auto;
+  border-radius: 9999px,
+}
+
+
+.feature-scrollbar::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.feature-scrollbar::-webkit-scrollbar-track {
+  background: #fcd29f;   
+  border-radius: 999px;
+}
+
+.feature-scrollbar::-webkit-scrollbar-thumb {
+  background: #ffcf87;    
+  border-radius: 999px;
+}
+
+.feature-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #ff7a00;
+}
+
+.feature-scrollbar::-webkit-scrollbar-button {
+  display: none;
+}
+.feature-scrollbar:hover {
+  scrollbar-color: #ffa34d transparent;
+}
+
