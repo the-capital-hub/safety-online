@@ -68,14 +68,14 @@ export default function CheckoutPage() {
 		selectedAddressId,
 		newAddress,
 		isAddingNewAddress,
-                orderSummary,
-                appliedCoupon,
-                cartAppliedCoupon,
-                currentStep,
-                isLoading,
-                paymentLoading,
-                paymentMethod,
-        } = useCheckoutStore();
+		orderSummary,
+		appliedCoupon,
+		cartAppliedCoupon,
+		currentStep,
+		isLoading,
+		paymentLoading,
+		paymentMethod,
+	} = useCheckoutStore();
 
 	// Checkout store actions
 	const setCheckoutType = useCheckoutStore((state) => state.setCheckoutType);
@@ -94,31 +94,33 @@ export default function CheckoutPage() {
 	const toggleAddNewAddress = useCheckoutStore(
 		(state) => state.toggleAddNewAddress
 	);
-        const applyCoupon = useCheckoutStore((state) => state.applyCoupon);
+	const applyCoupon = useCheckoutStore((state) => state.applyCoupon);
 	const removeCoupon = useCheckoutStore((state) => state.removeCoupon);
 	const processPayment = useCheckoutStore((state) => state.processPayment);
 	const getSelectedAddress = useCheckoutStore(
 		(state) => state.getSelectedAddress
 	);
-        const fetchShippingEstimate = useCheckoutStore(
-                (state) => state.fetchShippingEstimate
-        );
+	const fetchShippingEstimate = useCheckoutStore(
+		(state) => state.fetchShippingEstimate
+	);
 
-        const lastFetchedEstimateRef = useRef({
-                addressId: null,
-                itemsKey: "",
-                status: "idle",
-        });
+	const lastFetchedEstimateRef = useRef({
+		addressId: null,
+		itemsKey: "",
+		status: "idle",
+	});
 
-        const itemsKey = useMemo(() => {
-                if (!orderSummary.items || orderSummary.items.length === 0) {
-                        return "";
-                }
+	const itemsKey = useMemo(() => {
+		if (!orderSummary.items || orderSummary.items.length === 0) {
+			return "";
+		}
 
-                return orderSummary.items
-                        .map((item) => `${item.productId || item._id || item.id}:${item.quantity}`)
-                        .join("|");
-        }, [orderSummary.items]);
+		return orderSummary.items
+			.map(
+				(item) => `${item.productId || item._id || item.id}:${item.quantity}`
+			)
+			.join("|");
+	}, [orderSummary.items]);
 
 	// Check authentication - redirect if not logged in
 	useEffect(() => {
@@ -263,77 +265,78 @@ export default function CheckoutPage() {
 	}, []);
 
 	// Handle address selection with automatic shipping estimate
-        const handleAddressSelect = useCallback(
-                (addressId) => {
-                        lastFetchedEstimateRef.current = {
-                                addressId: null,
-                                itemsKey: "",
-                                status: "idle",
-                        };
-                        selectAddress(addressId);
-                },
-                [selectAddress]
-        );
+	const handleAddressSelect = useCallback(
+		(addressId) => {
+			lastFetchedEstimateRef.current = {
+				addressId: null,
+				itemsKey: "",
+				status: "idle",
+			};
+			selectAddress(addressId);
+		},
+		[selectAddress]
+	);
 
-        useEffect(() => {
-                if (!selectedAddressId || !itemsKey) {
-                        return;
-                }
+	useEffect(() => {
+		if (!selectedAddressId || !itemsKey) {
+			return;
+		}
 
-                const lastFetch = lastFetchedEstimateRef.current;
-                const isSameContext =
-                        lastFetch.addressId === selectedAddressId && lastFetch.itemsKey === itemsKey;
+		const lastFetch = lastFetchedEstimateRef.current;
+		const isSameContext =
+			lastFetch.addressId === selectedAddressId &&
+			lastFetch.itemsKey === itemsKey;
 
-                const hasValidEstimate =
-                        orderSummary.shippingEstimate &&
-                        orderSummary.shippingEstimate.estimatedCost !== null &&
-                        orderSummary.shippingEstimate.minDays !== null;
+		const hasValidEstimate =
+			orderSummary.shippingEstimate &&
+			orderSummary.shippingEstimate.estimatedCost !== null &&
+			orderSummary.shippingEstimate.minDays !== null;
 
-                if (isSameContext) {
-                        if (lastFetch.status === "pending") {
-                                return;
-                        }
+		if (isSameContext) {
+			if (lastFetch.status === "pending") {
+				return;
+			}
 
-                        if (lastFetch.status === "failed" && !hasValidEstimate) {
-                                return;
-                        }
+			if (lastFetch.status === "failed" && !hasValidEstimate) {
+				return;
+			}
 
-                        if (hasValidEstimate) {
-                                return;
-                        }
-                }
+			if (hasValidEstimate) {
+				return;
+			}
+		}
 
-                const fetchEstimate = async () => {
-                        lastFetchedEstimateRef.current = {
-                                addressId: selectedAddressId,
-                                itemsKey,
-                                status: "pending",
-                        };
+		const fetchEstimate = async () => {
+			lastFetchedEstimateRef.current = {
+				addressId: selectedAddressId,
+				itemsKey,
+				status: "pending",
+			};
 
-                        const response = await fetchShippingEstimate();
+			const response = await fetchShippingEstimate();
 
-                        if (response) {
-                                lastFetchedEstimateRef.current = {
-                                        addressId: selectedAddressId,
-                                        itemsKey,
-                                        status: "completed",
-                                };
-                        } else {
-                                lastFetchedEstimateRef.current = {
-                                        addressId: selectedAddressId,
-                                        itemsKey,
-                                        status: "failed",
-                                };
-                        }
-                };
+			if (response) {
+				lastFetchedEstimateRef.current = {
+					addressId: selectedAddressId,
+					itemsKey,
+					status: "completed",
+				};
+			} else {
+				lastFetchedEstimateRef.current = {
+					addressId: selectedAddressId,
+					itemsKey,
+					status: "failed",
+				};
+			}
+		};
 
-                fetchEstimate();
-        }, [
-                selectedAddressId,
-                itemsKey,
-                orderSummary.shippingEstimate,
-                fetchShippingEstimate,
-        ]);
+		fetchEstimate();
+	}, [
+		selectedAddressId,
+		itemsKey,
+		orderSummary.shippingEstimate,
+		fetchShippingEstimate,
+	]);
 
 	// Handle new address form
 	const handleNewAddressChange = useCallback(
@@ -420,61 +423,59 @@ export default function CheckoutPage() {
 					</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-4">
-                                        {/* Saved Addresses */}
-                                        {savedAddresses.length > 0 && (
-                                                <div className="space-y-3">
-                                                        <h4 className="font-medium">Saved Addresses</h4>
-                                                        {savedAddresses.map((address) => (
-                                                                        <div
-                                                                                key={address._id}
-										className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-											selectedAddressId === address._id
-												? "border-blue-500 bg-blue-50"
-												: "border-gray-200 hover:border-gray-300"
-										}`}
-										onClick={() => handleAddressSelect(address._id)}
-									>
-										<div className="flex items-start justify-between">
-											<div className="flex-1">
-												<div className="flex items-center gap-2 mb-2">
-													{address.tag === "home" && (
-														<Home className="h-4 w-4" />
-													)}
-													{address.tag === "office" && (
-														<Building className="h-4 w-4" />
-													)}
-													{address.tag === "other" && (
-														<MapPinIcon className="h-4 w-4" />
-													)}
-													<Badge variant="secondary" className="capitalize">
-														{address.tag}
-													</Badge>
-													{address.isDefault && (
-														<Badge variant="default">Default</Badge>
-													)}
-												</div>
-												<p className="font-medium">{address.name}</p>
-												<p className="text-sm text-gray-600">
-													{address.street}, {address.city}, {address.state} -{" "}
-													{address.zipCode}
-												</p>
+					{/* Saved Addresses */}
+					{savedAddresses.length > 0 && (
+						<div className="space-y-3">
+							<h4 className="font-medium">Saved Addresses</h4>
+							{savedAddresses.map((address) => (
+								<div
+									key={address._id}
+									className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+										selectedAddressId === address._id
+											? "border-blue-500 bg-blue-50"
+											: "border-gray-200 hover:border-gray-300"
+									}`}
+									onClick={() => handleAddressSelect(address._id)}
+								>
+									<div className="flex items-start justify-between">
+										<div className="flex-1">
+											<div className="flex items-center gap-2 mb-2">
+												{address.tag === "home" && <Home className="h-4 w-4" />}
+												{address.tag === "office" && (
+													<Building className="h-4 w-4" />
+												)}
+												{address.tag === "other" && (
+													<MapPinIcon className="h-4 w-4" />
+												)}
+												<Badge variant="secondary" className="capitalize">
+													{address.tag}
+												</Badge>
+												{address.isDefault && (
+													<Badge variant="default">Default</Badge>
+												)}
 											</div>
-											<div className="ml-4">
-												<div
-													className={`w-4 h-4 rounded-full border-2 ${
-														selectedAddressId === address._id
-															? "border-blue-500 bg-blue-500"
-															: "border-gray-300"
-													}`}
-												>
-													{selectedAddressId === address._id && (
-														<div className="w-2 h-2 bg-white rounded-full m-0.5" />
-													)}
-												</div>
+											<p className="font-medium">{address.name}</p>
+											<p className="text-sm text-gray-600">
+												{address.street}, {address.city}, {address.state} -{" "}
+												{address.zipCode}
+											</p>
+										</div>
+										<div className="ml-4">
+											<div
+												className={`w-4 h-4 rounded-full border-2 ${
+													selectedAddressId === address._id
+														? "border-blue-500 bg-blue-500"
+														: "border-gray-300"
+												}`}
+											>
+												{selectedAddressId === address._id && (
+													<div className="w-2 h-2 bg-white rounded-full m-0.5" />
+												)}
 											</div>
 										</div>
 									</div>
-								))}
+								</div>
+							))}
 						</div>
 					)}
 
@@ -634,11 +635,11 @@ export default function CheckoutPage() {
 					)}
 
 					{/* Continue Button */}
-                                        <Button
-                                                onClick={() => setCurrentStep(2)}
-                                                disabled={!selectedAddressId}
-                                                className="w-full"
-                                        >
+					<Button
+						onClick={() => setCurrentStep(2)}
+						disabled={!selectedAddressId}
+						className="w-full"
+					>
 						Continue to Payment
 						<ArrowRight className="ml-2 h-4 w-4" />
 					</Button>
@@ -649,10 +650,10 @@ export default function CheckoutPage() {
 			savedAddresses,
 			selectedAddressId,
 			isAddingNewAddress,
-                        newAddress,
-                        isLoading,
-                        handleAddressSelect,
-                        handleNewAddressChange,
+			newAddress,
+			isLoading,
+			handleAddressSelect,
+			handleNewAddressChange,
 			handleAddNewAddress,
 			toggleAddNewAddress,
 			setCurrentStep,

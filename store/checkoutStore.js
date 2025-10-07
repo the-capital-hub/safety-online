@@ -153,17 +153,17 @@ export const useCheckoutStore = create(
 				// Delivery Address Management
 				savedAddresses: [],
 				selectedAddressId: null,
-                                newAddress: {
-                                        tag: "home",
-                                        name: "",
-                                        street: "",
-                                        city: "",
-                                        state: "",
-                                        zipCode: "",
-                                        country: "India",
-                                        isDefault: false,
-                                },
-                                isAddingNewAddress: false,
+				newAddress: {
+					tag: "home",
+					name: "",
+					street: "",
+					city: "",
+					state: "",
+					zipCode: "",
+					country: "India",
+					isDefault: false,
+				},
+				isAddingNewAddress: false,
 
 				// Order Summary
 				orderSummary: {
@@ -246,6 +246,11 @@ export const useCheckoutStore = create(
 								quantity: quantity,
 								price: product.price,
 								totalPrice: product.price * quantity,
+								length: product.length || null,
+								width: product.width || null,
+								height: product.height || null,
+								weight: product.weight || null,
+								size: product.size || null,
 							},
 						];
 					} else {
@@ -256,6 +261,11 @@ export const useCheckoutStore = create(
 							quantity: item.quantity,
 							price: item.price,
 							totalPrice: item.price * item.quantity,
+							length: product.length || null,
+							width: product.width || null,
+							height: product.height || null,
+							weight: product.weight || null,
+							size: product.size || null,
 						}));
 					}
 
@@ -304,17 +314,17 @@ export const useCheckoutStore = create(
 				},
 
 				// Load user addresses
-                                loadUserAddresses: async () => {
-                                        set({ isLoading: true });
-                                        try {
-                                                const data = await paymentAPI.getUserAddresses();
-                                                if (data.success) {
-                                                        set({ savedAddresses: data.addresses });
+				loadUserAddresses: async () => {
+					set({ isLoading: true });
+					try {
+						const data = await paymentAPI.getUserAddresses();
+						if (data.success) {
+							set({ savedAddresses: data.addresses });
 
-                                                        // Auto-select default address if available
-                                                        const defaultAddress = data.addresses.find(
-                                                                (addr) => addr.isDefault
-                                                        );
+							// Auto-select default address if available
+							const defaultAddress = data.addresses.find(
+								(addr) => addr.isDefault
+							);
 							if (defaultAddress) {
 								set({ selectedAddressId: defaultAddress._id });
 							}
@@ -350,13 +360,13 @@ export const useCheckoutStore = create(
 							await get().loadUserAddresses();
 
 							// Reset new address form
-                                                        set({
-                                                                newAddress: {
-                                                                        tag: "home",
-                                                                        name: "",
-                                                                        street: "",
-                                                                        city: "",
-                                                                        state: "",
+							set({
+								newAddress: {
+									tag: "home",
+									name: "",
+									street: "",
+									city: "",
+									state: "",
 									zipCode: "",
 									country: "India",
 									isDefault: false,
@@ -384,24 +394,24 @@ export const useCheckoutStore = create(
 				},
 
 				// Select address
-                                selectAddress: (addressId) => {
-                                        set((state) => ({
-                                                selectedAddressId: addressId,
-                                                orderSummary: {
-                                                        ...state.orderSummary,
-                                                        shippingCost: 0,
-                                                        shippingEstimate: {
-                                                                minDays: null,
-                                                                maxDays: null,
-                                                                estimatedCost: null,
-                                                                estimatedTax: null,
-                                                                estimatedTotal: null,
-                                                        },
-                                                        edd: "N/A",
-                                                },
-                                        }));
-                                        get().recalculateTotal();
-                                },
+				selectAddress: (addressId) => {
+					set((state) => ({
+						selectedAddressId: addressId,
+						orderSummary: {
+							...state.orderSummary,
+							shippingCost: 0,
+							shippingEstimate: {
+								minDays: null,
+								maxDays: null,
+								estimatedCost: null,
+								estimatedTax: null,
+								estimatedTotal: null,
+							},
+							edd: "N/A",
+						},
+					}));
+					get().recalculateTotal();
+				},
 
 				// Fetch shipping estimate
 				fetchShippingEstimate: async () => {
@@ -430,6 +440,8 @@ export const useCheckoutStore = create(
 					try {
 						set({ isLoading: true });
 
+						// console.log("Order items for shipping:", orderSummary.items);
+
 						// Calculate shipping parameters dynamically from order items
 						const shippingParams = calculateShippingParams(orderSummary.items, {
 							pickupPincode: "560068", // Seller pincode - should come from seller's company details
@@ -447,7 +459,7 @@ export const useCheckoutStore = create(
 							return null;
 						}
 
-						console.log("Shipping estimate params:", shippingParams);
+						// console.log("Shipping estimate params:", shippingParams);
 
 						// Call the API with calculated parameters
 						const response = await paymentAPI.getShippingEstimate(
@@ -503,10 +515,10 @@ export const useCheckoutStore = create(
 					}
 				},
 
-                                // Toggle add new address form
-                                toggleAddNewAddress: () => {
-                                        set((state) => ({ isAddingNewAddress: !state.isAddingNewAddress }));
-                                },
+				// Toggle add new address form
+				toggleAddNewAddress: () => {
+					set((state) => ({ isAddingNewAddress: !state.isAddingNewAddress }));
+				},
 
 				// Apply coupon (only for buyNow flow)
 				applyCoupon: async (couponCode) => {
@@ -644,11 +656,10 @@ export const useCheckoutStore = create(
 							checkoutType === "cart" ? cartAppliedCoupon : appliedCoupon;
 
 						// Prepare order data
-						const shippingCost = orderSummary.subtotal >= 500 ? 0 : 50;
 						const totals = calculateGstTotals({
 							subtotal: orderSummary.subtotal,
 							discount: orderSummary.discount,
-							shippingCost,
+							shippingCost: orderSummary.shippingCost,
 							address: selectedAddress,
 							gstMode: orderSummary.gst?.mode,
 						});

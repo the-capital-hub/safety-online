@@ -9,11 +9,11 @@ export async function GET(req, { params }) {
 	const { id } = await params;
 
 	try {
-                const product = await Product.findById(id).populate({
-                        path: "reviews",
-                        select: "rating",
-                        model: Review,
-                });
+		const product = await Product.findById(id).populate({
+			path: "reviews",
+			select: "rating",
+			model: Review,
+		});
 
 		if (!product) {
 			return Response.json({ message: "Product not found" }, { status: 404 });
@@ -61,6 +61,14 @@ export async function GET(req, { params }) {
 						address: company.address,
 				  }
 				: null,
+			sellerId: product.sellerId,
+			// product specifications
+			length: product.length || null,
+			width: product.width || null,
+			height: product.height || null,
+			weight: product.weight || null,
+			size: product.size || null,
+			hsnCode: product.hsnCode || null,
 		};
 
 		return Response.json({
