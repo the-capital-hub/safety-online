@@ -319,6 +319,11 @@ const SubOrderSchema = new mongoose.Schema(
 				quantity: { type: Number, required: true },
 				price: { type: Number, required: true },
 				totalPrice: { type: Number, required: true },
+				length: Number, // cm
+				width: Number, // cm
+				height: Number, // cm
+				weight: Number, // g
+				size: String, // S, M, L, XL, etc.
 			},
 		],
 

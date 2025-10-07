@@ -113,25 +113,27 @@ export default function CheckoutPage() {
 	const getSelectedAddress = useCheckoutStore(
 		(state) => state.getSelectedAddress
 	);
-        const fetchShippingEstimate = useCheckoutStore(
-                (state) => state.fetchShippingEstimate
-        );
+	const fetchShippingEstimate = useCheckoutStore(
+		(state) => state.fetchShippingEstimate
+	);
 
-        const lastFetchedEstimateRef = useRef({
-                addressId: null,
-                itemsKey: "",
-                status: "idle",
-        });
+	const lastFetchedEstimateRef = useRef({
+		addressId: null,
+		itemsKey: "",
+		status: "idle",
+	});
 
-        const itemsKey = useMemo(() => {
-                if (!orderSummary.items || orderSummary.items.length === 0) {
-                        return "";
-                }
+	const itemsKey = useMemo(() => {
+		if (!orderSummary.items || orderSummary.items.length === 0) {
+			return "";
+		}
 
-                return orderSummary.items
-                        .map((item) => `${item.productId || item._id || item.id}:${item.quantity}`)
-                        .join("|");
-        }, [orderSummary.items]);
+		return orderSummary.items
+			.map(
+				(item) => `${item.productId || item._id || item.id}:${item.quantity}`
+			)
+			.join("|");
+	}, [orderSummary.items]);
 
 	// Check authentication - redirect if not logged in
 	useEffect(() => {
@@ -276,77 +278,78 @@ export default function CheckoutPage() {
 	}, []);
 
 	// Handle address selection with automatic shipping estimate
-        const handleAddressSelect = useCallback(
-                (addressId) => {
-                        lastFetchedEstimateRef.current = {
-                                addressId: null,
-                                itemsKey: "",
-                                status: "idle",
-                        };
-                        selectAddress(addressId);
-                },
-                [selectAddress]
-        );
+	const handleAddressSelect = useCallback(
+		(addressId) => {
+			lastFetchedEstimateRef.current = {
+				addressId: null,
+				itemsKey: "",
+				status: "idle",
+			};
+			selectAddress(addressId);
+		},
+		[selectAddress]
+	);
 
-        useEffect(() => {
-                if (!selectedAddressId || !itemsKey) {
-                        return;
-                }
+	useEffect(() => {
+		if (!selectedAddressId || !itemsKey) {
+			return;
+		}
 
-                const lastFetch = lastFetchedEstimateRef.current;
-                const isSameContext =
-                        lastFetch.addressId === selectedAddressId && lastFetch.itemsKey === itemsKey;
+		const lastFetch = lastFetchedEstimateRef.current;
+		const isSameContext =
+			lastFetch.addressId === selectedAddressId &&
+			lastFetch.itemsKey === itemsKey;
 
-                const hasValidEstimate =
-                        orderSummary.shippingEstimate &&
-                        orderSummary.shippingEstimate.estimatedCost !== null &&
-                        orderSummary.shippingEstimate.minDays !== null;
+		const hasValidEstimate =
+			orderSummary.shippingEstimate &&
+			orderSummary.shippingEstimate.estimatedCost !== null &&
+			orderSummary.shippingEstimate.minDays !== null;
 
-                if (isSameContext) {
-                        if (lastFetch.status === "pending") {
-                                return;
-                        }
+		if (isSameContext) {
+			if (lastFetch.status === "pending") {
+				return;
+			}
 
-                        if (lastFetch.status === "failed" && !hasValidEstimate) {
-                                return;
-                        }
+			if (lastFetch.status === "failed" && !hasValidEstimate) {
+				return;
+			}
 
-                        if (hasValidEstimate) {
-                                return;
-                        }
-                }
+			if (hasValidEstimate) {
+				return;
+			}
+		}
 
-                const fetchEstimate = async () => {
-                        lastFetchedEstimateRef.current = {
-                                addressId: selectedAddressId,
-                                itemsKey,
-                                status: "pending",
-                        };
+		const fetchEstimate = async () => {
+			lastFetchedEstimateRef.current = {
+				addressId: selectedAddressId,
+				itemsKey,
+				status: "pending",
+			};
 
-                        const response = await fetchShippingEstimate();
+			const response = await fetchShippingEstimate();
 
-                        if (response) {
-                                lastFetchedEstimateRef.current = {
-                                        addressId: selectedAddressId,
-                                        itemsKey,
-                                        status: "completed",
-                                };
-                        } else {
-                                lastFetchedEstimateRef.current = {
-                                        addressId: selectedAddressId,
-                                        itemsKey,
-                                        status: "failed",
-                                };
-                        }
-                };
+			if (response) {
+				lastFetchedEstimateRef.current = {
+					addressId: selectedAddressId,
+					itemsKey,
+					status: "completed",
+				};
+			} else {
+				lastFetchedEstimateRef.current = {
+					addressId: selectedAddressId,
+					itemsKey,
+					status: "failed",
+				};
+			}
+		};
 
-                fetchEstimate();
-        }, [
-                selectedAddressId,
-                itemsKey,
-                orderSummary.shippingEstimate,
-                fetchShippingEstimate,
-        ]);
+		fetchEstimate();
+	}, [
+		selectedAddressId,
+		itemsKey,
+		orderSummary.shippingEstimate,
+		fetchShippingEstimate,
+	]);
 
 	// Handle new address form
 	const handleNewAddressChange = useCallback(
@@ -877,11 +880,11 @@ export default function CheckoutPage() {
 					)}
 
 					{/* Continue Button */}
-                                        <Button
-                                                onClick={() => setCurrentStep(2)}
-                                                disabled={!selectedAddressId}
-                                                className="w-full"
-                                        >
+					<Button
+						onClick={() => setCurrentStep(2)}
+						disabled={!selectedAddressId}
+						className="w-full"
+					>
 						Continue to Payment
 						<ArrowRight className="ml-2 h-4 w-4" />
 					</Button>
