@@ -130,23 +130,33 @@ const OrderSchema = new mongoose.Schema(
 		discount: Number,
 		taxableAmount: Number,
 		totalAmount: Number,
-		gst: {
-			type: GstBreakdownSchema,
-			default: () => ({
-				mode: "igst",
-				rate: 18,
-				cgst: 0,
-				sgst: 0,
-				igst: 0,
-				total: 0,
-				taxableAmount: 0,
-			}),
-		},
+                gst: {
+                        type: GstBreakdownSchema,
+                        default: () => ({
+                                mode: "igst",
+                                rate: 18,
+                                cgst: 0,
+                                sgst: 0,
+                                igst: 0,
+                                total: 0,
+                                taxableAmount: 0,
+                        }),
+                },
 
-		// Coupon/Promo
-		couponApplied: {
-			type: CouponAppliedSchema,
-			default: null,
+                billingInfo: {
+                        gstInvoiceRequested: { type: Boolean, default: false },
+                        gstNumber: { type: String, default: null },
+                        gstLegalName: { type: String, default: null },
+                        gstTradeName: { type: String, default: null },
+                        gstState: { type: String, default: null },
+                        gstAddress: { type: String, default: null },
+                        gstVerifiedAt: { type: Date, default: null },
+                },
+
+                // Coupon/Promo
+                couponApplied: {
+                        type: CouponAppliedSchema,
+                        default: null,
 
 			set: normalizeCouponValue,
 		},

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
+
 import Image from "next/image";
 import {
 	Card,
@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Loader2, UploadCloud, ImageIcon } from "lucide-react";
 import { companyBaseSchema } from "@/zodSchema/companyScema.js";
+import { toast} from "react-hot-toast";
 
 export default function ShopForm() {
 	const [form, setForm] = useState({
