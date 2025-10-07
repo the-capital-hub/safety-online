@@ -60,7 +60,7 @@ export default function MiniCart() {
 					className="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-xl"
 					onClick={(e) => e.stopPropagation()}
 				>
-					<Card className="h-full rounded-none border-0 flex flex-col">
+                                        <Card className="h-full rounded-none border-0 flex flex-col min-h-0">
 						<CardHeader className="flex-shrink-0">
 							<div className="flex items-center justify-between">
 								<CardTitle className="flex items-center gap-2">
@@ -73,7 +73,7 @@ export default function MiniCart() {
 							</div>
 						</CardHeader>
 
-						<CardContent className="flex-1 flex flex-col p-0">
+                                                <CardContent className="flex-1 flex flex-col p-0 min-h-0">
 							{items.length === 0 ? (
 								<div className="flex-1 flex items-center justify-center p-6">
 									<div className="text-center">
@@ -84,7 +84,7 @@ export default function MiniCart() {
 							) : (
 								<>
 									{/* Cart Items */}
-									<div className="flex-1 overflow-y-auto p-4 space-y-4">
+                                                                        <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
 										{items.map((item) => (
 											<div
 												key={item.id}

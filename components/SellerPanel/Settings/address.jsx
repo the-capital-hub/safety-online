@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
 import { Pencil, Trash2, Plus, Save, X } from "lucide-react";
 import {
 	Card,
@@ -14,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { addressSchema } from "@/zodSchema/companyScema.js";
+import toast from "react-hot-toast";
 
 export default function CompanyAddresses() {
 	const [addresses, setAddresses] = useState([]);

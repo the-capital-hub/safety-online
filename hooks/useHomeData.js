@@ -6,11 +6,12 @@ export function useHomeData(category = "all", search = "", page = 1) {
 	const [data, setData] = useState({
 		discountedProducts: [],
 		topSellingProducts: [],
-		bestSellingProduct: null,
-		featuredProducts: [],
-		categoryProducts: [],
-		categories: [],
-		pagination: null,
+                bestSellingProduct: null,
+                featuredProducts: [],
+                categoryProducts: [],
+                categories: [],
+                brandPromotions: [],
+                pagination: null,
 	});
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState(null);

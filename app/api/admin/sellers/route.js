@@ -160,7 +160,6 @@ export async function POST(request) {
 
                         seller.company = company._id;
                         await seller.save();
-                        }
                 }
 
                 // Remove password from response

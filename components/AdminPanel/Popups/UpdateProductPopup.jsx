@@ -356,26 +356,65 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
         useEffect(() => {
                 if (!categories.length) return;
 
-                const currentCategory = categories.find(
-                        (category) => normalizeValue(category.name) === normalizeValue(formData.category)
-                );
+                setFormData((prev) => {
+                        if (!prev.category) {
+                                if (!prev.subCategory) {
+                                        return prev;
+                                }
 
-                if (!currentCategory) {
-                        if (formData.subCategory) {
-                                setFormData((prev) => ({ ...prev, subCategory: "" }));
+                                return { ...prev, subCategory: "" };
                         }
-                        return;
-                }
 
-                const hasValidSubCategory = (currentCategory.subCategories || []).some(
-                        (subCategory) =>
-                                normalizeValue(subCategory.name) === normalizeValue(formData.subCategory)
-                );
+                        const currentCategory = categories.find(
+                                (category) =>
+                                        normalizeValue(category.name) ===
+                                        normalizeValue(prev.category)
+                        );
 
-                if (!hasValidSubCategory && formData.subCategory) {
-                        setFormData((prev) => ({ ...prev, subCategory: "" }));
-                }
-        }, [categories, formData.category, formData.subCategory]);
+                        if (!currentCategory) {
+                                if (!prev.category && !prev.subCategory) {
+                                        return prev;
+                                }
+
+                                return { ...prev, category: "", subCategory: "" };
+                        }
+
+                        let updatedCategory = prev.category;
+                        let updatedSubCategory = prev.subCategory;
+
+                        if (currentCategory.name !== prev.category) {
+                                updatedCategory = currentCategory.name;
+                        }
+
+                        if (prev.subCategory) {
+                                const matchedSubCategory =
+                                        (currentCategory.subCategories || []).find(
+                                                (subCategory) =>
+                                                        normalizeValue(subCategory.name) ===
+                                                        normalizeValue(prev.subCategory)
+                                        );
+
+                                if (!matchedSubCategory) {
+                                        updatedSubCategory = "";
+                                } else if (matchedSubCategory.name !== prev.subCategory) {
+                                        updatedSubCategory = matchedSubCategory.name;
+                                }
+                        }
+
+                        if (
+                                updatedCategory !== prev.category ||
+                                updatedSubCategory !== prev.subCategory
+                        ) {
+                                return {
+                                        ...prev,
+                                        category: updatedCategory,
+                                        subCategory: updatedSubCategory,
+                                };
+                        }
+
+                        return prev;
+                });
+        }, [categories, product]);
 
         return (
                 <Dialog open={open} onOpenChange={onOpenChange}>

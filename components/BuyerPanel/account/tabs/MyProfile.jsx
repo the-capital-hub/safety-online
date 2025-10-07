@@ -99,18 +99,22 @@ export function MyProfile() {
 		setPasswordForm((s) => ({ ...s, [k]: v }));
 	}
 
-	async function loadAddresses() {
-		if (!isAuthed || !user?._id) return;
-		try {
-			const res = await fetch(`/api/profile/addresses?userId=${user._id}`);
-			if (res.ok) {
-				const data = await res.json();
-				setAddresses(data.addresses || []);
-			}
-		} catch (error) {
-			console.error("Failed to load addresses:", error);
-		}
-	}
+        async function loadAddresses() {
+                if (!isAuthed || !user?._id) return;
+                try {
+                        const res = await fetch(`/api/profile/addresses?userId=${user._id}`);
+                        if (res.ok) {
+                                const data = await res.json();
+                                const sanitizedAddresses = (data.addresses || []).map((addr) => ({
+                                        ...addr,
+                                        _id: addr?._id?.toString ? addr._id.toString() : addr._id,
+                                }));
+                                setAddresses(sanitizedAddresses);
+                        }
+                } catch (error) {
+                        console.error("Failed to load addresses:", error);
+                }
+        }
 
 	async function saveProfile() {
 		if (!isAuthed || !user?._id) return;
@@ -187,57 +191,118 @@ export function MyProfile() {
 		}
 	}
 
-	async function saveAddresses() {
-		if (!isAuthed || !user?._id) return;
-		setLoading((prev) => ({ ...prev, addresses: true }));
+        async function addAddress(address) {
+                if (!isAuthed || !user?._id) return false;
 
-		try {
-			const res = await fetch("/api/profile/addresses", {
-				method: "PUT",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					userId: user._id,
-					addresses,
-				}),
-			});
+                setLoading((prev) => ({ ...prev, addresses: true }));
 
-			if (res.ok) {
-				toast.success("Addresses updated successfully!");
-			} else {
-				const error = await res.json();
-				toast.error(error.message || "Failed to update addresses");
-			}
-		} catch (error) {
-			console.error("Failed to update addresses:", error);
-			toast.error("Failed to update addresses");
-		} finally {
-			setLoading((prev) => ({ ...prev, addresses: false }));
-		}
-	}
+                try {
+                        const res = await fetch("/api/profile/addresses", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                        userId: user._id,
+                                        address,
+                                }),
+                        });
 
-	async function deleteAddress(addressId) {
-		if (!isAuthed || !user?._id) return;
+                        const data = await res.json();
 
-		try {
-			const res = await fetch(
-				`/api/profile/addresses?userId=${user._id}&addressId=${addressId}`,
-				{
-					method: "DELETE",
-				}
-			);
+                        if (res.ok) {
+                                toast.success("Address added successfully!");
+                                await loadAddresses();
+                                return true;
+                        }
 
-			if (res.ok) {
-				setAddresses((prev) => prev.filter((addr) => addr._id !== addressId));
-				toast.success("Address deleted successfully!");
-			} else {
-				const error = await res.json();
-				toast.error(error.message || "Failed to delete address");
-			}
-		} catch (error) {
-			console.error("Failed to delete address:", error);
-			toast.error("Failed to delete address");
-		}
-	}
+                        toast.error(data.message || data.error || "Failed to add address");
+                        return false;
+                } catch (error) {
+                        console.error("Failed to add address:", error);
+                        toast.error("Failed to add address");
+                        return false;
+                } finally {
+                        setLoading((prev) => ({ ...prev, addresses: false }));
+                }
+        }
+
+        async function updateAddress(addressId, updatedAddress) {
+                if (!isAuthed || !user?._id) return false;
+
+                setLoading((prev) => ({ ...prev, addresses: true }));
+
+                try {
+                        const updatedList = addresses.map((addr) => {
+                                if ((addr._id || "").toString() === addressId.toString()) {
+                                        return { ...addr, ...updatedAddress };
+                                }
+
+                                if (updatedAddress.isDefault) {
+                                        return { ...addr, isDefault: false };
+                                }
+
+                                return addr;
+                        });
+
+                        const res = await fetch("/api/profile/addresses", {
+                                method: "PUT",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                        userId: user._id,
+                                        addresses: updatedList,
+                                }),
+                        });
+
+                        const data = await res.json();
+
+                        if (res.ok) {
+                                const sanitizedAddresses = (data.addresses || updatedList).map((addr) => ({
+                                        ...addr,
+                                        _id: addr?._id?.toString ? addr._id.toString() : addr._id,
+                                }));
+                                setAddresses(sanitizedAddresses);
+                                toast.success("Address updated successfully!");
+                                return true;
+                        }
+
+                        toast.error(data.message || data.error || "Failed to update address");
+                        return false;
+                } catch (error) {
+                        console.error("Failed to update address:", error);
+                        toast.error("Failed to update address");
+                        return false;
+                } finally {
+                        setLoading((prev) => ({ ...prev, addresses: false }));
+                }
+        }
+
+        async function deleteAddress(addressId) {
+                if (!isAuthed || !user?._id) return;
+
+                setLoading((prev) => ({ ...prev, addresses: true }));
+
+                try {
+                        const res = await fetch(
+                                `/api/profile/addresses?userId=${user._id}&addressId=${addressId}`,
+                                {
+                                        method: "DELETE",
+                                }
+                        );
+
+                        const data = res.ok ? null : await res.json();
+
+                        if (res.ok) {
+                                toast.success("Address deleted successfully!");
+                                await loadAddresses();
+                        } else {
+                                toast.error(data?.message || data?.error || "Failed to delete address");
+                        }
+                } catch (error) {
+                        console.error("Failed to delete address:", error);
+                        toast.error("Failed to delete address");
+                } finally {
+                        setLoading((prev) => ({ ...prev, addresses: false }));
+                }
+        }
 
 	if (!isAuthed) {
 		return (
@@ -460,22 +525,19 @@ export function MyProfile() {
 					<CardHeader className="flex flex-row items-center justify-between">
 						<div>
 							<CardTitle>Addresses</CardTitle>
-							<CardDescription>
-								Manage your shipping and billing addresses
-							</CardDescription>
+                                                        <CardDescription>
+                                                                Manage your saved shipping addresses
+                                                        </CardDescription>
 						</div>
-						<AddressFormDialog
-							trigger={
-								<Button size="sm">
-									<Plus className="h-4 w-4 mr-2" />
-									Add Address
-								</Button>
-							}
-							onSave={(addr) => {
-								const newAddress = { ...addr, _id: crypto.randomUUID() };
-								setAddresses((a) => [...a, newAddress]);
-							}}
-						/>
+                                                <AddressFormDialog
+                                                        trigger={
+                                                                <Button size="sm" disabled={loading.addresses}>
+                                                                        <Plus className="h-4 w-4 mr-2" />
+                                                                        {loading.addresses ? "Processing..." : "Add Address"}
+                                                                </Button>
+                                                        }
+                                                        onSave={addAddress}
+                                                />
 					</CardHeader>
 					<CardContent>
 						<div className="space-y-4">
@@ -489,11 +551,6 @@ export function MyProfile() {
 									<div className="flex items-center justify-between mb-2">
 										<div className="font-medium capitalize">
 											{addr.tag} Address{" "}
-											{addr?.addressType && (
-												<span className="ml-2 text-xs bg-primary text-primary-foreground px-2 py-1 rounded">
-													{addr.addressType}
-												</span>
-											)}
 											{addr.isDefault && (
 												<span className="ml-2 text-xs bg-primary text-primary-foreground px-2 py-1 rounded">
 													Default
@@ -501,28 +558,40 @@ export function MyProfile() {
 											)}
 										</div>
 										<div className="flex gap-2">
-											<AddressFormDialog
-												initial={addr}
-												trigger={
-													<Button variant="ghost" size="sm">
-														<Edit className="h-4 w-4" />
-													</Button>
-												}
-												onSave={(updated) =>
-													setAddresses((list) =>
-														list.map((a) =>
-															a._id === addr._id ? { ...a, ...updated } : a
-														)
-													)
-												}
-											/>
-											<Button
-												variant="ghost"
-												size="sm"
-												onClick={() => deleteAddress(addr._id)}
-											>
-												<Trash2 className="h-4 w-4" />
-											</Button>
+                                                                                          <AddressFormDialog
+                                                                                                  initial={addr}
+                                                                                                  trigger={
+                                                                                                          <Button
+                                                                                                                  variant="ghost"
+                                                                                                                  size="sm"
+                                                                                                                  disabled={loading.addresses}
+                                                                                                          >
+                                                                                                                  <Edit className="h-4 w-4" />
+                                                                                                          </Button>
+                                                                                                  }
+                                                                                                  onSave={(updated) =>
+                                                                                                          updateAddress(
+                                                                                                                  addr._id?.toString
+                                                                                                                          ? addr._id.toString()
+                                                                                                                          : addr._id,
+                                                                                                                  updated
+                                                                                                          )
+                                                                                                  }
+                                                                                          />
+                                                                                          <Button
+                                                                                                  variant="ghost"
+                                                                                                  size="sm"
+                                                                                                  disabled={loading.addresses}
+                                                                                                  onClick={() =>
+                                                                                                          deleteAddress(
+                                                                                                                  addr._id?.toString
+                                                                                                                          ? addr._id.toString()
+                                                                                                                          : addr._id
+                                                                                                          )
+                                                                                                  }
+                                                                                          >
+                                                                                                  <Trash2 className="h-4 w-4" />
+                                                                                          </Button>
 										</div>
 									</div>
 									<div className="text-sm text-muted-foreground">
@@ -537,13 +606,6 @@ export function MyProfile() {
 								</div>
 							))}
 						</div>
-						{addresses.length > 0 && (
-							<div className="mt-4 flex justify-end">
-								<Button onClick={saveAddresses} disabled={loading.addresses}>
-									{loading.addresses ? "Saving..." : "Save Addresses"}
-								</Button>
-							</div>
-						)}
 					</CardContent>
 				</Card>
 			</motion.div>

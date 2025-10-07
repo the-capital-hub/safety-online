@@ -1,18 +1,28 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
-import { v2 as cloudinary } from "cloudinary";
-
-cloudinary.config({
-	cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
-	api_key: process.env.CLOUDINARY_API_KEY,
-	api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+import cloudinary, {
+        isCloudinaryConfigured,
+        missingCloudinaryConfig,
+} from "@/lib/cloudinary.js";
 
 export async function POST(req) {
-	try {
-		const cookieStore = cookies();
-		const token = cookieStore.get("seller-auth-token")?.value;
+        try {
+                if (!isCloudinaryConfigured) {
+                        const missingMessage = missingCloudinaryConfig.length
+                                ? `Missing environment variables: ${missingCloudinaryConfig.join(", ")}`
+                                : "Missing Cloudinary environment variables.";
+
+                        return NextResponse.json(
+                                {
+                                        error: `Cloudinary configuration is incomplete. ${missingMessage}`,
+                                },
+                                { status: 500 }
+                        );
+                }
+
+                const cookieStore = cookies();
+                const token = cookieStore.get("seller-auth-token")?.value;
 		if (!token) {
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}

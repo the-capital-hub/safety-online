@@ -104,6 +104,17 @@ const menuItems = [
                 icon: DollarSign,
                 href: "/admin/payments",
         },
+        {
+                title: "Store",
+                icon: Store,
+                items: [
+                        {
+                                title: "Promotion Banners",
+                                href: "/admin/store/promotion-banners",
+                                icon: Palette,
+                        },
+                ],
+        },
         // {
 	// 	title: "Our Staff",
 	// 	icon: UserCheck,
