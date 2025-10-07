@@ -11,6 +11,41 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useIsAuthenticated, useLoggedInUser } from "@/store/authStore.js";
 
+function normalizeOrderProducts(orderData) {
+        if (!orderData) return [];
+
+        const products = Array.isArray(orderData.products) ? orderData.products : [];
+        if (products.length > 0) {
+                return products.map((item) => ({
+                        ...item,
+                        productId: item.productId?._id || item.productId,
+                }));
+        }
+
+        const subOrders = Array.isArray(orderData.subOrders) ? orderData.subOrders : [];
+        const flattened = [];
+
+        subOrders.forEach((subOrder) => {
+                (subOrder?.products || []).forEach((item) => {
+                        const productId = item.productId?._id || item.productId;
+                        flattened.push({
+                                productId,
+                                productName:
+                                        item.productId?.name || item.productName || item?.name || "Product",
+                                productImage:
+                                        item.productId?.images?.[0] || item.productImage || item?.image || null,
+                                quantity: item.quantity ?? item.productId?.quantity ?? 0,
+                                price: item.price ?? item.productId?.price ?? 0,
+                                totalPrice:
+                                        item.totalPrice ??
+                                        (item.price ?? item.productId?.price ?? 0) * (item.quantity ?? 0),
+                        });
+                });
+        });
+
+        return flattened;
+}
+
 function StarRating({ value, onChange, size = 22 }) {
 	const stars = [1, 2, 3, 4, 5];
 	return (
@@ -87,42 +122,47 @@ function ImagePicker({ files, onAdd, onRemove, name }) {
 }
 
 export default function ReviewOrderPage() {
-	const isAuthenticated = useIsAuthenticated();
-	const user = useLoggedInUser();
+        const isAuthenticated = useIsAuthenticated();
+        const user = useLoggedInUser();
 	// console.log("user", user, "isAuthenticated", isAuthenticated);
 	const params = useParams();
 	const router = useRouter();
 	const { orderId } = params || {};
 	const [loading, setLoading] = useState(true);
-	const [order, setOrder] = useState(null);
+        const [order, setOrder] = useState(null);
 	const [submitting, setSubmitting] = useState(false);
 	const [form, setForm] = useState({}); // keyed by productId: { rating, title, comment, files[] }
 	const [reviewSuccess, setReviewSuccess] = useState(false);
 
-	useEffect(() => {
-		if (!isAuthenticated) {
-			router.push("/login");
-		}
-		async function load() {
-			try {
-				const res = await fetch(`/api/orders/${orderId}`);
-				const data = await res.json();
-				if (data?.success) {
-					setOrder(data.order);
-					// initialize form state for each product
-					const initial = {};
-					(data.order?.products || []).forEach((p) => {
-						initial[p.productId] = {
-							rating: 5,
-							title: "",
-							comment: "",
-							files: [],
-						};
-					});
-					setForm(initial);
-				}
-			} catch (e) {
-				console.error("load order for review error", e);
+        useEffect(() => {
+                if (!isAuthenticated) {
+                        router.push("/login");
+                }
+                async function load() {
+                        try {
+                                const res = await fetch(`/api/orders/${orderId}`);
+                                const data = await res.json();
+                                if (data?.success) {
+                                        const normalizedOrder = {
+                                                ...data.order,
+                                                products: normalizeOrderProducts(data.order),
+                                        };
+                                        setOrder(normalizedOrder);
+                                        // initialize form state for each product
+                                        const initial = {};
+                                        normalizedOrder.products.forEach((p) => {
+                                                const productKey = p.productId?.toString?.() || p.productId;
+                                                initial[productKey] = {
+                                                        rating: 5,
+                                                        title: "",
+                                                        comment: "",
+                                                        files: [],
+                                                };
+                                        });
+                                        setForm(initial);
+                                }
+                        } catch (e) {
+                                console.error("load order for review error", e);
 			} finally {
 				setLoading(false);
 			}
@@ -130,11 +170,14 @@ export default function ReviewOrderPage() {
 		if (orderId) load();
 	}, [orderId]);
 
-	const allValid = useMemo(() => {
-		return Object.values(form).every(
-			(f) => f && f.rating >= 1 && (f.comment?.trim()?.length || 0) >= 10
-		);
-	}, [form]);
+        const products = order?.products ?? [];
+
+        const allValid = useMemo(() => {
+                if (Object.keys(form).length === 0) return false;
+                return Object.values(form).every(
+                        (f) => f && f.rating >= 1 && (f.comment?.trim()?.length || 0) >= 10
+                );
+        }, [form]);
 
 	const handleFilesAdd = (productId, files) => {
 		setForm((prev) => ({
@@ -159,12 +202,14 @@ export default function ReviewOrderPage() {
 			setSubmitting(true);
 
 			// 1) Upload all images per product
-			const payloadReviews = [];
-			for (const p of order.products) {
-				const state = form[p.productId];
-				const imageUrls = [];
+                        const payloadReviews = [];
+                        for (const p of products) {
+                                const productKey = p.productId?.toString?.() || p.productId;
+                                const state = form[productKey];
+                                if (!state) continue;
+                                const imageUrls = [];
 
-				if (state.files && state.files.length > 0) {
+                                if (state.files && state.files.length > 0) {
 					// upload sequentially to simplify
 					for (const f of state.files) {
 						const fd = new FormData();
@@ -175,13 +220,13 @@ export default function ReviewOrderPage() {
 					}
 				}
 
-				payloadReviews.push({
-					productId: p.productId,
-					rating: state.rating,
-					title: state.title?.trim(),
-					comment: state.comment?.trim(),
-					images: imageUrls,
-				});
+                                payloadReviews.push({
+                                        productId: p.productId,
+                                        rating: state.rating,
+                                        title: state.title?.trim(),
+                                        comment: state.comment?.trim(),
+                                        images: imageUrls,
+                                });
 			}
 
 			// 2) Create reviews in backend (bulk)
@@ -249,29 +294,35 @@ export default function ReviewOrderPage() {
 						{new Date(order.orderDate).toLocaleDateString()}
 					</p>
 				</div>
-				<Badge variant="secondary">{order.products?.length || 0} items</Badge>
+                                <Badge variant="secondary">{products.length} items</Badge>
 			</div>
 
 			<div className="grid gap-6">
-				{order.products.map((item) => {
-					const state = form[item.productId] || {
-						rating: 5,
-						title: "",
-						comment: "",
-						files: [],
-					};
-					return (
-						<motion.div
-							key={item.productId}
-							initial={{ opacity: 0, y: 12 }}
+                                {products.length === 0 ? (
+                                        <p className="text-muted-foreground text-sm">
+                                                No products available to review for this order.
+                                        </p>
+                                ) : (
+                                        products.map((item) => {
+                                                const productKey = item.productId?.toString?.() || item.productId;
+                                                const state = form[productKey] || {
+                                                        rating: 5,
+                                                        title: "",
+                                                        comment: "",
+                                                        files: [],
+                                                };
+                                                return (
+                                                        <motion.div
+                                                                key={productKey}
+                                                                initial={{ opacity: 0, y: 12 }}
 							animate={{ opacity: 1, y: 0 }}
 						>
 							<Card className="overflow-hidden">
-								<CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-									<div className="flex items-center gap-4">
-										{/* eslint-disable-next-line @next/next/no-img-element */}
-										<Image
-											src={item.productImage || "/placeholder.svg"}
+                                                                <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                                                        <div className="flex items-center gap-4">
+                                                                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                                                <Image
+                                                                                        src={item.productImage || "/placeholder.svg"}
 											alt={item.productName}
 											width={64}
 											height={64}
@@ -286,16 +337,16 @@ export default function ReviewOrderPage() {
 											</p>
 										</div>
 									</div>
-									<StarRating
-										value={state.rating}
-										onChange={(v) =>
-											setForm((prev) => ({
-												...prev,
-												[item.productId]: {
-													...(prev[item.productId] || {}),
-													rating: v,
-												},
-											}))
+                                                                                <StarRating
+                                                                                        value={state.rating}
+                                                                                        onChange={(v) =>
+                                                                                                setForm((prev) => ({
+                                                                                                        ...prev,
+                                                                                                        [productKey]: {
+                                                                                                                ...(prev[productKey] || {}),
+                                                                                                                rating: v,
+                                                                                                        },
+                                                                                                }))
 										}
 									/>
 								</CardHeader>
@@ -303,46 +354,46 @@ export default function ReviewOrderPage() {
                                                                         <Input
                                                                                 name="reviewTitle"
                                                                                 placeholder="Title (optional)"
-										value={state.title}
-										onChange={(e) =>
-											setForm((prev) => ({
-												...prev,
-												[item.productId]: {
-													...(prev[item.productId] || {}),
-													title: e.target.value,
-												},
-											}))
-										}
+                                                                                value={state.title}
+                                                                                onChange={(e) =>
+                                                                                        setForm((prev) => ({
+                                                                                                ...prev,
+                                                                                                [productKey]: {
+                                                                                                        ...(prev[productKey] || {}),
+                                                                                                        title: e.target.value,
+                                                                                                },
+                                                                                        }))
+                                                                        }
 									/>
                                                                         <Textarea
                                                                                 name="reviewComment"
                                                                                 placeholder="Share details about quality, comfort, size, delivery experience, etc. Minimum 10 characters."
 										rows={5}
-										value={state.comment}
-										onChange={(e) =>
-											setForm((prev) => ({
-												...prev,
-												[item.productId]: {
-													...(prev[item.productId] || {}),
-													comment: e.target.value,
-												},
-											}))
-										}
+                                                                                value={state.comment}
+                                                                                onChange={(e) =>
+                                                                                        setForm((prev) => ({
+                                                                                                ...prev,
+                                                                                                [productKey]: {
+                                                                                                        ...(prev[productKey] || {}),
+                                                                                                        comment: e.target.value,
+                                                                                                },
+                                                                                        }))
+                                                                        }
 									/>
-									<ImagePicker
-										name={item.productName}
-										files={state.files || []}
-										onAdd={(files) => handleFilesAdd(item.productId, files)}
-										onRemove={(idx) => handleFilesRemove(item.productId, idx)}
-									/>
-								</CardContent>
-							</Card>
-						</motion.div>
-					);
-				})}
-			</div>
+                                                                                <ImagePicker
+                                                                                        name={item.productName}
+                                                                                        files={state.files || []}
+                                                                                        onAdd={(files) => handleFilesAdd(productKey, files)}
+                                                                                        onRemove={(idx) => handleFilesRemove(productKey, idx)}
+                                                                        />
+                                                                </CardContent>
+                                                        </Card>
+                                                </motion.div>
+                                        })
+                                )}
+                        </div>
 
-			<div className="mt-8 flex items-center justify-end gap-3">
+                        <div className="mt-8 flex items-center justify-end gap-3">
 				<Button variant="outline" onClick={() => router.back()}>
 					Cancel
 				</Button>
