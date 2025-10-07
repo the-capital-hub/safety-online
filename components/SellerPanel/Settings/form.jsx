@@ -178,16 +178,17 @@ export default function ShopForm() {
 									required
 								/>
 							</div>
-							<div className="grid gap-2">
-								<Label htmlFor="gstinNumber">GSTIN (optional)</Label>
-								<Input
-									id="gstinNumber"
-									name="gstinNumber"
-									value={form.gstinNumber}
-									onChange={onChange}
-									placeholder="22AAAAA0000A1Z5"
-								/>
-							</div>
+                                                        <div className="grid gap-2">
+                                                                <Label htmlFor="gstinNumber">GSTIN</Label>
+                                                                <Input
+                                                                        id="gstinNumber"
+                                                                        name="gstinNumber"
+                                                                        value={form.gstinNumber}
+                                                                        onChange={onChange}
+                                                                        placeholder="22AAAAA0000A1Z5"
+                                                                        required
+                                                                />
+                                                        </div>
 						</div>
 
 						<div className="space-y-3">

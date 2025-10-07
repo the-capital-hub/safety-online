@@ -269,6 +269,7 @@ export function UpdateSellerPopup({ open, onOpenChange, seller }) {
                                                                                         value={formData.gstinNumber}
                                                                                         onChange={handleChange("gstinNumber")}
                                                                                         className="mt-1"
+                                                                                        required
                                                                                 />
                                                                         </div>
                                                                         <div className="md:col-span-2">
