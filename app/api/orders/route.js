@@ -3,6 +3,8 @@ import Order from "@/model/Order.js";
 import { dbConnect } from "@/lib/dbConnect.js";
 import { createOrderWithSubOrders } from "@/lib/orders/createOrder.js";
 import ReturnRequest from "@/model/ReturnRequest.js";
+import { companyInfo } from "@/constants/companyInfo.js";
+import { sendAdminOrderNotificationEmail } from "@/lib/orders/email.js";
 
 export async function POST(req) {
 	try {
@@ -11,16 +13,25 @@ export async function POST(req) {
 		const body = await req.json();
 		const { orderData, userId, clearCart = false } = body;
 
-		const { order, orderId, orderNumber, subOrderIds } =
-			await createOrderWithSubOrders({
-				orderData,
-				userId,
-				clearCart,
-				orderStatus: orderData?.status,
-				reserveInventory: orderData?.paymentStatus !== "failed",
-			});
+                const { order, orderId, orderNumber, subOrderIds } =
+                        await createOrderWithSubOrders({
+                                orderData,
+                                userId,
+                                clearCart,
+                                orderStatus: orderData?.status,
+                                reserveInventory: orderData?.paymentStatus !== "failed",
+                        });
 
-		const orderObject = order.toObject();
+                try {
+                        await sendAdminOrderNotificationEmail({
+                                order,
+                                to: companyInfo.adminEmail,
+                        });
+                } catch (mailError) {
+                        console.error("Admin order notification failed:", mailError);
+                }
+
+                const orderObject = order.toObject();
 
 		return NextResponse.json({
 			success: true,
