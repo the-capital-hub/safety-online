@@ -19,19 +19,22 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "react-hot-toast";
 import {
-	MapPin,
-	CreditCard,
-	ArrowLeft,
-	ArrowRight,
-	Loader2,
-	Tag,
-	X,
-	Plus,
-	Home,
-	Building,
-	MapPinIcon,
+        MapPin,
+        CreditCard,
+        ArrowLeft,
+        ArrowRight,
+        Loader2,
+        Tag,
+        X,
+        Plus,
+        Home,
+        Building,
+        MapPinIcon,
+        AlertTriangle,
+        CheckCircle2,
 } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
 import { useLoggedInUser } from "@/store/authStore";
@@ -43,8 +46,11 @@ import { buildGstLineItems } from "@/lib/utils/gst.js";
 export default function CheckoutPage() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
-	const [isRazorpayLoaded, setIsRazorpayLoaded] = useState(false);
-	const [couponCode, setCouponCode] = useState("");
+        const [isRazorpayLoaded, setIsRazorpayLoaded] = useState(false);
+        const [couponCode, setCouponCode] = useState("");
+        const [gstVerificationStatus, setGstVerificationStatus] = useState("idle");
+        const [gstVerificationMessage, setGstVerificationMessage] = useState("");
+        const [isVerifyingGst, setIsVerifyingGst] = useState(false);
 
 	// Auth store
 	const user = useLoggedInUser();
@@ -75,6 +81,7 @@ export default function CheckoutPage() {
                 isLoading,
                 paymentLoading,
                 paymentMethod,
+                gstInvoice,
         } = useCheckoutStore();
 
 	// Checkout store actions
@@ -91,9 +98,15 @@ export default function CheckoutPage() {
 	const addNewAddress = useCheckoutStore((state) => state.addNewAddress);
 	const updateNewAddress = useCheckoutStore((state) => state.updateNewAddress);
 	const selectAddress = useCheckoutStore((state) => state.selectAddress);
-	const toggleAddNewAddress = useCheckoutStore(
-		(state) => state.toggleAddNewAddress
-	);
+        const toggleAddNewAddress = useCheckoutStore(
+                (state) => state.toggleAddNewAddress
+        );
+        const toggleGstInvoice = useCheckoutStore((state) => state.toggleGstInvoice);
+        const setGstInvoiceField = useCheckoutStore((state) => state.setGstInvoiceField);
+        const setGstInvoiceData = useCheckoutStore((state) => state.setGstInvoiceData);
+        const clearGstInvoiceDetails = useCheckoutStore(
+                (state) => state.clearGstInvoiceDetails
+        );
         const applyCoupon = useCheckoutStore((state) => state.applyCoupon);
 	const removeCoupon = useCheckoutStore((state) => state.removeCoupon);
 	const processPayment = useCheckoutStore((state) => state.processPayment);
@@ -344,12 +357,112 @@ export default function CheckoutPage() {
 	);
 
 	// Handle add new address
-	const handleAddNewAddress = useCallback(async () => {
-		const success = await addNewAddress();
-		if (success) {
-			// Address added successfully, form is already reset
-		}
-	}, [addNewAddress]);
+        const handleAddNewAddress = useCallback(async () => {
+                const success = await addNewAddress();
+                if (success) {
+                        // Address added successfully, form is already reset
+                }
+        }, [addNewAddress]);
+
+        const handleGstToggle = useCallback(
+                (checked) => {
+                        toggleGstInvoice(Boolean(checked));
+                        if (!checked) {
+                                setGstInvoiceField("gstin", "");
+                                clearGstInvoiceDetails();
+                                setGstVerificationStatus("idle");
+                                setGstVerificationMessage("");
+                        }
+                },
+                [
+                        toggleGstInvoice,
+                        setGstInvoiceField,
+                        clearGstInvoiceDetails,
+                ]
+        );
+
+        const handleGstInputChange = useCallback(
+                (value) => {
+                        const sanitized = value
+                                .replace(/[^0-9a-z]/gi, "")
+                                .toUpperCase()
+                                .slice(0, 15);
+
+                        setGstInvoiceField("gstin", sanitized);
+                        clearGstInvoiceDetails();
+                        setGstVerificationStatus("idle");
+                        setGstVerificationMessage("");
+                },
+                [setGstInvoiceField, clearGstInvoiceDetails]
+        );
+
+        const handleVerifyGst = useCallback(async () => {
+                const gstin = (gstInvoice?.gstin || "").trim().toUpperCase();
+
+                if (!gstInvoice?.enabled) {
+                        toast.error("Enable GST invoice to verify your GSTIN");
+                        return;
+                }
+
+                if (!/^[0-9A-Z]{15}$/.test(gstin)) {
+                        toast.error("Please enter a valid 15-character GSTIN");
+                        setGstVerificationStatus("error");
+                        setGstVerificationMessage(
+                                "GSTIN must be 15 characters (numbers and uppercase letters)."
+                        );
+                        return;
+                }
+
+                setIsVerifyingGst(true);
+                setGstVerificationStatus("verifying");
+                setGstVerificationMessage("");
+
+                try {
+                        const response = await fetch("/api/gst/lookup", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ gstin }),
+                        });
+
+                        const data = await response.json();
+
+                        if (!response.ok || !data?.success) {
+                                throw new Error(data?.error || "Failed to verify GSTIN");
+                        }
+
+                        const payload = data?.data || {};
+
+                        setGstInvoiceData({
+                                gstin,
+                                legalName: payload.legalName || "",
+                                tradeName: payload.tradeName || "",
+                                state: payload.state || payload?.address?.state || "",
+                                address: payload?.address?.fullAddress || "",
+                                lastVerifiedAt: new Date().toISOString(),
+                        });
+
+                        setGstVerificationStatus("success");
+                        setGstVerificationMessage(
+                                payload.status ? `GST Registration Status: ${payload.status}` : ""
+                        );
+                        toast.success("GSTIN verified successfully");
+                } catch (error) {
+                        console.error("GST verification failed:", error);
+                        clearGstInvoiceDetails();
+                        setGstVerificationStatus("error");
+                        setGstVerificationMessage(
+                                error?.message || "Failed to verify GSTIN. Please try again."
+                        );
+                        toast.error(error?.message || "Failed to verify GSTIN");
+                } finally {
+                        setIsVerifyingGst(false);
+                }
+        }, [
+                gstInvoice?.gstin,
+                gstInvoice?.enabled,
+                setGstInvoiceData,
+                clearGstInvoiceDetails,
+        ]);
 
 	// Handle coupon application (only for buyNow flow)
 	const handleApplyCoupon = useCallback(
@@ -411,15 +524,145 @@ export default function CheckoutPage() {
 
 	// Address Step Component
 	const AddressStep = useMemo(
-		() => (
-			<Card>
-				<CardHeader>
-					<CardTitle className="flex items-center gap-2">
-						<MapPin className="h-5 w-5" />
-						Shipping Address
-					</CardTitle>
-				</CardHeader>
-				<CardContent className="space-y-4">
+                () => (
+                        <Card>
+                                <CardHeader>
+                                        <CardTitle className="flex items-center gap-2">
+                                                <MapPin className="h-5 w-5" />
+                                                Shipping Address
+                                        </CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                        <div className="space-y-3">
+                                                <div className="flex items-start justify-between gap-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                                                        <div>
+                                                                <p className="font-medium text-gray-900">
+                                                                        GST Invoice
+                                                                </p>
+                                                                <p className="text-sm text-gray-600">
+                                                                        Need a business invoice? Add your GSTIN to get a GST-compliant bill.
+                                                                </p>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                                <Switch
+                                                                        id="gst-invoice-toggle"
+                                                                        checked={Boolean(gstInvoice?.enabled)}
+                                                                        onCheckedChange={handleGstToggle}
+                                                                        aria-label="Toggle GST invoice"
+                                                                />
+                                                        </div>
+                                                </div>
+
+                                                {gstInvoice?.enabled && (
+                                                        <div className="space-y-3 rounded-lg border border-blue-200 bg-blue-50/60 p-4">
+                                                                <div>
+                                                                        <Label htmlFor="gstinNumber">GSTIN</Label>
+                                                                        <Input
+                                                                                id="gstinNumber"
+                                                                                value={gstInvoice?.gstin || ""}
+                                                                                onChange={(event) =>
+                                                                                        handleGstInputChange(event.target.value)
+                                                                                }
+                                                                                placeholder="15-character GSTIN"
+                                                                                maxLength={15}
+                                                                                autoCapitalize="characters"
+                                                                                autoComplete="off"
+                                                                                spellCheck={false}
+                                                                        />
+                                                                        <p className="mt-1 text-xs text-gray-600">
+                                                                                We validate your GSTIN via the RPACPC GST registry to ensure invoices are compliant.
+                                                                        </p>
+                                                                </div>
+
+                                                                <div className="flex flex-wrap items-center gap-3">
+                                                                        <Button
+                                                                                type="button"
+                                                                                onClick={handleVerifyGst}
+                                                                                disabled={
+                                                                                        isVerifyingGst ||
+                                                                                        !gstInvoice?.gstin ||
+                                                                                        gstInvoice.gstin.length !== 15
+                                                                                }
+                                                                        >
+                                                                                {isVerifyingGst ? (
+                                                                                        <>
+                                                                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                                                                Verifying
+                                                                                        </>
+                                                                                ) : (
+                                                                                        "Verify GSTIN"
+                                                                                )}
+                                                                        </Button>
+                                                                        {gstInvoice?.lastVerifiedAt &&
+                                                                                gstVerificationStatus === "success" && (
+                                                                                        <span className="text-xs text-gray-500">
+                                                                                                Last verified {new Date(gstInvoice.lastVerifiedAt).toLocaleString("en-IN")}
+                                                                                        </span>
+                                                                                )}
+                                                                </div>
+
+                                                                {gstVerificationStatus === "success" && (
+                                                                        <div className="flex items-start gap-2 rounded-md border border-green-200 bg-green-50 p-3">
+                                                                                <CheckCircle2 className="h-5 w-5 text-green-600" />
+                                                                                <div className="text-sm text-green-800">
+                                                                                        <p className="font-medium">GSTIN verified</p>
+                                                                                        {gstInvoice?.legalName && (
+                                                                                                <p className="mt-1 text-sm">
+                                                                                                        Registered Name: {gstInvoice.legalName}
+                                                                                                </p>
+                                                                                        )}
+                                                                                        {gstInvoice?.tradeName && (
+                                                                                                <p className="text-sm">
+                                                                                                        Trade Name: {gstInvoice.tradeName}
+                                                                                                </p>
+                                                                                        )}
+                                                                                        {gstInvoice?.address && (
+                                                                                                <p className="mt-1 text-xs text-green-700">
+                                                                                                        {gstInvoice.address}
+                                                                                                </p>
+                                                                                        )}
+                                                                                        {gstVerificationMessage && (
+                                                                                                <p className="mt-1 text-xs text-green-700">
+                                                                                                        {gstVerificationMessage}
+                                                                                                </p>
+                                                                                        )}
+                                                                                </div>
+                                                                        </div>
+                                                                )}
+
+                                                                {gstVerificationStatus === "success" && (
+                                                                        <p className="text-xs text-gray-600">
+                                                                                Future invoices for this order will include the verified GSTIN details.
+                                                                        </p>
+                                                                )}
+
+                                                                {gstVerificationStatus === "error" && (
+                                                                        <div className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 p-3">
+                                                                                <AlertTriangle className="h-5 w-5 text-red-600" />
+                                                                                <div className="text-sm text-red-700">
+                                                                                        <p className="font-medium">GST verification failed</p>
+                                                                                        <p className="mt-1 text-xs sm:text-sm">
+                                                                                                {gstVerificationMessage}
+                                                                                        </p>
+                                                                                </div>
+                                                                        </div>
+                                                                )}
+
+                                                                {gstVerificationStatus === "verifying" && (
+                                                                        <p className="text-xs text-blue-700">
+                                                                                Verifying your GSTIN with the RPACPC registry...
+                                                                        </p>
+                                                                )}
+
+                                                                {gstVerificationStatus === "idle" && (
+                                                                        <p className="text-xs text-gray-500">
+                                                                                Invoice copies will include this GSTIN once verified.
+                                                                        </p>
+                                                                )}
+                                                        </div>
+                                                )}
+                                        </div>
+
                                         {/* Saved Addresses */}
                                         {savedAddresses.length > 0 && (
                                                 <div className="space-y-3">
@@ -645,19 +888,26 @@ export default function CheckoutPage() {
 				</CardContent>
 			</Card>
 		),
-		[
-			savedAddresses,
-			selectedAddressId,
-			isAddingNewAddress,
+                [
+                        savedAddresses,
+                        selectedAddressId,
+                        isAddingNewAddress,
                         newAddress,
                         isLoading,
                         handleAddressSelect,
                         handleNewAddressChange,
-			handleAddNewAddress,
-			toggleAddNewAddress,
-			setCurrentStep,
-		]
-	);
+                        handleAddNewAddress,
+                        toggleAddNewAddress,
+                        gstInvoice,
+                        handleGstToggle,
+                        handleGstInputChange,
+                        handleVerifyGst,
+                        isVerifyingGst,
+                        gstVerificationStatus,
+                        gstVerificationMessage,
+                        setCurrentStep,
+                ]
+        );
 
 	// Payment Step Component
 	const PaymentStep = useMemo(
