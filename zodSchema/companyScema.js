@@ -29,10 +29,10 @@ export const companyBaseSchema = z.object({
                 .optional()
                 .or(z.literal("")),
         gstinNumber: z
-                .string()
+                .string({ required_error: "GSTIN is required" })
+                .trim()
                 .regex(gstinRegex, "Enter a valid GSTIN")
-                .optional()
-                .or(z.literal("")),
+                .transform((value) => value.toUpperCase()),
 	companyLogo: z.string().url("Invalid logo URL").optional().or(z.literal("")),
 });
 
