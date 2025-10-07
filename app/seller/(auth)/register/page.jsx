@@ -295,7 +295,7 @@ export default function SellerRegister() {
                                                         Seller onboarding
                                                 </motion.div>
                                                 <motion.h1
-                                                        className="text-3xl font-semibold leading-tight text-white md:text-4xl lg:text-5xl"
+                                                        className="text-4xl font-semibold leading-tight text-white md:text-4xl lg:text-5xl"
                                                         variants={itemVariants}
                                                 >
                                                         Launch your Safety Online storefront with confidence and heart.
@@ -350,7 +350,7 @@ export default function SellerRegister() {
 
                                 {/* Right - form */}
                                 <motion.section
-                                        className="flex max-h-[calc(100vh-4rem)] flex-col overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl"
+                                        className="flex min-h-screen  flex-col overflow-hidden rounded-3xl border border-white/10 bg-white/5 px-5 py-5 lg:py-5 backdrop-blur-xl"
                                         initial={{ x: 80, opacity: 0 }}
                                         animate={{ x: 0, opacity: 1 }}
                                         transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
@@ -361,21 +361,21 @@ export default function SellerRegister() {
                                                 animate={{ scale: 1, opacity: 1 }}
                                                 transition={{ duration: 0.5, ease: "easeOut" }}
                                         >
-                                                <Image src={Logo.src} alt="Safety Online" width={72} height={72} className="h-16 w-16" />
+                                                <Image src={Logo.src} alt="Safety Online" width={150} height={172} />
                                                 <div>
                                                         <p className="text-xs uppercase tracking-[0.4em] text-orange-200/80">Create seller account</p>
-                                                        <h2 className="mt-1 text-2xl font-semibold text-white">Let's craft your trusted marketplace profile</h2>
+                                                        <h2 className="mt-1 lg:text-xl font-semibold text-white">Let's craft your trusted marketplace profile</h2>
                                                 </div>
                                         </motion.div>
 
-                                        <div className="mt-6 space-y-6">
+                                        <div className="mt-2 ">
                                                 <motion.div
                                                         className="space-y-4"
                                                         variants={containerVariants}
                                                         initial="hidden"
                                                         animate="visible"
                                                 >
-                                                        <div className="flex flex-col gap-3">
+                                                        <div className="flex flex-col gap-2">
                                                                 <div className="flex items-center justify-between text-xs uppercase tracking-[0.4em] text-slate-200/60">
                                                                         <span>Step {step + 1}</span>
                                                                         <span>{progress}% complete</span>
@@ -393,7 +393,7 @@ export default function SellerRegister() {
                                                                         {steps.map((item, index) => (
                                                                                 <div
                                                                                         key={item.title}
-                                                                                        className={`flex flex-1 min-w-[120px] items-center gap-2 rounded-full border px-3 py-2 text-left text-xs font-semibold uppercase tracking-[0.3em] ${
+                                                                                        className={`flex flex-1 min-w-xl items-center gap-2 rounded-full border px-2 py-2 text-left text-xs font-semibold uppercase tracking-[0.3em] ${
                                                                                                 index === step
                                                                                                         ? "border-orange-300 bg-orange-300/20 text-orange-100"
                                                                                                         : index < step
@@ -401,20 +401,20 @@ export default function SellerRegister() {
                                                                                                         : "border-white/15 bg-white/5 text-white/50"
                                                                                         }`}
                                                                                 >
-                                                                                        <span className="grid h-6 w-6 place-items-center rounded-full border border-current text-[0.7rem]">
+                                                                                        <p className="grid lg:h-5 lg:w-9 pl-1 w-5 text-center items-center justify-center rounded-full border border-current text-[0.7rem]">
                                                                                                 {index + 1}
-                                                                                        </span>
+                                                                                        </p>
                                                                                         <span className="truncate">{item.title}</span>
                                                                                 </div>
                                                                         ))}
                                                                 </div>
                                                         </div>
 
-                                                        <Card className="border border-white/10 bg-white/5 p-0 backdrop-blur">
-                                                                <CardHeader className="space-y-2 border-b border-white/5 px-6 pb-4 pt-6 text-left">
+                                                        <Card className="border  border-white/10 bg-white/5 p-0 backdrop-blur">
+                                                                <CardHeader className="space-y-2 border-b border-white/5 px-6 pb-2 pt-3 text-left">
                                                                         <motion.div variants={itemVariants} className="space-y-1">
                                                                                 <CardTitle className="text-xl font-semibold text-white">{steps[step].title}</CardTitle>
-                                                                                <CardDescription className="text-sm text-slate-200/80">
+                                                                                <CardDescription className="text-xs text-slate-200/80">
                                                                                         {steps[step].description}
                                                                                 </CardDescription>
                                                                         </motion.div>
@@ -425,13 +425,13 @@ export default function SellerRegister() {
                                                                                 </Link>
                                                                         </motion.p>
                                                                 </CardHeader>
-                                                                <CardContent className="max-h-[calc(100vh-22rem)] space-y-6 overflow-y-auto px-6 py-6">
+                                                                <CardContent className="lg:max-h-[calc(100vh-22rem)]  custom-scrollbar overflow-y-auto px-6 lg:py-8 py-">
                                                                         <form onSubmit={handleStepSubmit} className="space-y-6">
                                                                                 {step === 0 && (
                                                                                         <div className="space-y-5">
                                                                                                 <div className="grid gap-4 md:grid-cols-2">
                                                                                                         <div className="space-y-2">
-                                                                                                                <Label htmlFor="firstName" className="text-sm text-slate-100">
+                                                                                                                <Label htmlFor="firstName" className="text-md text-slate-100">
                                                                                                                         First Name
                                                                                                                 </Label>
                                                                                                                 <Input
