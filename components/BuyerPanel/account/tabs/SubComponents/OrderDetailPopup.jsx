@@ -67,11 +67,22 @@ export function OrderDetailPopup({ open, onOpenChange, order }) {
 	const paymentMethod = order.paymentMethod || "N/A";
 	const transactionId = order.transactionId || null;
 	const subtotal = order.subtotal || 0;
-        const gstLines = buildGstLineItems(order.gst);
-        const gstMode = order?.gst?.mode || "igst";
-        const shippingCost = order.shippingCost || order.shipping || 0;
-        const discount = order.discount || 0;
-        const totalAmount = order.totalAmount || order.total || 0;
+	const gstLines = buildGstLineItems(order.gst);
+	const gstMode = order?.gst?.mode || "igst";
+	const shippingCost = order.shippingCost || order.shipping || 0;
+	const discount = order.discount || 0;
+	const totalAmount = order.totalAmount || order.total || 0;
+
+	function formatDate(date) {
+		const d = new Date(date);
+		return d
+			.toLocaleDateString("en-GB", {
+				day: "2-digit",
+				month: "short",
+				year: "numeric",
+			})
+			.replace(/ /g, "-"); // converts "10 Sep 2025" → "10-Sep-2025"
+	}
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -124,15 +135,7 @@ export function OrderDetailPopup({ open, onOpenChange, order }) {
 										<Calendar className="w-8 h-8 text-purple-600" />
 										<div>
 											<p className="text-sm text-gray-600">Order Date</p>
-											<p className="font-medium">
-												{orderDate.toLocaleString("en-IN", {
-													year: "numeric",
-													month: "short",
-													day: "numeric",
-													hour: "2-digit",
-													minute: "2-digit",
-												})}
-											</p>
+											<p className="font-medium">{formatDate(orderDate)}</p>
 										</div>
 									</div>
 								</CardContent>
@@ -319,17 +322,17 @@ export function OrderDetailPopup({ open, onOpenChange, order }) {
 										<span>Subtotal</span>
 										<span>₹{subtotal.toFixed(2)}</span>
 									</div>
-                                                                        {gstLines.map((line) => (
-                                                                                <div className="flex justify-between" key={line.key}>
-                                                                                        <span>{line.label}</span>
-                                                                                        <span>₹{line.amount.toFixed(2)}</span>
-                                                                                </div>
-                                                                        ))}
-                                                                        {shippingCost > 0 && (
-                                                                                <div className="flex justify-between">
-                                                                                        <span>Shipping</span>
-                                                                                        <span>₹{shippingCost.toFixed(2)}</span>
-                                                                                </div>
+									{gstLines.map((line) => (
+										<div className="flex justify-between" key={line.key}>
+											<span>{line.label}</span>
+											<span>₹{line.amount.toFixed(2)}</span>
+										</div>
+									))}
+									{shippingCost > 0 && (
+										<div className="flex justify-between">
+											<span>Shipping</span>
+											<span>₹{shippingCost.toFixed(2)}</span>
+										</div>
 									)}
 									{discount > 0 && (
 										<div className="flex justify-between text-green-600">
@@ -345,21 +348,21 @@ export function OrderDetailPopup({ open, onOpenChange, order }) {
 											</span>
 										</div>
 									)}
-                                                                        <Separator />
-                                                                        <div className="flex justify-between text-lg font-bold">
-                                                                                <span>Total Amount</span>
-                                                                                <span>₹{totalAmount.toFixed(2)}</span>
-                                                                        </div>
-                                                                        {gstLines.length > 0 && (
-                                                                                <p className="text-xs text-gray-500">
-                                                                                        {gstMode === "cgst_sgst"
-                                                                                                ? "CGST & SGST applied for Bengaluru deliveries"
-                                                                                                : "IGST applied for this delivery"}
-                                                                                </p>
-                                                                        )}
-                                                                </div>
-                                                        </CardContent>
-                                                </Card>
+									<Separator />
+									<div className="flex justify-between text-lg font-bold">
+										<span>Total Amount</span>
+										<span>₹{totalAmount.toFixed(2)}</span>
+									</div>
+									{gstLines.length > 0 && (
+										<p className="text-xs text-gray-500">
+											{gstMode === "cgst_sgst"
+												? "CGST & SGST applied for Bengaluru deliveries"
+												: "IGST applied for this delivery"}
+										</p>
+									)}
+								</div>
+							</CardContent>
+						</Card>
 
 						{/* Tracking Information */}
 						{order.trackingNumber && (

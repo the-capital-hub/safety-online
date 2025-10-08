@@ -200,10 +200,10 @@ export const useAdminProductStore = create((set, get) => ({
 				updateData.longDescription || updateData.description
 			);
 			formData.append("category", updateData.category);
-			formData.append("price", updateData.price.toString());
-			formData.append("salePrice", (updateData.salePrice || 0).toString());
-			formData.append("stocks", updateData.stocks.toString());
-			formData.append("discount", (updateData.discount || 0).toString());
+			formData.append("price", updateData?.price?.toString());
+			formData.append("salePrice", (updateData?.salePrice || 0)?.toString());
+			formData.append("stocks", updateData?.stocks?.toString());
+			formData.append("discount", (updateData?.discount || 0)?.toString());
 			formData.append("type", updateData.type);
 			formData.append("published", updateData.published);
 			formData.append("subCategory", updateData.subCategory || "");
@@ -218,28 +218,28 @@ export const useAdminProductStore = create((set, get) => ({
 				updateData.length !== undefined &&
 				updateData.length !== ""
 			) {
-				formData.append("length", updateData.length.toString());
+				formData.append("length", updateData?.length?.toString());
 			}
 			if (
 				updateData.width !== null &&
 				updateData.width !== undefined &&
 				updateData.width !== ""
 			) {
-				formData.append("width", updateData.width.toString());
+				formData.append("width", updateData?.width?.toString());
 			}
 			if (
 				updateData.height !== null &&
 				updateData.height !== undefined &&
 				updateData.height !== ""
 			) {
-				formData.append("height", updateData.height.toString());
+				formData.append("height", updateData?.height?.toString());
 			}
 			if (
 				updateData.weight !== null &&
 				updateData.weight !== undefined &&
 				updateData.weight !== ""
 			) {
-				formData.append("weight", updateData.weight.toString());
+				formData.append("weight", updateData?.weight?.toString());
 			}
 
 			formData.append("features", JSON.stringify(updateData.features || []));
@@ -291,6 +291,38 @@ export const useAdminProductStore = create((set, get) => ({
 		} catch (error) {
 			console.error("Update product error:", error);
 			toast.error("Failed to update product");
+			return false;
+		}
+	},
+
+	toggleProductPublish: async (productId, published) => {
+		try {
+			const response = await fetch(
+				"/api/admin/product/updateProduct/togglePublish",
+				{
+					method: "PUT",
+					body: (() => {
+						const formData = new FormData();
+						formData.append("productId", productId);
+						formData.append("published", published);
+						return formData;
+					})(),
+				}
+			);
+
+			const data = await response.json();
+
+			if (data.success) {
+				toast.success(data.message);
+				get().fetchProducts();
+				return true;
+			} else {
+				toast.error(data.message);
+				return false;
+			}
+		} catch (error) {
+			console.error("Update product error:", error);
+			toast.error("Failed to toggle publish product");
 			return false;
 		}
 	},

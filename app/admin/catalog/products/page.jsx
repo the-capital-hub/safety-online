@@ -28,8 +28,8 @@ import {
 	Plus,
 	Filter,
 	RotateCcw,
-        Edit,
-        Trash2,
+	Edit,
+	Trash2,
 	Upload,
 	Download,
 	FileText,
@@ -65,7 +65,10 @@ export default function AdminProductsPage() {
 		deleteProduct,
 		deleteMultipleProducts,
 		updateProduct,
+		toggleProductPublish,
 	} = useAdminProductStore();
+
+	// console.log("products", products);
 
 	const [popups, setPopups] = useState({
 		delete: { open: false, product: null },
@@ -73,14 +76,14 @@ export default function AdminProductsPage() {
 		update: { open: false, product: null },
 		bulkUpload: false,
 	});
-        const [categories, setCategories] = useState([]);
-        const [editingProductId, setEditingProductId] = useState(null);
-        const [savingProductId, setSavingProductId] = useState(null);
-        const [editValues, setEditValues] = useState({
-                price: "",
-                salePrice: "",
-                stocks: "",
-        });
+	const [categories, setCategories] = useState([]);
+	const [editingProductId, setEditingProductId] = useState(null);
+	const [savingProductId, setSavingProductId] = useState(null);
+	const [editValues, setEditValues] = useState({
+		price: "",
+		salePrice: "",
+		stocks: "",
+	});
 	const isAuthenticated = useIsAuthenticated();
 	const [isRedirecting, setIsRedirecting] = useState(false);
 	const router = useRouter();
@@ -122,134 +125,135 @@ export default function AdminProductsPage() {
 		setFilters({ [key]: value });
 	};
 
-        const handleApplyFilters = () => {
-                fetchProducts();
-        };
+	const handleApplyFilters = () => {
+		fetchProducts();
+	};
 
-        const startQuickEdit = (product) => {
-                setEditingProductId(product._id);
-                setEditValues({
-                        price:
-                                product.price !== undefined && product.price !== null
-                                        ? product.price.toString()
-                                        : "",
-                        salePrice:
-                                product.salePrice !== undefined && product.salePrice !== null
-                                        ? product.salePrice.toString()
-                                        : "",
-                        stocks:
-                                product.stocks !== undefined && product.stocks !== null
-                                        ? product.stocks.toString()
-                                        : "",
-                });
-        };
+	const startQuickEdit = (product) => {
+		setEditingProductId(product._id);
+		setEditValues({
+			price:
+				product.price !== undefined && product.price !== null
+					? product.price.toString()
+					: "",
+			salePrice:
+				product.salePrice !== undefined && product.salePrice !== null
+					? product.salePrice.toString()
+					: "",
+			stocks:
+				product.stocks !== undefined && product.stocks !== null
+					? product.stocks.toString()
+					: "",
+		});
+	};
 
-        const cancelQuickEdit = () => {
-                setEditingProductId(null);
-                setSavingProductId(null);
-                setEditValues({ price: "", salePrice: "", stocks: "" });
-        };
+	const cancelQuickEdit = () => {
+		setEditingProductId(null);
+		setSavingProductId(null);
+		setEditValues({ price: "", salePrice: "", stocks: "" });
+	};
 
-        const handleEditValueChange = (field, value) => {
-                if (value === "") {
-                        setEditValues((prev) => ({ ...prev, [field]: "" }));
-                        return;
-                }
+	const handleEditValueChange = (field, value) => {
+		if (value === "") {
+			setEditValues((prev) => ({ ...prev, [field]: "" }));
+			return;
+		}
 
-                if (field === "stocks") {
-                        const numericValue = Math.floor(Number(value));
-                        if (Number.isNaN(numericValue)) {
-                                return;
-                        }
-                        const clampedValue = Math.min(Math.max(numericValue, 0), 1000000);
-                        setEditValues((prev) => ({ ...prev, stocks: clampedValue.toString() }));
-                        return;
-                }
+		if (field === "stocks") {
+			const numericValue = Math.floor(Number(value));
+			if (Number.isNaN(numericValue)) {
+				return;
+			}
+			const clampedValue = Math.min(Math.max(numericValue, 0), 1000000);
+			setEditValues((prev) => ({ ...prev, stocks: clampedValue.toString() }));
+			return;
+		}
 
-                const numericValue = Number(value);
-                if (Number.isNaN(numericValue)) {
-                        return;
-                }
+		const numericValue = Number(value);
+		if (Number.isNaN(numericValue)) {
+			return;
+		}
 
-                const clampedValue = Math.max(numericValue, 0).toString();
+		const clampedValue = Math.max(numericValue, 0).toString();
 
-                setEditValues((prev) => {
-                        const updated = { ...prev, [field]: clampedValue };
-                        if (field === "price") {
-                                const salePriceValue = Number(updated.salePrice);
-                                const priceValue = Number(clampedValue);
-                                if (!Number.isNaN(salePriceValue) && salePriceValue > priceValue) {
-                                        updated.salePrice = clampedValue;
-                                }
-                        }
-                        return updated;
-                });
-        };
+		setEditValues((prev) => {
+			const updated = { ...prev, [field]: clampedValue };
+			if (field === "price") {
+				const salePriceValue = Number(updated.salePrice);
+				const priceValue = Number(clampedValue);
+				if (!Number.isNaN(salePriceValue) && salePriceValue > priceValue) {
+					updated.salePrice = clampedValue;
+				}
+			}
+			return updated;
+		});
+	};
 
-        const saveQuickEdit = async (product) => {
-                const priceValue = Number(editValues.price);
-                const salePriceValue = editValues.salePrice === "" ? 0 : Number(editValues.salePrice);
-                const stockValue = Number(editValues.stocks);
+	const saveQuickEdit = async (product) => {
+		const priceValue = Number(editValues.price);
+		const salePriceValue =
+			editValues.salePrice === "" ? 0 : Number(editValues.salePrice);
+		const stockValue = Number(editValues.stocks);
 
-                if (Number.isNaN(priceValue) || priceValue < 0) {
-                        toast.error("Please enter a valid MRP.");
-                        return;
-                }
+		if (Number.isNaN(priceValue) || priceValue < 0) {
+			toast.error("Please enter a valid MRP.");
+			return;
+		}
 
-                if (Number.isNaN(salePriceValue) || salePriceValue < 0) {
-                        toast.error("Please enter a valid sale price.");
-                        return;
-                }
+		if (Number.isNaN(salePriceValue) || salePriceValue < 0) {
+			toast.error("Please enter a valid sale price.");
+			return;
+		}
 
-                if (salePriceValue > priceValue) {
-                        toast.error("Sale price cannot be greater than MRP.");
-                        return;
-                }
+		if (salePriceValue > priceValue) {
+			toast.error("Sale price cannot be greater than MRP.");
+			return;
+		}
 
-                if (Number.isNaN(stockValue) || stockValue < 0) {
-                        toast.error("Please enter a valid stock quantity.");
-                        return;
-                }
+		if (Number.isNaN(stockValue) || stockValue < 0) {
+			toast.error("Please enter a valid stock quantity.");
+			return;
+		}
 
-                if (stockValue > 1000000) {
-                        toast.error("Stock cannot exceed 1,000,000 units.");
-                        return;
-                }
+		if (stockValue > 1000000) {
+			toast.error("Stock cannot exceed 1,000,000 units.");
+			return;
+		}
 
-                setSavingProductId(product._id);
+		setSavingProductId(product._id);
 
-                const updatePayload = {
-                        ...product,
-                        price: priceValue,
-                        salePrice: salePriceValue,
-                        stocks: stockValue,
-                        images: product.images || [],
-                        features: product.features || [],
-                        longDescription: product.longDescription || product.description || "",
-                        subCategory: product.subCategory || "",
-                        hsnCode: product.hsnCode || "",
-                        brand: product.brand || "",
-                        colour: product.colour || "",
-                        material: product.material || "",
-                        size: product.size || "",
-                        length: product.length ?? "",
-                        width: product.width ?? "",
-                        height: product.height ?? "",
-                        weight: product.weight ?? "",
-                };
+		const updatePayload = {
+			...product,
+			price: priceValue,
+			salePrice: salePriceValue,
+			stocks: stockValue,
+			images: product.images || [],
+			features: product.features || [],
+			longDescription: product.longDescription || product.description || "",
+			subCategory: product.subCategory || "",
+			hsnCode: product.hsnCode || "",
+			brand: product.brand || "",
+			colour: product.colour || "",
+			material: product.material || "",
+			size: product.size || "",
+			length: product.length ?? "",
+			width: product.width ?? "",
+			height: product.height ?? "",
+			weight: product.weight ?? "",
+		};
 
-                const success = await updateProduct(product._id, updatePayload);
+		const success = await updateProduct(product._id, updatePayload);
 
-                setSavingProductId(null);
+		setSavingProductId(null);
 
-                if (success) {
-                        cancelQuickEdit();
-                }
-        };
+		if (success) {
+			cancelQuickEdit();
+		}
+	};
 
-        const handleSelectAll = (checked) => {
-                if (checked) {
-                        selectAllProducts();
+	const handleSelectAll = (checked) => {
+		if (checked) {
+			selectAllProducts();
 		} else {
 			clearSelection();
 		}
@@ -276,8 +280,9 @@ export default function AdminProductsPage() {
 	};
 
 	const handlePublishToggle = async (productId, published) => {
-		await updateProduct(productId, { published });
+		await toggleProductPublish(productId, published);
 	};
+
 	const handleSort = (field) => {
 		// console.log("filters", filters);
 		const currentOrder = filters.sortOrder === "desc" ? "asc" : "desc";
@@ -423,7 +428,8 @@ export default function AdminProductsPage() {
 							<div className="flex gap-4 items-center flex-wrap">
 								<div className="relative flex-1 max-w-md">
 									<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-									<Input name="searchQuery"
+									<Input
+										name="searchQuery"
 										placeholder="Search products..."
 										value={filters.search}
 										onChange={(e) => handleSearch(e.target.value)}
@@ -451,9 +457,9 @@ export default function AdminProductsPage() {
 								</Select>
 
 								<div className="flex gap-2">
-                                                                        <Input
-                                                                                name="minPrice"
-                                                                                placeholder="Min Price"
+									<Input
+										name="minPrice"
+										placeholder="Min Price"
 										value={filters.minPrice}
 										onChange={(e) =>
 											handleFilterChange("minPrice", e.target.value)
@@ -461,9 +467,9 @@ export default function AdminProductsPage() {
 										className="w-24"
 										type="number"
 									/>
-                                                                        <Input
-                                                                                name="maxPrice"
-                                                                                placeholder="Max Price"
+									<Input
+										name="maxPrice"
+										placeholder="Max Price"
 										value={filters.maxPrice}
 										onChange={(e) =>
 											handleFilterChange("maxPrice", e.target.value)
@@ -617,74 +623,70 @@ export default function AdminProductsPage() {
 														{product.subCategory.replace("-", " ") || "N/A"}
 													</Badge>
 												</TableCell>
-                                                                                                <TableCell className="font-medium">
-                                                                                                        {editingProductId === product._id ? (
-                                                                                                                <Input
-                                                                                                                        type="number"
-                                                                                                                        min={0}
-                                                                                                                        step="0.01"
-                                                                                                                        value={editValues.price}
-                                                                                                                        onChange={(e) =>
-                                                                                                                                handleEditValueChange(
-                                                                                                                                        "price",
-                                                                                                                                        e.target.value
-                                                                                                                                )
-                                                                                                                        }
-                                                                                                                        className="min-w-[160px]"
-                                                                                                                />
-                                                                                                        ) : (
-                                                                                                                <>₹{product.price.toLocaleString()}</>
-                                                                                                        )}
-                                                                                                </TableCell>
-                                                                                                <TableCell className="font-medium">
-                                                                                                        {editingProductId === product._id ? (
-                                                                                                                <Input
-                                                                                                                        type="number"
-                                                                                                                        min={0}
-                                                                                                                        step="0.01"
-                                                                                                                        value={editValues.salePrice}
-                                                                                                                        onChange={(e) =>
-                                                                                                                                handleEditValueChange(
-                                                                                                                                        "salePrice",
-                                                                                                                                        e.target.value
-                                                                                                                                )
-                                                                                                                        }
-                                                                                                                        placeholder="0"
-                                                                                                                        className="min-w-[160px]"
-                                                                                                                />
-                                                                                                        ) : product.salePrice > 0 ? (
-                                                                                                                `₹${product.salePrice.toLocaleString()}`
-                                                                                                        ) : (
-                                                                                                                "-"
-                                                                                                        )}
-                                                                                                </TableCell>
-                                                                                                <TableCell>
-                                                                                                        {editingProductId === product._id ? (
-                                                                                                                <Input
-                                                                                                                        type="number"
-                                                                                                                        min={0}
-                                                                                                                        max={1000000}
-                                                                                                                        step={1}
-                                                                                                                        value={editValues.stocks}
-                                                                                                                        onChange={(e) =>
-                                                                                                                                handleEditValueChange(
-                                                                                                                                        "stocks",
-                                                                                                                                        e.target.value
-                                                                                                                                )
-                                                                                                                        }
-                                                                                                                        className="max-w-[140px]"
-                                                                                                                />
-                                                                                                        ) : (
-                                                                                                                <div className="flex items-center gap-2">
-                                                                                                                        <span>{product.stocks}</span>
-                                                                                                                        <div
-                                                                                                                                className={`w-2 h-2 rounded-full ${
-                                                                                                                                        product.inStock ? "bg-green-500" : "bg-red-500"
-                                                                                                                                }`}
-                                                                                                                        />
-                                                                                                                </div>
-                                                                                                        )}
-                                                                                                </TableCell>
+												<TableCell className="font-medium">
+													{editingProductId === product._id ? (
+														<Input
+															type="number"
+															min={0}
+															step="0.01"
+															value={editValues.price}
+															onChange={(e) =>
+																handleEditValueChange("price", e.target.value)
+															}
+															className="min-w-[160px]"
+														/>
+													) : (
+														<>₹{product.price.toLocaleString()}</>
+													)}
+												</TableCell>
+												<TableCell className="font-medium">
+													{editingProductId === product._id ? (
+														<Input
+															type="number"
+															min={0}
+															step="0.01"
+															value={editValues.salePrice}
+															onChange={(e) =>
+																handleEditValueChange(
+																	"salePrice",
+																	e.target.value
+																)
+															}
+															placeholder="0"
+															className="min-w-[160px]"
+														/>
+													) : product.salePrice > 0 ? (
+														`₹${product.salePrice.toLocaleString()}`
+													) : (
+														"-"
+													)}
+												</TableCell>
+												<TableCell>
+													{editingProductId === product._id ? (
+														<Input
+															type="number"
+															min={0}
+															max={1000000}
+															step={1}
+															value={editValues.stocks}
+															onChange={(e) =>
+																handleEditValueChange("stocks", e.target.value)
+															}
+															className="max-w-[140px]"
+														/>
+													) : (
+														<div className="flex items-center gap-2">
+															<span>{product.stocks}</span>
+															<div
+																className={`w-2 h-2 rounded-full ${
+																	product.inStock
+																		? "bg-green-500"
+																		: "bg-red-500"
+																}`}
+															/>
+														</div>
+													)}
+												</TableCell>
 												{/* <TableCell>
 													<Badge
 														className={
@@ -704,62 +706,62 @@ export default function AdminProductsPage() {
 														}
 													/>
 												</TableCell>
-                                                                                                <TableCell>
-                                                                                                        <div className="flex flex-wrap gap-2">
-                                                                                                                {editingProductId === product._id ? (
-                                                                                                                        <>
-                                                                                                                                <Button
-                                                                                                                                        size="sm"
-                                                                                                                                        onClick={() => saveQuickEdit(product)}
-                                                                                                                                        disabled={savingProductId === product._id}
-                                                                                                                                >
-                                                                                                                                        {savingProductId === product._id
-                                                                                                                                                ? "Saving..."
-                                                                                                                                                : "Save"}
-                                                                                                                                </Button>
-                                                                                                                                <Button
-                                                                                                                                        size="sm"
-                                                                                                                                        variant="outline"
-                                                                                                                                        onClick={cancelQuickEdit}
-                                                                                                                                        disabled={savingProductId === product._id}
-                                                                                                                                >
-                                                                                                                                        Cancel
-                                                                                                                                </Button>
-                                                                                                                        </>
-                                                                                                                ) : (
-                                                                                                                        <>
-                                                                                                                                <Button
-                                                                                                                                        size="sm"
-                                                                                                                                        variant="outline"
-                                                                                                                                        onClick={() => startQuickEdit(product)}
-                                                                                                                                        disabled={
-                                                                                                                                                !!editingProductId &&
-                                                                                                                                                editingProductId !== product._id
-                                                                                                                                        }
-                                                                                                                                >
-                                                                                                                                        Quick Edit
-                                                                                                                                </Button>
-                                                                                                                                <Button
-                                                                                                                                        size="icon"
-                                                                                                                                        variant="outline"
-                                                                                                                                        onClick={() => handleUpdate(product)}
-                                                                                                                                        disabled={savingProductId !== null}
-                                                                                                                                >
-                                                                                                                                        <Edit className="w-4 h-4" />
-                                                                                                                                </Button>
-                                                                                                                                <Button
-                                                                                                                                        size="icon"
-                                                                                                                                        variant="outline"
-                                                                                                                                        className="text-red-600 hover:text-red-700 bg-transparent"
-                                                                                                                                        onClick={() => handleDelete(product)}
-                                                                                                                                        disabled={savingProductId !== null}
-                                                                                                                                >
-                                                                                                                                        <Trash2 className="w-4 h-4" />
-                                                                                                                                </Button>
-                                                                                                                        </>
-                                                                                                                )}
-                                                                                                        </div>
-                                                                                                </TableCell>
+												<TableCell>
+													<div className="flex flex-wrap gap-2">
+														{editingProductId === product._id ? (
+															<>
+																<Button
+																	size="sm"
+																	onClick={() => saveQuickEdit(product)}
+																	disabled={savingProductId === product._id}
+																>
+																	{savingProductId === product._id
+																		? "Saving..."
+																		: "Save"}
+																</Button>
+																<Button
+																	size="sm"
+																	variant="outline"
+																	onClick={cancelQuickEdit}
+																	disabled={savingProductId === product._id}
+																>
+																	Cancel
+																</Button>
+															</>
+														) : (
+															<>
+																<Button
+																	size="sm"
+																	variant="outline"
+																	onClick={() => startQuickEdit(product)}
+																	disabled={
+																		!!editingProductId &&
+																		editingProductId !== product._id
+																	}
+																>
+																	Quick Edit
+																</Button>
+																<Button
+																	size="icon"
+																	variant="outline"
+																	onClick={() => handleUpdate(product)}
+																	disabled={savingProductId !== null}
+																>
+																	<Edit className="w-4 h-4" />
+																</Button>
+																<Button
+																	size="icon"
+																	variant="outline"
+																	className="text-red-600 hover:text-red-700 bg-transparent"
+																	onClick={() => handleDelete(product)}
+																	disabled={savingProductId !== null}
+																>
+																	<Trash2 className="w-4 h-4" />
+																</Button>
+															</>
+														)}
+													</div>
+												</TableCell>
 											</motion.tr>
 										))}
 									</TableBody>

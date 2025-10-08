@@ -99,25 +99,65 @@ export function MyProfile() {
 		setPasswordForm((s) => ({ ...s, [k]: v }));
 	}
 
-        async function loadAddresses() {
-                if (!isAuthed || !user?._id) return;
-                try {
-                        const res = await fetch(`/api/profile/addresses?userId=${user._id}`);
-                        if (res.ok) {
-                                const data = await res.json();
-                                const sanitizedAddresses = (data.addresses || []).map((addr) => ({
-                                        ...addr,
-                                        _id: addr?._id?.toString ? addr._id.toString() : addr._id,
-                                }));
-                                setAddresses(sanitizedAddresses);
-                        }
-                } catch (error) {
-                        console.error("Failed to load addresses:", error);
-                }
-        }
+	async function loadAddresses() {
+		if (!isAuthed || !user?._id) return;
+		try {
+			const res = await fetch(`/api/profile/addresses?userId=${user._id}`);
+			if (res.ok) {
+				const data = await res.json();
+				const sanitizedAddresses = (data.addresses || []).map((addr) => ({
+					...addr,
+					_id: addr?._id?.toString ? addr._id.toString() : addr._id,
+				}));
+				setAddresses(sanitizedAddresses);
+			}
+		} catch (error) {
+			console.error("Failed to load addresses:", error);
+		}
+	}
+
+	// ✅ ADD: Client-side validation before saving profile
+	function validateProfileForm() {
+		if (!form.firstName?.trim()) {
+			toast.error("First name is required");
+			return false;
+		}
+		if (!form.lastName?.trim()) {
+			toast.error("Last name is required");
+			return false;
+		}
+		if (!form.email?.trim()) {
+			toast.error("Email is required");
+			return false;
+		}
+		// Email pattern validation
+		const emailPattern = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+		if (!emailPattern.test(form.email)) {
+			toast.error("Please enter a valid email address");
+			return false;
+		}
+		if (!form.mobile?.trim()) {
+			toast.error("Mobile number is required");
+			return false;
+		}
+		// Indian phone validation
+		const phonePattern = /^(\+91)?[6-9][0-9]{9}$/;
+		const cleanMobile = form.mobile.replace(/\s+/g, "");
+		if (!phonePattern.test(cleanMobile)) {
+			toast.error("Please enter a valid 10-digit Indian mobile number");
+			return false;
+		}
+		return true;
+	}
 
 	async function saveProfile() {
 		if (!isAuthed || !user?._id) return;
+
+		// ✅ ADD: Validate before submission
+		if (!validateProfileForm()) {
+			return;
+		}
+
 		setLoading((prev) => ({ ...prev, profile: true }));
 
 		try {
@@ -145,16 +185,44 @@ export function MyProfile() {
 		}
 	}
 
+	// ✅ IMPROVED: Better password validation
+	function validatePasswordForm() {
+		if (!passwordForm.oldPassword?.trim()) {
+			toast.error("Current password is required");
+			return false;
+		}
+		if (!passwordForm.newPassword?.trim()) {
+			toast.error("New password is required");
+			return false;
+		}
+		if (!passwordForm.confirmPassword?.trim()) {
+			toast.error("Please confirm your new password");
+			return false;
+		}
+		if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+			toast.error("New passwords don't match");
+			return false;
+		}
+		// Enhanced password validation
+		if (passwordForm.newPassword.length < 8) {
+			toast.error("Password must be at least 8 characters long");
+			return false;
+		}
+		// Check for at least one letter and one number
+		const hasLetter = /[A-Za-z]/.test(passwordForm.newPassword);
+		const hasNumber = /[0-9]/.test(passwordForm.newPassword);
+		if (!hasLetter || !hasNumber) {
+			toast.error("Password must contain at least one letter and one number");
+			return false;
+		}
+		return true;
+	}
+
 	async function changePassword() {
 		if (!isAuthed || !user?._id) return;
 
-		if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-			toast.error("New passwords don't match");
-			return;
-		}
-
-		if (passwordForm.newPassword.length < 6) {
-			toast.error("Password must be at least 6 characters long");
+		// ✅ IMPROVED: Use comprehensive validation
+		if (!validatePasswordForm()) {
 			return;
 		}
 
@@ -181,7 +249,7 @@ export function MyProfile() {
 					confirmPassword: "",
 				});
 			} else {
-				toast.error(data.message || "Failed to update password");
+				toast.error(data.message || data.error || "Failed to update password");
 			}
 		} catch (error) {
 			console.error("Failed to update password:", error);
@@ -191,118 +259,120 @@ export function MyProfile() {
 		}
 	}
 
-        async function addAddress(address) {
-                if (!isAuthed || !user?._id) return false;
+	async function addAddress(address) {
+		if (!isAuthed || !user?._id) return false;
 
-                setLoading((prev) => ({ ...prev, addresses: true }));
+		setLoading((prev) => ({ ...prev, addresses: true }));
 
-                try {
-                        const res = await fetch("/api/profile/addresses", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({
-                                        userId: user._id,
-                                        address,
-                                }),
-                        });
+		try {
+			const res = await fetch("/api/profile/addresses", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					userId: user._id,
+					address,
+				}),
+			});
 
-                        const data = await res.json();
+			const data = await res.json();
 
-                        if (res.ok) {
-                                toast.success("Address added successfully!");
-                                await loadAddresses();
-                                return true;
-                        }
+			if (res.ok) {
+				toast.success("Address added successfully!");
+				await loadAddresses();
+				return true;
+			}
 
-                        toast.error(data.message || data.error || "Failed to add address");
-                        return false;
-                } catch (error) {
-                        console.error("Failed to add address:", error);
-                        toast.error("Failed to add address");
-                        return false;
-                } finally {
-                        setLoading((prev) => ({ ...prev, addresses: false }));
-                }
-        }
+			toast.error(data.message || data.error || "Failed to add address");
+			return false;
+		} catch (error) {
+			console.error("Failed to add address:", error);
+			toast.error("Failed to add address");
+			return false;
+		} finally {
+			setLoading((prev) => ({ ...prev, addresses: false }));
+		}
+	}
 
-        async function updateAddress(addressId, updatedAddress) {
-                if (!isAuthed || !user?._id) return false;
+	async function updateAddress(addressId, updatedAddress) {
+		if (!isAuthed || !user?._id) return false;
 
-                setLoading((prev) => ({ ...prev, addresses: true }));
+		setLoading((prev) => ({ ...prev, addresses: true }));
 
-                try {
-                        const updatedList = addresses.map((addr) => {
-                                if ((addr._id || "").toString() === addressId.toString()) {
-                                        return { ...addr, ...updatedAddress };
-                                }
+		try {
+			const updatedList = addresses.map((addr) => {
+				if ((addr._id || "").toString() === addressId.toString()) {
+					return { ...addr, ...updatedAddress };
+				}
 
-                                if (updatedAddress.isDefault) {
-                                        return { ...addr, isDefault: false };
-                                }
+				if (updatedAddress.isDefault) {
+					return { ...addr, isDefault: false };
+				}
 
-                                return addr;
-                        });
+				return addr;
+			});
 
-                        const res = await fetch("/api/profile/addresses", {
-                                method: "PUT",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({
-                                        userId: user._id,
-                                        addresses: updatedList,
-                                }),
-                        });
+			const res = await fetch("/api/profile/addresses", {
+				method: "PUT",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					userId: user._id,
+					addresses: updatedList,
+				}),
+			});
 
-                        const data = await res.json();
+			const data = await res.json();
 
-                        if (res.ok) {
-                                const sanitizedAddresses = (data.addresses || updatedList).map((addr) => ({
-                                        ...addr,
-                                        _id: addr?._id?.toString ? addr._id.toString() : addr._id,
-                                }));
-                                setAddresses(sanitizedAddresses);
-                                toast.success("Address updated successfully!");
-                                return true;
-                        }
+			if (res.ok) {
+				const sanitizedAddresses = (data.addresses || updatedList).map(
+					(addr) => ({
+						...addr,
+						_id: addr?._id?.toString ? addr._id.toString() : addr._id,
+					})
+				);
+				setAddresses(sanitizedAddresses);
+				toast.success("Address updated successfully!");
+				return true;
+			}
 
-                        toast.error(data.message || data.error || "Failed to update address");
-                        return false;
-                } catch (error) {
-                        console.error("Failed to update address:", error);
-                        toast.error("Failed to update address");
-                        return false;
-                } finally {
-                        setLoading((prev) => ({ ...prev, addresses: false }));
-                }
-        }
+			toast.error(data.message || data.error || "Failed to update address");
+			return false;
+		} catch (error) {
+			console.error("Failed to update address:", error);
+			toast.error("Failed to update address");
+			return false;
+		} finally {
+			setLoading((prev) => ({ ...prev, addresses: false }));
+		}
+	}
 
-        async function deleteAddress(addressId) {
-                if (!isAuthed || !user?._id) return;
+	async function deleteAddress(addressId) {
+		if (!isAuthed || !user?._id) return;
 
-                setLoading((prev) => ({ ...prev, addresses: true }));
+		setLoading((prev) => ({ ...prev, addresses: true }));
 
-                try {
-                        const res = await fetch(
-                                `/api/profile/addresses?userId=${user._id}&addressId=${addressId}`,
-                                {
-                                        method: "DELETE",
-                                }
-                        );
+		try {
+			const res = await fetch(
+				`/api/profile/addresses?userId=${user._id}&addressId=${addressId}`,
+				{
+					method: "DELETE",
+				}
+			);
 
-                        const data = res.ok ? null : await res.json();
+			const data = res.ok ? null : await res.json();
 
-                        if (res.ok) {
-                                toast.success("Address deleted successfully!");
-                                await loadAddresses();
-                        } else {
-                                toast.error(data?.message || data?.error || "Failed to delete address");
-                        }
-                } catch (error) {
-                        console.error("Failed to delete address:", error);
-                        toast.error("Failed to delete address");
-                } finally {
-                        setLoading((prev) => ({ ...prev, addresses: false }));
-                }
-        }
+			if (res.ok) {
+				toast.success("Address deleted successfully!");
+				await loadAddresses();
+			} else {
+				toast.error(data?.message || data?.error || "Failed to delete address");
+			}
+		} catch (error) {
+			console.error("Failed to delete address:", error);
+			toast.error("Failed to delete address");
+		} finally {
+			setLoading((prev) => ({ ...prev, addresses: false }));
+		}
+	}
 
 	if (!isAuthed) {
 		return (
@@ -349,17 +419,29 @@ export function MyProfile() {
 						/>
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 							<div className="space-y-2">
-								<Label htmlFor="firstName">First Name</Label>
+								<Label htmlFor="firstName">
+									First Name <span className="text-red-500">*</span>
+								</Label>
 								<Input
 									id="firstName"
+									name="firstName"
+									validationKey="firstName"
+									type="text"
+									required
 									value={form.firstName}
 									onChange={(e) => setField("firstName", e.target.value)}
 								/>
 							</div>
 							<div className="space-y-2">
-								<Label htmlFor="lastName">Last Name</Label>
+								<Label htmlFor="lastName">
+									Last Name <span className="text-red-500">*</span>
+								</Label>
 								<Input
 									id="lastName"
+									name="lastName"
+									validationKey="lastName"
+									type="text"
+									required
 									value={form.lastName}
 									onChange={(e) => setField("lastName", e.target.value)}
 								/>
@@ -367,18 +449,29 @@ export function MyProfile() {
 						</div>
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 							<div className="space-y-2">
-								<Label htmlFor="email">Email</Label>
+								<Label htmlFor="email">
+									Email <span className="text-red-500">*</span>
+								</Label>
 								<Input
 									id="email"
+									name="email"
+									validationKey="email"
 									type="email"
+									required
 									value={form.email}
 									onChange={(e) => setField("email", e.target.value)}
 								/>
 							</div>
 							<div className="space-y-2">
-								<Label htmlFor="mobile">Mobile</Label>
+								<Label htmlFor="mobile">
+									Mobile <span className="text-red-500">*</span>
+								</Label>
 								<Input
 									id="mobile"
+									name="mobile"
+									validationKey="phone"
+									type="tel"
+									required
 									value={form.mobile}
 									onChange={(e) => setField("mobile", e.target.value)}
 								/>
@@ -409,11 +502,16 @@ export function MyProfile() {
 					</CardHeader>
 					<CardContent className="space-y-4">
 						<div className="space-y-2">
-							<Label htmlFor="oldPassword">Current Password</Label>
+							<Label htmlFor="oldPassword">
+								Current Password <span className="text-red-500">*</span>
+							</Label>
 							<div className="relative">
 								<Input
 									id="oldPassword"
+									name="oldPassword"
+									validationKey="password"
 									type={showPasswords.old ? "text" : "password"}
+									required
 									value={passwordForm.oldPassword}
 									onChange={(e) =>
 										setPasswordField("oldPassword", e.target.value)
@@ -424,10 +522,11 @@ export function MyProfile() {
 									type="button"
 									variant="ghost"
 									size="sm"
-									className="absolute right-0 top-0 h-full px-3"
+									className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
 									onClick={() =>
 										setShowPasswords((prev) => ({ ...prev, old: !prev.old }))
 									}
+									tabIndex={-1}
 								>
 									{showPasswords.old ? (
 										<EyeOff className="h-4 w-4" />
@@ -438,11 +537,16 @@ export function MyProfile() {
 							</div>
 						</div>
 						<div className="space-y-2">
-							<Label htmlFor="newPassword">New Password</Label>
+							<Label htmlFor="newPassword">
+								New Password <span className="text-red-500">*</span>
+							</Label>
 							<div className="relative">
 								<Input
 									id="newPassword"
+									name="newPassword"
+									validationKey="password"
 									type={showPasswords.new ? "text" : "password"}
+									required
 									value={passwordForm.newPassword}
 									onChange={(e) =>
 										setPasswordField("newPassword", e.target.value)
@@ -453,10 +557,11 @@ export function MyProfile() {
 									type="button"
 									variant="ghost"
 									size="sm"
-									className="absolute right-0 top-0 h-full px-3"
+									className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
 									onClick={() =>
 										setShowPasswords((prev) => ({ ...prev, new: !prev.new }))
 									}
+									tabIndex={-1}
 								>
 									{showPasswords.new ? (
 										<EyeOff className="h-4 w-4" />
@@ -467,11 +572,16 @@ export function MyProfile() {
 							</div>
 						</div>
 						<div className="space-y-2">
-							<Label htmlFor="confirmPassword">Confirm New Password</Label>
+							<Label htmlFor="confirmPassword">
+								Confirm New Password <span className="text-red-500">*</span>
+							</Label>
 							<div className="relative">
 								<Input
 									id="confirmPassword"
+									name="confirmPassword"
+									validationKey="password"
 									type={showPasswords.confirm ? "text" : "password"}
+									required
 									value={passwordForm.confirmPassword}
 									onChange={(e) =>
 										setPasswordField("confirmPassword", e.target.value)
@@ -482,13 +592,14 @@ export function MyProfile() {
 									type="button"
 									variant="ghost"
 									size="sm"
-									className="absolute right-0 top-0 h-full px-3"
+									className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
 									onClick={() =>
 										setShowPasswords((prev) => ({
 											...prev,
 											confirm: !prev.confirm,
 										}))
 									}
+									tabIndex={-1}
 								>
 									{showPasswords.confirm ? (
 										<EyeOff className="h-4 w-4" />
@@ -504,7 +615,8 @@ export function MyProfile() {
 								disabled={
 									loading.password ||
 									!passwordForm.oldPassword ||
-									!passwordForm.newPassword
+									!passwordForm.newPassword ||
+									!passwordForm.confirmPassword
 								}
 							>
 								{loading.password ? "Updating..." : "Update Password"}
@@ -525,19 +637,19 @@ export function MyProfile() {
 					<CardHeader className="flex flex-row items-center justify-between">
 						<div>
 							<CardTitle>Addresses</CardTitle>
-                                                        <CardDescription>
-                                                                Manage your saved shipping addresses
-                                                        </CardDescription>
+							<CardDescription>
+								Manage your saved shipping addresses
+							</CardDescription>
 						</div>
-                                                <AddressFormDialog
-                                                        trigger={
-                                                                <Button size="sm" disabled={loading.addresses}>
-                                                                        <Plus className="h-4 w-4 mr-2" />
-                                                                        {loading.addresses ? "Processing..." : "Add Address"}
-                                                                </Button>
-                                                        }
-                                                        onSave={addAddress}
-                                                />
+						<AddressFormDialog
+							trigger={
+								<Button size="sm" disabled={loading.addresses}>
+									<Plus className="h-4 w-4 mr-2" />
+									{loading.addresses ? "Processing..." : "Add Address"}
+								</Button>
+							}
+							onSave={addAddress}
+						/>
 					</CardHeader>
 					<CardContent>
 						<div className="space-y-4">
@@ -558,40 +670,36 @@ export function MyProfile() {
 											)}
 										</div>
 										<div className="flex gap-2">
-                                                                                          <AddressFormDialog
-                                                                                                  initial={addr}
-                                                                                                  trigger={
-                                                                                                          <Button
-                                                                                                                  variant="ghost"
-                                                                                                                  size="sm"
-                                                                                                                  disabled={loading.addresses}
-                                                                                                          >
-                                                                                                                  <Edit className="h-4 w-4" />
-                                                                                                          </Button>
-                                                                                                  }
-                                                                                                  onSave={(updated) =>
-                                                                                                          updateAddress(
-                                                                                                                  addr._id?.toString
-                                                                                                                          ? addr._id.toString()
-                                                                                                                          : addr._id,
-                                                                                                                  updated
-                                                                                                          )
-                                                                                                  }
-                                                                                          />
-                                                                                          <Button
-                                                                                                  variant="ghost"
-                                                                                                  size="sm"
-                                                                                                  disabled={loading.addresses}
-                                                                                                  onClick={() =>
-                                                                                                          deleteAddress(
-                                                                                                                  addr._id?.toString
-                                                                                                                          ? addr._id.toString()
-                                                                                                                          : addr._id
-                                                                                                          )
-                                                                                                  }
-                                                                                          >
-                                                                                                  <Trash2 className="h-4 w-4" />
-                                                                                          </Button>
+											<AddressFormDialog
+												initial={addr}
+												trigger={
+													<Button
+														variant="ghost"
+														size="sm"
+														disabled={loading.addresses}
+													>
+														<Edit className="h-4 w-4" />
+													</Button>
+												}
+												onSave={(updated) =>
+													updateAddress(
+														addr._id?.toString ? addr._id.toString() : addr._id,
+														updated
+													)
+												}
+											/>
+											<Button
+												variant="ghost"
+												size="sm"
+												disabled={loading.addresses}
+												onClick={() =>
+													deleteAddress(
+														addr._id?.toString ? addr._id.toString() : addr._id
+													)
+												}
+											>
+												<Trash2 className="h-4 w-4" />
+											</Button>
 										</div>
 									</div>
 									<div className="text-sm text-muted-foreground">
