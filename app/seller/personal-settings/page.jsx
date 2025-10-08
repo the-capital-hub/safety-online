@@ -42,7 +42,7 @@ export default function SellerSettings() {
 	const [isLoading, setIsLoading] = useState(false);
 
 	const router = useRouter();
-	const { updateProfile } = useSellerAuthStore();
+	const { setSeller } = useSellerAuthStore();
 	const isAuthenticated = useIsSellerAuthenticated();
 	const seller = useLoggedInSeller();
 
@@ -127,9 +127,10 @@ export default function SellerSettings() {
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 
+		if (isLoading) return;
+
 		if (!e.currentTarget.checkValidity()) {
 			e.currentTarget.reportValidity();
-
 			return;
 		}
 		setIsLoading(true);
@@ -154,11 +155,17 @@ export default function SellerSettings() {
 				body: formDataToSend,
 			});
 
+			if (!response.ok) {
+				const data = await response.json();
+				toast.error(data.message || "Failed to update profile");
+				return;
+			}
+
 			const data = await response.json();
 
 			if (data.success) {
 				// Update the store with new user data
-				updateProfile(data.user);
+				setSeller(data.seller);
 				toast.success("Profile updated successfully");
 			} else {
 				toast.error(data.message || "Failed to update profile");

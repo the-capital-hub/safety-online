@@ -26,128 +26,134 @@ import { Plus, X, User } from "lucide-react";
 import { useAdminProductStore } from "@/store/adminProductStore.js";
 import { ImageUpload } from "@/components/AdminPanel/ImageUpload.jsx";
 
-const normalizeValue = (value) => (typeof value === "string" ? value.trim().toLowerCase() : "");
+const normalizeValue = (value) =>
+	typeof value === "string" ? value.trim().toLowerCase() : "";
 
 const productTypes = [
-        { value: "featured", label: "Featured" },
-        { value: "top-selling", label: "Top Selling" },
-        { value: "best-selling", label: "Best Selling" },
-        { value: "discounted", label: "Discounted" },
+	{ value: "featured", label: "Featured" },
+	{ value: "top-selling", label: "Top Selling" },
+	{ value: "best-selling", label: "Best Selling" },
+	{ value: "discounted", label: "Discounted" },
 ];
 
 const NO_SUBCATEGORY_VALUE = "__no_subcategory__";
 
 const calculateDiscountPercentage = (mrp, salePrice) => {
-        const isSaleProvided = salePrice !== undefined && salePrice !== null && salePrice !== "";
-        const mrpValue = Number.parseFloat(mrp);
+	const isSaleProvided =
+		salePrice !== undefined && salePrice !== null && salePrice !== "";
+	const mrpValue = Number.parseFloat(mrp);
 
-        if (!Number.isFinite(mrpValue) || mrpValue <= 0 || !isSaleProvided) {
-                return "0.00";
-        }
+	if (!Number.isFinite(mrpValue) || mrpValue <= 0 || !isSaleProvided) {
+		return "0.00";
+	}
 
-        const saleValue = Number.parseFloat(salePrice);
+	const saleValue = Number.parseFloat(salePrice);
 
-        if (!Number.isFinite(saleValue) || saleValue < 0 || saleValue >= mrpValue) {
-                return "0.00";
-        }
+	if (!Number.isFinite(saleValue) || saleValue < 0 || saleValue >= mrpValue) {
+		return "0.00";
+	}
 
-        const discount = ((mrpValue - saleValue) / mrpValue) * 100;
-        return discount.toFixed(2);
+	const discount = ((mrpValue - saleValue) / mrpValue) * 100;
+	return discount.toFixed(2);
 };
 
 export function UpdateProductPopup({ open, onOpenChange, product }) {
-        const { updateProduct } = useAdminProductStore();
-        const [isSubmitting, setIsSubmitting] = useState(false);
-        const [features, setFeatures] = useState([""]);
-        const [categories, setCategories] = useState([]);
-        const [sellers, setSellers] = useState([]);
-        const [loadingSellers, setLoadingSellers] = useState(false);
-        const [priceError, setPriceError] = useState("");
+	const { updateProduct } = useAdminProductStore();
+	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [features, setFeatures] = useState([""]);
+	const [categories, setCategories] = useState([]);
+	const [sellers, setSellers] = useState([]);
+	const [loadingSellers, setLoadingSellers] = useState(false);
+	const [priceError, setPriceError] = useState("");
 
-        const [formData, setFormData] = useState({
-                title: "",
-                description: "",
-                longDescription: "",
-                category: "",
-                subCategory: "",
-                price: "",
-                salePrice: "",
-                stocks: "",
-                discount: "0.00",
-                type: "featured",
-                published: true,
-                images: [],
-                hsnCode: "",
-                brand: "",
+	const [formData, setFormData] = useState({
+		title: "",
+		description: "",
+		longDescription: "",
+		category: "",
+		subCategory: "",
+		price: "",
+		salePrice: "",
+		stocks: "",
+		discount: "0.00",
+		type: "featured",
+		published: true,
+		images: [],
+		hsnCode: "",
+		brand: "",
 		length: "",
 		width: "",
 		height: "",
 		weight: "",
 		colour: "",
 		material: "",
-                size: "",
-                sellerId: "",
-        });
+		size: "",
+		sellerId: "",
+	});
 
-        const validatePricing = (mrpValue, saleValue) => {
-                const isSaleProvided = saleValue !== undefined && saleValue !== null && saleValue !== "";
-                const mrpNumber = Number.parseFloat(mrpValue);
+	const validatePricing = (mrpValue, saleValue) => {
+		const isSaleProvided =
+			saleValue !== undefined && saleValue !== null && saleValue !== "";
+		const mrpNumber = Number.parseFloat(mrpValue);
 
-                if (!isSaleProvided || !Number.isFinite(mrpNumber) || mrpNumber <= 0) {
-                        setPriceError("");
-                        return true;
-                }
+		if (!isSaleProvided || !Number.isFinite(mrpNumber) || mrpNumber <= 0) {
+			setPriceError("");
+			return true;
+		}
 
-                const saleNumber = Number.parseFloat(saleValue);
+		const saleNumber = Number.parseFloat(saleValue);
 
-                if (!Number.isFinite(saleNumber)) {
-                        setPriceError("");
-                        return true;
-                }
+		if (!Number.isFinite(saleNumber)) {
+			setPriceError("");
+			return true;
+		}
 
-                if (saleNumber < 0) {
-                        setPriceError("Sale price cannot be negative.");
-                        return false;
-                }
+		if (saleNumber < 0) {
+			setPriceError("Sale price cannot be negative.");
+			return false;
+		}
 
-                if (saleNumber >= mrpNumber) {
-                        setPriceError("Sale price should be lower than MRP.");
-                        return false;
-                }
+		if (saleNumber >= mrpNumber) {
+			setPriceError("Sale price should be lower than MRP.");
+			return false;
+		}
 
-                setPriceError("");
-                return true;
-        };
+		setPriceError("");
+		return true;
+	};
 
-        const handlePriceChange = (value) => {
-                setFormData((prev) => ({
-                        ...prev,
-                        price: value,
-                        discount: calculateDiscountPercentage(value, prev.salePrice),
-                }));
-                validatePricing(value, formData.salePrice);
-        };
+	const handlePriceChange = (value) => {
+		setFormData((prev) => ({
+			...prev,
+			price: value,
+			discount: calculateDiscountPercentage(value, prev.salePrice),
+		}));
+		validatePricing(value, formData.salePrice);
+	};
 
-        const handleSalePriceChange = (value) => {
-                setFormData((prev) => ({
-                        ...prev,
-                        salePrice: value,
-                        discount: calculateDiscountPercentage(prev.price, value),
-                }));
-                validatePricing(formData.price, value);
-        };
+	const handleSalePriceChange = (value) => {
+		setFormData((prev) => ({
+			...prev,
+			salePrice: value,
+			discount: calculateDiscountPercentage(prev.price, value),
+		}));
+		validatePricing(formData.price, value);
+	};
 
-        const handleHsnChange = (value) => {
-                if (value === "" || /^\d{0,8}$/.test(value)) {
-                        setFormData((prev) => ({ ...prev, hsnCode: value }));
-                }
-        };
+	const handleHsnChange = (value) => {
+		// Remove all non-numeric characters first
+		const numericOnly = value.replace(/\D/g, "");
+		// Then check if it's within 8 digits limit
+		if (numericOnly.length <= 8) {
+			setFormData((prev) => ({ ...prev, hsnCode: numericOnly }));
+		}
+	};
 
-        useEffect(() => {
-                if (open) {
-                        // Fetch categories
-                        const fetchCategories = async () => {
-                                try {
+	useEffect(() => {
+		if (open) {
+			// Fetch categories
+			const fetchCategories = async () => {
+				try {
 					const res = await fetch("/api/admin/categories");
 					const data = await res.json();
 					if (data.success) {
@@ -220,7 +226,6 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 					);
 				}
 
-
 				setFormData({
 					title: product.title || "",
 					description: product.description || "",
@@ -231,11 +236,12 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 					salePrice: initialSalePrice,
 					stocks: product.stocks?.toString() || "",
 					discount:
-						calculateDiscountPercentage(initialPrice, initialSalePrice) || "0.00",
+						calculateDiscountPercentage(initialPrice, initialSalePrice) ||
+						"0.00",
 					type: product.type || "featured",
 					published: product.published !== undefined ? product.published : true,
 					images: convertedImages,
-					hsnCode: product.hsnCode || "",
+					hsnCode: (product.hsnCode || "").replace(/\D/g, ""),
 					brand: product.brand || "",
 
 					length: product.length?.toString() || "",
@@ -254,61 +260,59 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 			const mappedFeatures =
 				product.features?.length > 0
 					? product.features.map(
-						(feature) =>
-							feature?.description?.trim() || feature?.title?.trim() || ""
+							(feature) =>
+								feature?.description?.trim() || feature?.title?.trim() || ""
 					  )
 					: [""];
 
-			const sanitizedFeatures = mappedFeatures.filter((feature) => feature.length > 0);
-
+			const sanitizedFeatures = mappedFeatures.filter(
+				(feature) => feature.length > 0
+			);
 
 			setFeatures(sanitizedFeatures.length > 0 ? sanitizedFeatures : [""]);
 			validatePricing(initialPrice, initialSalePrice);
 		}
 	}, [product]);
 
+	const handleSubmit = async (e) => {
+		e.preventDefault();
 
-        const handleSubmit = async (e) => {
-                e.preventDefault();
+		if (!e.currentTarget.checkValidity()) {
+			e.currentTarget.reportValidity();
 
-                if (!e.currentTarget.checkValidity()) {
+			return;
+		}
+		if (!validatePricing(formData.price, formData.salePrice)) {
+			return;
+		}
+		if (!product) return;
 
-                  e.currentTarget.reportValidity();
+		setIsSubmitting(true);
 
-                  return;
+		try {
+			const formattedFeatures = features
+				.map((feature) => feature.trim())
+				.filter((feature) => feature.length > 0)
+				.map((feature) => ({ title: feature, description: feature }));
 
-                }
-                if (!validatePricing(formData.price, formData.salePrice)) {
-                        return;
-                }
-                if (!product) return;
-
-                setIsSubmitting(true);
-
-                try {
-                        const formattedFeatures = features
-                                .map((feature) => feature.trim())
-                                .filter((feature) => feature.length > 0)
-                                .map((feature) => ({ title: feature, description: feature }));
-
-                        // Prepare the update data similar to addProduct
-                        const updateData = {
-                                title: formData.title,
-                                description: formData.description,
-                                longDescription: formData.longDescription || formData.description,
-                                category: formData.category,
-                                subCategory: formData.subCategory,
-                                price: Number.parseFloat(formData.price),
-                                salePrice: formData.salePrice
-                                        ? Number.parseFloat(formData.salePrice)
-                                        : 0,
-                                stocks: Number.parseInt(formData.stocks),
-                                discount: formData.discount ? Number.parseFloat(formData.discount) : 0,
-                                type: formData.type,
-                                published: formData.published,
-                                features: formattedFeatures,
-                                images: formData.images, // Pass the base64 images array
-                                hsnCode: formData.hsnCode,
+			// Prepare the update data similar to addProduct
+			const updateData = {
+				title: formData.title,
+				description: formData.description,
+				longDescription: formData.longDescription || formData.description,
+				category: formData.category,
+				subCategory: formData.subCategory,
+				price: Number.parseFloat(formData.price),
+				salePrice: formData.salePrice
+					? Number.parseFloat(formData.salePrice)
+					: 0,
+				stocks: Number.parseInt(formData.stocks),
+				discount: formData.discount ? Number.parseFloat(formData.discount) : 0,
+				type: formData.type,
+				published: formData.published,
+				features: formattedFeatures,
+				images: formData.images, // Pass the base64 images array
+				hsnCode: formData.hsnCode,
 				brand: formData.brand,
 				length: formData.length ? Number.parseFloat(formData.length) : null,
 				width: formData.width ? Number.parseFloat(formData.width) : null,
@@ -333,92 +337,91 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 		}
 	};
 
-        const addFeature = () => {
-                setFeatures([...features, ""]);
-        };
+	const addFeature = () => {
+		setFeatures([...features, ""]);
+	};
 
-        const removeFeature = (index) => {
-                setFeatures(features.filter((_, i) => i !== index));
-        };
+	const removeFeature = (index) => {
+		setFeatures(features.filter((_, i) => i !== index));
+	};
 
-        const updateFeature = (index, value) => {
-                const updatedFeatures = [...features];
-                updatedFeatures[index] = value;
-                setFeatures(updatedFeatures);
-        };
+	const updateFeature = (index, value) => {
+		const updatedFeatures = [...features];
+		updatedFeatures[index] = value;
+		setFeatures(updatedFeatures);
+	};
 
-        const selectedCategory = categories.find(
-                (category) => normalizeValue(category.name) === normalizeValue(formData.category)
-        );
+	const selectedCategory = categories.find(
+		(category) =>
+			normalizeValue(category.name) === normalizeValue(formData.category)
+	);
 
-        const availableSubCategories = selectedCategory?.subCategories ?? [];
+	const availableSubCategories = selectedCategory?.subCategories ?? [];
 
-        useEffect(() => {
-                if (!categories.length) return;
+	useEffect(() => {
+		if (!categories.length) return;
 
-                setFormData((prev) => {
-                        if (!prev.category) {
-                                if (!prev.subCategory) {
-                                        return prev;
-                                }
+		setFormData((prev) => {
+			if (!prev.category) {
+				if (!prev.subCategory) {
+					return prev;
+				}
 
-                                return { ...prev, subCategory: "" };
-                        }
+				return { ...prev, subCategory: "" };
+			}
 
-                        const currentCategory = categories.find(
-                                (category) =>
-                                        normalizeValue(category.name) ===
-                                        normalizeValue(prev.category)
-                        );
+			const currentCategory = categories.find(
+				(category) =>
+					normalizeValue(category.name) === normalizeValue(prev.category)
+			);
 
-                        if (!currentCategory) {
-                                if (!prev.category && !prev.subCategory) {
-                                        return prev;
-                                }
+			if (!currentCategory) {
+				if (!prev.category && !prev.subCategory) {
+					return prev;
+				}
 
-                                return { ...prev, category: "", subCategory: "" };
-                        }
+				return { ...prev, category: "", subCategory: "" };
+			}
 
-                        let updatedCategory = prev.category;
-                        let updatedSubCategory = prev.subCategory;
+			let updatedCategory = prev.category;
+			let updatedSubCategory = prev.subCategory;
 
-                        if (currentCategory.name !== prev.category) {
-                                updatedCategory = currentCategory.name;
-                        }
+			if (currentCategory.name !== prev.category) {
+				updatedCategory = currentCategory.name;
+			}
 
-                        if (prev.subCategory) {
-                                const matchedSubCategory =
-                                        (currentCategory.subCategories || []).find(
-                                                (subCategory) =>
-                                                        normalizeValue(subCategory.name) ===
-                                                        normalizeValue(prev.subCategory)
-                                        );
+			if (prev.subCategory) {
+				const matchedSubCategory = (currentCategory.subCategories || []).find(
+					(subCategory) =>
+						normalizeValue(subCategory.name) ===
+						normalizeValue(prev.subCategory)
+				);
 
-                                if (!matchedSubCategory) {
-                                        updatedSubCategory = "";
-                                } else if (matchedSubCategory.name !== prev.subCategory) {
-                                        updatedSubCategory = matchedSubCategory.name;
-                                }
-                        }
+				if (!matchedSubCategory) {
+					updatedSubCategory = "";
+				} else if (matchedSubCategory.name !== prev.subCategory) {
+					updatedSubCategory = matchedSubCategory.name;
+				}
+			}
 
-                        if (
-                                updatedCategory !== prev.category ||
-                                updatedSubCategory !== prev.subCategory
-                        ) {
-                                return {
-                                        ...prev,
-                                        category: updatedCategory,
-                                        subCategory: updatedSubCategory,
-                                };
-                        }
+			if (
+				updatedCategory !== prev.category ||
+				updatedSubCategory !== prev.subCategory
+			) {
+				return {
+					...prev,
+					category: updatedCategory,
+					subCategory: updatedSubCategory,
+				};
+			}
 
-                        return prev;
-                });
-        }, [categories, product]);
+			return prev;
+		});
+	}, [categories, product]);
 
-        return (
-                <Dialog open={open} onOpenChange={onOpenChange}>
-                        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+	return (
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
 				<motion.div
 					initial={{ scale: 0.95, opacity: 0 }}
 					animate={{ scale: 1, opacity: 1 }}
@@ -438,16 +441,16 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 							{/* Seller Selection */}
 							<div className="md:col-span-2">
 								<Label>Select Seller *</Label>
-                                                                <Select
-                                                                        value={formData.sellerId}
-                                                                        onValueChange={(value) =>
-                                                                                setFormData((prev) => ({
-                                                                                        ...prev,
-                                                                                        sellerId: value,
-                                                                                }))
-                                                                        }
-                                                                        disabled={loadingSellers}
-                                                                >
+								<Select
+									value={formData.sellerId}
+									onValueChange={(value) =>
+										setFormData((prev) => ({
+											...prev,
+											sellerId: value,
+										}))
+									}
+									disabled={loadingSellers}
+								>
 									<SelectTrigger className="mt-1">
 										<SelectValue
 											placeholder={
@@ -550,21 +553,21 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 								/>
 							</div>
 
-                                                        <div>
-                                                                <Label>Category *</Label>
-                                                                <Select
-                                                                        value={formData.category}
-                                                                        onValueChange={(value) =>
-                                                                                setFormData((prev) => ({
-                                                                                        ...prev,
-                                                                                        category: value,
-                                                                                        subCategory: "",
-                                                                                }))
-                                                                        }
-                                                                >
-                                                                        <SelectTrigger className="mt-1">
-                                                                                <SelectValue placeholder="Select category" />
-                                                                        </SelectTrigger>
+							<div>
+								<Label>Category *</Label>
+								<Select
+									value={formData.category}
+									onValueChange={(value) =>
+										setFormData((prev) => ({
+											...prev,
+											category: value,
+											subCategory: "",
+										}))
+									}
+								>
+									<SelectTrigger className="mt-1">
+										<SelectValue placeholder="Select category" />
+									</SelectTrigger>
 									<SelectContent>
 										{categories.map((category) => (
 											<SelectItem key={category._id} value={category.name}>
@@ -575,42 +578,42 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 								</Select>
 							</div>
 
-                                                        <div>
-                                                                <Label>Sub Category</Label>
-                                                                <Select
-                                                                        value={formData.subCategory || NO_SUBCATEGORY_VALUE}
-                                                                        onValueChange={(value) =>
-                                                                                setFormData((prev) => ({
-                                                                                        ...prev,
-                                                                                        subCategory:
-                                                                                                value === NO_SUBCATEGORY_VALUE
-                                                                                                        ? ""
-                                                                                                        : value,
-                                                                                }))
-                                                                        }
-                                                                        disabled={!availableSubCategories.length}
-                                                                >
-                                                                        <SelectTrigger className="mt-1">
-                                                                                <SelectValue
-                                                                                        placeholder={
-                                                                                                availableSubCategories.length
-                                                                                                        ? "Select sub category"
-                                                                                                        : "No subcategories available"
-                                                                                        }
-                                                                                />
-                                                                        </SelectTrigger>
-                                                                        <SelectContent>
-                                                                                <SelectItem value={NO_SUBCATEGORY_VALUE}>
-                                                                                        No subcategory
-                                                                                </SelectItem>
-                                                                                {availableSubCategories.map((subCategory) => (
-                                                                                        <SelectItem key={subCategory.name} value={subCategory.name}>
-                                                                                                {subCategory.name}
-                                                                                        </SelectItem>
-                                                                                ))}
-                                                                        </SelectContent>
-                                                                </Select>
-                                                        </div>
+							<div>
+								<Label>Sub Category</Label>
+								<Select
+									value={formData.subCategory || NO_SUBCATEGORY_VALUE}
+									onValueChange={(value) =>
+										setFormData((prev) => ({
+											...prev,
+											subCategory: value === NO_SUBCATEGORY_VALUE ? "" : value,
+										}))
+									}
+									disabled={!availableSubCategories.length}
+								>
+									<SelectTrigger className="mt-1">
+										<SelectValue
+											placeholder={
+												availableSubCategories.length
+													? "Select sub category"
+													: "No subcategories available"
+											}
+										/>
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value={NO_SUBCATEGORY_VALUE}>
+											No subcategory
+										</SelectItem>
+										{availableSubCategories.map((subCategory) => (
+											<SelectItem
+												key={subCategory.name}
+												value={subCategory.name}
+											>
+												{subCategory.name}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+							</div>
 
 							<div>
 								<Label>Product Type</Label>
@@ -633,41 +636,37 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 								</Select>
 							</div>
 
-                                                        <div>
-                                                                <Label htmlFor="price">MRP *</Label>
-                                                                <Input
-                                                                        id="price"
-                                                                        placeholder="0.00"
-                                                                        value={formData.price}
-                                                                        onChange={(e) =>
-                                                                                handlePriceChange(e.target.value)
-                                                                        }
-                                                                        className="mt-1"
-                                                                        type="number"
-                                                                        step="0.01"
-                                                                        min="0"
-                                                                        required
-                                                                />
-                                                        </div>
+							<div>
+								<Label htmlFor="price">MRP *</Label>
+								<Input
+									id="price"
+									placeholder="0.00"
+									value={formData.price}
+									onChange={(e) => handlePriceChange(e.target.value)}
+									className="mt-1"
+									type="number"
+									step="0.01"
+									min="0"
+									required
+								/>
+							</div>
 
-                                                        <div>
-                                                                <Label htmlFor="salePrice">Sale Price</Label>
-                                                                <Input
-                                                                        id="salePrice"
-                                                                        placeholder="0.00"
-                                                                        value={formData.salePrice}
-                                                                        onChange={(e) =>
-                                                                                handleSalePriceChange(e.target.value)
-                                                                        }
-                                                                        className="mt-1"
-                                                                        type="number"
-                                                                        step="0.01"
-                                                                        min="0"
-                                                                />
-                                                                {priceError && (
-                                                                        <p className="text-sm text-red-500 mt-1">{priceError}</p>
-                                                                )}
-                                                        </div>
+							<div>
+								<Label htmlFor="salePrice">Sale Price</Label>
+								<Input
+									id="salePrice"
+									placeholder="0.00"
+									value={formData.salePrice}
+									onChange={(e) => handleSalePriceChange(e.target.value)}
+									className="mt-1"
+									type="number"
+									step="0.01"
+									min="0"
+								/>
+								{priceError && (
+									<p className="text-sm text-red-500 mt-1">{priceError}</p>
+								)}
+							</div>
 
 							<div>
 								<Label htmlFor="stocks">Stock Quantity *</Label>
@@ -684,43 +683,47 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 								/>
 							</div>
 
-                                                        <div>
-                                                                <Label htmlFor="discount">Discount (%)</Label>
-                                                                <Input
-                                                                        id="discount"
-                                                                        placeholder="0"
-                                                                        value={formData.discount}
-                                                                        className="mt-1"
-                                                                        type="number"
-                                                                        max="100"
-                                                                        readOnly
-                                                                />
-                                                        </div>
+							<div>
+								<Label htmlFor="discount">Discount (%)</Label>
+								<Input
+									id="discount"
+									placeholder="0"
+									value={formData.discount}
+									className="mt-1"
+									type="number"
+									max="100"
+									readOnly
+								/>
+							</div>
 
-                                                        <div>
-                                                                <Label>HSN Code</Label>
-                                                                <Input
-                                                                        id="admin-update-hsnCode"
-                                                                        name="hsnCode"
-                                                                        placeholder="HSN Code"
-                                                                        value={formData.hsnCode}
-                                                                        onChange={(e) =>
-                                                                                handleHsnChange(e.target.value)
-                                                                        }
-                                                                        className="mt-1"
-                                                                        inputMode="numeric"
-                                                                        maxLength={8}
-                                                                        pattern="\d{8}"
-                                                                        title="HSN code must be exactly 8 digits"
-                                                                />
-                                                        </div>
+							<div>
+								<Label htmlFor="hsnCode">HSN Code</Label>
+								<Input
+									id="hsnCode"
+									name="hsnCode"
+									placeholder="Enter 8-digit HSN Code"
+									value={formData.hsnCode}
+									onChange={(e) => handleHsnChange(e.target.value)}
+									className="mt-1"
+									inputMode="numeric"
+									maxLength={8}
+								/>
+								{formData.hsnCode &&
+									formData.hsnCode.length > 0 &&
+									formData.hsnCode.length < 8 && (
+										<p className="text-sm text-amber-600 mt-1">
+											HSN code should be 8 digits (currently{" "}
+											{formData.hsnCode.length})
+										</p>
+									)}
+							</div>
 
 							<div>
 								<Label>Brand</Label>
-                                                                <Input
-                                                                        id="admin-update-brand"
-                                                                        name="brand"
-                                                                        placeholder="Brand"
+								<Input
+									id="admin-update-brand"
+									name="brand"
+									placeholder="Brand"
 									value={formData.brand}
 									onChange={(e) =>
 										setFormData({ ...formData, brand: e.target.value })
@@ -729,104 +732,104 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 								/>
 							</div>
 
-                                                        <div>
-                                                                <Label>Length (cm)</Label>
-                                                                <Input
-                                                                        name="length"
-                                                                        placeholder="Length in cm"
-                                                                        value={formData.length}
-                                                                        onChange={(e) =>
-                                                                                setFormData({ ...formData, length: e.target.value })
-                                                                        }
-                                                                        className="mt-1"
-                                                                        type="number"
-                                                                        step="0.01"
-                                                                />
-                                                        </div>
+							<div>
+								<Label>Length (cm)</Label>
+								<Input
+									name="length"
+									placeholder="Length in cm"
+									value={formData.length}
+									onChange={(e) =>
+										setFormData({ ...formData, length: e.target.value })
+									}
+									className="mt-1"
+									type="number"
+									step="0.01"
+								/>
+							</div>
 
-                                                        <div>
-                                                                <Label>Width (cm)</Label>
-                                                                <Input
-                                                                        name="width"
-                                                                        placeholder="Width in cm"
-                                                                        value={formData.width}
-                                                                        onChange={(e) =>
-                                                                                setFormData({ ...formData, width: e.target.value })
-                                                                        }
-                                                                        className="mt-1"
-                                                                        type="number"
-                                                                        step="0.01"
-                                                                />
-                                                        </div>
+							<div>
+								<Label>Width (cm)</Label>
+								<Input
+									name="width"
+									placeholder="Width in cm"
+									value={formData.width}
+									onChange={(e) =>
+										setFormData({ ...formData, width: e.target.value })
+									}
+									className="mt-1"
+									type="number"
+									step="0.01"
+								/>
+							</div>
 
-                                                        <div>
-                                                                <Label>Height (cm)</Label>
-                                                                <Input
-                                                                        name="height"
-                                                                        placeholder="Height in cm"
-                                                                        value={formData.height}
-                                                                        onChange={(e) =>
-                                                                                setFormData({ ...formData, height: e.target.value })
-                                                                        }
-                                                                        className="mt-1"
-                                                                        type="number"
-                                                                        step="0.01"
-                                                                />
-                                                        </div>
+							<div>
+								<Label>Height (cm)</Label>
+								<Input
+									name="height"
+									placeholder="Height in cm"
+									value={formData.height}
+									onChange={(e) =>
+										setFormData({ ...formData, height: e.target.value })
+									}
+									className="mt-1"
+									type="number"
+									step="0.01"
+								/>
+							</div>
 
-                                                        <div>
-                                                                <Label>Weight (kg)</Label>
-                                                                <Input
-                                                                        name="weight"
-                                                                        placeholder="Weight in kg"
-                                                                        value={formData.weight}
-                                                                        onChange={(e) =>
-                                                                                setFormData({ ...formData, weight: e.target.value })
-                                                                        }
-                                                                        className="mt-1"
-                                                                        type="number"
-                                                                        step="0.01"
-                                                                />
-                                                        </div>
+							<div>
+								<Label>Weight (kg)</Label>
+								<Input
+									name="weight"
+									placeholder="Weight in kg"
+									value={formData.weight}
+									onChange={(e) =>
+										setFormData({ ...formData, weight: e.target.value })
+									}
+									className="mt-1"
+									type="number"
+									step="0.01"
+								/>
+							</div>
 
-                                                                <div>
-                                                                        <Label>Colour</Label>
-                                                                        <Input
-                                                                                name="colour"
-                                                                                placeholder="Colour"
-                                                                                value={formData.colour}
-                                                                                onChange={(e) =>
-                                                                                        setFormData({ ...formData, colour: e.target.value })
-                                                                                }
-                                                                                className="mt-1"
-                                                                        />
-                                                                </div>
+							<div>
+								<Label>Colour</Label>
+								<Input
+									name="colour"
+									placeholder="Colour"
+									value={formData.colour}
+									onChange={(e) =>
+										setFormData({ ...formData, colour: e.target.value })
+									}
+									className="mt-1"
+								/>
+							</div>
 
-                                                                <div>
-                                                                        <Label>Material</Label>
-                                                                        <Input
-                                                                                name="material"
-                                                                                placeholder="Material"
-                                                                                value={formData.material}
-                                                                                onChange={(e) =>
-                                                                                        setFormData({ ...formData, material: e.target.value })
-                                                                                }
-                                                                                className="mt-1"
-                                                                        />
-                                                                </div>
+							<div>
+								<Label>Material</Label>
+								<Input
+									name="material"
+									placeholder="Material"
+									value={formData.material}
+									onChange={(e) =>
+										setFormData({ ...formData, material: e.target.value })
+									}
+									className="mt-1"
+								/>
+							</div>
 
-                                                                <div>
-                                                                        <Label>Size</Label>
-                                                                        <Input
-                                                                                name="size"
-                                                                                placeholder="Size"
-                                                                                value={formData.size}
-                                                                                onChange={(e) =>
-                                                                                        setFormData({ ...formData, size: e.target.value })
-                                                                                }
-                                                                                className="mt-1"
-                                                                        />
-                                                                </div>
+							<div>
+								<Label>Size</Label>
+								<Input
+									name="size"
+									placeholder="Size"
+									value={formData.size}
+									onChange={(e) =>
+										setFormData({ ...formData, size: e.target.value })
+									}
+									className="mt-1"
+								/>
+							</div>
 						</div>
 
 						{/* Features Section */}
@@ -843,31 +846,31 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 									Add Feature
 								</Button>
 							</div>
-                                                        <div className="space-y-3">
-                                                                {features.map((feature, index) => (
-                                                                        <div key={index} className="flex gap-3 items-start">
-                                                                                <Textarea
-                                                                                        name={`feature-${index}`}
-                                                                                        placeholder="Feature description"
-                                                                                        value={feature}
-                                                                                        onChange={(e) => updateFeature(index, e.target.value)}
-                                                                                        className="flex-1"
-                                                                                        rows={2}
-                                                                                />
-                                                                                {features.length > 1 && (
-                                                                                        <Button
-                                                                                                type="button"
-                                                                                                variant="outline"
-                                                                                                size="icon"
-                                                                                                onClick={() => removeFeature(index)}
-                                                                                        >
-                                                                                                <X className="w-4 h-4" />
-                                                                                        </Button>
-                                                                                )}
-                                                                        </div>
-                                                                ))}
-                                                        </div>
-                                                </div>
+							<div className="space-y-3">
+								{features.map((feature, index) => (
+									<div key={index} className="flex gap-3 items-start">
+										<Textarea
+											name={`feature-${index}`}
+											placeholder="Feature description"
+											value={feature}
+											onChange={(e) => updateFeature(index, e.target.value)}
+											className="flex-1"
+											rows={2}
+										/>
+										{features.length > 1 && (
+											<Button
+												type="button"
+												variant="outline"
+												size="icon"
+												onClick={() => removeFeature(index)}
+											>
+												<X className="w-4 h-4" />
+											</Button>
+										)}
+									</div>
+								))}
+							</div>
+						</div>
 
 						{/* Published Toggle */}
 						<div className="flex items-center justify-between">

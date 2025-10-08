@@ -3,31 +3,32 @@ import { dbConnect } from "@/lib/dbConnect.js";
 import { sendOrderCancellationEmail } from "@/lib/orders/email.js";
 import Order from "@/model/Order.js";
 import SubOrder from "@/model/SubOrder.js";
+import Promocode from "@/model/Promocode";
 import { companyInfo } from "@/constants/companyInfo.js";
 
 export async function GET(request, { params }) {
-        try {
-                await dbConnect();
+	try {
+		await dbConnect();
 
-                const { id } = await params;
+		const { id } = await params;
 
-                if (!id) {
-                        return NextResponse.json(
-                                { success: false, message: "Order id is required" },
-                                { status: 400 }
-                        );
-                }
+		if (!id) {
+			return NextResponse.json(
+				{ success: false, message: "Order id is required" },
+				{ status: 400 }
+			);
+		}
 
-                const order = await Order.findById(id)
-                        .populate("userId", "firstName lastName email mobile")
-                        .populate({
-                                path: "subOrders",
-                                populate: {
-                                        path: "products.productId",
-                                        select: "name title images price",
-                                },
-                        })
-                        .populate("couponApplied.couponId", "code discountType discountValue");
+		const order = await Order.findById(id)
+			.populate("userId", "firstName lastName email mobile")
+			.populate({
+				path: "subOrders",
+				populate: {
+					path: "products.productId",
+					select: "name title images price",
+				},
+			})
+			.populate("couponApplied.couponId", "code discountType discountValue");
 
 		if (!order) {
 			return NextResponse.json(
@@ -50,102 +51,104 @@ export async function GET(request, { params }) {
 }
 
 export async function PUT(request, { params }) {
-        try {
-                await dbConnect();
+	try {
+		await dbConnect();
 
-                const updateData = await request.json();
+		const updateData = await request.json();
 
-                const { id } = await params;
+		const { id } = await params;
 
-                if (!id) {
-                        return NextResponse.json(
-                                { success: false, message: "Order id is required" },
-                                { status: 400 }
-                        );
-                }
+		if (!id) {
+			return NextResponse.json(
+				{ success: false, message: "Order id is required" },
+				{ status: 400 }
+			);
+		}
 
-                const existingOrder = await Order.findById(id)
-                        .populate("userId", "firstName lastName email")
-                        .populate({
-                                path: "subOrders",
-                                populate: [
-                                        {
-                                                path: "products.productId",
-                                                select: "name title images price",
-                                        },
-                                        {
-                                                path: "sellerId",
-                                                select: "name businessName",
-                                        },
-                                ],
-                        });
+		const existingOrder = await Order.findById(id)
+			.populate("userId", "firstName lastName email")
+			.populate({
+				path: "subOrders",
+				populate: [
+					{
+						path: "products.productId",
+						select: "name title images price",
+					},
+					{
+						path: "sellerId",
+						select: "name businessName",
+					},
+				],
+			});
 
-                if (!existingOrder) {
-                        return NextResponse.json(
-                                { success: false, message: "Order not found" },
-                                { status: 404 }
-                        );
-                }
+		if (!existingOrder) {
+			return NextResponse.json(
+				{ success: false, message: "Order not found" },
+				{ status: 404 }
+			);
+		}
 
-                const shouldCancelOrder = updateData.status === "cancelled";
+		const shouldCancelOrder = updateData.status === "cancelled";
 
-                if (shouldCancelOrder) {
-                        await SubOrder.updateMany(
-                                { orderId: id, status: { $ne: "cancelled" } },
-                                { status: "cancelled" }
-                        );
-                }
+		if (shouldCancelOrder) {
+			await SubOrder.updateMany(
+				{ orderId: id, status: { $ne: "cancelled" } },
+				{ status: "cancelled" }
+			);
+		}
 
-                const order = await Order.findByIdAndUpdate(id, updateData, {
-                        new: true,
-                        runValidators: true,
-                })
-                        .populate("userId", "firstName lastName email")
-                        .populate({
-                                path: "subOrders",
-                                populate: [
-                                        {
-                                                path: "products.productId",
-                                                select: "name title images price",
-                                        },
-                                        {
-                                                path: "sellerId",
-                                                select: "name businessName",
-                                        },
-                                ],
-                        });
+		const order = await Order.findByIdAndUpdate(id, updateData, {
+			new: true,
+			runValidators: true,
+		})
+			.populate("userId", "firstName lastName email")
+			.populate({
+				path: "subOrders",
+				populate: [
+					{
+						path: "products.productId",
+						select: "name title images price",
+					},
+					{
+						path: "sellerId",
+						select: "name businessName",
+					},
+				],
+			});
 
-                if (!order) {
-                        return NextResponse.json(
-                                { success: false, message: "Order not found" },
-                                { status: 404 }
-                        );
-                }
+		if (!order) {
+			return NextResponse.json(
+				{ success: false, message: "Order not found" },
+				{ status: 404 }
+			);
+		}
 
-                if (shouldCancelOrder && existingOrder.status !== "cancelled") {
-                        const adminCc = companyInfo.adminEmail ? [companyInfo.adminEmail] : undefined;
+		if (shouldCancelOrder && existingOrder.status !== "cancelled") {
+			const adminCc = companyInfo.adminEmail
+				? [companyInfo.adminEmail]
+				: undefined;
 
-                        try {
-                                await sendOrderCancellationEmail({
-                                        order,
-                                        to: order.customerEmail || order.userId?.email,
-                                        cc: adminCc,
-                                        cancelledBy: "admin",
-                                        reason:
-                                                updateData?.adminNotes ||
-                                                updateData?.cancellationReason ||
-                                                undefined,
-                                });
-                        } catch (emailError) {
-                                console.error("Error sending cancellation email:", emailError);
-                        }
-                }
+			try {
+				await sendOrderCancellationEmail({
+					order,
+					to: order.customerEmail || order.userId?.email,
+					cc: adminCc,
+					cancelledBy: "admin",
+					reason:
+						updateData?.adminNotes ||
+						updateData?.cancellationReason ||
+						undefined,
+				});
+			} catch (emailError) {
+				console.error("Error sending cancellation email:", emailError);
+			}
+		}
 
-                return NextResponse.json({
-                        success: true,
-                        message: "Order updated successfully",
-                        order,
-                });
+		return NextResponse.json({
+			success: true,
+			message: "Order updated successfully",
+			order,
+		});
 	} catch (error) {
 		console.error("Error updating order:", error);
 		return NextResponse.json(
@@ -156,19 +159,19 @@ export async function PUT(request, { params }) {
 }
 
 export async function DELETE(request, { params }) {
-        try {
-                await dbConnect();
+	try {
+		await dbConnect();
 
-                const { id } = await params;
+		const { id } = await params;
 
-                if (!id) {
-                        return NextResponse.json(
-                                { success: false, message: "Order id is required" },
-                                { status: 400 }
-                        );
-                }
+		if (!id) {
+			return NextResponse.json(
+				{ success: false, message: "Order id is required" },
+				{ status: 400 }
+			);
+		}
 
-                const order = await Order.findByIdAndDelete(id);
+		const order = await Order.findByIdAndDelete(id);
 
 		if (!order) {
 			return NextResponse.json(
