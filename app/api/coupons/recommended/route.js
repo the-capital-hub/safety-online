@@ -10,9 +10,10 @@ export async function GET() {
                 const coupons = await Promocode.find({
                         published: true,
                         recommended: true,
-                        status: "Active",
+                        // Determine active coupons dynamically to avoid stale status values
                         startDate: { $lte: now },
                         endDate: { $gte: now },
+                        status: { $ne: "Inactive" },
                 })
                         .sort({ endDate: 1 })
                         .limit(10)
