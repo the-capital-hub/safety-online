@@ -94,6 +94,8 @@ export default function AdminCustomersPage() {
 	};
 
 	const handleStatusFilter = (status) => {
+		if (status === "all") status = "";
+
 		setFilters({ status });
 		fetchCustomers({ ...filters, status, page: 1 });
 	};
@@ -249,7 +251,8 @@ export default function AdminCustomersPage() {
 							<div className="flex gap-4 items-center">
 								<div className="relative flex-1 max-w-md">
 									<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-									<Input name="searchQuery"
+									<Input
+										name="searchQuery"
 										placeholder="Search customers..."
 										value={filters.search}
 										onChange={(e) => handleSearch(e.target.value)}
@@ -262,7 +265,7 @@ export default function AdminCustomersPage() {
 									onValueChange={handleStatusFilter}
 								>
 									<SelectTrigger className="w-40">
-										<SelectValue placeholder="Status" />
+										<SelectValue placeholder="All Status" />
 									</SelectTrigger>
 									<SelectContent>
 										<SelectItem value="all">All Status</SelectItem>

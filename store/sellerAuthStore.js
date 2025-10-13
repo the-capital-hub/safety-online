@@ -50,34 +50,34 @@ export const useSellerAuthStore = create(
 				},
 
 				// Register seller
-                                register: async (sellerData) => {
-                                        set({ loading: true, error: null });
-                                        try {
-                                                const response = await fetch("/api/seller/auth/register", {
-                                                        method: "POST",
-                                                        headers: {
-                                                                "Content-Type": "application/json",
-                                                        },
-                                                        body: JSON.stringify(sellerData),
-                                                });
+				register: async (sellerData) => {
+					set({ loading: true, error: null });
+					try {
+						const response = await fetch("/api/seller/auth/register", {
+							method: "POST",
+							headers: {
+								"Content-Type": "application/json",
+							},
+							body: JSON.stringify(sellerData),
+						});
 
-                                                const data = await response.json();
+						const data = await response.json();
 
-                                                if (data.success) {
-                                                        set({ loading: false });
-                                                        toast.success("Registration successful! Please login.");
-                                                        return { success: true };
-                                                } else {
-                                                        set({ error: data.message, loading: false });
-                                                        toast.error(data.message);
-                                                        return { success: false, message: data.message };
-                                                }
-                                        } catch (error) {
-                                                set({ error: "Registration failed", loading: false });
-                                                toast.error("Registration failed");
-                                                return { success: false, message: "Registration failed" };
-                                        }
-                                },
+						if (data.success) {
+							set({ loading: false });
+							toast.success("Registration successful! Please login.");
+							return { success: true };
+						} else {
+							set({ error: data.message, loading: false });
+							toast.error(data.message);
+							return { success: false, message: data.message };
+						}
+					} catch (error) {
+						set({ error: "Registration failed", loading: false });
+						toast.error("Registration failed");
+						return { success: false, message: "Registration failed" };
+					}
+				},
 
 				// Update profile
 				updateProfile: async (profileData) => {
