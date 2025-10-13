@@ -1,5 +1,6 @@
 import { dbConnect } from "@/lib/dbConnect.js";
 import Promocode from "@/model/Promocode.js";
+import { getDateRangeStatus, normalizeDateRange } from "@/lib/utils/date.js";
 
 const normalizeBoolean = (value, defaultValue = false) => {
         if (value === undefined || value === null) {
@@ -79,12 +80,11 @@ export async function GET(request) {
                 for (const coupon of coupons) {
                         const update = {};
 
-                        let newStatus = "Active";
-                        if (new Date(coupon.endDate) < now) {
-                                newStatus = "Expired";
-                        } else if (new Date(coupon.startDate) > now) {
-                                newStatus = "Scheduled";
-                        }
+                        const newStatus = getDateRangeStatus(
+                                coupon.startDate,
+                                coupon.endDate,
+                                now
+                        );
 
                         if (coupon.status !== newStatus) {
                                 update.status = newStatus;
@@ -146,36 +146,33 @@ export async function POST(request) {
                         recommended,
                 } = await request.json();
 
-		if (!name || !code || !discount || !startDate || !endDate) {
-			return Response.json(
-				{ success: false, message: "All fields are required" },
-				{ status: 400 }
-			);
-		}
+                if (!name || !code || !discount || !startDate || !endDate) {
+                        return Response.json(
+                                { success: false, message: "All fields are required" },
+                                { status: 400 }
+                        );
+                }
 
-		// Validate dates
-		if (new Date(startDate) >= new Date(endDate)) {
-			return Response.json(
-				{ success: false, message: "End date must be after start date" },
-				{ status: 400 }
-			);
-		}
+                // Validate dates
+                const { start, end } = normalizeDateRange(startDate, endDate);
 
-		// Determine status based on dates
-		const now = new Date();
-		let status = "Active";
-		if (new Date(endDate) < now) {
-			status = "Expired";
-		} else if (new Date(startDate) > now) {
-			status = "Scheduled";
-		}
+                if (start >= end) {
+                        return Response.json(
+                                { success: false, message: "End date must be after start date" },
+                                { status: 400 }
+                        );
+                }
+
+                // Determine status based on dates
+                const now = new Date();
+                const status = getDateRangeStatus(start, end, now);
 
                 const coupon = new Promocode({
                         name,
                         code: code.toUpperCase(),
                         discount: Number.parseFloat(discount),
-                        startDate: new Date(startDate),
-                        endDate: new Date(endDate),
+                        startDate: start,
+                        endDate: end,
                         published: normalizeBoolean(published, true),
                         recommended: normalizeBoolean(recommended, false),
                         status,
@@ -217,40 +214,37 @@ export async function PUT(request) {
 		}
 
 		// Validate dates if provided
-		if (updateData.startDate && updateData.endDate) {
-			if (new Date(updateData.startDate) >= new Date(updateData.endDate)) {
-				return Response.json(
-					{ success: false, message: "End date must be after start date" },
-					{ status: 400 }
-				);
-			}
-		}
-
-		// Update status based on dates
+                let existingCoupon = null;
                 if (updateData.startDate || updateData.endDate) {
-                        const coupon = await Promocode.findById(couponId);
-                        const startDate = updateData.startDate
-                                ? new Date(updateData.startDate)
-                                : coupon.startDate;
-                        const endDate = updateData.endDate
-                                ? new Date(updateData.endDate)
-                                : coupon.endDate;
-                        const now = new Date();
+                        existingCoupon = await Promocode.findById(couponId);
 
-                        let status = "Active";
-                        if (endDate < now) {
-                                status = "Expired";
-                        } else if (startDate > now) {
-                                status = "Scheduled";
+                        if (!existingCoupon) {
+                                return Response.json(
+                                        { success: false, message: "Coupon not found" },
+                                        { status: 404 }
+                                );
                         }
-                        updateData.status = status;
+
+                        const startInput = updateData.startDate ?? existingCoupon.startDate;
+                        const endInput = updateData.endDate ?? existingCoupon.endDate;
+
+                        const { start, end } = normalizeDateRange(startInput, endInput);
+
+                        if (start >= end) {
+                                return Response.json(
+                                        { success: false, message: "End date must be after start date" },
+                                        { status: 400 }
+                                );
+                        }
 
                         if (updateData.startDate) {
-                                updateData.startDate = startDate;
+                                updateData.startDate = start;
                         }
                         if (updateData.endDate) {
-                                updateData.endDate = endDate;
+                                updateData.endDate = end;
                         }
+
+                        updateData.status = getDateRangeStatus(start, end);
                 }
 
                 if (updateData.code) {
