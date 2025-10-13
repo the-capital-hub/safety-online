@@ -49,6 +49,7 @@ import {
         RotateCcw,
         BarChart3,
         BellRing,
+        FileText,
 } from "lucide-react";
 import Logo from "@/public/SafetyLogo.png";
 import { useIsAuthenticated } from "@/store/adminAuthStore.js";
@@ -112,6 +113,17 @@ const menuItems = [
                                 title: "Promotion Banners",
                                 href: "/admin/store/promotion-banners",
                                 icon: Palette,
+                        },
+                ],
+        },
+        {
+                title: "Content",
+                icon: FileText,
+                items: [
+                        {
+                                title: "Blog Posts",
+                                href: "/admin/content/blog",
+                                icon: FileText,
                         },
                 ],
         },
