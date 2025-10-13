@@ -23,12 +23,18 @@ import { ensureSlug } from "@/lib/slugify.js";
 import { Badge } from "@/components/ui/badge";
 import { CalendarDays, Rocket } from "lucide-react";
 
-const defaultFormState = {
+const normalizeCoverImage = (coverImage = {}) => ({
+        url: typeof coverImage?.url === "string" ? coverImage.url : "",
+        alt: typeof coverImage?.alt === "string" ? coverImage.alt : "",
+        publicId: typeof coverImage?.publicId === "string" ? coverImage.publicId : "",
+});
+
+const createDefaultFormState = () => ({
         title: "",
         slug: "",
         excerpt: "",
         content: "",
-        coverImage: { url: "", alt: "" },
+        coverImage: normalizeCoverImage(),
         author: {
                 name: "",
                 avatar: "",
@@ -40,7 +46,7 @@ const defaultFormState = {
         metaTitle: "",
         metaDescription: "",
         metaKeywords: "",
-};
+});
 
 const statusBadges = {
         published: {
@@ -62,7 +68,7 @@ export function BlogPostDialog({
         onSubmit,
         isSaving = false,
 }) {
-        const [formState, setFormState] = useState(defaultFormState);
+        const [formState, setFormState] = useState(createDefaultFormState);
 
         const metaKeywordsString = useMemo(() => {
                 if (typeof formState.metaKeywords === "string") {
@@ -78,7 +84,8 @@ export function BlogPostDialog({
                 if (open) {
                         setFormState((prev) => ({
                                 ...prev,
-                                ...(initialData || defaultFormState),
+                                ...(initialData || createDefaultFormState()),
+                                coverImage: normalizeCoverImage(initialData?.coverImage),
                                 categories: initialData?.categories?.map((category) => category._id) || [],
                                 tags: initialData?.tags || [],
                                 metaKeywords: Array.isArray(initialData?.metaKeywords)
@@ -86,7 +93,7 @@ export function BlogPostDialog({
                                         : initialData?.metaKeywords || "",
                         }));
                 } else {
-                        setFormState(defaultFormState);
+                        setFormState(createDefaultFormState());
                 }
         }, [open, initialData]);
 
@@ -99,6 +106,11 @@ export function BlogPostDialog({
 
                 const payload = {
                         ...formState,
+                        coverImage: {
+                                url: formState.coverImage?.url?.trim() || "",
+                                alt: formState.coverImage?.alt?.trim() || "",
+                                publicId: formState.coverImage?.publicId?.trim() || "",
+                        },
                         slug: ensureSlug(formState.slug || formState.title),
                         categories: formState.categories || [],
                         tags: formState.tags || [],
