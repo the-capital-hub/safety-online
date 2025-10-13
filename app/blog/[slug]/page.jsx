@@ -1,9 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarDays, Clock, Share2, ArrowLeft } from "lucide-react";
+import { CalendarDays, Clock, ArrowLeft } from "lucide-react";
 import { getBlogPostBySlug, getRelatedBlogPosts } from "@/lib/services/blog.js";
 import { BlogCard } from "@/components/Blog/BlogCard.jsx";
+import { BlogShareButton } from "@/components/Blog/BlogShareButton.jsx";
 
 const formatDate = (value) =>
         value
@@ -104,25 +105,7 @@ export default async function BlogPostPage({ params }) {
                                                                 </span>
                                                         </span>
                                                 )}
-                                                <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                                if (typeof window === "undefined") return;
-                                                                const shareData = {
-                                                                        title: post.title,
-                                                                        url: window.location.href,
-                                                                };
-                                                                if (navigator.share) {
-                                                                        navigator.share(shareData).catch(() => {});
-                                                                } else if (navigator.clipboard?.writeText) {
-                                                                        navigator.clipboard.writeText(shareData.url);
-                                                                        window.alert("Link copied to clipboard");
-                                                                }
-                                                        }}
-                                                        className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-1.5 text-gray-600 transition hover:border-blue-300 hover:text-blue-700"
-                                                >
-                                                        <Share2 className="h-4 w-4" /> Share
-                                                </button>
+                                                <BlogShareButton title={post.title} />
                                         </div>
                                 </header>
 
