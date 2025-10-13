@@ -34,6 +34,7 @@ export function CoverImageUploader({ value, onChange }) {
                         onChange?.({
                                 url: data.url,
                                 alt: value?.alt || "",
+                                publicId: data.publicId || "",
                         });
 
                         toast.success("Cover image uploaded");
@@ -85,10 +86,11 @@ export function CoverImageUploader({ value, onChange }) {
                                                         placeholder="Or paste an image URL"
                                                         value={value?.url || ""}
                                                         onChange={(event) =>
-                                                                onChange?.({
-                                                                        url: event.target.value,
-                                                                        alt: value?.alt || "",
-                                                                })
+                                                        onChange?.({
+                                                                url: event.target.value,
+                                                                alt: value?.alt || "",
+                                                                publicId: "",
+                                                        })
                                                         }
                                                 />
                                         </div>
@@ -122,7 +124,13 @@ export function CoverImageUploader({ value, onChange }) {
                                                         variant="secondary"
                                                         size="icon"
                                                         className="absolute right-2 top-2 h-8 w-8 rounded-full bg-white/80 text-gray-700 hover:bg-white"
-                                                        onClick={() => onChange?.({ url: "", alt: value?.alt || "" })}
+                                                        onClick={() =>
+                                                                onChange?.({
+                                                                        url: "",
+                                                                        alt: value?.alt || "",
+                                                                        publicId: "",
+                                                                })
+                                                        }
                                                 >
                                                         <Trash className="h-4 w-4" />
                                                 </Button>
@@ -142,6 +150,7 @@ export function CoverImageUploader({ value, onChange }) {
                                                 onChange?.({
                                                         url: value?.url || "",
                                                         alt: event.target.value,
+                                                        publicId: value?.publicId || "",
                                                 })
                                         }
                                 />
