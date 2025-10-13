@@ -8,6 +8,7 @@ const ALLOWED_FOLDERS = {
         safety_user_pic: "safety_user_pic",
         default: "safety_product_reviews",
         brand_promotions: "safety_brand_promotions",
+        blog_covers: "safety_blog_covers",
 };
 
 export async function POST(req) {
