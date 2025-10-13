@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { dbConnect } from "@/lib/dbConnect.js";
 import Promocode from "@/model/Promocode";
+import { getEndOfDay, getStartOfDay } from "@/lib/utils/date.js";
 
 export async function POST(req) {
 	try {
@@ -37,13 +38,16 @@ export async function POST(req) {
 		}
 
 		// Check if coupon is still valid (date range)
-		const now = new Date();
-		if (now < coupon.startDate || now > coupon.endDate) {
-			return NextResponse.json(
-				{ success: false, message: "Coupon has expired" },
-				{ status: 400 }
-			);
-		}
+                const now = new Date();
+                const couponStart = getStartOfDay(coupon.startDate);
+                const couponEnd = getEndOfDay(coupon.endDate);
+
+                if (now < couponStart || now > couponEnd) {
+                        return NextResponse.json(
+                                { success: false, message: "Coupon has expired" },
+                                { status: 400 }
+                        );
+                }
 
 		// Calculate discount amount
 		const discountAmount = Math.round((orderAmount * coupon.discount) / 100);
