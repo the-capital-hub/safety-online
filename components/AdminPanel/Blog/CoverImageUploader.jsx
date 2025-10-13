@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { toast } from "react-hot-toast";
 
 export function CoverImageUploader({ value, onChange }) {
         const [isUploading, setIsUploading] = useState(false);
+        const fileInputRef = useRef(null);
 
         const uploadImage = async (file) => {
                 if (!file) return;
@@ -34,6 +35,7 @@ export function CoverImageUploader({ value, onChange }) {
                         onChange?.({
                                 url: data.url,
                                 alt: value?.alt || "",
+                                publicId: data.publicId || "",
                         });
 
                         toast.success("Cover image uploaded");
@@ -50,6 +52,11 @@ export function CoverImageUploader({ value, onChange }) {
                 if (file) {
                         uploadImage(file);
                 }
+                event.target.value = "";
+        };
+
+        const openFilePicker = () => {
+                fileInputRef.current?.click();
         };
 
         return (
@@ -67,17 +74,19 @@ export function CoverImageUploader({ value, onChange }) {
                         <div className="flex flex-col gap-4 sm:flex-row">
                                 <div className="flex-1 space-y-2">
                                         <div className="flex items-center gap-3">
-                                                <label
-                                                        htmlFor="blog-cover-upload"
-                                                        className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-dashed border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:border-blue-400 hover:text-blue-600"
+                                                <button
+                                                        type="button"
+                                                        onClick={openFilePicker}
+                                                        className="inline-flex items-center gap-2 rounded-md border border-dashed border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:border-blue-400 hover:text-blue-600"
                                                 >
                                                         <Upload className="h-4 w-4" /> Upload image
-                                                </label>
+                                                </button>
                                                 <Input
                                                         id="blog-cover-upload"
                                                         type="file"
                                                         accept="image/*"
                                                         className="hidden"
+                                                        ref={fileInputRef}
                                                         onChange={handleFileChange}
                                                 />
 
@@ -85,10 +94,11 @@ export function CoverImageUploader({ value, onChange }) {
                                                         placeholder="Or paste an image URL"
                                                         value={value?.url || ""}
                                                         onChange={(event) =>
-                                                                onChange?.({
-                                                                        url: event.target.value,
-                                                                        alt: value?.alt || "",
-                                                                })
+                                                        onChange?.({
+                                                                url: event.target.value,
+                                                                alt: value?.alt || "",
+                                                                publicId: "",
+                                                        })
                                                         }
                                                 />
                                         </div>
@@ -122,7 +132,13 @@ export function CoverImageUploader({ value, onChange }) {
                                                         variant="secondary"
                                                         size="icon"
                                                         className="absolute right-2 top-2 h-8 w-8 rounded-full bg-white/80 text-gray-700 hover:bg-white"
-                                                        onClick={() => onChange?.({ url: "", alt: value?.alt || "" })}
+                                                        onClick={() =>
+                                                                onChange?.({
+                                                                        url: "",
+                                                                        alt: value?.alt || "",
+                                                                        publicId: "",
+                                                                })
+                                                        }
                                                 >
                                                         <Trash className="h-4 w-4" />
                                                 </Button>
@@ -142,6 +158,7 @@ export function CoverImageUploader({ value, onChange }) {
                                                 onChange?.({
                                                         url: value?.url || "",
                                                         alt: event.target.value,
+                                                        publicId: value?.publicId || "",
                                                 })
                                         }
                                 />

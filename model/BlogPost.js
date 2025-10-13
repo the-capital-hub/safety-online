@@ -12,6 +12,11 @@ const CoverImageSchema = new Schema(
                         default: "",
                         trim: true,
                 },
+                publicId: {
+                        type: String,
+                        default: "",
+                        trim: true,
+                },
                 alt: {
                         type: String,
                         default: COVER_PLACEHOLDER_ALT,
