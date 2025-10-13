@@ -66,7 +66,7 @@ export default function AdminBlogPage() {
         const [dialogMode, setDialogMode] = useState("create");
         const [editingPost, setEditingPost] = useState(null);
         const [searchTerm, setSearchTerm] = useState(filters.search);
-        const [selectedTag, setSelectedTag] = useState(filters.tag || "");
+        const [selectedTag, setSelectedTag] = useState(filters.tag || "all");
 
         useEffect(() => {
                 if (!isAuthenticated) {
@@ -82,7 +82,7 @@ export default function AdminBlogPage() {
 
         useEffect(() => {
                 setSearchTerm(filters.search);
-                setSelectedTag(filters.tag || "");
+                setSelectedTag(filters.tag || "all");
         }, [filters.search, filters.tag]);
 
         const formatDate = (date) =>
@@ -141,7 +141,10 @@ export default function AdminBlogPage() {
         };
 
         const applyFilters = () => {
-                setFilters({ search: searchTerm.trim(), tag: selectedTag });
+                setFilters({
+                        search: searchTerm.trim(),
+                        tag: selectedTag === "all" ? "" : selectedTag,
+                });
                 setPage(1);
                 fetchPosts();
         };
@@ -149,7 +152,7 @@ export default function AdminBlogPage() {
         const resetAllFilters = () => {
                 resetFilters();
                 setSearchTerm("");
-                setSelectedTag("");
+                setSelectedTag("all");
                 setPage(1);
                 fetchPosts();
         };
@@ -161,14 +164,14 @@ export default function AdminBlogPage() {
         };
 
         const handleCategoryFilter = (value) => {
-                setFilters({ category: value });
+                setFilters({ category: value === "all" ? "" : value });
                 setPage(1);
                 fetchPosts();
         };
 
         const handleTagFilter = (value) => {
                 setSelectedTag(value);
-                setFilters({ tag: value });
+                setFilters({ tag: value === "all" ? "" : value });
                 setPage(1);
                 fetchPosts();
         };
@@ -255,33 +258,33 @@ export default function AdminBlogPage() {
                                                                                 ))}
                                                                         </SelectContent>
                                                                 </Select>
-                                                                <Select
-                                                                        value={filters.category || ""}
-                                                                        onValueChange={handleCategoryFilter}
-                                                                >
+                        <Select
+                                value={filters.category || "all"}
+                                onValueChange={handleCategoryFilter}
+                        >
                                                                         <SelectTrigger>
                                                                                 <SelectValue placeholder="Category" />
                                                                         </SelectTrigger>
-                                                                        <SelectContent>
-                                                                                <SelectItem value="">All categories</SelectItem>
-                                                                                {categories.map((category) => (
-                                                                                        <SelectItem key={category._id} value={category._id}>
-                                                                                                {category.name}
-                                                                                        </SelectItem>
-                                                                                ))}
-                                                                        </SelectContent>
-                                                                </Select>
-                                                                <Select value={selectedTag} onValueChange={handleTagFilter}>
-                                                                        <SelectTrigger>
-                                                                                <SelectValue placeholder="All tags" />
-                                                                        </SelectTrigger>
-                                                                        <SelectContent>
-                                                                                <SelectItem value="">All tags</SelectItem>
-                                                                                {tags.map((tag) => (
-                                                                                        <SelectItem key={tag} value={tag}>
-                                                                                                {tag}
-                                                                                        </SelectItem>
-                                                                                ))}
+                                <SelectContent>
+                                        <SelectItem value="all">All categories</SelectItem>
+                                        {categories.map((category) => (
+                                                <SelectItem key={category._id} value={category._id}>
+                                                        {category.name}
+                                                </SelectItem>
+                                        ))}
+                                </SelectContent>
+                        </Select>
+                        <Select value={selectedTag} onValueChange={handleTagFilter}>
+                                <SelectTrigger>
+                                        <SelectValue placeholder="All tags" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                        <SelectItem value="all">All tags</SelectItem>
+                                        {tags.map((tag) => (
+                                                <SelectItem key={tag} value={tag}>
+                                                        {tag}
+                                                </SelectItem>
+                                        ))}
                                                                         </SelectContent>
                                                                 </Select>
                                                         </div>
