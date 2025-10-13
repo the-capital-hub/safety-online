@@ -105,8 +105,12 @@ export async function PUT(req) {
                                 : [];
 
                         companyDoc.companyAddress = [gstPrimaryAddress, ...remainingAddresses];
+                        companyDoc.primaryPickupAddress = gstPrimaryAddress;
                 } else if (typeof updateData.companyAddress !== "undefined") {
                         companyDoc.companyAddress = baseAddresses;
+                        companyDoc.primaryPickupAddress = Array.isArray(baseAddresses)
+                                ? baseAddresses[0] || companyDoc.primaryPickupAddress
+                                : companyDoc.primaryPickupAddress;
                 }
 
                 await companyDoc.save();

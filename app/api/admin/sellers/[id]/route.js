@@ -5,7 +5,7 @@ import { dbConnect } from "@/lib/dbConnect.js";
 import { fetchGstDetails, extractPrimaryGstAddress } from "@/lib/services/gstVerification.js";
 
 const COMPANY_PROJECTION =
-        "companyName companyEmail phone gstinNumber brandName brandDescription companyLogo companyAddress";
+        "companyName companyEmail phone gstinNumber brandName brandDescription companyLogo companyAddress primaryPickupAddress";
 
 // GET - Fetch single seller
 export async function GET(request, { params }) {
@@ -144,6 +144,7 @@ export async function PUT(request, { params }) {
                                                 companyAddress: gstPrimaryAddress
                                                         ? [gstPrimaryAddress]
                                                         : [],
+                                                primaryPickupAddress: gstPrimaryAddress || null,
                                         });
                                 }
 
@@ -179,6 +180,11 @@ export async function PUT(request, { params }) {
                                                   })
                                                 : [];
                                         companyDoc.companyAddress = [gstPrimaryAddress, ...remainingAddresses];
+                                        companyDoc.primaryPickupAddress = gstPrimaryAddress;
+                                }
+                                if (!gstPrimaryAddress && Array.isArray(companyDoc.companyAddress)) {
+                                        companyDoc.primaryPickupAddress =
+                                                companyDoc.companyAddress[0] || companyDoc.primaryPickupAddress;
                                 }
 
                                 await companyDoc.save();
