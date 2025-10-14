@@ -109,6 +109,7 @@ export async function POST(request) {
                                 gstinNumber: normalizedGstin,
                                 companyLogo: companyDetails.companyLogo,
                                 companyAddress: mergedAddresses,
+                                primaryPickupAddress: gstPrimaryAddress || mergedAddresses[0] || null,
                         };
 
                         const companyDoc = await Company.create(companyPayload);

@@ -1,18 +1,21 @@
 import { NextResponse } from "next/server";
 import { dbConnect } from "@/lib/dbConnect.js";
 import Promocode from "@/model/Promocode.js";
+import { getStartOfDay } from "@/lib/utils/date.js";
 
 export async function GET() {
         try {
                 await dbConnect();
 
                 const now = new Date();
+                const todayStart = getStartOfDay(now);
                 const coupons = await Promocode.find({
                         published: true,
                         recommended: true,
-                        status: "Active",
+                        // Determine active coupons dynamically to avoid stale status values
                         startDate: { $lte: now },
-                        endDate: { $gte: now },
+                        endDate: { $gte: todayStart },
+                        status: { $ne: "Inactive" },
                 })
                         .sort({ endDate: 1 })
                         .limit(10)

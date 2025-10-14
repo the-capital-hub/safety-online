@@ -5,5 +5,6 @@ import Logo3 from "./Logo3.png";
 import Logo4 from "./Logo4.png";
 import Logo5 from "./Logo5.png";
 import Logo6 from "./Logo6.png";
+import heroimage from "./heroimage.png";
 
-export { VideoBanner, Logo1, Logo2, Logo3, Logo4, Logo5, Logo6 };
+export { VideoBanner, Logo1, Logo2, Logo3, Logo4, Logo5, Logo6, heroimage };

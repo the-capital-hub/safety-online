@@ -54,12 +54,21 @@ export default function Footer() {
 
 						<h3 className="text-lg mb-4">Find us on</h3>
 
-						<div className="flex space-x-4">
-							<Facebook className="h-6 w-6 hover:text-blue-400 cursor-pointer transition-colors" />
-							<Instagram className="h-6 w-6 hover:text-pink-400 cursor-pointer transition-colors" />
-							<Linkedin className="h-6 w-6 hover:text-blue-600 cursor-pointer transition-colors" />
-						</div>
-					</div>
+                                                <div className="flex space-x-4">
+                                                        <Facebook className="h-6 w-6 hover:text-blue-400 cursor-pointer transition-colors" />
+                                                        <Instagram className="h-6 w-6 hover:text-pink-400 cursor-pointer transition-colors" />
+                                                        <Linkedin className="h-6 w-6 hover:text-blue-600 cursor-pointer transition-colors" />
+                                                </div>
+
+                                                <Link href="/blog" className="mt-6 inline-block">
+                                                        <Button
+                                                                variant="secondary"
+                                                                className="bg-white text-black hover:bg-white/90"
+                                                        >
+                                                                Visit our Blog
+                                                        </Button>
+                                                </Link>
+                                        </div>
 
 					{/* Support */}
 					<div>

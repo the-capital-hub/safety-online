@@ -22,7 +22,17 @@ export async function PUT(request) {
 		const decoded = jwt.verify(token, process.env.JWT_SECRET);
 		const userId = decoded.userId;
 
-		const formData = await request.formData();
+		// Parse FormData - this can only be done once per request
+		let formData;
+		try {
+			formData = await request.formData();
+		} catch (parseError) {
+			console.error("FormData parsing error:", parseError);
+			return NextResponse.json(
+				{ success: false, message: "Invalid form data" },
+				{ status: 400 }
+			);
+		}
 		const firstName = formData.get("firstName");
 		const lastName = formData.get("lastName");
 		const email = formData.get("email");

@@ -90,6 +90,7 @@ export async function POST(req) {
                         phone: parsed.data.phone,
                         companyLogo: parsed.data.companyLogo,
                         gstinNumber: normalizedGstin,
+                        primaryPickupAddress: gstPrimaryAddress || mergedAddresses[0] || null,
                 });
 
 		user.company = company._id;

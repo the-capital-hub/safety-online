@@ -2,109 +2,162 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import {
-	VideoBanner,
-	Logo1,
-	Logo2,
-	Logo3,
-	Logo4,
-	Logo5,
-	Logo6,
-} from "@/public/images/seller-panel/home/hero";
-import "./HeroSection.css";
+import { heroimage } from "@/public/images/seller-panel/home/hero";
+import { ArrowRight, ShieldCheck, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { Montserrat, Outfit } from "next/font/google";
+import { motion } from "framer-motion";
+
+const outfit = Outfit({
+  weight: ["500"],
+  subsets: ["latin"],
+  variable: "--font-outfit",
+});
+
+const mont = Montserrat({
+  weight: ["400"],
+  subsets: ["latin"],
+  variable: "--font-montserrat",
+});
 
 export default function HeroSection() {
-	const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
 
-	const logos = [Logo1, Logo2, Logo3, Logo4, Logo5, Logo6];
+  const stats = [
+    { label: "Active buyers across India", value: "58K+" },
+    { label: "Verified safety SKUs", value: "12.4K" },
+    { label: "Average seller rating", value: "4.8 / 5" },
+  ];
 
-	return (
-		<section className="relative py-10 bg-[#424242]">
-			<div className="absolute inset-0 bg-black/40 -z-10" />
-			<div className="w-full h-full bg-gradient absolute bottom-0 left-0 z-10" />
-			<div className="px-10 relative z-20">
-				{/* Trust Badge */}
-				<div className="text-center mb-8">
-					<div className="inline-flex items-center bg-neutral-800 rounded-full px-4 py-2 text-sm">
-						<span className="text-white">
-							Trusted by many sellers across India 🇮🇳
-						</span>
-					</div>
-				</div>
+  return (
+    <>
+      <section className="relative overflow-hidden bg-slate-950">
+        {/* Gradient background */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,189,46,0.15),_transparent_60%)]" />
+        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent" />
 
-				{/* Main Hero Content */}
-				<div className="text-center text-white mb-12">
-					<h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-						Sell Safety. Deliver Trust.
-						<br />
-						Expand Nationwide
-					</h1>
-					<p className="text-xl mb-8 max-w-3xl mx-auto">
-						Join India's most reliable B2B & B2C marketplace for road safety,
-						industrial protection, and emergency equipment. Showcase your
-						products. Gain verified buyers. Grow faster.
-					</p>
+        {/* Content Wrapper */}
+        <div className="relative mx-auto flex w-full max-w-6xl flex-col items-center justify-center gap-12 px-6 pt-16 pb-24 md:flex-row md:items-center md:justify-between">
+          {/* LEFT SIDE */}
+          <motion.div
+            className="flex-1 flex flex-col items-center md:items-start space-y-8 text-center md:text-left"
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+          >
+            {/* Badge */}
+            <motion.span
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-amber-300"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.1 }}
+              viewport={{ once: true }}
+            >
+              <Sparkles className="h-4 w-4" />
+              India’s trusted safety marketplace
+            </motion.span>
 
-					{/* CTA Buttons */}
-					<div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-						<button className="bg-amber-400 hover:bg-amber-500 text-black px-8 py-3 rounded-full font-medium text-lg transition-colors duration-200">
-							Register
-						</button>
-						<button className="bg-black hover:opacity-80 text-white border border-white/80 px-8 py-3 rounded-full font-medium text-lg transition-colors duration-200">
-							Explore Buyer Marketplace
-						</button>
-						<button className="hover:bg-neutral-800 hover:opacity-80 border border-white/80 px-8 py-3 rounded-full font-medium text-lg transition-colors duration-200">
-							Schedule Demo Call
-						</button>
-					</div>
-				</div>
+            {/* Heading */}
+            <motion.h1
+              className={`${outfit.className} text-4xl font-bold leading-40 text-white md:text-5xl lg:text-6xl`}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.9, delay: 0.2 }}
+              viewport={{ once: true }}
+            >
+              Sell safety products with confidence.
+              <span className="block text-amber-300">
+                Scale nationwide with SafeTrade.
+              </span>
+            </motion.h1>
 
-				{/* Video/Image Section */}
-				<div className="relative max-w-4xl mx-auto mb-12">
-					<div className="relative rounded-3xl overflow-hidden">
-						<Image
-							src={VideoBanner.src}
-							alt="Construction workers with safety equipment"
-							width={800}
-							height={500}
-							className="w-full h-auto"
-							priority
-						/>
-						{!isVideoPlaying && (
-							<button
-								onClick={() => setIsVideoPlaying(true)}
-								className="absolute inset-0 flex items-center justify-center bg-transparent bg-opacity-30 hover:bg-opacity-40 transition-all duration-200"
-							>
-								<div className="w-20 h-20 bg-amber-400 drop-shadow-2xl rounded-full flex items-center justify-center hover:scale-110 transition-transform duration-200">
-									<svg
-										className="w-8 h-8 text-white ml-1"
-										fill="currentColor"
-										viewBox="0 0 24 24"
-									>
-										<path d="M8 5v14l11-7z" />
-									</svg>
-								</div>
-							</button>
-						)}
-					</div>
-				</div>
+            {/* Description */}
+            <motion.p
+              className={`${mont.className} max-w-xl text-lg text-slate-200/80`}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.9, delay: 0.3 }}
+              viewport={{ once: true }}
+            >
+              Showcase compliant catalogues, respond to high-intent buyers, and
+              manage fulfilment on a platform built for safety innovators, OEMs,
+              and distributors.
+            </motion.p>
 
-				{/* Partner Logos */}
-				<div className="text-center bg-white rounded-3xl py-4">
-					<div className="flex flex-wrap justify-center items-center gap-8 opacity-60">
-						{logos.map((logo, index) => (
-							<Image
-								key={index}
-								src={logo.src}
-								alt="Logo"
-								height={200}
-								width={200}
-								className="w-32 h-auto object-contain"
-							/>
-						))}
-					</div>
-				</div>
-			</div>
-		</section>
-	);
+            {/* CTA Button */}
+            <motion.div
+              className="flex flex-col gap-3 md:flex-row"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.9, delay: 0.4 }}
+              viewport={{ once: true }}
+            >
+              <Link
+                href="/seller/register"
+                className="inline-flex items-center justify-center rounded-full bg-amber-300 px-6 py-3 text-base font-semibold text-slate-950 shadow-lg shadow-amber-300/20 transition hover:bg-amber-200"
+              >
+                Get started now
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </motion.div>
+
+            {/* STATS */}
+            <motion.dl
+              className="mt-10 md:relative md:left-1/2 md:top-7 grid w-full grid-cols-1 gap-4 sm:grid-cols-3"
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.5 }}
+              viewport={{ once: true }}
+            >
+              {stats.map((stat, index) => (
+                <motion.div
+                  key={stat.label}
+                  className="rounded-2xl border border-white/10 bg-white/5 p-5 text-center"
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                >
+                  <dt className="text-sm uppercase tracking-wide text-slate-300/80">
+                    {stat.label}
+                  </dt>
+                  <dd className="mt-2 text-2xl font-semibold text-white">
+                    {stat.value}
+                  </dd>
+                </motion.div>
+              ))}
+            </motion.dl>
+          </motion.div>
+
+          {/* RIGHT SIDE IMAGE */}
+          <motion.div
+            className="relative flex flex-1 justify-center md:justify-end md:bottom-16"
+            initial={{ opacity: 0, x: 50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 1 }}
+            viewport={{ once: true }}
+          >
+            <div className="relative w-full max-w-sm md:max-w-md overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-2 backdrop-blur-xl">
+              <div className="rounded-2xl overflow-hidden">
+                <Image
+                  src={heroimage}
+                  alt="Safety commerce hero"
+                  className="h-auto w-full rounded-2xl object-cover"
+                  priority
+                />
+              </div>
+              <div className="mt-3 flex items-center gap-3 rounded-2xl bg-slate-900/80 p-4 text-sm text-slate-100">
+                <ShieldCheck className="h-8 w-8 text-amber-300 flex-shrink-0" />
+                <span>
+                  Verified sellers enjoy dispute support, instant payouts, and
+                  analytics that help them win repeat business.
+                </span>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+    </>
+  );
 }

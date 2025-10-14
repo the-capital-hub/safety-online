@@ -5,7 +5,7 @@ import { dbConnect } from "@/lib/dbConnect.js";
 import { fetchGstDetails, extractPrimaryGstAddress } from "@/lib/services/gstVerification.js";
 
 const COMPANY_PROJECTION =
-        "companyName companyEmail phone gstinNumber brandName brandDescription companyLogo companyAddress";
+        "companyName companyEmail phone gstinNumber brandName brandDescription companyLogo companyAddress primaryPickupAddress";
 
 // GET - Fetch all sellers (exclude admins)
 export async function GET(request) {
@@ -156,6 +156,7 @@ export async function POST(request) {
                                 brandDescription,
                                 companyLogo,
                                 companyAddress: [gstPrimaryAddress],
+                                primaryPickupAddress: gstPrimaryAddress || null,
                         });
 
                         seller.company = company._id;
