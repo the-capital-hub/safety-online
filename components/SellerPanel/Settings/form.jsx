@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Loader2, UploadCloud, ImageIcon } from "lucide-react";
 import { companyBaseSchema } from "@/zodSchema/companyScema.js";
-import { toast} from "react-hot-toast";
+import { toast } from "react-hot-toast";
 
 export default function ShopForm() {
 	const [form, setForm] = useState({
@@ -135,9 +135,7 @@ export default function ShopForm() {
 		<Card className="border border-gray-200">
 			<CardHeader>
 				<CardTitle>Company Profile</CardTitle>
-				<CardDescription>
-					Basic company details. Manage addresses below.
-				</CardDescription>
+				<CardDescription>Basic company details.</CardDescription>
 			</CardHeader>
 			<CardContent>
 				<form onSubmit={handleSubmit} className="grid gap-6">
@@ -179,17 +177,17 @@ export default function ShopForm() {
 									required
 								/>
 							</div>
-                                                        <div className="grid gap-2">
-                                                                <Label htmlFor="gstinNumber">GSTIN</Label>
-                                                                <Input
-                                                                        id="gstinNumber"
-                                                                        name="gstinNumber"
-                                                                        value={form.gstinNumber}
-                                                                        onChange={onChange}
-                                                                        placeholder="22AAAAA0000A1Z5"
-                                                                        required
-                                                                />
-                                                        </div>
+							<div className="grid gap-2">
+								<Label htmlFor="gstinNumber">GSTIN</Label>
+								<Input
+									id="gstinNumber"
+									name="gstinNumber"
+									value={form.gstinNumber}
+									onChange={onChange}
+									placeholder="22AAAAA0000A1Z5"
+									required
+								/>
+							</div>
 						</div>
 
 						<div className="space-y-3">

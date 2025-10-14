@@ -1,13 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
 import ShopForm from "@/components/SellerPanel/Settings/form";
 import CompanyAddresses from "@/components/SellerPanel/Settings/address";
 
@@ -20,16 +13,14 @@ export default function AccountSettings() {
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.25 }}
 				>
-					<Card className="border-none shadow-md p-6">
-						<CardHeader className="p-0 pb-2">
-							<CardTitle className="text-2xl font-bold text-gray-900">
-								Seller Account Settings
-							</CardTitle>
-							<CardDescription className="text-gray-600">
-								Manage your company profile and addresses.
-							</CardDescription>
-						</CardHeader>
-					</Card>
+					<div className="mb-6">
+						<h1 className="text-2xl font-bold text-gray-900">
+							Seller Company details
+						</h1>
+						<p className="text-gray-600">
+							Manage your company profile and addresses.
+						</p>
+					</div>
 				</motion.div>
 
 				<motion.div

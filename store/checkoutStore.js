@@ -5,10 +5,6 @@ import { persist, devtools } from "zustand/middleware";
 import { toast } from "react-hot-toast";
 import { generateInvoicePDFAsBase64 } from "@/lib/invoicePDF.js";
 import { calculateGstTotals, GST_RATE_PERCENT } from "@/lib/utils/gst.js";
-import {
-	calculateShippingParams,
-	validateShippingParams,
-} from "@/lib/shipping/shippingCalculator.js";
 
 // Payment API functions
 const paymentAPI = {
@@ -144,28 +140,18 @@ export const useCheckoutStore = create(
 				buyNowQuantity: 1,
 
 				// Customer Information (auto-filled from user)
-                                customerInfo: {
-                                        name: "",
-                                        email: "",
-                                        mobile: "",
-                                },
-
-                                // Optional GST invoice details for buyers
-                                gstInvoice: {
-                                        enabled: false,
-                                        gstin: "",
-                                        legalName: "",
-                                        tradeName: "",
-                                        state: "",
-                                        address: "",
-                                        lastVerifiedAt: null,
-                                },
+				customerInfo: {
+					name: "",
+					email: "",
+					mobile: "",
+				},
 
 				// Delivery Address Management
 				savedAddresses: [],
 				selectedAddressId: null,
 				newAddress: {
 					tag: "home",
+					addressType: "shipTo",
 					name: "",
 					street: "",
 					city: "",
@@ -175,12 +161,14 @@ export const useCheckoutStore = create(
 					isDefault: false,
 				},
 				isAddingNewAddress: false,
+				hasBillToAddress: false,
 
 				// Order Summary
 				orderSummary: {
 					items: [],
 					subtotal: 0,
 					shippingCost: 0,
+					edd: "N/A", // Estimated Delivery Date
 					discount: 0,
 					total: 0,
 					taxableAmount: 0,
@@ -200,7 +188,6 @@ export const useCheckoutStore = create(
 						estimatedTax: null,
 						estimatedTotal: null,
 					},
-					edd: "N/A", // Estimated Delivery Date
 				},
 
 				// Applied Coupon (only for buyNow flow)
@@ -223,58 +210,11 @@ export const useCheckoutStore = create(
 					});
 				},
 
-                                setCustomerInfo: (info) => {
-                                        set((state) => ({
-                                                customerInfo: { ...state.customerInfo, ...info },
-                                        }));
-                                },
-
-                                toggleGstInvoice: (enabled) => {
-                                        set((state) => ({
-                                                gstInvoice: enabled
-                                                        ? { ...state.gstInvoice, enabled }
-                                                        : {
-                                                                  enabled: false,
-                                                                  gstin: "",
-                                                                  legalName: "",
-                                                                  tradeName: "",
-                                                                  state: "",
-                                                                  address: "",
-                                                                  lastVerifiedAt: null,
-                                                          },
-                                        }));
-                                },
-
-                                setGstInvoiceField: (field, value) => {
-                                        set((state) => ({
-                                                gstInvoice: {
-                                                        ...state.gstInvoice,
-                                                        [field]: value,
-                                                },
-                                        }));
-                                },
-
-                                setGstInvoiceData: (data) => {
-                                        set((state) => ({
-                                                gstInvoice: {
-                                                        ...state.gstInvoice,
-                                                        ...data,
-                                                },
-                                        }));
-                                },
-
-                                clearGstInvoiceDetails: () => {
-                                        set((state) => ({
-                                                gstInvoice: {
-                                                        ...state.gstInvoice,
-                                                        legalName: "",
-                                                        tradeName: "",
-                                                        state: "",
-                                                        address: "",
-                                                        lastVerifiedAt: null,
-                                                },
-                                        }));
-                                },
+				setCustomerInfo: (info) => {
+					set((state) => ({
+						customerInfo: { ...state.customerInfo, ...info },
+					}));
+				},
 
 				setCurrentStep: (step) => {
 					set({ currentStep: step });
@@ -304,11 +244,6 @@ export const useCheckoutStore = create(
 								quantity: quantity,
 								price: product.price,
 								totalPrice: product.price * quantity,
-								length: product.length || null,
-								width: product.width || null,
-								height: product.height || null,
-								weight: product.weight || null,
-								size: product.size || null,
 							},
 						];
 					} else {
@@ -319,11 +254,6 @@ export const useCheckoutStore = create(
 							quantity: item.quantity,
 							price: item.price,
 							totalPrice: item.price * item.quantity,
-							length: product.length || null,
-							width: product.width || null,
-							height: product.height || null,
-							weight: product.weight || null,
-							size: product.size || null,
 						}));
 					}
 
@@ -377,7 +307,19 @@ export const useCheckoutStore = create(
 					try {
 						const data = await paymentAPI.getUserAddresses();
 						if (data.success) {
-							set({ savedAddresses: data.addresses });
+							const hasBillTo = data.addresses.some(
+								(addr) => addr.addressType === "billTo"
+							);
+							set({
+								savedAddresses: data.addresses,
+								hasBillToAddress: hasBillTo,
+							});
+
+							if (!hasBillTo) {
+								toast.error(
+									"Please add a billing address to continue checkout"
+								);
+							}
 
 							// Auto-select default address if available
 							const defaultAddress = data.addresses.find(
@@ -421,6 +363,7 @@ export const useCheckoutStore = create(
 							set({
 								newAddress: {
 									tag: "home",
+									addressType: "shipTo",
 									name: "",
 									street: "",
 									city: "",
@@ -453,33 +396,13 @@ export const useCheckoutStore = create(
 
 				// Select address
 				selectAddress: (addressId) => {
-					set((state) => ({
-						selectedAddressId: addressId,
-						orderSummary: {
-							...state.orderSummary,
-							shippingCost: 0,
-							shippingEstimate: {
-								minDays: null,
-								maxDays: null,
-								estimatedCost: null,
-								estimatedTax: null,
-								estimatedTotal: null,
-							},
-							edd: "N/A",
-						},
-					}));
+					set({ selectedAddressId: addressId });
 					get().recalculateTotal();
 				},
 
 				// Fetch shipping estimate
-				fetchShippingEstimate: async () => {
-					const {
-						savedAddresses,
-						selectedAddressId,
-						orderSummary,
-						paymentMethod,
-					} = get();
-
+				fetchShippingEstimate: async (dimensions, weight, invoiceAmount) => {
+					const { savedAddresses, selectedAddressId } = get();
 					const selectedAddress = savedAddresses.find(
 						(addr) => addr._id === selectedAddressId
 					);
@@ -489,55 +412,20 @@ export const useCheckoutStore = create(
 						return null;
 					}
 
-					// Validate address has zipCode/pincode
-					if (!selectedAddress.zipCode && !selectedAddress.pincode) {
-						toast.error("Selected address is missing pincode");
-						return null;
-					}
-
 					try {
 						set({ isLoading: true });
-
-						// console.log("Order items for shipping:", orderSummary.items);
-
-						// Calculate shipping parameters dynamically from order items
-						const shippingParams = calculateShippingParams(orderSummary.items, {
-							pickupPincode: "560068", // Seller pincode - should come from seller's company details
-							dropPincode: selectedAddress.zipCode || selectedAddress.pincode,
-							paymentType: paymentMethod === "cod" ? "COD" : "Prepaid",
+						const response = await paymentAPI.getShippingEstimate({
+							pickupPincode: "560068", // Seller pincode (hardcoded for now)
+							dropPincode: selectedAddress.zipCode,
+							length: dimensions.length,
+							width: dimensions.width,
+							height: dimensions.height,
+							weight,
+							paymentType: get().paymentMethod === "cod" ? "COD" : "Prepaid",
+							invoiceAmount,
 						});
 
-						// Validate parameters before API call
-						const validation = validateShippingParams(shippingParams);
-						if (!validation.isValid) {
-							console.error("Shipping validation errors:", validation.errors);
-							toast.error(
-								"Unable to calculate shipping: " + validation.errors[0]
-							);
-							return null;
-						}
-
-						// console.log("Shipping estimate params:", shippingParams);
-
-						// Call the API with calculated parameters
-						const response = await paymentAPI.getShippingEstimate(
-							shippingParams
-						);
-
-						// Update shipping estimate in state with full recalculation
-						const { savedAddresses: addresses, selectedAddressId: addrId } =
-							get();
-						const addr = addresses.find((a) => a._id === addrId);
-
-						// Recalculate totals with new shipping cost
-						const totals = calculateGstTotals({
-							subtotal: orderSummary.subtotal,
-							discount: orderSummary.discount,
-							shippingCost: response.preTax || 0,
-							address: addr,
-							gstMode: orderSummary.gst?.mode,
-						});
-
+						// Update shipping estimate in state
 						set((state) => ({
 							orderSummary: {
 								...state.orderSummary,
@@ -552,21 +440,17 @@ export const useCheckoutStore = create(
 									estimatedTax: response.tax || 0,
 									estimatedTotal: response.total || 0,
 								},
-								// Update all totals with new shipping cost
-								taxableAmount: totals.taxableAmount,
-								total: totals.total,
-								gst: totals.gst,
+								total:
+									state.orderSummary.taxableAmount +
+									state.orderSummary.gst.total +
+									(response.preTax || 0),
 							},
 						}));
-
-						toast.success(
-							`Shipping estimate: ₹${response.preTax} (${response.tat.min}-${response.tat.max} days)`
-						);
 
 						return response;
 					} catch (error) {
 						console.error("Failed to fetch shipping estimate:", error);
-						toast.error(error.message || "Failed to get shipping estimate");
+						toast.error("Failed to get shipping estimate");
 						return null;
 					} finally {
 						set({ isLoading: false });
@@ -576,6 +460,42 @@ export const useCheckoutStore = create(
 				// Toggle add new address form
 				toggleAddNewAddress: () => {
 					set((state) => ({ isAddingNewAddress: !state.isAddingNewAddress }));
+				},
+
+				// Copy selected shipping address as billing address
+				copyShippingToBillTo: async () => {
+					const { selectedAddressId, savedAddresses, loadUserAddresses } =
+						get();
+					if (!selectedAddressId) {
+						toast.error("Select a shipping address first");
+						return;
+					}
+					const shipAddress = savedAddresses.find(
+						(addr) => addr._id === selectedAddressId
+					);
+					if (!shipAddress || shipAddress.addressType !== "shipTo") {
+						toast.error("Selected address must be a shipping address");
+						return;
+					}
+
+					set({ isLoading: true });
+					try {
+						const { _id, addressType, ...addressData } = shipAddress;
+						const data = await paymentAPI.addUserAddress({
+							...addressData,
+							addressType: "billTo",
+							isDefault: false,
+						});
+						if (data.success) {
+							await loadUserAddresses();
+							toast.success("Billing address copied from shipping address");
+						}
+					} catch (error) {
+						console.error("Failed to copy address:", error);
+						toast.error(error.message || "Failed to copy address");
+					} finally {
+						set({ isLoading: false });
+					}
 				},
 
 				// Apply coupon (only for buyNow flow)
@@ -633,11 +553,9 @@ export const useCheckoutStore = create(
 						appliedCoupon,
 						cartAppliedCoupon,
 						checkoutType,
-						savedAddresses,
-						selectedAddressId,
 					} = get();
 
-					// Get current shipping cost (will be overridden by estimate if present)
+					// Calculate shipping cost (will be overridden by estimate if present)
 					const shippingCost = orderSummary.shippingCost || 0;
 
 					// Calculate discount based on checkout type
@@ -652,11 +570,11 @@ export const useCheckoutStore = create(
 							(orderSummary.subtotal * appliedCoupon.discount) / 100;
 					}
 
+					const { savedAddresses, selectedAddressId } = get();
 					const selectedAddress = savedAddresses.find(
 						(addr) => addr._id === selectedAddressId
 					);
 
-					// Use calculateGstTotals for all calculations
 					const totals = calculateGstTotals({
 						subtotal: orderSummary.subtotal,
 						discount,
@@ -670,8 +588,8 @@ export const useCheckoutStore = create(
 							...orderSummary,
 							shippingCost: totals.shippingCost,
 							discount: totals.discount,
-							taxableAmount: totals.taxableAmount,
 							total: totals.total,
+							taxableAmount: totals.taxableAmount,
 							gst: totals.gst,
 						},
 					});
@@ -684,41 +602,27 @@ export const useCheckoutStore = create(
 				},
 
 				// Process payment
-                                processPayment: async (userId, clearCartCallback = null) => {
-                                        const {
-                                                customerInfo,
-                                                orderSummary,
-                                                appliedCoupon,
-                                                cartAppliedCoupon,
-                                                checkoutType,
-                                                paymentMethod,
-                                                gstInvoice,
-                                        } = get();
+				processPayment: async (userId, clearCartCallback = null) => {
+					const {
+						customerInfo,
+						orderSummary,
+						appliedCoupon,
+						cartAppliedCoupon,
+						checkoutType,
+						paymentMethod,
+					} = get();
 
-                                        const selectedAddress = get().getSelectedAddress();
+					const selectedAddress = get().getSelectedAddress();
 
-                                        if (!selectedAddress) {
+					if (!selectedAddress) {
 						toast.error("Please select a delivery address");
 						return { success: false, error: "No delivery address selected" };
 					}
 
-                                        if (orderSummary.items.length === 0) {
-                                                toast.error("No items to checkout");
-                                                return { success: false, error: "No items to checkout" };
-                                        }
-
-                                        if (gstInvoice?.enabled) {
-                                                const gstin = (gstInvoice.gstin || "").trim();
-                                                if (!gstin || gstin.length !== 15) {
-                                                        toast.error("Please enter a valid 15-character GSTIN");
-                                                        return { success: false, error: "Invalid GSTIN" };
-                                                }
-
-                                                if (!gstInvoice.legalName) {
-                                                        toast.error("Please verify your GSTIN before placing the order");
-                                                        return { success: false, error: "GSTIN not verified" };
-                                                }
-                                        }
+					if (orderSummary.items.length === 0) {
+						toast.error("No items to checkout");
+						return { success: false, error: "No items to checkout" };
+					}
 
 					set({ paymentLoading: true });
 
@@ -728,10 +632,11 @@ export const useCheckoutStore = create(
 							checkoutType === "cart" ? cartAppliedCoupon : appliedCoupon;
 
 						// Prepare order data
+						const shippingCost = orderSummary.subtotal >= 500 ? 0 : 50;
 						const totals = calculateGstTotals({
 							subtotal: orderSummary.subtotal,
 							discount: orderSummary.discount,
-							shippingCost: orderSummary.shippingCost,
+							shippingCost,
 							address: selectedAddress,
 							gstMode: orderSummary.gst?.mode,
 						});
@@ -747,12 +652,12 @@ export const useCheckoutStore = create(
 							},
 						});
 
-                                                const orderData = {
-                                                        userId: userId,
-                                                        customerName: customerInfo.name,
-                                                        customerEmail: customerInfo.email,
-                                                        customerMobile: customerInfo.mobile,
-                                                        products: orderSummary.items,
+						const orderData = {
+							userId: userId,
+							customerName: customerInfo.name,
+							customerEmail: customerInfo.email,
+							customerMobile: customerInfo.mobile,
+							products: orderSummary.items,
 							subtotal: totals.subtotal,
 							shippingCost: totals.shippingCost,
 							discount: totals.discount,
@@ -768,39 +673,18 @@ export const useCheckoutStore = create(
 								country: selectedAddress.country,
 								fullAddress: `${selectedAddress.street}, ${selectedAddress.city}, ${selectedAddress.state} - ${selectedAddress.zipCode}`,
 							},
-                                                        couponApplied: couponToUse
-                                                                ? {
-                                                                                couponCode: couponToUse.code,
-                                                                                discountAmount:
-                                                                                        couponToUse.discountAmount || orderSummary.discount,
-                                                                                discountType: "percentage",
-                                                                  }
-                                                                : null,
-                                                        tax: totals.gst.total,
-                                                        gst: totals.gst,
-                                                        taxableAmount: totals.taxableAmount,
-                                                        billingInfo:
-                                                                gstInvoice?.enabled && gstInvoice?.gstin
-                                                                        ? {
-                                                                                  gstInvoiceRequested: true,
-                                                                                  gstNumber: gstInvoice.gstin,
-                                                                                  gstLegalName: gstInvoice.legalName || null,
-                                                                                  gstTradeName: gstInvoice.tradeName || null,
-                                                                                  gstState: gstInvoice.state || null,
-                                                                                  gstAddress: gstInvoice.address || null,
-                                                                                  gstVerifiedAt:
-                                                                                          gstInvoice.lastVerifiedAt || null,
-                                                                          }
-                                                                        : {
-                                                                                  gstInvoiceRequested: false,
-                                                                                  gstNumber: null,
-                                                                                  gstLegalName: null,
-                                                                                  gstTradeName: null,
-                                                                                  gstState: null,
-                                                                                  gstAddress: null,
-                                                                                  gstVerifiedAt: null,
-                                                                          },
-                                                };
+							couponApplied: couponToUse
+								? {
+										couponCode: couponToUse.code,
+										discountAmount:
+											couponToUse.discountAmount || orderSummary.discount,
+										discountType: "percentage",
+								  }
+								: null,
+							tax: totals.gst.total,
+							gst: totals.gst,
+							taxableAmount: totals.taxableAmount,
+						};
 
 						if (paymentMethod === "razorpay") {
 							// Create Razorpay order
@@ -1010,29 +894,20 @@ export const useCheckoutStore = create(
 						customerInfo: { name: "", email: "", mobile: "" },
 						savedAddresses: [],
 						selectedAddressId: null,
-                                                newAddress: {
-                                                        tag: "home",
-                                                        name: "",
-                                                        street: "",
-                                                        city: "",
-                                                        state: "",
-                                                        zipCode: "",
-                                                        country: "India",
-                                                        isDefault: false,
-                                                },
-                                                gstInvoice: {
-                                                        enabled: false,
-                                                        gstin: "",
-                                                        legalName: "",
-                                                        tradeName: "",
-                                                        state: "",
-                                                        address: "",
-                                                        lastVerifiedAt: null,
-                                                },
-                                                isAddingNewAddress: false,
-                                                orderSummary: {
-                                                        items: [],
-                                                        subtotal: 0,
+						newAddress: {
+							tag: "home",
+							name: "",
+							street: "",
+							city: "",
+							state: "",
+							zipCode: "",
+							country: "India",
+							isDefault: false,
+						},
+						isAddingNewAddress: false,
+						orderSummary: {
+							items: [],
+							subtotal: 0,
 							shippingCost: 0,
 							discount: 0,
 							total: 0,
