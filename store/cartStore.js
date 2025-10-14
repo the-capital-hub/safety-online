@@ -147,6 +147,11 @@ const transformCartProducts = (products = []) =>
 				"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png",
 			quantity: item.quantity,
 			inStock: item.product.inStock,
+			length: item.product.length || null,
+			width: item.product.width || null,
+			height: item.product.height || null,
+			weight: item.product.weight || null,
+			size: item.product.size || null,
 		}));
 
 export const useCartStore = create(
@@ -185,10 +190,14 @@ export const useCartStore = create(
 							try {
 								const data = await cartAPI.addToCart(product.id, quantity);
 
+								// console.log("Cart addItem data:", data);
+
 								// Update local state with server response
 								const serverItems = transformCartProducts(
 									data.cart?.products || []
 								);
+
+								// console.log("serverItems:", serverItems);
 
 								set({
 									items: serverItems,

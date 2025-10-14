@@ -26,7 +26,8 @@ import { Plus, X } from "lucide-react";
 import { useSellerProductStore } from "@/store/sellerProductStore.js";
 import { ImageUpload } from "@/components/AdminPanel/ImageUpload.jsx";
 
-const normalizeValue = (value) => (typeof value === "string" ? value.trim().toLowerCase() : "");
+const normalizeValue = (value) =>
+	typeof value === "string" ? value.trim().toLowerCase() : "";
 
 // const categories = [
 // 	{ value: "personal-safety", label: "Personal Safety" },
@@ -48,10 +49,10 @@ const productTypes = [
 ];
 
 export function UpdateProductPopup({ open, onOpenChange, product }) {
-        const { updateProduct, categories, fetchCategories } =
-                useSellerProductStore();
-        const [isSubmitting, setIsSubmitting] = useState(false);
-        const [features, setFeatures] = useState([""]);
+	const { updateProduct, categories, fetchCategories } =
+		useSellerProductStore();
+	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [features, setFeatures] = useState([""]);
 	const [selectedCategory, setSelectedCategory] = useState(null);
 
 	const [formData, setFormData] = useState({
@@ -78,6 +79,9 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 		size: "",
 	});
 
+	// console.log("product prop:", product);
+	// console.log("Categories:", categories);
+
 	// Helper function to convert URL to base64
 	const convertUrlToBase64 = async (url) => {
 		try {
@@ -101,24 +105,22 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 		}
 	}, [open, fetchCategories]);
 
-        useEffect(() => {
-                if (!formData.category) {
-                        setSelectedCategory(null);
-                        return;
-                }
+	useEffect(() => {
+		if (!formData.category) {
+			setSelectedCategory(null);
+			return;
+		}
 
-                const category = categories.find(
-                        (cat) =>
-                                normalizeValue(cat.name) ===
-                                normalizeValue(formData.category)
-                );
+		const category = categories.find(
+			(cat) => normalizeValue(cat.name) === normalizeValue(formData.category)
+		);
 
-                setSelectedCategory(category || null);
-        }, [formData.category, categories]);
+		setSelectedCategory(category || null);
+	}, [formData.category, categories]);
 
-        useEffect(() => {
-                if (product) {
-                        // Convert existing image URLs to base64 for the ImageUpload component
+	useEffect(() => {
+		if (product) {
+			// Convert existing image URLs to base64 for the ImageUpload component
 			const convertImages = async () => {
 				let convertedImages = [];
 				if (product.images && product.images.length > 0) {
@@ -137,11 +139,17 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 					);
 				}
 
+				// Helper to convert "road-signs" → "Road Signs"
+				const toSentenceCase = (str) =>
+					str
+						.split("-")
+						.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+						.join(" ");
+
 				setFormData({
 					title: product.title || "",
 					description: product.description || "",
 					longDescription: product.longDescription || "",
-					category: product.category || "",
 					price: product.price?.toString() || "",
 					salePrice: product.salePrice?.toString() || "",
 					stocks: product.stocks?.toString() || "",
@@ -149,7 +157,10 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 					type: product.type || "featured",
 					published: product.published !== undefined ? product.published : true,
 					images: convertedImages,
-					subCategory: product.subCategory || "",
+					category: product.category ? toSentenceCase(product.category) : "",
+					subCategory: product.subCategory
+						? toSentenceCase(product.subCategory)
+						: "",
 					hsnCode: product.hsnCode || "",
 					brand: product.brand || "",
 					length: product.length?.toString() || "",
@@ -164,126 +175,126 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 
 			convertImages();
 
-                        const mappedFeatures =
-                                product.features?.length > 0
-                                        ? product.features.map(
-                                                  (feature) =>
-                                                          feature?.description?.trim() || feature?.title?.trim() || ""
-                                          )
-                                        : [""];
+			const mappedFeatures =
+				product.features?.length > 0
+					? product.features.map(
+							(feature) =>
+								feature?.description?.trim() || feature?.title?.trim() || ""
+					  )
+					: [""];
 
-                        const sanitizedFeatures = mappedFeatures.filter((feature) => feature.length > 0);
+			const sanitizedFeatures = mappedFeatures.filter(
+				(feature) => feature.length > 0
+			);
 
-                        setFeatures(sanitizedFeatures.length > 0 ? sanitizedFeatures : [""]);
-                }
-        }, [product]);
+			setFeatures(sanitizedFeatures.length > 0 ? sanitizedFeatures : [""]);
+		}
+	}, [product]);
 
-        useEffect(() => {
-                if (!categories.length) return;
+	useEffect(() => {
+		if (!categories.length) return;
 
-                setFormData((prev) => {
-                        if (!prev.category) {
-                                if (!prev.subCategory) {
-                                        return prev;
-                                }
+		setFormData((prev) => {
+			if (!prev.category) {
+				if (!prev.subCategory) {
+					return prev;
+				}
 
-                                return { ...prev, subCategory: "" };
-                        }
+				return { ...prev, subCategory: "" };
+			}
 
-                        const currentCategory = categories.find(
-                                (category) =>
-                                        normalizeValue(category.name) ===
-                                        normalizeValue(prev.category)
-                        );
+			const currentCategory = categories.find(
+				(category) =>
+					normalizeValue(category.name) === normalizeValue(prev.category)
+			);
 
-                        if (!currentCategory) {
-                                if (!prev.category && !prev.subCategory) {
-                                        return prev;
-                                }
+			if (!currentCategory) {
+				if (!prev.category && !prev.subCategory) {
+					return prev;
+				}
 
-                                return { ...prev, category: "", subCategory: "" };
-                        }
+				return { ...prev, category: "", subCategory: "" };
+			}
 
-                        let updatedCategory = prev.category;
-                        let updatedSubCategory = prev.subCategory;
+			let updatedCategory = prev.category;
+			let updatedSubCategory = prev.subCategory;
 
-                        if (currentCategory.name !== prev.category) {
-                                updatedCategory = currentCategory.name;
-                        }
+			if (currentCategory.name !== prev.category) {
+				updatedCategory = currentCategory.name;
+			}
 
-                        if (prev.subCategory) {
-                                const matchedSubCategory =
-                                        (currentCategory.subCategories || []).find(
-                                                (subCategory) =>
-                                                        normalizeValue(subCategory.name) ===
-                                                        normalizeValue(prev.subCategory)
-                                        );
+			if (prev.subCategory) {
+				const matchedSubCategory = (currentCategory.subCategories || []).find(
+					(subCategory) =>
+						normalizeValue(subCategory.name) ===
+						normalizeValue(prev.subCategory)
+				);
 
-                                if (!matchedSubCategory) {
-                                        updatedSubCategory = "";
-                                } else if (matchedSubCategory.name !== prev.subCategory) {
-                                        updatedSubCategory = matchedSubCategory.name;
-                                }
-                        }
+				if (!matchedSubCategory) {
+					updatedSubCategory = "";
+				} else if (matchedSubCategory.name !== prev.subCategory) {
+					updatedSubCategory = matchedSubCategory.name;
+				}
+			}
 
-                        if (
-                                updatedCategory !== prev.category ||
-                                updatedSubCategory !== prev.subCategory
-                        ) {
-                                return {
-                                        ...prev,
-                                        category: updatedCategory,
-                                        subCategory: updatedSubCategory,
-                                };
-                        }
+			if (
+				updatedCategory !== prev.category ||
+				updatedSubCategory !== prev.subCategory
+			) {
+				return {
+					...prev,
+					category: updatedCategory,
+					subCategory: updatedSubCategory,
+				};
+			}
 
-                        return prev;
-                });
-        }, [categories, product]);
+			return prev;
+		});
+	}, [categories, product]);
 
-        const handleSubmit = async (e) => {
-                e.preventDefault();
-                if (!product) return;
-                if (!e.currentTarget.checkValidity()) {
-                        e.currentTarget.reportValidity();
-                        return;
-                }
+	const handleSubmit = async (e) => {
+		e.preventDefault();
+		if (!product) return;
+		if (!e.currentTarget.checkValidity()) {
+			e.currentTarget.reportValidity();
+			return;
+		}
 
-                const priceValue = Number.parseFloat(formData.price);
-                const salePriceValue = formData.salePrice
-                        ? Number.parseFloat(formData.salePrice)
-                        : null;
+		const priceValue = Number.parseFloat(formData.price);
+		const salePriceValue = formData.salePrice
+			? Number.parseFloat(formData.salePrice)
+			: null;
 
-                if (salePriceValue !== null && !Number.isNaN(salePriceValue)) {
-                        if (Number.isNaN(priceValue) || salePriceValue >= priceValue) {
-                                alert("Sale price must be lower than MRP.");
-                                return;
-                        }
-                }
+		if (salePriceValue !== null && !Number.isNaN(salePriceValue)) {
+			if (Number.isNaN(priceValue) || salePriceValue >= priceValue) {
+				alert("Sale price must be lower than MRP.");
+				return;
+			}
+		}
 
-                setIsSubmitting(true);
+		setIsSubmitting(true);
 
-                try {
-                        const formattedFeatures = features
-                                .map((feature) => feature.trim())
-                                .filter((feature) => feature.length > 0)
-                                .map((feature) => ({ title: feature, description: feature }));
+		try {
+			const formattedFeatures = features
+				.map((feature) => feature.trim())
+				.filter((feature) => feature.length > 0)
+				.map((feature) => ({ title: feature, description: feature }));
 
-                        // Prepare the update data similar to addProduct
-                        const updateData = {
-                                title: formData.title,
-                                description: formData.description,
-                                longDescription: formData.longDescription || formData.description,
-                                category: formData.category,
-                                price: Number.parseFloat(formData.price),
+			// Prepare the update data similar to addProduct
+			const updateData = {
+				title: formData.title,
+				description: formData.description,
+				longDescription: formData.longDescription || formData.description,
+				category: formData.category,
+				price: Number.parseFloat(formData.price),
 				salePrice: formData.salePrice
 					? Number.parseFloat(formData.salePrice)
 					: 0,
 				stocks: Number.parseInt(formData.stocks),
-                                discount: formData.discount ? Number.parseFloat(formData.discount) : 0,
-                                type: formData.type,
-                                published: formData.published,
-                                features: formattedFeatures,
+				discount: formData.discount ? Number.parseFloat(formData.discount) : 0,
+				type: formData.type,
+				published: formData.published,
+				features: formattedFeatures,
 				images: formData.images, // Pass the base64 images array
 				subCategory: formData.subCategory,
 				hsnCode: formData.hsnCode,
@@ -310,19 +321,19 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 		}
 	};
 
-        const addFeature = () => {
-            setFeatures([...features, ""]);
-        };
+	const addFeature = () => {
+		setFeatures([...features, ""]);
+	};
 
-        const removeFeature = (index) => {
-            setFeatures(features.filter((_, i) => i !== index));
-        };
+	const removeFeature = (index) => {
+		setFeatures(features.filter((_, i) => i !== index));
+	};
 
-        const updateFeature = (index, value) => {
-                const updatedFeatures = [...features];
-                updatedFeatures[index] = value;
-                setFeatures(updatedFeatures);
-        };
+	const updateFeature = (index, value) => {
+		const updatedFeatures = [...features];
+		updatedFeatures[index] = value;
+		setFeatures(updatedFeatures);
+	};
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -484,12 +495,12 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 								/>
 							</div>
 
-                                                        <div>
-                                                                <Label htmlFor="price">MRP *</Label>
-                                                                <Input
-                                                                        id="price"
-                                                                        placeholder="0.00"
-                                                                        value={formData.price}
+							<div>
+								<Label htmlFor="price">MRP *</Label>
+								<Input
+									id="price"
+									placeholder="0.00"
+									value={formData.price}
 									onChange={(e) =>
 										setFormData({ ...formData, price: e.target.value })
 									}
@@ -691,32 +702,32 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 									Add Feature
 								</Button>
 							</div>
-                                                        <div className="space-y-3">
-                                                                {features.map((feature, index) => (
-                                                                        <div key={index} className="flex gap-3 items-start">
-                                                                                <Textarea
-                                                                                        id={`update-feature-${index}`}
-                                                                                        name="featureDescription"
-                                                                                        placeholder="Feature description"
-                                                                                        value={feature}
-                                                                                        onChange={(e) => updateFeature(index, e.target.value)}
-                                                                                        className="flex-1"
-                                                                                        rows={2}
-                                                                                />
-                                                                                {features.length > 1 && (
-                                                                                        <Button
-                                                                                                type="button"
-                                                                                                variant="outline"
-                                                                                                size="icon"
-                                                                                                onClick={() => removeFeature(index)}
-                                                                                        >
-                                                                                                <X className="w-4 h-4" />
-                                                                                        </Button>
-                                                                                )}
-                                                                        </div>
-                                                                ))}
-                                                        </div>
-                                                </div>
+							<div className="space-y-3">
+								{features.map((feature, index) => (
+									<div key={index} className="flex gap-3 items-start">
+										<Textarea
+											id={`update-feature-${index}`}
+											name="featureDescription"
+											placeholder="Feature description"
+											value={feature}
+											onChange={(e) => updateFeature(index, e.target.value)}
+											className="flex-1"
+											rows={2}
+										/>
+										{features.length > 1 && (
+											<Button
+												type="button"
+												variant="outline"
+												size="icon"
+												onClick={() => removeFeature(index)}
+											>
+												<X className="w-4 h-4" />
+											</Button>
+										)}
+									</div>
+								))}
+							</div>
+						</div>
 
 						<div className="flex items-center justify-between">
 							<div>

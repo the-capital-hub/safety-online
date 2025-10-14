@@ -7,11 +7,11 @@ import { verifyToken } from "@/lib/auth.js";
 import { cookies } from "next/headers";
 
 export async function GET() {
-        await dbConnect();
+	await dbConnect();
 
-        try {
-                const cookieStore = await cookies();
-                const token = cookieStore.get("auth_token")?.value;
+	try {
+		const cookieStore = await cookies();
+		const token = cookieStore.get("auth_token")?.value;
 
 		if (!token) {
 			return Response.json(
@@ -40,11 +40,11 @@ export async function GET() {
 }
 
 export async function POST(req) {
-        await dbConnect();
+	await dbConnect();
 
-        try {
-                const cookieStore = await cookies();
-                const token = cookieStore.get("auth_token")?.value;
+	try {
+		const cookieStore = await cookies();
+		const token = cookieStore.get("auth_token")?.value;
 
 		if (!token) {
 			return Response.json(
@@ -89,15 +89,15 @@ export async function POST(req) {
 		}
 
 		// Recalculate total price
-                await cart.populate("products.product");
-                cart.totalPrice = cart.products.reduce((total, item) => {
-                        const product = item.product;
-                        const price =
-                                product && product.salePrice > 0
-                                        ? product.salePrice
-                                        : product?.price || 0;
-                        return total + price * item.quantity;
-                }, 0);
+		await cart.populate("products.product");
+		cart.totalPrice = cart.products.reduce((total, item) => {
+			const product = item.product;
+			const price =
+				product && product.salePrice > 0
+					? product.salePrice
+					: product?.price || 0;
+			return total + price * item.quantity;
+		}, 0);
 
 		await cart.save();
 

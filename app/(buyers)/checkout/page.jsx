@@ -66,6 +66,8 @@ export default function CheckoutPage() {
 	);
 	const getProductById = useProductStore((state) => state.getProductById);
 
+	// console.log("Checkout page cartItems:", cartItems);
+
 	// Checkout store
 	const {
 		checkoutType,
@@ -495,6 +497,11 @@ export default function CheckoutPage() {
 	const handlePayment = useCallback(async () => {
 		if (!isRazorpayLoaded && paymentMethod === "razorpay") {
 			toast.error("Payment system is loading. Please wait.");
+			return;
+		}
+
+		if (orderSummary.total > 49999) {
+			toast.error("Payments greater than Rs.49999 is not allowed as COD.");
 			return;
 		}
 
@@ -1089,6 +1096,8 @@ export default function CheckoutPage() {
 
 		const gstLines = buildGstLineItems(orderSummary.gst);
 
+		// console.log("orderSummary", orderSummary);
+
 		return (
 			<Card className="sticky top-4">
 				<CardHeader>
@@ -1339,14 +1348,14 @@ export default function CheckoutPage() {
 					</div>
 
 					{/* Free shipping message */}
-					{orderSummary.subtotal < 500 && (
+					{/* {orderSummary.subtotal < 500 && (
 						<div className="p-3 bg-yellow-50 rounded-lg">
 							<p className="text-sm text-yellow-800">
 								Add ₹{(500 - orderSummary.subtotal).toLocaleString()} more for
 								free shipping!
 							</p>
 						</div>
-					)}
+					)} */}
 				</CardContent>
 			</Card>
 		);

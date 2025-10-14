@@ -1,5 +1,7 @@
 import { dbConnect } from "@/lib/dbConnect.js";
 import Product from "@/model/Product.js";
+import jwt from "jsonwebtoken";
+import { NextResponse } from "next/server";
 
 export async function DELETE(request) {
 	await dbConnect();

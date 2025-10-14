@@ -15,6 +15,10 @@ export async function POST(req) {
 		return Response.json({ message: "Invalid credentials" }, { status: 401 });
 	}
 
+	// Set lastLogin
+	user.lastLogin = new Date();
+	await user.save();
+
 	const token = createToken(user);
 	const cookie = serialize("auth_token", token, {
 		httpOnly: true,

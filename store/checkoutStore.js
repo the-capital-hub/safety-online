@@ -312,6 +312,7 @@ export const useCheckoutStore = create(
 							},
 						];
 					} else {
+						// console.log("cartItems", cartItems);
 						items = cartItems.map((item) => ({
 							productId: item.id,
 							productName: item.name,
@@ -319,11 +320,11 @@ export const useCheckoutStore = create(
 							quantity: item.quantity,
 							price: item.price,
 							totalPrice: item.price * item.quantity,
-							length: product.length || null,
-							width: product.width || null,
-							height: product.height || null,
-							weight: product.weight || null,
-							size: product.size || null,
+							length: item?.length || null,
+							width: item?.width || null,
+							height: item?.height || null,
+							weight: item?.weight || null,
+							size: item?.size || null,
 						}));
 					}
 
@@ -332,7 +333,7 @@ export const useCheckoutStore = create(
 						0
 					);
 
-					const shippingCost = 0; // Default, will be updated by estimate
+					const shippingCost = 0;
 
 					// Set coupon based on checkout type
 					let discount = 0;
@@ -472,6 +473,108 @@ export const useCheckoutStore = create(
 				},
 
 				// Fetch shipping estimate
+				// fetchShippingEstimate: async () => {
+				// 	const {
+				// 		savedAddresses,
+				// 		selectedAddressId,
+				// 		orderSummary,
+				// 		paymentMethod,
+				// 	} = get();
+
+				// 	const selectedAddress = savedAddresses.find(
+				// 		(addr) => addr._id === selectedAddressId
+				// 	);
+
+				// 	if (!selectedAddress) {
+				// 		toast.error("Please select a shipping address first");
+				// 		return null;
+				// 	}
+
+				// 	// Validate address has zipCode/pincode
+				// 	if (!selectedAddress.zipCode && !selectedAddress.pincode) {
+				// 		toast.error("Selected address is missing pincode");
+				// 		return null;
+				// 	}
+
+				// 	try {
+				// 		set({ isLoading: true });
+
+				// 		// console.log("Order items for shipping:", orderSummary.items);
+
+				// 		// Calculate shipping parameters dynamically from order items
+				// 		const shippingParams = calculateShippingParams(orderSummary.items, {
+				// 			pickupPincode: "560068", // Seller pincode - should come from seller's company details
+				// 			dropPincode: selectedAddress.zipCode || selectedAddress.pincode,
+				// 			paymentType: paymentMethod === "cod" ? "COD" : "Prepaid",
+				// 		});
+
+				// 		// Validate parameters before API call
+				// 		const validation = validateShippingParams(shippingParams);
+				// 		if (!validation.isValid) {
+				// 			console.error("Shipping validation errors:", validation.errors);
+				// 			toast.error(
+				// 				"Unable to calculate shipping: " + validation.errors[0]
+				// 			);
+				// 			return null;
+				// 		}
+
+				// 		// console.log("Shipping estimate params:", shippingParams);
+
+				// 		// Call the API with calculated parameters
+				// 		const response = await paymentAPI.getShippingEstimate(
+				// 			shippingParams
+				// 		);
+
+				// 		// Update shipping estimate in state with full recalculation
+				// 		const { savedAddresses: addresses, selectedAddressId: addrId } =
+				// 			get();
+				// 		const addr = addresses.find((a) => a._id === addrId);
+
+				// 		// Recalculate totals with new shipping cost
+				// 		const totals = calculateGstTotals({
+				// 			subtotal: orderSummary.subtotal,
+				// 			discount: orderSummary.discount,
+				// 			shippingCost: response.preTax || 0,
+				// 			address: addr,
+				// 			gstMode: orderSummary.gst?.mode,
+				// 		});
+
+				// 		set((state) => ({
+				// 			orderSummary: {
+				// 				...state.orderSummary,
+				// 				shippingCost: response.preTax || 0,
+				// 				edd: response.tat
+				// 					? `${response.tat.min}-${response.tat.max} days`
+				// 					: "N/A",
+				// 				shippingEstimate: {
+				// 					minDays: response.tat?.min || null,
+				// 					maxDays: response.tat?.max || null,
+				// 					estimatedCost: response.preTax || 0,
+				// 					estimatedTax: response.tax || 0,
+				// 					estimatedTotal: response.total || 0,
+				// 				},
+				// 				// Update all totals with new shipping cost
+				// 				taxableAmount: totals.taxableAmount,
+				// 				total: totals.total,
+				// 				gst: totals.gst,
+				// 			},
+				// 		}));
+
+				// 		toast.success(
+				// 			`Shipping estimate: ₹${response.preTax} (${response.tat.min}-${response.tat.max} days)`
+				// 		);
+
+				// 		return response;
+				// 	} catch (error) {
+				// 		console.error("Failed to fetch shipping estimate:", error);
+				// 		toast.error(error.message || "Failed to get shipping estimate");
+				// 		return null;
+				// 	} finally {
+				// 		set({ isLoading: false });
+				// 	}
+				// },
+
+				// Fetch shipping estimate - UPDATED VERSION
 				fetchShippingEstimate: async () => {
 					const {
 						savedAddresses,
@@ -498,8 +601,6 @@ export const useCheckoutStore = create(
 					try {
 						set({ isLoading: true });
 
-						// console.log("Order items for shipping:", orderSummary.items);
-
 						// Calculate shipping parameters dynamically from order items
 						const shippingParams = calculateShippingParams(orderSummary.items, {
 							pickupPincode: "560068", // Seller pincode - should come from seller's company details
@@ -517,19 +618,16 @@ export const useCheckoutStore = create(
 							return null;
 						}
 
-						// console.log("Shipping estimate params:", shippingParams);
-
 						// Call the API with calculated parameters
 						const response = await paymentAPI.getShippingEstimate(
 							shippingParams
 						);
 
-						// Update shipping estimate in state with full recalculation
+						// Recalculate totals with new shipping cost
 						const { savedAddresses: addresses, selectedAddressId: addrId } =
 							get();
 						const addr = addresses.find((a) => a._id === addrId);
 
-						// Recalculate totals with new shipping cost
 						const totals = calculateGstTotals({
 							subtotal: orderSummary.subtotal,
 							discount: orderSummary.discount,
@@ -566,7 +664,29 @@ export const useCheckoutStore = create(
 						return response;
 					} catch (error) {
 						console.error("Failed to fetch shipping estimate:", error);
-						toast.error(error.message || "Failed to get shipping estimate");
+
+						// Show user-friendly error message
+						// const errorMessage =
+						// 	error.message || "Failed to get shipping estimate";
+						// toast.error(errorMessage);
+						toast.error("Failed to get shipping estimate");
+
+						// Reset shipping cost and estimate on error
+						set((state) => ({
+							orderSummary: {
+								...state.orderSummary,
+								shippingCost: 0,
+								edd: "N/A",
+								shippingEstimate: {
+									minDays: null,
+									maxDays: null,
+									estimatedCost: null,
+									estimatedTax: null,
+									estimatedTotal: null,
+								},
+							},
+						}));
+
 						return null;
 					} finally {
 						set({ isLoading: false });
