@@ -12,62 +12,62 @@ import { useRouter } from "next/navigation";
 import useRequireAuth from "@/hooks/useRequireAuth.js";
 
 export default function CartSummary() {
-        const router = useRouter();
-        const [couponCode, setCouponCode] = useState("");
-        const requireAuth = useRequireAuth();
+	const router = useRouter();
+	const [couponCode, setCouponCode] = useState("");
+	const requireAuth = useRequireAuth();
 
-        const {
-                totals,
-                appliedPromo,
-                applyPromoCode,
-                removePromoCode,
-                items,
-                isLoading,
-                recommendedCoupons,
-                recommendedLoading,
-                fetchRecommendedCoupons,
-        } = useCartStore();
+	const {
+		totals,
+		appliedPromo,
+		applyPromoCode,
+		removePromoCode,
+		items,
+		isLoading,
+		recommendedCoupons,
+		recommendedLoading,
+		fetchRecommendedCoupons,
+	} = useCartStore();
 
-        useEffect(() => {
-                fetchRecommendedCoupons();
-        }, [fetchRecommendedCoupons]);
+	useEffect(() => {
+		fetchRecommendedCoupons();
+	}, [fetchRecommendedCoupons]);
 
-        const discountAmount = useMemo(() => {
-                if (!appliedPromo) return 0;
-                if (appliedPromo.discountAmount !== undefined) {
-                        return appliedPromo.discountAmount;
-                }
+	const discountAmount = useMemo(() => {
+		if (!appliedPromo) return 0;
+		if (appliedPromo.discountAmount !== undefined) {
+			return appliedPromo.discountAmount;
+		}
 
-                const discountValue = appliedPromo.discount || 0;
-                return Math.round((totals.subtotal * discountValue) / 100);
-        }, [appliedPromo, totals.subtotal]);
+		const discountValue = appliedPromo.discount || 0;
+		return Math.round((totals.subtotal * discountValue) / 100);
+	}, [appliedPromo, totals.subtotal]);
 
-        const discountPercent = useMemo(() => {
-                if (!appliedPromo) return 0;
-                if (appliedPromo.discount !== undefined) {
-                        return appliedPromo.discount;
-                }
+	const discountPercent = useMemo(() => {
+		if (!appliedPromo) return 0;
+		if (appliedPromo.discount !== undefined) {
+			return appliedPromo.discount;
+		}
 
-                if (totals.subtotal === 0) return 0;
-                return Math.round((discountAmount / totals.subtotal) * 100);
-        }, [appliedPromo, discountAmount, totals.subtotal]);
+		if (totals.subtotal === 0) return 0;
+		return Math.round((discountAmount / totals.subtotal) * 100);
+	}, [appliedPromo, discountAmount, totals.subtotal]);
 
-        const handleApplyCoupon = async (codeOverride) => {
-                const codeToApply = (codeOverride || couponCode).trim();
-                if (!codeToApply) return;
+	const handleApplyCoupon = async (codeOverride) => {
+		const codeToApply = (codeOverride || couponCode).trim();
+		if (!codeToApply) return;
 
-                const success = await applyPromoCode(codeToApply);
-                if (success && !codeOverride) {
-                        setCouponCode("");
-                }
-        };
+		const success = await applyPromoCode(codeToApply);
+		if (success && !codeOverride) {
+			setCouponCode("");
+		}
+	};
 
-        const handleCheckout = () => {
-                if (!requireAuth({ message: "Please login to checkout" })) {
-                        return;
-                }
-                router.push("/checkout");
-        };
+	const handleCheckout = () => {
+		if (!requireAuth({ message: "Please login to checkout" })) {
+			return;
+		}
+		router.push("/checkout");
+	};
 
 	const handleContinueShopping = () => {
 		router.push("/products");
@@ -79,129 +79,134 @@ export default function CartSummary() {
 				<CardTitle>Order Summary</CardTitle>
 			</CardHeader>
 			<CardContent className="space-y-4">
-                                {/* Coupon Section */}
-                                <div className="space-y-3">
-                                        {appliedPromo ? (
-                                                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                                                        <div>
-                                                                <div className="flex items-center gap-2">
-                                                                        <Tag className="h-4 w-4 text-green-600" />
-                                                                        <span className="text-sm font-medium text-green-800">
-                                                                                {appliedPromo.code}
-                                                                        </span>
-                                                                        {discountPercent > 0 && (
-                                                                                <Badge className="bg-green-100 text-green-700">
-                                                                                        {discountPercent}% OFF
-                                                                                </Badge>
-                                                                        )}
-                                                                </div>
-                                                                {discountAmount > 0 && (
-                                                                        <p className="text-xs text-green-700 mt-1">
-                                                                                You saved ₹{discountAmount.toLocaleString()}
-                                                                        </p>
-                                                                )}
-                                                        </div>
-                                                        <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                onClick={removePromoCode}
-                                                                className="text-red-600 hover:text-red-700"
-                                                                disabled={isLoading}
-                                                        >
-                                                                <X className="h-4 w-4" />
-                                                        </Button>
-                                                </div>
-                                        ) : (
-                                                <>
-                                                        <div className="flex gap-2">
-                                                                <Input
-                                                                        name="couponCode"
-                                                                        placeholder="Enter coupon code"
-                                                                        value={couponCode}
-                                                                        onChange={(e) => setCouponCode(e.target.value)}
-                                                                        className="flex-1"
-                                                                        disabled={isLoading}
-                                                                />
-                                                                <Button
-                                                                        variant="outline"
-                                                                        onClick={() => handleApplyCoupon()}
-                                                                        disabled={isLoading || !couponCode.trim()}
-                                                                >
-                                                                        {isLoading ? (
-                                                                                <Loader2 className="h-4 w-4 animate-spin" />
-                                                                        ) : (
-                                                                                "Apply"
-                                                                        )}
-                                                                </Button>
-                                                        </div>
-                                                        <p className="text-xs text-gray-500">
-                                                                Have a coupon? Enter it above or pick one from our recommendations.
-                                                        </p>
-                                                </>
-                                        )}
+				{/* Coupon Section */}
+				<div className="space-y-3">
+					{appliedPromo ? (
+						<div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+							<div>
+								<div className="flex items-center gap-2">
+									<Tag className="h-4 w-4 text-green-600" />
+									<span className="text-sm font-medium text-green-800">
+										{appliedPromo.code}
+									</span>
+									{discountPercent > 0 && (
+										<Badge className="bg-green-100 text-green-700">
+											{discountPercent}% OFF
+										</Badge>
+									)}
+								</div>
+								{discountAmount > 0 && (
+									<p className="text-xs text-green-700 mt-1">
+										You saved ₹{discountAmount.toLocaleString()}
+									</p>
+								)}
+							</div>
+							<Button
+								variant="ghost"
+								size="sm"
+								onClick={removePromoCode}
+								className="text-red-600 hover:text-red-700"
+								disabled={isLoading}
+							>
+								<X className="h-4 w-4" />
+							</Button>
+						</div>
+					) : (
+						<>
+							<div className="flex gap-2">
+								<Input
+									name="couponCode"
+									placeholder="Enter coupon code"
+									value={couponCode}
+									onChange={(e) => setCouponCode(e.target.value)}
+									className="flex-1"
+									disabled={isLoading}
+								/>
+								<Button
+									variant="outline"
+									onClick={() => handleApplyCoupon()}
+									disabled={isLoading || !couponCode.trim()}
+								>
+									{isLoading ? (
+										<Loader2 className="h-4 w-4 animate-spin" />
+									) : (
+										"Apply"
+									)}
+								</Button>
+							</div>
+							<p className="text-xs text-gray-500">
+								Have a coupon? Enter it above or pick one from our
+								recommendations.
+							</p>
+						</>
+					)}
 
-                                        <div className="space-y-2">
-                                                <div className="flex items-center justify-between">
-                                                        <p className="text-sm font-medium text-gray-700">
-                                                                Recommended Coupons
-                                                        </p>
-                                                        {recommendedLoading && (
-                                                                <span className="text-xs text-gray-500">Loading...</span>
-                                                        )}
-                                                </div>
-                                                {!recommendedLoading && recommendedCoupons.length === 0 && (
-                                                        <p className="text-xs text-gray-500">
-                                                                No active coupons are available at the moment.
-                                                        </p>
-                                                )}
-                                                <div className="space-y-2">
-                                                        {recommendedCoupons.map((coupon) => {
-                                                                const isApplied = appliedPromo?.code === coupon.code;
-                                                                const expiryLabel = coupon.endDate
-                                                                        ? new Date(coupon.endDate).toLocaleDateString("en-IN", {
-                                                                                  month: "short",
-                                                                                  day: "numeric",
-                                                                                  year: "numeric",
-                                                                          })
-                                                                        : null;
+					<div className="space-y-2">
+						<div className="flex items-center justify-between">
+							<p className="text-sm font-medium text-gray-700">
+								Recommended Coupons
+							</p>
+							{recommendedLoading && (
+								<span className="text-xs text-gray-500">Loading...</span>
+							)}
+						</div>
+						{!recommendedLoading && recommendedCoupons.length === 0 && (
+							<p className="text-xs text-gray-500">
+								No active coupons are available at the moment.
+							</p>
+						)}
+						<div className="space-y-2">
+							{recommendedCoupons.map((coupon) => {
+								const isApplied = appliedPromo?.code === coupon.code;
+								const expiryLabel = coupon.endDate
+									? new Date(coupon.endDate).toLocaleDateString("en-IN", {
+											month: "short",
+											day: "numeric",
+											year: "numeric",
+									  })
+									: null;
 
-                                                                return (
-                                                                        <div
-                                                                                key={coupon._id}
-                                                                                className="flex items-center justify-between rounded-lg border border-dashed border-gray-200 p-3"
-                                                                        >
-                                                                                <div>
-                                                                                        <div className="flex items-center gap-2">
-                                                                                                <span className="font-semibold tracking-wide text-sm">
-                                                                                                        {coupon.code}
-                                                                                                </span>
-                                                                                                <Badge variant="secondary" className="text-xs">
-                                                                                                        {coupon.discount}% OFF
-                                                                                                </Badge>
-                                                                                        </div>
-                                                                                        {coupon.name && (
-                                                                                                <p className="text-xs text-gray-600 mt-1">{coupon.name}</p>
-                                                                                        )}
-                                                                                        {expiryLabel && (
-                                                                                                <p className="text-xs text-gray-400">Valid till {expiryLabel}</p>
-                                                                                        )}
-                                                                                </div>
-                                                                                <Button
-                                                                                        variant={isApplied ? "secondary" : "outline"}
-                                                                                        size="sm"
-                                                                                        disabled={isLoading || isApplied}
-                                                                                        onClick={() => handleApplyCoupon(coupon.code)}
-                                                                                >
-                                                                                        {isApplied ? "Applied" : "Apply"}
-                                                                                </Button>
-                                                                        </div>
-                                                                );
-                                                        })}
-                                                </div>
-                                        </div>
-                                </div>
+								return (
+									<div
+										key={coupon._id}
+										className="flex items-center justify-between rounded-lg border border-dashed border-gray-200 p-3"
+									>
+										<div>
+											<div className="flex items-center gap-2">
+												<span className="font-semibold tracking-wide text-sm">
+													{coupon.code}
+												</span>
+												<Badge variant="secondary" className="text-xs">
+													{coupon.discount}% OFF
+												</Badge>
+											</div>
+											{coupon.name && (
+												<p className="text-xs text-gray-600 mt-1">
+													{coupon.name}
+												</p>
+											)}
+											{expiryLabel && (
+												<p className="text-xs text-gray-400">
+													Valid till {expiryLabel}
+												</p>
+											)}
+										</div>
+										<Button
+											variant={isApplied ? "secondary" : "outline"}
+											size="sm"
+											disabled={isLoading || isApplied}
+											onClick={() => handleApplyCoupon(coupon.code)}
+										>
+											{isApplied ? "Applied" : "Apply"}
+										</Button>
+									</div>
+								);
+							})}
+						</div>
+					</div>
+				</div>
 
-                                <Separator />
+				<Separator />
 
 				{/* Order Breakdown */}
 				<div className="space-y-2">
@@ -211,19 +216,19 @@ export default function CartSummary() {
 						</span>
 						<span>₹{totals.subtotal.toLocaleString()}</span>
 					</div>
-                                        {totals.discount > 0 && (
-                                                <div className="flex justify-between text-green-600">
-                                                        <span className="flex items-center gap-2">
-                                                                Discount
-                                                                {appliedPromo?.code && (
-                                                                        <Badge className="bg-green-100 text-green-700">
-                                                                                {appliedPromo.code}
-                                                                        </Badge>
-                                                                )}
-                                                        </span>
-                                                        <span>-₹{totals.discount.toLocaleString()}</span>
-                                                </div>
-                                        )}
+					{totals.discount > 0 && (
+						<div className="flex justify-between text-green-600">
+							<span className="flex items-center gap-2">
+								Discount
+								{appliedPromo?.code && (
+									<Badge className="bg-green-100 text-green-700">
+										{appliedPromo.code}
+									</Badge>
+								)}
+							</span>
+							<span>-₹{totals.discount.toLocaleString()}</span>
+						</div>
+					)}
 
 					<Separator />
 

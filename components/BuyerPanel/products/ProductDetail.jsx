@@ -288,8 +288,8 @@ export default function ProductDetail({
 	const discountPercentage =
 		product.discountPercentage ??
 		(typeof originalPrice === "number" &&
-			typeof salePrice === "number" &&
-			originalPrice > 0
+		typeof salePrice === "number" &&
+		originalPrice > 0
 			? Math.round(((originalPrice - salePrice) / originalPrice) * 100)
 			: null);
 	const showOriginalPrice =
@@ -303,15 +303,15 @@ export default function ProductDetail({
 			: Number(product?.rating) || 0;
 	const specificationRows = product?.specifications
 		? [
-			{ label: "Brand", value: product.specifications.brand },
-			{ label: "Length (cm)", value: product.specifications.length },
-			{ label: "Height (cm)", value: product.specifications.height },
-			{ label: "Width (cm)", value: product.specifications.width },
-			{ label: "Weight (kg)", value: product.specifications.weight },
-			{ label: "Colour", value: product.specifications.color },
-			{ label: "Material", value: product.specifications.material },
-			{ label: "Size", value: product.specifications.size },
-		]
+				{ label: "Brand", value: product.specifications.brand },
+				{ label: "Length (cm)", value: product.specifications.length },
+				{ label: "Height (cm)", value: product.specifications.height },
+				{ label: "Width (cm)", value: product.specifications.width },
+				{ label: "Weight (kg)", value: product.specifications.weight },
+				{ label: "Colour", value: product.specifications.color },
+				{ label: "Material", value: product.specifications.material },
+				{ label: "Size", value: product.specifications.size },
+		  ]
 		: [];
 
 	return (
@@ -372,10 +372,11 @@ export default function ProductDetail({
 										disabled={wishlistLoading}
 									>
 										<Heart
-											className={`h-6 w-6 ${isInWishlist
+											className={`h-6 w-6 ${
+												isInWishlist
 													? "text-red-500 fill-current hover:text-red-600"
 													: ""
-												}`}
+											}`}
 										/>
 									</button>
 								</div>
@@ -404,10 +405,11 @@ export default function ProductDetail({
 									<button
 										key={index}
 										onClick={() => setSelectedImage(index)}
-										className={`relative w-20 h-20 border-2 bg-white rounded-lg overflow-hidden flex-shrink-0 ${selectedImage === index
+										className={`relative w-20 h-20 border-2 bg-white rounded-lg overflow-hidden flex-shrink-0 ${
+											selectedImage === index
 												? "border-orange-500"
 												: "border-gray-200 hover:border-orange-300"
-											}`}
+										}`}
 									>
 										<Image
 											src={
@@ -426,8 +428,7 @@ export default function ProductDetail({
 					</div>
 
 					{/* Middle Column - Scrollable Content */}
-					<div className="lg:col-span-5 space-y-4 lg:space-y-5 lg:max-h-screen lg:overflow-y-auto feature-scrollbar"
-					>
+					<div className="lg:col-span-5 space-y-4 lg:space-y-5 lg:max-h-screen lg:overflow-y-auto feature-scrollbar">
 						{/* Brand, Title & Pricing */}
 						<div className="space-y-3">
 							<p className="text-sm uppercase tracking-wide text-gray-500">
@@ -586,8 +587,9 @@ export default function ProductDetail({
 					{/* Right Column - Sticky Purchase Card */}
 					<div className="lg:col-span-2 ">
 						<div
-							className={`h-fit ${isSticky ? "sticky top-4" : ""
-								} transition-all duration-300`}
+							className={`h-fit ${
+								isSticky ? "sticky top-4" : ""
+							} transition-all duration-300`}
 						>
 							<Card className="bg-white shadow-md mb-5 border border-orange-300">
 								<CardContent className="p-5">
@@ -781,10 +783,12 @@ export default function ProductDetail({
 															Sold by
 														</p>
 														<h2 className="text-lg drop-shadow-md flex justify-between items-center font-bold text-gray-900">
-															{seller?.brandName || seller?.companyName || "Trusted Seller"}
+															{seller?.brandName ||
+																seller?.companyName ||
+																"Trusted Seller"}
 															<span>
-														<ShieldCheck className="h-4 w-10 text-green-600" />
-													</span>
+																<ShieldCheck className="h-4 w-10 text-green-600" />
+															</span>
 														</h2>
 														<p className="text-xs text-gray-500 max-w-md">
 															{seller?.brandDescription ||
@@ -793,7 +797,6 @@ export default function ProductDetail({
 													</div>
 												</div>
 												<div className="flex flex-col items-start gap-2">
-													
 													{seller?.gstinNumber && (
 														<span className="text-xs text-gray-500">
 															GSTIN: {seller.gstinNumber}
@@ -819,7 +822,7 @@ export default function ProductDetail({
 														)}
 													</div>
 												</div> */}
-{/* 
+												{/* 
 												<div className="space-y-3 rounded-lg border border-gray-100 bg-gray-50 p-4">
 													<div className="flex items-center gap-2 text-gray-800">
 														<HelpCircle className="h-5 w-5 text-orange-500" />
@@ -850,11 +853,13 @@ export default function ProductDetail({
 														{/* <MapPin className="h-5 w-20 text-orange-500 mt-1" /> */}
 														<div className="space-y-1">
 															<p className="text-base font-bold text-gray-800">
-																{(headOfficeAddress && headOfficeAddress.label) ||
+																{(headOfficeAddress &&
+																	headOfficeAddress.label) ||
 																	"Business Address"}
 															</p>
 															<p className="text-xs text-gray-600 leading-relaxed">
-																{(headOfficeAddress && headOfficeAddress.fullAddress) ||
+																{(headOfficeAddress &&
+																	headOfficeAddress.fullAddress) ||
 																	"Address information will be available soon."}
 															</p>
 														</div>

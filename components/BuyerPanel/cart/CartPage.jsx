@@ -14,19 +14,19 @@ import CartSummary from "./CartSummary";
 
 export default function CartPage() {
 	const router = useRouter();
-        const { items, isLoading, syncError, clearCart, fetchCart } = useCartStore();
-        const isAuthenticated = useIsAuthenticated();
-        const requireAuth = useRequireAuth("Please login to view your cart");
+	const { items, isLoading, syncError, clearCart, fetchCart } = useCartStore();
+	const isAuthenticated = useIsAuthenticated();
+	const requireAuth = useRequireAuth("Please login to view your cart");
 
-        useEffect(() => {
-                // Redirect if not authenticated, otherwise fetch cart data
-                if (!isAuthenticated) {
-                        requireAuth({ redirectTo: "/cart" });
-                        return;
-                }
+	useEffect(() => {
+		// Redirect if not authenticated, otherwise fetch cart data
+		if (!isAuthenticated) {
+			requireAuth({ redirectTo: "/cart" });
+			return;
+		}
 
-                fetchCart();
-        }, [fetchCart, isAuthenticated, requireAuth]);
+		fetchCart();
+	}, [fetchCart, isAuthenticated, requireAuth]);
 
 	const handleClearCart = () => {
 		if (window.confirm("Are you sure you want to clear your cart?")) {
