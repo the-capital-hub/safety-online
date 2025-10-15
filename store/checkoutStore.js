@@ -6,9 +6,18 @@ import { toast } from "react-hot-toast";
 import { generateInvoicePDFAsBase64 } from "@/lib/invoicePDF.js";
 import { calculateGstTotals, GST_RATE_PERCENT } from "@/lib/utils/gst.js";
 import {
-	calculateShippingParams,
-	validateShippingParams,
+        calculateShippingParams,
+        validateShippingParams,
 } from "@/lib/shipping/shippingCalculator.js";
+
+const normalizeWeight = (value) => {
+        if (value === null || value === undefined || value === "") {
+                return null;
+        }
+
+        const numericValue = Number(value);
+        return Number.isFinite(numericValue) ? numericValue : null;
+};
 
 // Payment API functions
 const paymentAPI = {
@@ -295,38 +304,38 @@ export const useCheckoutStore = create(
 
 					let items = [];
 
-					if (checkoutType === "buyNow" && product) {
-						items = [
-							{
-								productId: product.id,
-								productName: product.name || product.title,
-								productImage: product.image,
-								quantity: quantity,
-								price: product.price,
-								totalPrice: product.price * quantity,
-								length: product.length || null,
-								width: product.width || null,
-								height: product.height || null,
-								weight: product.weight || null,
-								size: product.size || null,
-							},
-						];
-					} else {
-						// console.log("cartItems", cartItems);
-						items = cartItems.map((item) => ({
-							productId: item.id,
-							productName: item.name,
-							productImage: item.image,
-							quantity: item.quantity,
-							price: item.price,
-							totalPrice: item.price * item.quantity,
-							length: item?.length || null,
-							width: item?.width || null,
-							height: item?.height || null,
-							weight: item?.weight || null,
-							size: item?.size || null,
-						}));
-					}
+                                        if (checkoutType === "buyNow" && product) {
+                                                items = [
+                                                        {
+                                                                productId: product.id,
+                                                                productName: product.name || product.title,
+                                                                productImage: product.image,
+                                                                quantity: quantity,
+                                                                price: product.price,
+                                                                totalPrice: product.price * quantity,
+                                                                length: product.length || null,
+                                                                width: product.width || null,
+                                                                height: product.height || null,
+                                                                weight: normalizeWeight(product.weight),
+                                                                size: product.size || null,
+                                                        },
+                                                ];
+                                        } else {
+                                                // console.log("cartItems", cartItems);
+                                                items = cartItems.map((item) => ({
+                                                        productId: item.id,
+                                                        productName: item.name,
+                                                        productImage: item.image,
+                                                        quantity: item.quantity,
+                                                        price: item.price,
+                                                        totalPrice: item.price * item.quantity,
+                                                        length: item?.length || null,
+                                                        width: item?.width || null,
+                                                        height: item?.height || null,
+                                                        weight: normalizeWeight(item?.weight),
+                                                        size: item?.size || null,
+                                                }));
+                                        }
 
 					const subtotal = items.reduce(
 						(sum, item) => sum + item.totalPrice,
@@ -822,16 +831,32 @@ export const useCheckoutStore = create(
 						return { success: false, error: "No delivery address selected" };
 					}
 
-					if (orderSummary.items.length === 0) {
-						toast.error("No items to checkout");
-						return { success: false, error: "No items to checkout" };
-					}
+                                        if (orderSummary.items.length === 0) {
+                                                toast.error("No items to checkout");
+                                                return { success: false, error: "No items to checkout" };
+                                        }
 
-					if (gstInvoice?.enabled) {
-						const gstin = (gstInvoice.gstin || "").trim();
-						if (!gstin || gstin.length !== 15) {
-							toast.error("Please enter a valid 15-character GSTIN");
-							return { success: false, error: "Invalid GSTIN" };
+                                        const totalOrderWeightKg = orderSummary.items.reduce((sum, item) => {
+                                                const weight = normalizeWeight(item?.weight) || 0;
+                                                const quantity = Number(item?.quantity) || 0;
+                                                return sum + weight * quantity;
+                                        }, 0);
+
+                                        if (totalOrderWeightKg > 100) {
+                                                toast.error(
+                                                        "Weight more than 100kg is not deliverable. Contact help@safetyonline.in"
+                                                );
+                                                return {
+                                                        success: false,
+                                                        error: "WEIGHT_LIMIT_EXCEEDED",
+                                                };
+                                        }
+
+                                        if (gstInvoice?.enabled) {
+                                                const gstin = (gstInvoice.gstin || "").trim();
+                                                if (!gstin || gstin.length !== 15) {
+                                                        toast.error("Please enter a valid 15-character GSTIN");
+                                                        return { success: false, error: "Invalid GSTIN" };
 						}
 
 						if (!gstInvoice.legalName) {

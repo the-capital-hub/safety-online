@@ -48,9 +48,13 @@ export default function CheckoutPage() {
 	const searchParams = useSearchParams();
 	const [isRazorpayLoaded, setIsRazorpayLoaded] = useState(false);
 	const [couponCode, setCouponCode] = useState("");
-	const [gstVerificationStatus, setGstVerificationStatus] = useState("idle");
-	const [gstVerificationMessage, setGstVerificationMessage] = useState("");
-	const [isVerifyingGst, setIsVerifyingGst] = useState(false);
+        const [gstVerificationStatus, setGstVerificationStatus] = useState("idle");
+        const [gstVerificationMessage, setGstVerificationMessage] = useState("");
+        const [isVerifyingGst, setIsVerifyingGst] = useState(false);
+
+        const WEIGHT_LIMIT_KG = 100;
+        const weightLimitMessage =
+                "Weight more than 100kg is not deliverable. Contact help@safetyonline.in";
 
 	// Auth store
 	const user = useLoggedInUser();
@@ -119,15 +123,40 @@ export default function CheckoutPage() {
 	const getSelectedAddress = useCheckoutStore(
 		(state) => state.getSelectedAddress
 	);
-	const fetchShippingEstimate = useCheckoutStore(
-		(state) => state.fetchShippingEstimate
-	);
+        const fetchShippingEstimate = useCheckoutStore(
+                (state) => state.fetchShippingEstimate
+        );
 
-	const lastFetchedEstimateRef = useRef({
-		addressId: null,
-		itemsKey: "",
-		status: "idle",
-	});
+        const totalOrderWeightKg = useMemo(() => {
+                if (!orderSummary?.items?.length) {
+                        return 0;
+                }
+
+                return orderSummary.items.reduce((sum, item) => {
+                        const weightValue = Number(item?.weight);
+                        const safeWeight = Number.isFinite(weightValue) ? weightValue : 0;
+                        const quantityValue = Number(item?.quantity);
+                        const safeQuantity = Number.isFinite(quantityValue) ? quantityValue : 0;
+                        return sum + safeWeight * safeQuantity;
+                }, 0);
+        }, [orderSummary.items]);
+
+        const formattedTotalOrderWeight = useMemo(
+                () =>
+                        totalOrderWeightKg.toLocaleString(undefined, {
+                                maximumFractionDigits: 2,
+                                minimumFractionDigits: 0,
+                        }),
+                [totalOrderWeightKg]
+        );
+
+        const exceedsWeightLimit = totalOrderWeightKg > WEIGHT_LIMIT_KG;
+
+        const lastFetchedEstimateRef = useRef({
+                addressId: null,
+                itemsKey: "",
+                status: "idle",
+        });
 
 	const itemsKey = useMemo(() => {
 		if (!orderSummary.items || orderSummary.items.length === 0) {
@@ -505,14 +534,19 @@ export default function CheckoutPage() {
 			return;
 		}
 
-		if (!getSelectedAddress()) {
-			toast.error("Please select a delivery address");
-			return;
-		}
+                if (!getSelectedAddress()) {
+                        toast.error("Please select a delivery address");
+                        return;
+                }
 
-		try {
-			const userId = user?._id || user?.id;
-			const clearCartCallback = checkoutType === "cart" ? clearCart : null;
+                if (exceedsWeightLimit) {
+                        toast.error(weightLimitMessage);
+                        return;
+                }
+
+                try {
+                        const userId = user?._id || user?.id;
+                        const clearCartCallback = checkoutType === "cart" ? clearCart : null;
 
 			const result = await processPayment(userId, clearCartCallback);
 
@@ -523,15 +557,17 @@ export default function CheckoutPage() {
 			console.error("Payment error:", error);
 			toast.error(error.message || "Payment failed. Please try again.");
 		}
-	}, [
-		isRazorpayLoaded,
-		paymentMethod,
-		processPayment,
-		user,
-		checkoutType,
-		clearCart,
-		getSelectedAddress,
-	]);
+        }, [
+                isRazorpayLoaded,
+                paymentMethod,
+                processPayment,
+                user,
+                checkoutType,
+                clearCart,
+                getSelectedAddress,
+                exceedsWeightLimit,
+                weightLimitMessage,
+        ]);
 
 	// Address Step Component
 	const AddressStep = useMemo(
@@ -994,42 +1030,49 @@ export default function CheckoutPage() {
 						</div>
 					</div>
 
-					{paymentMethod === "razorpay" && (
-						<>
-							<div className="p-4 bg-blue-50 rounded-lg">
-								<p className="text-sm text-blue-800">
-									You will be redirected to Razorpay for secure payment
-									processing.
-								</p>
-							</div>
-							{!isRazorpayLoaded && (
-								<p className="text-sm text-yellow-700 bg-yellow-50 border border-yellow-200 rounded-md p-3">
-									Initializing Razorpay checkout... Please wait a moment.
-								</p>
-							)}
-						</>
-					)}
+                                        {paymentMethod === "razorpay" && (
+                                                <>
+                                                        <div className="p-4 bg-blue-50 rounded-lg">
+                                                                <p className="text-sm text-blue-800">
+                                                                        You will be redirected to Razorpay for secure payment
+                                                                        processing.
+                                                                </p>
+                                                        </div>
+                                                        {!isRazorpayLoaded && (
+                                                                <p className="text-sm text-yellow-700 bg-yellow-50 border border-yellow-200 rounded-md p-3">
+                                                                        Initializing Razorpay checkout... Please wait a moment.
+                                                                </p>
+                                                        )}
+                                                </>
+                                        )}
 
-					<div className="flex gap-3">
-						<Button
-							variant="outline"
-							onClick={() => setCurrentStep(1)}
-							className="flex-1"
-						>
-							<ArrowLeft className="mr-2 h-4 w-4" />
-							Back
-						</Button>
-						{paymentMethod === "razorpay" && (
-							<Button
-								onClick={handlePayment}
-								disabled={
-									paymentLoading ||
-									(paymentMethod === "razorpay" && !isRazorpayLoaded)
-								}
-								className="flex-1 bg-green-600 hover:bg-green-700"
-							>
-								{paymentLoading ? (
-									<>
+                                        {exceedsWeightLimit && (
+                                                <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                                                        {weightLimitMessage}
+                                                </div>
+                                        )}
+
+                                        <div className="flex gap-3">
+                                                <Button
+                                                        variant="outline"
+                                                        onClick={() => setCurrentStep(1)}
+                                                        className="flex-1"
+                                                >
+                                                        <ArrowLeft className="mr-2 h-4 w-4" />
+                                                        Back
+                                                </Button>
+                                                {paymentMethod === "razorpay" && (
+                                                        <Button
+                                                                onClick={handlePayment}
+                                                                disabled={
+                                                                        paymentLoading ||
+                                                                        exceedsWeightLimit ||
+                                                                        (paymentMethod === "razorpay" && !isRazorpayLoaded)
+                                                                }
+                                                                className="flex-1 bg-green-600 hover:bg-green-700"
+                                                        >
+                                                                {paymentLoading ? (
+                                                                        <>
 										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 										Processing...
 									</>
@@ -1042,15 +1085,15 @@ export default function CheckoutPage() {
 							</Button>
 						)}
 
-						{paymentMethod === "cod" && (
-							<Button
-								onClick={handlePayment}
-								disabled={paymentLoading}
-								className="flex-1 bg-green-600 hover:bg-green-700"
-							>
-								{paymentLoading ? (
-									<>
-										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                {paymentMethod === "cod" && (
+                                                        <Button
+                                                                onClick={handlePayment}
+                                                                disabled={paymentLoading || exceedsWeightLimit}
+                                                                className="flex-1 bg-green-600 hover:bg-green-700"
+                                                        >
+                                                                {paymentLoading ? (
+                                                                        <>
+                                                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
 										Processing...
 									</>
 								) : (
@@ -1065,16 +1108,18 @@ export default function CheckoutPage() {
 				</CardContent>
 			</Card>
 		),
-		[
-			paymentMethod,
-			paymentLoading,
-			isRazorpayLoaded,
-			orderSummary.total,
-			setPaymentMethod,
-			setCurrentStep,
-			handlePayment,
-		]
-	);
+                [
+                        paymentMethod,
+                        paymentLoading,
+                        isRazorpayLoaded,
+                        orderSummary.total,
+                        setPaymentMethod,
+                        setCurrentStep,
+                        handlePayment,
+                        exceedsWeightLimit,
+                        weightLimitMessage,
+                ]
+        );
 
 	// Order Summary Component
 	const OrderSummary = useMemo(() => {
@@ -1298,13 +1343,19 @@ export default function CheckoutPage() {
 						</>
 					)}
 
-					{/* Price Breakdown */}
-					<div className="space-y-2">
-						<div className="flex justify-between">
-							<span>Subtotal</span>
-							<span>₹{orderSummary.subtotal.toLocaleString()}</span>
-						</div>
-						<div className="flex justify-between">
+                                        {/* Price Breakdown */}
+                                        <div className="space-y-2">
+                                                {totalOrderWeightKg > 0 && (
+                                                        <div className="flex justify-between text-sm text-gray-600">
+                                                                <span>Total Weight</span>
+                                                                <span>{formattedTotalOrderWeight} kg</span>
+                                                        </div>
+                                                )}
+                                                <div className="flex justify-between">
+                                                        <span>Subtotal</span>
+                                                        <span>₹{orderSummary.subtotal.toLocaleString()}</span>
+                                                </div>
+                                                <div className="flex justify-between">
 							<span>Shipping</span>
 							<span>
 								{orderSummary.shippingCost === 0 ? (
@@ -1338,19 +1389,25 @@ export default function CheckoutPage() {
 							<span>Total</span>
 							<span>₹{orderSummary.total.toLocaleString()}</span>
 						</div>
-						{gstLines.length > 0 && (
-							<p className="text-xs text-gray-500">
-								{orderSummary.gst?.mode === "cgst_sgst"
-									? "CGST & SGST applied for Bengaluru deliveries"
-									: "IGST applied for this delivery"}
-							</p>
-						)}
-					</div>
+                                                {gstLines.length > 0 && (
+                                                        <p className="text-xs text-gray-500">
+                                                                {orderSummary.gst?.mode === "cgst_sgst"
+                                                                        ? "CGST & SGST applied for Bengaluru deliveries"
+                                                                        : "IGST applied for this delivery"}
+                                                        </p>
+                                                )}
+                                        </div>
 
-					{/* Free shipping message */}
-					{/* {orderSummary.subtotal < 500 && (
-						<div className="p-3 bg-yellow-50 rounded-lg">
-							<p className="text-sm text-yellow-800">
+                                        {exceedsWeightLimit && (
+                                                <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                                                        {weightLimitMessage}
+                                                </div>
+                                        )}
+
+                                        {/* Free shipping message */}
+                                        {/* {orderSummary.subtotal < 500 && (
+                                                <div className="p-3 bg-yellow-50 rounded-lg">
+                                                        <p className="text-sm text-yellow-800">
 								Add ₹{(500 - orderSummary.subtotal).toLocaleString()} more for
 								free shipping!
 							</p>
@@ -1359,18 +1416,21 @@ export default function CheckoutPage() {
 				</CardContent>
 			</Card>
 		);
-	}, [
-		orderSummary,
-		appliedCoupon,
-		cartAppliedCoupon,
-		checkoutType,
-		couponCode,
-		handleApplyCoupon,
-		removeCoupon,
-		isLoading,
-		recommendedCoupons,
-		recommendedLoading,
-	]);
+        }, [
+                orderSummary,
+                appliedCoupon,
+                cartAppliedCoupon,
+                checkoutType,
+                couponCode,
+                handleApplyCoupon,
+                removeCoupon,
+                isLoading,
+                recommendedCoupons,
+                recommendedLoading,
+                totalOrderWeightKg,
+                exceedsWeightLimit,
+                weightLimitMessage,
+        ]);
 
 	// Don't render anything if user is not authenticated
 	if (!user) {
