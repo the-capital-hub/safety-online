@@ -116,24 +116,28 @@ export function UpdateCategoryPopup({ open, onOpenChange, category }) {
 		setIsSubmitting(false);
 	};
 
-	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-md">
-				<motion.div
-					initial={{ scale: 0.95, opacity: 0 }}
-					animate={{ scale: 1, opacity: 1 }}
-					transition={{ duration: 0.2 }}
-				>
-					<DialogHeader>
-						<DialogTitle className="text-lg font-semibold">
-							Update Category
-						</DialogTitle>
-						<DialogDescription className="text-gray-600">
-							Update your category and manage its subcategories.
-						</DialogDescription>
-					</DialogHeader>
+        return (
+                <Dialog open={open} onOpenChange={onOpenChange}>
+                        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-hidden p-0">
+                                <motion.div
+                                        initial={{ scale: 0.95, opacity: 0 }}
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="flex h-full flex-col"
+                                >
+                                        <DialogHeader className="border-b border-gray-200 px-6 pb-4 pt-6">
+                                                <DialogTitle className="text-lg font-semibold">
+                                                        Update Category
+                                                </DialogTitle>
+                                                <DialogDescription className="text-gray-600">
+                                                        Update your category and manage its subcategories.
+                                                </DialogDescription>
+                                        </DialogHeader>
 
-					<form onSubmit={handleSubmit} className="space-y-4 mt-4">
+                                        <form
+                                                onSubmit={handleSubmit}
+                                                className="flex-1 space-y-6 overflow-y-auto px-6 py-6"
+                                        >
                                                 <div>
                                                         <Label htmlFor="name">Category Name *</Label>
                                                         <Input
@@ -166,7 +170,7 @@ export function UpdateCategoryPopup({ open, onOpenChange, category }) {
                                                         </div>
                                                 </div>
 
-                                                <div>
+                                                <div className="grid gap-2">
                                                         <Label htmlFor="update-navigationOrder">
                                                                 Navigation Order
                                                         </Label>
@@ -190,45 +194,51 @@ export function UpdateCategoryPopup({ open, onOpenChange, category }) {
                                                         </p>
                                                 </div>
 
-						<div className="flex items-center justify-between">
-							<div>
-								<Label>Publish Category</Label>
-								<p className="text-sm text-gray-500">
-									Make this category visible to customers
-								</p>
-							</div>
-							<Switch
-								checked={formData.published}
-								onCheckedChange={(checked) =>
-									setFormData({ ...formData, published: checked })
-								}
-							/>
-						</div>
+                                                <div className="flex flex-col gap-3 rounded-md border border-dashed border-gray-200 bg-gray-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+                                                        <div>
+                                                                <Label>Publish Category</Label>
+                                                                <p className="text-sm text-gray-500">
+                                                                        Make this category visible to customers.
+                                                                </p>
+                                                        </div>
+                                                        <Switch
+                                                                checked={formData.published}
+                                                                onCheckedChange={(checked) =>
+                                                                        setFormData({ ...formData, published: checked })
+                                                                }
+                                                        />
+                                                </div>
 
-						<div className="space-y-2">
-							<div className="flex items-center justify-between">
-								<Label>Subcategories</Label>
-								<Button type="button" variant="outline" onClick={addSub}>
-									Add Subcategory
-								</Button>
-							</div>
+                                                <div className="space-y-2">
+                                                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                                                <div>
+                                                                        <Label>Subcategories</Label>
+                                                                        <p className="text-sm text-gray-500">
+                                                                                Organise related subcategories and control their
+                                                                                visibility.
+                                                                        </p>
+                                                                </div>
+                                                                <Button type="button" variant="outline" onClick={addSub}>
+                                                                        Add Subcategory
+                                                                </Button>
+                                                        </div>
 
-							{formData.subCategories.length === 0 && (
-								<p className="text-sm text-gray-500">
-									No subcategories added yet.
-								</p>
-							)}
+                                                        {formData.subCategories.length === 0 && (
+                                                                <div className="rounded-md border border-dashed border-gray-200 bg-white p-4 text-sm text-gray-500">
+                                                                        No subcategories added yet.
+                                                                </div>
+                                                        )}
 
-                                                        <div className="space-y-3">
+                                                        <div className="space-y-4">
                                                                 {formData.subCategories.map((sub, idx) => {
                                                                         const subSlug = slugify(sub.name);
 
                                                                         return (
                                                                                 <div
                                                                                         key={idx}
-                                                                                        className="rounded-md border p-3 space-y-3"
+                                                                                        className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
                                                                                 >
-                                                                                        <div className="flex flex-col gap-2 md:flex-row md:items-center">
+                                                                                        <div className="flex flex-col gap-3 md:grid md:grid-cols-[minmax(0,1fr)_auto_auto] md:items-center md:gap-4">
                                                                                                 <Input
                                                                                                         id={`update-sub-category-${idx}`}
                                                                                                         name="subCategory"
@@ -240,8 +250,8 @@ export function UpdateCategoryPopup({ open, onOpenChange, category }) {
                                                                                                                 })
                                                                                                         }
                                                                                                 />
-                                                                                                <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                                                                        <span>Published</span>
+                                                                                                <div className="flex items-center justify-between gap-3 rounded-md bg-gray-50 px-3 py-2 text-sm text-gray-600 md:justify-center">
+                                                                                                        <span className="font-medium">Published</span>
                                                                                                         <Switch
                                                                                                                 checked={!!sub.published}
                                                                                                                 onCheckedChange={(checked) =>
@@ -253,7 +263,8 @@ export function UpdateCategoryPopup({ open, onOpenChange, category }) {
                                                                                                 </div>
                                                                                                 <Button
                                                                                                         type="button"
-                                                                                                        variant="destructive"
+                                                                                                        variant="outline"
+                                                                                                        className="justify-center border-red-200 text-red-600 hover:bg-red-50"
                                                                                                         onClick={() => removeSub(idx)}
                                                                                                 >
                                                                                                         Remove
@@ -283,26 +294,26 @@ export function UpdateCategoryPopup({ open, onOpenChange, category }) {
                                                         </div>
                                                 </div>
 
-						<DialogFooter className="flex gap-3 mt-6">
-							<Button
-								type="button"
-								variant="outline"
-								onClick={() => onOpenChange(false)}
-								className="flex-1"
-							>
-								Cancel
-							</Button>
-							<Button
-								type="submit"
-								disabled={isSubmitting}
-								className="flex-1 bg-orange-500 hover:bg-orange-600"
-							>
-								{isSubmitting ? "Updating..." : "Update Category"}
-							</Button>
-						</DialogFooter>
-					</form>
-				</motion.div>
-			</DialogContent>
-		</Dialog>
-	);
+                                                <DialogFooter className="flex flex-col gap-3 pt-4 sm:flex-row">
+                                                        <Button
+                                                                type="button"
+                                                                variant="outline"
+                                                                onClick={() => onOpenChange(false)}
+                                                                className="w-full sm:flex-1"
+                                                        >
+                                                                Cancel
+                                                        </Button>
+                                                        <Button
+                                                                type="submit"
+                                                                disabled={isSubmitting}
+                                                                className="w-full bg-orange-500 hover:bg-orange-600 sm:flex-1"
+                                                        >
+                                                                {isSubmitting ? "Updating..." : "Update Category"}
+                                                        </Button>
+                                                </DialogFooter>
+                                        </form>
+                                </motion.div>
+                        </DialogContent>
+                </Dialog>
+        );
 }
