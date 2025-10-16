@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,10 +17,14 @@ import {
 	Select,
 	SelectContent,
 	SelectItem,
-	SelectTrigger,
-	SelectValue,
+        SelectTrigger,
+        SelectValue,
 } from "@/components/ui/select";
 import { addressSchema } from "@/zodSchema/addressSchema.js";
+import {
+        INDIA_STATES,
+        INDIA_CITIES_BY_STATE,
+} from "@/constants/indiaLocations.js";
 
 const DEFAULT_ADDRESS = {
         tag: "home",
@@ -38,6 +42,25 @@ export default function AddressFormDialog({ trigger, initial, onSave }) {
         const [form, setForm] = useState(() => ({ ...DEFAULT_ADDRESS }));
         const [errors, setErrors] = useState({});
         const [submitting, setSubmitting] = useState(false);
+
+        const stateOptions = useMemo(() => {
+                const options = [...INDIA_STATES];
+                if (form.state && !options.includes(form.state)) {
+                        options.push(form.state);
+                }
+                return options;
+        }, [form.state]);
+
+        const cityOptions = useMemo(() => {
+                const list = form.state ? INDIA_CITIES_BY_STATE[form.state] || [] : [];
+                const options = [...list];
+
+                if (form.city && !options.includes(form.city)) {
+                        options.push(form.city);
+                }
+
+                return options;
+        }, [form.state, form.city]);
 
         useEffect(() => {
                 if (initial) {
@@ -162,33 +185,65 @@ export default function AddressFormDialog({ trigger, initial, onSave }) {
 
 					{/* City and State */}
 					<div className="grid grid-cols-2 gap-3">
-						<div className="space-y-2">
-							<Label htmlFor="city">City *</Label>
-							<Input
-								id="city"
-								value={form.city}
-								onChange={(e) => set("city", e.target.value)}
-								className={errors.city ? "border-red-500" : ""}
-								placeholder="City name"
-							/>
-							{errors.city && (
-								<p className="text-xs text-red-500">{errors.city}</p>
-							)}
-						</div>
-						<div className="space-y-2">
-							<Label htmlFor="state">State *</Label>
-							<Input
-								id="state"
-								value={form.state}
-								onChange={(e) => set("state", e.target.value)}
-								className={errors.state ? "border-red-500" : ""}
-								placeholder="State name"
-							/>
-							{errors.state && (
-								<p className="text-xs text-red-500">{errors.state}</p>
-							)}
-						</div>
-					</div>
+                                                <div className="space-y-2">
+                                                        <Label htmlFor="state">State *</Label>
+                                                        <Select
+                                                                value={form.state || undefined}
+                                                                onValueChange={(value) => {
+                                                                        set("state", value);
+                                                                        set("city", "");
+                                                                }}
+                                                        >
+                                                                <SelectTrigger
+                                                                        id="state"
+                                                                        className={errors.state ? "border-red-500" : ""}
+                                                                >
+                                                                        <SelectValue placeholder="Select state" />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                        {stateOptions.map((state) => (
+                                                                                <SelectItem key={state} value={state}>
+                                                                                        {state}
+                                                                                </SelectItem>
+                                                                        ))}
+                                                                </SelectContent>
+                                                        </Select>
+                                                        {errors.state && (
+                                                                <p className="text-xs text-red-500">{errors.state}</p>
+                                                        )}
+                                                </div>
+                                                <div className="space-y-2">
+                                                        <Label htmlFor="city">City *</Label>
+                                                        <Select
+                                                                value={form.city || undefined}
+                                                                onValueChange={(value) => set("city", value)}
+                                                                disabled={!form.state}
+                                                        >
+                                                                <SelectTrigger
+                                                                        id="city"
+                                                                        className={errors.city ? "border-red-500" : ""}
+                                                                >
+                                                                        <SelectValue
+                                                                                placeholder={
+                                                                                        form.state
+                                                                                                ? "Select city"
+                                                                                                : "Select state first"
+                                                                                }
+                                                                        />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                        {cityOptions.map((city) => (
+                                                                                <SelectItem key={city} value={city}>
+                                                                                        {city}
+                                                                                </SelectItem>
+                                                                        ))}
+                                                                </SelectContent>
+                                                        </Select>
+                                                        {errors.city && (
+                                                                <p className="text-xs text-red-500">{errors.city}</p>
+                                                        )}
+                                                </div>
+                                        </div>
 
 					{/* ZIP Code and Country */}
 					<div className="grid grid-cols-2 gap-3">

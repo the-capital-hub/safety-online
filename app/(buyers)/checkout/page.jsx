@@ -42,6 +42,10 @@ import { useProductStore } from "@/store/productStore.js";
 import { useCheckoutStore } from "@/store/checkoutStore.js";
 import Image from "next/image";
 import { buildGstLineItems } from "@/lib/utils/gst.js";
+import {
+        INDIA_STATES,
+        INDIA_CITIES_BY_STATE,
+} from "@/constants/indiaLocations.js";
 
 export default function CheckoutPage() {
 	const router = useRouter();
@@ -73,11 +77,11 @@ export default function CheckoutPage() {
 	// console.log("Checkout page cartItems:", cartItems);
 
 	// Checkout store
-	const {
-		checkoutType,
-		customerInfo,
-		savedAddresses,
-		selectedAddressId,
+        const {
+                checkoutType,
+                customerInfo,
+                savedAddresses,
+                selectedAddressId,
 		newAddress,
 		isAddingNewAddress,
 		orderSummary,
@@ -87,12 +91,35 @@ export default function CheckoutPage() {
 		isLoading,
 		paymentLoading,
 		paymentMethod,
-		gstInvoice,
-	} = useCheckoutStore();
+                gstInvoice,
+        } = useCheckoutStore();
 
-	// Checkout store actions
-	const setCheckoutType = useCheckoutStore((state) => state.setCheckoutType);
-	const setCustomerInfo = useCheckoutStore((state) => state.setCustomerInfo);
+        const stateOptions = useMemo(() => {
+                const options = [...INDIA_STATES];
+
+                if (newAddress.state && !options.includes(newAddress.state)) {
+                        options.push(newAddress.state);
+                }
+
+                return options;
+        }, [newAddress.state]);
+
+        const cityOptions = useMemo(() => {
+                const list = newAddress.state
+                        ? INDIA_CITIES_BY_STATE[newAddress.state] || []
+                        : [];
+                const options = [...list];
+
+                if (newAddress.city && !options.includes(newAddress.city)) {
+                        options.push(newAddress.city);
+                }
+
+                return options;
+        }, [newAddress.state, newAddress.city]);
+
+        // Checkout store actions
+        const setCheckoutType = useCheckoutStore((state) => state.setCheckoutType);
+        const setCustomerInfo = useCheckoutStore((state) => state.setCustomerInfo);
 	const setCurrentStep = useCheckoutStore((state) => state.setCurrentStep);
 	const setPaymentMethod = useCheckoutStore((state) => state.setPaymentMethod);
 	const initializeCheckout = useCheckoutStore(
@@ -388,12 +415,18 @@ export default function CheckoutPage() {
 	]);
 
 	// Handle new address form
-	const handleNewAddressChange = useCallback(
-		(field, value) => {
-			updateNewAddress(field, value);
-		},
-		[updateNewAddress]
-	);
+        const handleNewAddressChange = useCallback(
+                (field, value) => {
+                        if (field === "state") {
+                                updateNewAddress("state", value);
+                                updateNewAddress("city", "");
+                                return;
+                        }
+
+                        updateNewAddress(field, value);
+                },
+                [updateNewAddress]
+        );
 
 	// Handle add new address
 	const handleAddNewAddress = useCallback(async () => {
@@ -838,30 +871,55 @@ export default function CheckoutPage() {
 								/>
 							</div>
 
-							<div className="grid grid-cols-2 gap-4">
-								<div>
-									<Label htmlFor="city">City</Label>
-									<Input
-										id="city"
-										value={newAddress.city}
-										onChange={(e) =>
-											handleNewAddressChange("city", e.target.value)
-										}
-										placeholder="City"
-									/>
-								</div>
-								<div>
-									<Label htmlFor="state">State</Label>
-									<Input
-										id="state"
-										value={newAddress.state}
-										onChange={(e) =>
-											handleNewAddressChange("state", e.target.value)
-										}
-										placeholder="State"
-									/>
-								</div>
-							</div>
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                                <div>
+                                                                        <Label htmlFor="state">State</Label>
+                                                                        <Select
+                                                                                value={newAddress.state || undefined}
+                                                                                onValueChange={(value) =>
+                                                                                        handleNewAddressChange("state", value)
+                                                                                }
+                                                                        >
+                                                                                <SelectTrigger id="state">
+                                                                                        <SelectValue placeholder="Select state" />
+                                                                                </SelectTrigger>
+                                                                                <SelectContent>
+                                                                                        {stateOptions.map((state) => (
+                                                                                                <SelectItem key={state} value={state}>
+                                                                                                        {state}
+                                                                                                </SelectItem>
+                                                                                        ))}
+                                                                                </SelectContent>
+                                                                        </Select>
+                                                                </div>
+                                                                <div>
+                                                                        <Label htmlFor="city">City</Label>
+                                                                        <Select
+                                                                                value={newAddress.city || undefined}
+                                                                                onValueChange={(value) =>
+                                                                                        handleNewAddressChange("city", value)
+                                                                                }
+                                                                                disabled={!newAddress.state}
+                                                                        >
+                                                                                <SelectTrigger id="city">
+                                                                                        <SelectValue
+                                                                                                placeholder={
+                                                                                                        newAddress.state
+                                                                                                                ? "Select city"
+                                                                                                                : "Select state first"
+                                                                                                }
+                                                                                        />
+                                                                                </SelectTrigger>
+                                                                                <SelectContent>
+                                                                                        {cityOptions.map((city) => (
+                                                                                                <SelectItem key={city} value={city}>
+                                                                                                        {city}
+                                                                                                </SelectItem>
+                                                                                        ))}
+                                                                                </SelectContent>
+                                                                        </Select>
+                                                                </div>
+                                                        </div>
 
 							<div className="grid grid-cols-2 gap-4">
 								<div>
