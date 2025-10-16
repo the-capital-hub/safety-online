@@ -29,6 +29,21 @@ import { slugify } from "@/lib/slugify.js";
 
 const toSlug = (value) => (value ? slugify(value) : "");
 
+const extractSlugValue = (value) => {
+        if (!value) return "";
+
+        if (typeof value === "string") {
+                return toSlug(value);
+        }
+
+        if (typeof value === "object") {
+                if (value.slug) return toSlug(value.slug);
+                if (value.name) return toSlug(value.name);
+        }
+
+        return "";
+};
+
 // const categories = [
 // 	{ value: "personal-safety", label: "Personal Safety" },
 // 	{ value: "road-safety", label: "Road Safety" },
@@ -163,10 +178,13 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
                                         stocks: product.stocks?.toString() || "",
                                         discount: product.discount?.toString() || "",
                                         type: product.type || "featured",
-                                        published: product.published !== undefined ? product.published : true,
+                                        published:
+                                                product.published !== undefined
+                                                        ? product.published
+                                                        : true,
                                         images: convertedImages,
-                                        category: toSlug(product.category) || "",
-                                        subCategory: toSlug(product.subCategory) || "",
+                                        category: extractSlugValue(product.category),
+                                        subCategory: extractSlugValue(product.subCategory),
                                         hsnCode: product.hsnCode || "",
 					brand: product.brand || "",
 					length: product.length?.toString() || "",
