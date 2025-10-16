@@ -572,13 +572,25 @@ export default function AdminProductsPage() {
 										</TableRow>
 									</TableHeader>
 									<TableBody>
-										{products.map((product, index) => (
-											<motion.tr
-												key={product._id}
-												initial={{ opacity: 0, y: 10 }}
-												animate={{ opacity: 1, y: 0 }}
-												transition={{ duration: 0.2, delay: index * 0.05 }}
-											>
+                                        {products.map((product, index) => {
+                                                const stockCount = Number(product.stocks) || 0;
+                                                const isLowStock = stockCount < 10;
+
+                                                return (
+                                                        <motion.tr
+                                                                key={product._id}
+                                                                initial={{ opacity: 0, y: 10 }}
+                                                                animate={{ opacity: 1, y: 0 }}
+                                                                transition={{
+                                                                        duration: 0.2,
+                                                                        delay: index * 0.05,
+                                                                }}
+                                                                className={`transition-colors ${
+                                                                        isLowStock
+                                                                                ? "bg-amber-50/70"
+                                                                                : "bg-white"
+                                                                }`}
+                                                        >
 												<TableCell>
 													<Checkbox
 														checked={selectedProducts.includes(product._id)}
@@ -661,11 +673,11 @@ export default function AdminProductsPage() {
 														"-"
 													)}
 												</TableCell>
-												<TableCell>
-													{editingProductId === product._id ? (
-														<Input
-															type="number"
-															min={0}
+                                                                                                <TableCell>
+                                                                                                        {editingProductId === product._id ? (
+                                                                                                                <Input
+                                                                                                                        type="number"
+                                                                                                                        min={0}
 															max={1000000}
 															step={1}
 															value={editValues.stocks}
@@ -674,19 +686,32 @@ export default function AdminProductsPage() {
 															}
 															className="max-w-[140px]"
 														/>
-													) : (
-														<div className="flex items-center gap-2">
-															<span>{product.stocks}</span>
-															<div
-																className={`w-2 h-2 rounded-full ${
-																	product.inStock
-																		? "bg-green-500"
-																		: "bg-red-500"
-																}`}
-															/>
-														</div>
-													)}
-												</TableCell>
+                                                                                                        ) : (
+                                                                                                                <div className="flex flex-wrap items-center gap-2">
+                                                                                                                        <span
+                                                                                                                                className={
+                                                                                                                                        isLowStock
+                                                                                                                                                ? "font-semibold text-amber-700"
+                                                                                                                                                : undefined
+                                                                                                                                }
+                                                                                                                        >
+                                                                                                                                {stockCount}
+                                                                                                                        </span>
+                                                                                                                        <div
+                                                                                                                                className={`w-2 h-2 rounded-full ${
+                                                                                                                                        product.inStock
+                                                                                                                                                ? "bg-green-500"
+                                                                                                                                                : "bg-red-500"
+                                                                                                                                }`}
+                                                                                                                        />
+                                                                                                                        {isLowStock && (
+                                                                                                                                <Badge className="bg-amber-100 text-amber-800 border-amber-200">
+                                                                                                                                        Low stock
+                                                                                                                                </Badge>
+                                                                                                                        )}
+                                                                                                                </div>
+                                                                                                        )}
+                                                                                                </TableCell>
 												{/* <TableCell>
 													<Badge
 														className={
@@ -762,8 +787,9 @@ export default function AdminProductsPage() {
 														)}
 													</div>
 												</TableCell>
-											</motion.tr>
-										))}
+                                                        </motion.tr>
+                                                );
+                                        })}
 									</TableBody>
 								</Table>
 
