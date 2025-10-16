@@ -353,13 +353,13 @@ export function OrderDetailPopup({ open, onOpenChange, order }) {
 										<span>Total Amount</span>
 										<span>₹{totalAmount.toFixed(2)}</span>
 									</div>
-									{gstLines.length > 0 && (
-										<p className="text-xs text-gray-500">
-											{gstMode === "cgst_sgst"
-												? "CGST & SGST applied for Bengaluru deliveries"
-												: "IGST applied for this delivery"}
-										</p>
-									)}
+                                                                        {gstLines.length > 0 && (
+                                                                                <p className="text-xs text-gray-500">
+                                                                                        {gstMode === "cgst_sgst"
+                                                                                                ? "CGST & SGST applied for Karnataka deliveries"
+                                                                                                : "IGST applied for this delivery"}
+                                                                                </p>
+                                                                        )}
 								</div>
 							</CardContent>
 						</Card>
