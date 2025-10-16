@@ -427,13 +427,18 @@ export const useCartStore = create(
 						}
 					},
 
-					fetchRecommendedCoupons: async () => {
-						const { recommendedCoupons, recommendedLoading } = get();
-						if (recommendedLoading || recommendedCoupons) {
-							return;
-						}
+                                        fetchRecommendedCoupons: async () => {
+                                                const { recommendedCoupons, recommendedLoading } = get();
 
-						set({ recommendedLoading: true });
+                                                if (recommendedLoading) {
+                                                        return;
+                                                }
+
+                                                if (Array.isArray(recommendedCoupons) && recommendedCoupons.length > 0) {
+                                                        return;
+                                                }
+
+                                                set({ recommendedLoading: true });
 
 						try {
 							const response = await fetch("/api/coupons/recommended");
