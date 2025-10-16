@@ -34,6 +34,12 @@ import {
 import { toast } from "react-hot-toast";
 import { useAdminOrderStore } from "@/store/adminOrderStore.js";
 import { buildGstLineItems } from "@/lib/utils/gst.js";
+import {
+        ORDER_STATUS_UPDATE_OPTIONS,
+        getOrderDisplayStatus,
+        getOrderStatusBadgeColor,
+        getOrderStatusLabel,
+} from "@/constants/orderStatus.js";
 
 export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated }) {
         const updateOrder = useAdminOrderStore((state) => state.updateOrder);
@@ -188,24 +194,11 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
                         ? resolvedOrder.userId?._id || resolvedOrder.userId?.id || ""
                         : resolvedOrder.userId;
 
-        const statusOptions = [
-                "pending",
-                "confirmed",
-                "processing",
-                "shipped",
-                "delivered",
-                "cancelled",
-                "returned",
-        ];
+        const statusOptions = ORDER_STATUS_UPDATE_OPTIONS;
 
         const paymentStatusOptions = ["pending", "paid", "failed", "refunded"];
 
-        const formatStatusLabel = (value) =>
-                value
-                        .replace(/_/g, " ")
-                        .split(" ")
-                        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                        .join(" ");
+        const formatStatusLabel = (value) => getOrderStatusLabel(value);
 
         const hasStatusChanges =
                 resolvedOrder.status !== statusForm.status ||
@@ -247,18 +240,7 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
                 }
         };
 
-        const getStatusColor = (status) => {
-                const colors = {
-			pending: "bg-yellow-100 text-yellow-800",
-			confirmed: "bg-blue-100 text-blue-800",
-			processing: "bg-purple-100 text-purple-800",
-			shipped: "bg-indigo-100 text-indigo-800",
-			delivered: "bg-green-100 text-green-800",
-			cancelled: "bg-red-100 text-red-800",
-			returned: "bg-gray-100 text-gray-800",
-		};
-		return colors[status] || "bg-gray-100 text-gray-800";
-	};
+        const getStatusColor = (status) => getOrderStatusBadgeColor(status);
 
         const getPaymentStatusColor = (status) => {
 		const colors = {
@@ -392,7 +374,7 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
 										<div>
 											<p className="text-sm text-gray-600">Order Status</p>
                                                                                 <Badge className={getStatusColor(resolvedOrder.status)}>
-                                                                                        {resolvedOrder.status.toUpperCase()}
+                                                                                        {getOrderDisplayStatus(resolvedOrder)}
                                                                                 </Badge>
 										</div>
 									</div>

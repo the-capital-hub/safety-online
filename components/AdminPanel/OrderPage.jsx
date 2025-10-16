@@ -44,6 +44,13 @@ import { DeleteOrderPopup } from "@/components/AdminPanel/Popups/DeleteOrderPopu
 // import { InvoicePopup } from "@/components/AdminPanel/Popups/InvoicePopup.jsx";
 import { useIsAuthenticated } from "@/store/adminAuthStore.js";
 import { useRouter } from "next/navigation";
+import {
+        ORDER_STATUS_OPTIONS,
+        ORDER_STATUS_UPDATE_OPTIONS,
+        getOrderDisplayStatus,
+        getOrderStatusBadgeColor,
+        getOrderStatusLabel,
+} from "@/constants/orderStatus.js";
 
 function OrderPage() {
 	const {
@@ -169,18 +176,9 @@ function OrderPage() {
 		}
 	};
 
-	const getStatusColor = (status) => {
-		const colors = {
-			pending: "bg-yellow-100 text-yellow-800",
-			confirmed: "bg-blue-100 text-blue-800",
-			processing: "bg-purple-100 text-purple-800",
-			shipped: "bg-indigo-100 text-indigo-800",
-			delivered: "bg-green-100 text-green-800",
-			cancelled: "bg-red-100 text-red-800",
-			returned: "bg-gray-100 text-gray-800",
-		};
-		return colors[status] || "bg-gray-100 text-gray-800";
-	};
+        const getStatusColor = (status) => getOrderStatusBadgeColor(status);
+
+        const formatStatusLabel = (status) => getOrderStatusLabel(status);
 
 	const getPaymentStatusColor = (status) => {
 		const colors = {
@@ -355,15 +353,14 @@ function OrderPage() {
 									<SelectTrigger className="w-40">
 										<SelectValue placeholder="Status" />
 									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="all">All Status</SelectItem>
-										<SelectItem value="pending">Pending</SelectItem>
-										<SelectItem value="confirmed">Confirmed</SelectItem>
-										<SelectItem value="processing">Processing</SelectItem>
-										<SelectItem value="shipped">Shipped</SelectItem>
-										<SelectItem value="delivered">Delivered</SelectItem>
-										<SelectItem value="cancelled">Cancelled</SelectItem>
-									</SelectContent>
+                                                                <SelectContent>
+                                                                        <SelectItem value="all">All Status</SelectItem>
+                                                                        {ORDER_STATUS_OPTIONS.map(({ value, label }) => (
+                                                                                <SelectItem key={value} value={value}>
+                                                                                        {label}
+                                                                                </SelectItem>
+                                                                        ))}
+                                                                </SelectContent>
 								</Select>
 
 								<Select
@@ -396,23 +393,23 @@ function OrderPage() {
 							<div className="flex gap-2">
 								{selectedOrders.length > 0 && (
 									<div className="flex gap-2">
-										<Select onValueChange={handleBulkStatusUpdate}>
-											<SelectTrigger className="w-40">
-												<SelectValue placeholder="Bulk Update" />
-											</SelectTrigger>
-											<SelectContent>
-												<SelectItem value="confirmed">
-													Mark Confirmed
-												</SelectItem>
-												<SelectItem value="processing">
-													Mark Processing
-												</SelectItem>
-												<SelectItem value="shipped">Mark Shipped</SelectItem>
-												<SelectItem value="delivered">
-													Mark Delivered
-												</SelectItem>
-											</SelectContent>
-										</Select>
+                                                                                <Select onValueChange={handleBulkStatusUpdate}>
+                                                                                        <SelectTrigger className="w-40">
+                                                                                                <SelectValue placeholder="Bulk Update" />
+                                                                                        </SelectTrigger>
+                                                                                        <SelectContent>
+                                                                                                {ORDER_STATUS_UPDATE_OPTIONS.map(
+                                                                                                        (value) => (
+                                                                                                                <SelectItem
+                                                                                                                        key={value}
+                                                                                                                        value={value}
+                                                                                                                >
+                                                                                                                        {formatStatusLabel(value)}
+                                                                                                                </SelectItem>
+                                                                                                        )
+                                                                                                )}
+                                                                                        </SelectContent>
+                                                                                </Select>
 									</div>
 								)}
 
@@ -564,36 +561,27 @@ function OrderPage() {
 													₹{order.totalAmount.toFixed(2)}
 												</TableCell>
 												<TableCell>
-													<Select
-														value={order.status}
-														onValueChange={(value) =>
-															handleStatusUpdate(order._id, value)
-														}
-													>
-														<SelectTrigger className="w-32">
-															<SelectValue>
-																<Badge className={getStatusColor(order.status)}>
-																	{order.status}
-																</Badge>
-															</SelectValue>
-														</SelectTrigger>
-														<SelectContent>
-															<SelectItem value="pending">Pending</SelectItem>
-															<SelectItem value="confirmed">
-																Confirmed
-															</SelectItem>
-															<SelectItem value="processing">
-																Processing
-															</SelectItem>
-															<SelectItem value="shipped">Shipped</SelectItem>
-															<SelectItem value="delivered">
-																Delivered
-															</SelectItem>
-															<SelectItem value="cancelled">
-																Cancelled
-															</SelectItem>
-														</SelectContent>
-													</Select>
+                                                                                                        <Select
+                                                                                                                value={order.status}
+                                                                                                                onValueChange={(value) =>
+                                                                                                                        handleStatusUpdate(order._id, value)
+                                                                                                                }
+                                                                                                        >
+                                                                                                                <SelectTrigger className="w-32">
+                                                                                                                        <SelectValue>
+                                                                                                                                <Badge className={getStatusColor(order.status)}>
+                                                                                                                                        {getOrderDisplayStatus(order)}
+                                                                                                                                </Badge>
+                                                                                                                        </SelectValue>
+                                                                                                                </SelectTrigger>
+                                                                                                                <SelectContent>
+                                                                                                                        {ORDER_STATUS_UPDATE_OPTIONS.map((value) => (
+                                                                                                                                <SelectItem key={value} value={value}>
+                                                                                                                                        {formatStatusLabel(value)}
+                                                                                                                                </SelectItem>
+                                                                                                                        ))}
+                                                                                                                </SelectContent>
+                                                                                                        </Select>
 												</TableCell>
 												<TableCell>
 													<div className="flex gap-1">

@@ -9,6 +9,7 @@ import { Download, Printer } from "lucide-react";
 import { useAdminOrderStore } from "@/store/adminOrderStore.js";
 import { toast } from "react-hot-toast";
 import { buildGstLineItems } from "@/lib/utils/gst.js";
+import { getOrderDisplayStatus, getOrderStatusBadgeColor } from "@/constants/orderStatus.js";
 
 export function InvoicePopup({ open, onOpenChange, order }) {
 	const { downloadInvoice } = useAdminOrderStore();
@@ -31,18 +32,7 @@ export function InvoicePopup({ open, onOpenChange, order }) {
 		window.print();
 	};
 
-	const getStatusColor = (status) => {
-		const colors = {
-			pending: "bg-yellow-100 text-yellow-800",
-			confirmed: "bg-blue-100 text-blue-800",
-			processing: "bg-purple-100 text-purple-800",
-			shipped: "bg-indigo-100 text-indigo-800",
-			delivered: "bg-green-100 text-green-800",
-			cancelled: "bg-red-100 text-red-800",
-			returned: "bg-gray-100 text-gray-800",
-		};
-		return colors[status] || "bg-gray-100 text-gray-800";
-	};
+        const getStatusColor = (status) => getOrderStatusBadgeColor(status);
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -107,12 +97,12 @@ export function InvoicePopup({ open, onOpenChange, order }) {
 									{new Date(order.orderDate).toLocaleDateString()}
 								</p>
 							</div>
-							<div>
-								<p className="text-sm text-gray-600">Status</p>
-								<Badge className={getStatusColor(order.status)}>
-									{order.status.toUpperCase()}
-								</Badge>
-							</div>
+                                                        <div>
+                                                                <p className="text-sm text-gray-600">Status</p>
+                                                                <Badge className={getStatusColor(order.status)}>
+                                                                        {getOrderDisplayStatus(order)}
+                                                                </Badge>
+                                                        </div>
 							<div className="text-right">
 								<p className="text-3xl font-bold text-orange-500">
 									${order.totalAmount.toFixed(2)}

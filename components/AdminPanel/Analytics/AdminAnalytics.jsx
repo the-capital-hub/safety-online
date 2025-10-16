@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { getOrderStatusLabel } from "@/constants/orderStatus.js";
 import {
 	ArrowUpRight,
 	BarChart3,
@@ -1037,7 +1038,9 @@ export default function AdminAnalytics() {
 											? new Date(order.orderDate).toLocaleString()
 											: "-"}
 									</TableCell>
-									<TableCell className="capitalize">{order.status}</TableCell>
+                                                                        <TableCell className="capitalize">
+                                                                                {order.hexalogStatus || getOrderStatusLabel(order.status)}
+                                                                        </TableCell>
 									<TableCell className="capitalize">
 										{order.paymentMethod}
 									</TableCell>

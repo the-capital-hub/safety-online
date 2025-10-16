@@ -1,5 +1,10 @@
 import mongoose from "mongoose";
 
+import {
+        ORDER_STATUS_ENUM,
+        HEXALOG_STATUS_ENUM,
+        HEXALOG_NDR_STATUS_ENUM,
+} from "../constants/orderStatus.js";
 import { normalizeCouponValue } from "./utils/normalizeCouponValue.js";
 
 const GstBreakdownSchema = new mongoose.Schema(
@@ -211,19 +216,26 @@ const OrderSchema = new mongoose.Schema(
 		],
 
 		// Tracking buyer-level
-		status: {
-			type: String,
-			enum: [
-				"pending",
-				"confirmed",
-				"processing",
-				"shipped",
-				"delivered",
-				"cancelled",
-				"returned",
-			],
-			default: "pending",
-		},
+                status: {
+                        type: String,
+                        enum: ORDER_STATUS_ENUM,
+                        default: "pending",
+                },
+
+                hexalogStatus: {
+                        type: String,
+                        enum: HEXALOG_STATUS_ENUM,
+                        default: null,
+                },
+                hexalogStatusUpdatedAt: {
+                        type: Date,
+                        default: null,
+                },
+                hexalogNdrStatus: {
+                        type: String,
+                        enum: HEXALOG_NDR_STATUS_ENUM,
+                        default: null,
+                },
 
 		orderDate: { type: Date, default: Date.now },
 		edd: String, // Estimated Delivery Date as string for quick display

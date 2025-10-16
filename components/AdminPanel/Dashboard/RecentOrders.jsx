@@ -6,16 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye, Clock } from "lucide-react";
 import Link from "next/link";
-
-const statusColors = {
-	pending: "bg-yellow-100 text-yellow-800",
-	confirmed: "bg-blue-100 text-blue-800",
-	processing: "bg-purple-100 text-purple-800",
-	shipped: "bg-indigo-100 text-indigo-800",
-	delivered: "bg-green-100 text-green-800",
-	cancelled: "bg-red-100 text-red-800",
-	returned: "bg-gray-100 text-gray-800",
-};
+import {
+        getOrderDisplayStatus,
+        getOrderStatusBadgeColor,
+} from "@/constants/orderStatus.js";
 
 export function RecentOrders({ orders = [] }) {
 	return (
@@ -56,13 +50,13 @@ export function RecentOrders({ orders = [] }) {
 											<p className="font-semibold text-gray-900">
 												#{order.orderNumber}
 											</p>
-											<Badge
-												className={
-													statusColors[order.status] || statusColors.pending
-												}
-											>
-												{order.status}
-											</Badge>
+                                                                                        <Badge
+                                                                                                className={getOrderStatusBadgeColor(
+                                                                                                        order.status
+                                                                                                )}
+                                                                                        >
+                                                                                                {getOrderDisplayStatus(order)}
+                                                                                        </Badge>
 										</div>
 										<p className="text-sm text-gray-600">
 											{order.customerName}

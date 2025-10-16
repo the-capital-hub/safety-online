@@ -15,15 +15,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
+        Select,
+        SelectContent,
+        SelectItem,
+        SelectTrigger,
+        SelectValue,
 } from "@/components/ui/select";
 import { toast } from "react-hot-toast";
 import { useAdminOrderStore } from "@/store/adminOrderStore.js";
 import { GST_RATE_PERCENT } from "@/lib/utils/gst.js";
+import { ORDER_STATUS_UPDATE_OPTIONS, getOrderStatusLabel } from "@/constants/orderStatus.js";
 
 export function UpdateOrderPopup({ open, onOpenChange, order, onUpdate }) {
         const { updateOrder, loading } = useAdminOrderStore();
@@ -164,13 +165,11 @@ export function UpdateOrderPopup({ open, onOpenChange, order, onUpdate }) {
 										<SelectValue placeholder="Select status" />
 									</SelectTrigger>
 									<SelectContent>
-										<SelectItem value="pending">Pending</SelectItem>
-										<SelectItem value="confirmed">Confirmed</SelectItem>
-										<SelectItem value="processing">Processing</SelectItem>
-										<SelectItem value="shipped">Shipped</SelectItem>
-										<SelectItem value="delivered">Delivered</SelectItem>
-										<SelectItem value="cancelled">Cancelled</SelectItem>
-										<SelectItem value="returned">Returned</SelectItem>
+                                                                                {ORDER_STATUS_UPDATE_OPTIONS.map((value) => (
+                                                                                        <SelectItem key={value} value={value}>
+                                                                                                {getOrderStatusLabel(value)}
+                                                                                        </SelectItem>
+                                                                                ))}
 									</SelectContent>
 								</Select>
 							</div>
