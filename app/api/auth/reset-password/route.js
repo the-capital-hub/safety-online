@@ -1,26 +1,40 @@
 import User from "@/model/User";
 import { dbConnect } from "@/lib/dbConnect";
-import { verifyToken } from "@/lib/auth";
-import bcrypt from "bcryptjs";
+import crypto from "crypto";
 
 export async function POST(req) {
-	await dbConnect();
-	const { token, newPassword } = await req.json();
+        await dbConnect();
+        const { token, newPassword } = await req.json();
 
-	try {
-		const decoded = verifyToken(token);
-		const user = await User.findById(decoded.id);
-		if (!user)
-			return Response.json({ message: "Invalid token" }, { status: 401 });
+        try {
+                if (!token || !newPassword) {
+                        return Response.json(
+                                { message: "Token and new password are required" },
+                                { status: 400 }
+                        );
+                }
 
-		user.password = await bcrypt.hash(newPassword, 12);
-		await user.save();
+                const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+                const user = await User.findOne({
+                        passwordResetToken: hashedToken,
+                        passwordResetExpires: { $gt: new Date() },
+                        passwordResetUsed: false,
+                });
 
-		return Response.json({ message: "Password updated successfully" });
-	} catch (err) {
-		return Response.json(
-			{ message: "Token expired or invalid" },
-			{ status: 401 }
-		);
+                if (!user)
+                        return Response.json({ message: "Token expired or invalid" }, { status: 401 });
+
+                user.password = newPassword;
+                user.passwordResetUsed = true;
+                user.passwordResetToken = undefined;
+                user.passwordResetExpires = undefined;
+                await user.save();
+
+                return Response.json({ message: "Password updated successfully" });
+        } catch (err) {
+                return Response.json(
+                        { message: "Token expired or invalid" },
+                        { status: 401 }
+                );
 	}
 }
