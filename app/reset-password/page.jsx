@@ -22,7 +22,6 @@ import Logo from "@/public/SafetyLogo.png";
 
 const ResetPasswordSchema = z
         .object({
-                token: z.string().trim().min(1, "Reset link is missing or invalid"),
                 newPassword: z
                         .string()
                         .min(6, "Password must be at least 6 characters")
@@ -60,8 +59,8 @@ export default function ResetPasswordPage() {
         const router = useRouter();
         const searchParams = useSearchParams();
         const redirectTo = searchParams.get("redirect") ?? "/login";
+        const token = searchParams.get("token")?.trim() ?? "";
         const [formData, setFormData] = useState({
-                token: searchParams.get("token") ?? "",
                 newPassword: "",
                 confirmPassword: "",
         });
@@ -81,13 +80,18 @@ export default function ResetPasswordPage() {
                         return;
                 }
 
+                if (!token) {
+                        toast.error("Reset link is missing or invalid");
+                        return;
+                }
+
                 setIsSubmitting(true);
                 try {
                         const response = await fetch("/api/auth/reset-password", {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify({
-                                        token: parsed.data.token,
+                                        token,
                                         newPassword: parsed.data.newPassword,
                                 }),
                         });
@@ -96,7 +100,7 @@ export default function ResetPasswordPage() {
                         if (response.ok) {
                                 toast.success(data.message || "Password updated successfully");
                                 setIsSuccess(true);
-                                setFormData((prev) => ({ ...prev, newPassword: "", confirmPassword: "" }));
+                                setFormData({ newPassword: "", confirmPassword: "" });
                         } else {
                                 toast.error(data.message || "Failed to reset password");
                         }
@@ -159,23 +163,15 @@ export default function ResetPasswordPage() {
                                                                 className="space-y-6"
                                                                 variants={containerVariants}
                                                         >
-                                                                <motion.div variants={itemVariants} className="space-y-2">
-                                                                        <Label htmlFor="token" className="text-gray-700 font-medium">
-                                                                                Reset token
-                                                                        </Label>
-                                                                        <Input
-                                                                                id="token"
-                                                                                name="token"
-                                                                                value={formData.token}
-                                                                                onChange={handleChange("token")}
-                                                                                placeholder="Paste the reset link token"
-                                                                                className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                                                                                required
-                                                                        />
-                                                                        <p className="text-xs text-gray-500">
-                                                                                This token comes from the link sent to your email.
-                                                                        </p>
-                                                                </motion.div>
+                                                                {!token && (
+                                                                        <motion.div
+                                                                                variants={itemVariants}
+                                                                                className="rounded-md bg-red-50 p-3 text-sm text-red-700"
+                                                                        >
+                                                                                The reset link is missing or invalid. Please use the link
+                                                                                from your email.
+                                                                        </motion.div>
+                                                                )}
                                                                 <motion.div variants={itemVariants} className="space-y-2">
                                                                         <Label htmlFor="newPassword" className="text-gray-700 font-medium">
                                                                                 New password
@@ -210,7 +206,7 @@ export default function ResetPasswordPage() {
                                                                         <Button
                                                                                 type="submit"
                                                                                 className="w-full h-12 bg-gray-800 hover:bg-gray-900 text-white font-medium"
-                                                                                disabled={isSubmitting}
+                                                                                disabled={isSubmitting || !token}
                                                                         >
                                                                                 {isSubmitting ? (
                                                                                         <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
