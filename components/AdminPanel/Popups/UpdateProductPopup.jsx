@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
 	Dialog,
@@ -25,9 +25,9 @@ import { Switch } from "@/components/ui/switch";
 import { Plus, X, User } from "lucide-react";
 import { useAdminProductStore } from "@/store/adminProductStore.js";
 import { ImageUpload } from "@/components/AdminPanel/ImageUpload.jsx";
+import { slugify } from "@/lib/slugify.js";
 
-const normalizeValue = (value) =>
-	typeof value === "string" ? value.trim().toLowerCase() : "";
+const toSlug = (value) => (value ? slugify(value) : "");
 
 const productTypes = [
 	{ value: "featured", label: "Featured" },
@@ -230,8 +230,8 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 					title: product.title || "",
 					description: product.description || "",
 					longDescription: product.longDescription || "",
-					category: product.category || "",
-					subCategory: product.subCategory || "",
+                                        category: toSlug(product.category) || "",
+                                        subCategory: toSlug(product.subCategory) || "",
 					price: initialPrice,
 					salePrice: initialSalePrice,
 					stocks: product.stocks?.toString() || "",
@@ -351,73 +351,62 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 		setFeatures(updatedFeatures);
 	};
 
-	const selectedCategory = categories.find(
-		(category) =>
-			normalizeValue(category.name) === normalizeValue(formData.category)
-	);
+        const categoriesWithSlugs = useMemo(
+                () =>
+                        categories.map((category) => {
+                                const categorySlug = toSlug(category.slug || category.name);
 
-	const availableSubCategories = selectedCategory?.subCategories ?? [];
+                                return {
+                                        ...category,
+                                        slug: categorySlug,
+                                        subCategories: (category.subCategories || []).map(
+                                                (subCategory) => ({
+                                                        ...subCategory,
+                                                        slug: toSlug(subCategory.slug || subCategory.name),
+                                                })
+                                        ),
+                                };
+                        }),
+                [categories]
+        );
 
-	useEffect(() => {
-		if (!categories.length) return;
+        const selectedCategory = useMemo(
+                () =>
+                        categoriesWithSlugs.find(
+                                (category) => category.slug === formData.category
+                        ),
+                [categoriesWithSlugs, formData.category]
+        );
 
-		setFormData((prev) => {
-			if (!prev.category) {
-				if (!prev.subCategory) {
-					return prev;
-				}
+        const availableSubCategories = selectedCategory?.subCategories ?? [];
 
-				return { ...prev, subCategory: "" };
-			}
+        useEffect(() => {
+                if (!formData.category) {
+                        if (formData.subCategory) {
+                                setFormData((prev) => ({ ...prev, subCategory: "" }));
+                        }
+                        return;
+                }
 
-			const currentCategory = categories.find(
-				(category) =>
-					normalizeValue(category.name) === normalizeValue(prev.category)
-			);
+                if (!selectedCategory) {
+                        if (formData.category || formData.subCategory) {
+                                setFormData((prev) => ({
+                                        ...prev,
+                                        category: "",
+                                        subCategory: "",
+                                }));
+                        }
+                        return;
+                }
 
-			if (!currentCategory) {
-				if (!prev.category && !prev.subCategory) {
-					return prev;
-				}
+                const hasValidSubCategory = selectedCategory.subCategories.some(
+                        (subCategory) => subCategory.slug === formData.subCategory
+                );
 
-				return { ...prev, category: "", subCategory: "" };
-			}
-
-			let updatedCategory = prev.category;
-			let updatedSubCategory = prev.subCategory;
-
-			if (currentCategory.name !== prev.category) {
-				updatedCategory = currentCategory.name;
-			}
-
-			if (prev.subCategory) {
-				const matchedSubCategory = (currentCategory.subCategories || []).find(
-					(subCategory) =>
-						normalizeValue(subCategory.name) ===
-						normalizeValue(prev.subCategory)
-				);
-
-				if (!matchedSubCategory) {
-					updatedSubCategory = "";
-				} else if (matchedSubCategory.name !== prev.subCategory) {
-					updatedSubCategory = matchedSubCategory.name;
-				}
-			}
-
-			if (
-				updatedCategory !== prev.category ||
-				updatedSubCategory !== prev.subCategory
-			) {
-				return {
-					...prev,
-					category: updatedCategory,
-					subCategory: updatedSubCategory,
-				};
-			}
-
-			return prev;
-		});
-	}, [categories, product]);
+                if (!hasValidSubCategory && formData.subCategory) {
+                        setFormData((prev) => ({ ...prev, subCategory: "" }));
+                }
+        }, [formData.category, formData.subCategory, selectedCategory]);
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -568,13 +557,13 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 									<SelectTrigger className="mt-1">
 										<SelectValue placeholder="Select category" />
 									</SelectTrigger>
-									<SelectContent>
-										{categories.map((category) => (
-											<SelectItem key={category._id} value={category.name}>
-												{category.name}
-											</SelectItem>
-										))}
-									</SelectContent>
+                                                                        <SelectContent>
+                                                                                {categoriesWithSlugs.map((category) => (
+                                                                                        <SelectItem key={category._id} value={category.slug}>
+                                                                                                {category.name}
+                                                                                        </SelectItem>
+                                                                                ))}
+                                                                        </SelectContent>
 								</Select>
 							</div>
 
@@ -603,15 +592,15 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 										<SelectItem value={NO_SUBCATEGORY_VALUE}>
 											No subcategory
 										</SelectItem>
-										{availableSubCategories.map((subCategory) => (
-											<SelectItem
-												key={subCategory.name}
-												value={subCategory.name}
-											>
-												{subCategory.name}
-											</SelectItem>
-										))}
-									</SelectContent>
+                                                                                {availableSubCategories.map((subCategory) => (
+                                                                                        <SelectItem
+                                                                                                key={`${selectedCategory?.slug || ""}-${subCategory.slug}`}
+                                                                                                value={subCategory.slug}
+                                                                                        >
+                                                                                                {subCategory.name}
+                                                                                        </SelectItem>
+                                                                                ))}
+                                                                        </SelectContent>
 								</Select>
 							</div>
 
