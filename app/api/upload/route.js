@@ -9,6 +9,7 @@ const ALLOWED_FOLDERS = {
         default: "safety_product_reviews",
         brand_promotions: "safety_brand_promotions",
         blog_covers: "safety_blog_covers",
+        blog_content: "safety_blog_content",
 };
 
 export async function POST(req) {
