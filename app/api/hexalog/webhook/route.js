@@ -1,5 +1,6 @@
 import dbConnect from "@/lib/dbConnect";
 import SubOrder from "@/model/SubOrder";
+import { updateOrderStatusFromHexalog } from "@/lib/orders/statusHelpers.js";
 import { createHmac } from "crypto";
 
 // ✅ Ensure raw body available (needed for HMAC)
@@ -68,15 +69,33 @@ export default async function handler(req, res) {
 				return res.status(404).json({ error: "SubOrder not found" });
 			}
 
-			const statusMap = {
-				Delivered: "delivered",
-				"Out for Delivery": "out_for_delivery",
-				"In Transit": "in_transit",
-				"Picked Up": "picked_up",
-				Undelivered: "failed_delivery",
-				RTO: "rto",
-				Cancelled: "cancelled",
-			};
+                        const statusMap = {
+                                Delivered: "delivered",
+                                "Out for Delivery": "out_for_delivery",
+                                "In Transit": "in_transit",
+                                "Order Placed": "order_placed",
+                                "Picked Up": "picked_up",
+                                "Out for Pickup": "picked_up",
+                                Undelivered: "failed_delivery",
+                                RTO: "rto",
+                                Cancelled: "cancelled",
+                                "Seller Cancelled": "cancelled",
+                                "RTO Requested": "rto",
+                                "Seller RTO Requested": "rto",
+                                "RTO In Transit": "rto",
+                                "RTO Out for Delivery": "rto",
+                                "RTO Delivered": "rto",
+                                "RTO Failed": "failed_delivery",
+                                "Pickup Pending": "order_placed",
+                                "Pickup Scheduled": "order_placed",
+                                "Pickup Cancelled": "cancelled",
+                                Lost: "failed_delivery",
+                                Damaged: "failed_delivery",
+                                "Shipment Delayed": "in_transit",
+                                "Not Serviceable": "cancelled",
+                                "Not Picked": "failed_delivery",
+                                "RTO Shipment Delayed": "rto",
+                        };
 			const mappedStatus = statusMap[status] || "in_transit";
 
 			subOrder.shipmentPackage = {
@@ -95,18 +114,42 @@ export default async function handler(req, res) {
 						: subOrder.shipmentPackage?.deliveredAt,
 			};
 
-			if (mappedStatus === "delivered") {
-				subOrder.status = "delivered";
-				subOrder.actualDelivery = new Date(ctime);
-			} else if (
-				["shipped", "in_transit", "out_for_delivery"].includes(mappedStatus)
-			) {
-				subOrder.status = "shipped";
-			}
+                        if (mappedStatus === "delivered") {
+                                subOrder.status = "delivered";
+                                subOrder.actualDelivery = new Date(ctime);
+                        } else if (mappedStatus === "cancelled") {
+                                subOrder.status = "cancelled";
+                        } else if (["failed_delivery", "rto"].includes(mappedStatus)) {
+                                subOrder.status = "returned";
+                        } else if (
+                                [
+                                        "order_placed",
+                                        "picked_up",
+                                        "in_transit",
+                                        "out_for_delivery",
+                                ].includes(mappedStatus)
+                        ) {
+                                subOrder.status = "shipped";
+                        }
 
-			await subOrder.save();
-			return res.status(200).json({ message: "track_updated processed" });
-		}
+                        await subOrder.save();
+
+                        const ndrStatus =
+                                payload.ndrStatus ||
+                                payload.ndr_status ||
+                                payload.ndrReason ||
+                                payload.ndr_reason ||
+                                null;
+
+                        if (subOrder.orderId) {
+                                await updateOrderStatusFromHexalog({
+                                        orderId: subOrder.orderId,
+                                        rawStatus: status,
+                                        rawNdrStatus: ndrStatus,
+                                });
+                        }
+                        return res.status(200).json({ message: "track_updated processed" });
+                }
 
 		// ---------------------------
 		// 2️⃣ shipment_created / shipment_recreated
