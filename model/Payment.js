@@ -139,7 +139,6 @@ const PaymentSchema = new mongoose.Schema(
 
 PaymentSchema.index({ sellerId: 1, status: 1 });
 PaymentSchema.index({ orderId: 1 });
-PaymentSchema.index({ subOrderId: 1 });
 PaymentSchema.index({ orderNumber: 1 });
 
 const existingPaymentModel = mongoose.models?.Payment;
