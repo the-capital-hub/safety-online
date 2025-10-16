@@ -23,6 +23,8 @@ const DESIRED_CATEGORY_ORDER = [
         "road-sign",
 ];
 
+const PERSONAL_SAFETY_SLUG = "personal-safety";
+
 const PRIORITY_SUBCATEGORY_ORDER = {
         "road-safety": ["traffic-cones-and-accessories"],
 };
@@ -64,6 +66,20 @@ const createCategoryComparator = () => {
         );
 
         return (a, b) => {
+                if (
+                        a.slug === PERSONAL_SAFETY_SLUG &&
+                        b.slug !== PERSONAL_SAFETY_SLUG
+                ) {
+                        return 1;
+                }
+
+                if (
+                        b.slug === PERSONAL_SAFETY_SLUG &&
+                        a.slug !== PERSONAL_SAFETY_SLUG
+                ) {
+                        return -1;
+                }
+
                 const orderA = orderMap.get(a.slug);
                 const orderB = orderMap.get(b.slug);
                 const hasOrderA = orderA !== undefined;
