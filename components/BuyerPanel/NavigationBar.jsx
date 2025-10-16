@@ -23,6 +23,10 @@ const DESIRED_CATEGORY_ORDER = [
         "road-sign",
 ];
 
+const PRIORITY_SUBCATEGORY_ORDER = {
+        "road-safety": ["traffic-cones-and-accessories"],
+};
+
 const toNumber = (value) => {
         const parsed = Number(value);
         return Number.isFinite(parsed) ? parsed : 0;
@@ -85,6 +89,42 @@ const createCategoryComparator = () => {
         };
 };
 
+const createSubCategoryComparator = (categorySlug) => {
+        const priorityOrder = PRIORITY_SUBCATEGORY_ORDER[categorySlug] || [];
+        const priorityMap = new Map(
+                priorityOrder.map((slug, index) => [slug, index])
+        );
+
+        const hasPriorityEntries = priorityMap.size > 0;
+
+        return (a, b) => {
+                if (hasPriorityEntries) {
+                        const orderA = priorityMap.get(a.slug);
+                        const orderB = priorityMap.get(b.slug);
+                        const hasOrderA = orderA !== undefined;
+                        const hasOrderB = orderB !== undefined;
+
+                        if (hasOrderA && hasOrderB && orderA !== orderB) {
+                                return orderA - orderB;
+                        }
+
+                        if (hasOrderA && !hasOrderB) {
+                                return -1;
+                        }
+
+                        if (!hasOrderA && hasOrderB) {
+                                return 1;
+                        }
+                }
+
+                if (a.navigationOrder !== b.navigationOrder) {
+                        return a.navigationOrder - b.navigationOrder;
+                }
+
+                return a.name.localeCompare(b.name);
+        };
+};
+
 export default function NavigationBar({ isMenuOpen = false, onMenuClose }) {
         const router = useRouter();
         const pathname = usePathname();
@@ -112,14 +152,19 @@ export default function NavigationBar({ isMenuOpen = false, onMenuClose }) {
                                 if (data.success && Array.isArray(data.categories)) {
                                         const categoryComparator = createCategoryComparator();
 
-                                        const mappedCategories = data.categories
-                                                .map((category) => {
-                                                        const categorySlug = slugify(
-                                                                category.slug || category.name
+                                const mappedCategories = data.categories
+                                        .map((category) => {
+                                                const categorySlug = slugify(
+                                                        category.slug || category.name
+                                                );
+
+                                                const subCategoryComparator =
+                                                        createSubCategoryComparator(
+                                                                categorySlug
                                                         );
 
-                                                        return {
-                                                                ...category,
+                                                return {
+                                                        ...category,
                                                                 navigationOrder: normalizeNavigationOrder(
                                                                         category.navigationOrder
                                                                 ),
@@ -139,18 +184,9 @@ export default function NavigationBar({ isMenuOpen = false, onMenuClose }) {
                                                                                         subCategory.slug || subCategory.name
                                                                                 ),
                                                                         }))
-                                                                        .sort((a, b) => {
-                                                                                if (a.navigationOrder === b.navigationOrder) {
-                                                                                        return a.name.localeCompare(b.name);
-                                                                                }
-
-                                                                                return (
-                                                                                        a.navigationOrder -
-                                                                                        b.navigationOrder
-                                                                                );
-                                                                        }),
-                                                        };
-                                                })
+                                                                        .sort(subCategoryComparator),
+                                                };
+                                        })
                                                 .sort(categoryComparator);
 
                                         setCategories(mappedCategories);
