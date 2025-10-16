@@ -209,7 +209,7 @@ export function InvoicePopup({ open, onOpenChange, order }) {
                                                 {gstLines.length > 0 && (
                                                         <p className="text-xs text-gray-500">
                                                                 {gstMode === "cgst_sgst"
-                                                                        ? "CGST & SGST applied for Bengaluru deliveries"
+                                                                        ? "CGST & SGST applied for Karnataka deliveries"
                                                                         : "IGST applied for this delivery"}
                                                         </p>
                                                 )}
