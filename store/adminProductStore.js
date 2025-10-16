@@ -8,15 +8,16 @@ export const useAdminProductStore = create((set, get) => ({
 	products: [],
 	isLoading: false,
 	error: null,
-	filters: {
-		search: "",
-		category: "all",
-		minPrice: "",
-		maxPrice: "",
-		discount: "",
-		published: null,
-		inStock: null,
-	},
+        filters: {
+                search: "",
+                category: "all",
+                subCategory: "all",
+                minPrice: "",
+                maxPrice: "",
+                discount: "",
+                published: null,
+                inStock: null,
+        },
 	pagination: {
 		currentPage: 1,
 		totalPages: 1,
@@ -416,15 +417,16 @@ export const useAdminProductStore = create((set, get) => ({
 
 	resetFilters: () => {
 		set({
-			filters: {
-				search: "",
-				category: "all",
-				minPrice: "",
-				maxPrice: "",
-				discount: "",
-				published: null,
-				inStock: null,
-			},
+                        filters: {
+                                search: "",
+                                category: "all",
+                                subCategory: "all",
+                                minPrice: "",
+                                maxPrice: "",
+                                discount: "",
+                                published: null,
+                                inStock: null,
+                        },
 			pagination: { ...get().pagination, currentPage: 1 },
 		});
 		get().fetchProducts();
