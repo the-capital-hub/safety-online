@@ -19,15 +19,21 @@ export async function GET(request, { params }) {
 			);
 		}
 
-		const order = await Order.findById(id)
-			.populate("userId", "firstName lastName email mobile")
-			.populate({
-				path: "subOrders",
-				populate: {
-					path: "products.productId",
-					select: "name title images price",
-				},
-			})
+                const order = await Order.findById(id)
+                        .populate("userId", "firstName lastName email mobile")
+                        .populate({
+                                path: "subOrders",
+                                populate: [
+                                        {
+                                                path: "products.productId",
+                                                select: "name title images price",
+                                        },
+                                        {
+                                                path: "sellerId",
+                                                select: "firstName lastName email mobile",
+                                        },
+                                ],
+                        })
 			.populate("couponApplied.couponId", "code discountType discountValue");
 
 		if (!order) {
@@ -67,19 +73,19 @@ export async function PUT(request, { params }) {
 
 		const existingOrder = await Order.findById(id)
 			.populate("userId", "firstName lastName email")
-			.populate({
-				path: "subOrders",
-				populate: [
-					{
-						path: "products.productId",
-						select: "name title images price",
-					},
-					{
-						path: "sellerId",
-						select: "name businessName",
-					},
-				],
-			});
+                        .populate({
+                                path: "subOrders",
+                                populate: [
+                                        {
+                                                path: "products.productId",
+                                                select: "name title images price",
+                                        },
+                                        {
+                                                path: "sellerId",
+                                                select: "firstName lastName email mobile",
+                                        },
+                                ],
+                        });
 
 		if (!existingOrder) {
 			return NextResponse.json(
@@ -102,19 +108,19 @@ export async function PUT(request, { params }) {
 			runValidators: true,
 		})
 			.populate("userId", "firstName lastName email")
-			.populate({
-				path: "subOrders",
-				populate: [
-					{
-						path: "products.productId",
-						select: "name title images price",
-					},
-					{
-						path: "sellerId",
-						select: "name businessName",
-					},
-				],
-			});
+                        .populate({
+                                path: "subOrders",
+                                populate: [
+                                        {
+                                                path: "products.productId",
+                                                select: "name title images price",
+                                        },
+                                        {
+                                                path: "sellerId",
+                                                select: "firstName lastName email mobile",
+                                        },
+                                ],
+                        });
 
 		if (!order) {
 			return NextResponse.json(
