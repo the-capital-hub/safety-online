@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,16 +21,68 @@ export default function CategorySection({
 	const [localSearch, setLocalSearch] = useState(searchQuery);
 	const [viewMode, setViewMode] = useState("grid");
 
-	const handleSearchSubmit = (e) => {
-		e.preventDefault();
-		if (onSearch) {
-			onSearch(localSearch);
-		}
-	};
+        const handleSearchSubmit = (e) => {
+                e.preventDefault();
+                if (onSearch) {
+                        onSearch(localSearch);
+                }
+        };
 
-	const handleCategoryChange = (category) => {
-		setSelectedCategory(category);
-	};
+        const handleCategoryChange = (category) => {
+                setSelectedCategory(category);
+        };
+
+        const categoryOptions = useMemo(() => {
+                if (!Array.isArray(categories) || categories.length === 0) {
+                        return [{ value: "All", label: "All" }];
+                }
+
+                const seen = new Set();
+
+                const formatLabel = (value) => {
+                        return value
+                                .replace(/[_-]+/g, " ")
+                                .replace(/\s+/g, " ")
+                                .trim()
+                                .split(" ")
+                                .filter(Boolean)
+                                .map((word) =>
+                                        word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+                                )
+                                .join(" ");
+                };
+
+                return categories.reduce((acc, rawCategory) => {
+                        if (typeof rawCategory !== "string") {
+                                return acc;
+                        }
+
+                        const trimmedValue = rawCategory.trim();
+
+                        if (!trimmedValue) {
+                                return acc;
+                        }
+
+                        const key = trimmedValue.toLowerCase();
+
+                        if (seen.has(key)) {
+                                return acc;
+                        }
+
+                        seen.add(key);
+
+                        const option = {
+                                value: key === "all" ? "All" : trimmedValue,
+                                label: formatLabel(trimmedValue) || "All",
+                        };
+
+                        if (key === "all") {
+                                return [option, ...acc];
+                        }
+
+                        return [...acc, option];
+                }, []);
+        }, [categories]);
 
 	// Loading state
 	if (isLoading && products.length === 0) {
@@ -95,19 +147,25 @@ export default function CategorySection({
 					transition={{ delay: 0.2 }}
 					className="flex flex-wrap gap-2 mb-6 md:mb-8 justify-center"
 				>
-					{categories.map((category) => (
-						<Button
-							key={category}
-							variant={selectedCategory === category ? "default" : "outline"}
-							className={
-								selectedCategory === category ? "bg-black text-white" : ""
-							}
-							onClick={() => handleCategoryChange(category)}
-							size="sm"
-						>
-							{category}
-						</Button>
-					))}
+                                        {categoryOptions.map((category) => (
+                                                <Button
+                                                        key={category.value}
+                                                        variant={
+                                                                selectedCategory === category.value
+                                                                        ? "default"
+                                                                        : "outline"
+                                                        }
+                                                        className={
+                                                                selectedCategory === category.value
+                                                                        ? "bg-black text-white"
+                                                                        : ""
+                                                        }
+                                                        onClick={() => handleCategoryChange(category.value)}
+                                                        size="sm"
+                                                >
+                                                        {category.label}
+                                                </Button>
+                                        ))}
 				</motion.div>
 
 				{/* Controls */}
