@@ -28,6 +28,7 @@ import {
         Phone,
         Mail,
         Truck,
+        Store,
         Loader2,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
@@ -133,6 +134,10 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
                 return [];
         })();
 
+        const subOrders = Array.isArray(resolvedOrder?.subOrders)
+                ? resolvedOrder.subOrders
+                : [];
+
         const getSafeAmount = (value) => {
                 const numericValue = Number.parseFloat(value);
                 return Number.isFinite(numericValue) ? numericValue : 0;
@@ -153,6 +158,15 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
         }
 
         const formatCurrency = (value) => currencyFormatter.format(getSafeAmount(value));
+
+        const formatDate = (value) => {
+                if (!value) {
+                        return null;
+                }
+
+                const date = new Date(value);
+                return Number.isNaN(date.getTime()) ? null : date.toLocaleDateString();
+        };
 
         const gstLines = buildGstLineItems(resolvedOrder.gst);
         const gstMode = resolvedOrder?.gst?.mode || "igst";
@@ -479,7 +493,158 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
 							</Card>
 						)}
 
-						{/* Products */}
+                                                {/* Seller fulfilment overview */}
+                                                {subOrders.length > 0 && (
+                                                        <Card>
+                                                                <CardHeader>
+                                                                        <CardTitle className="flex items-center gap-2">
+                                                                                <Store className="w-5 h-5" />
+                                                                                Seller fulfilment ({subOrders.length})
+                                                                        </CardTitle>
+                                                                </CardHeader>
+                                                                <CardContent>
+                                                                        <div className="space-y-4">
+                                                                                {subOrders.map((subOrder, index) => {
+                                                                                        const seller =
+                                                                                                subOrder &&
+                                                                                                typeof subOrder.sellerId === "object" &&
+                                                                                                subOrder.sellerId !== null
+                                                                                                        ? subOrder.sellerId
+                                                                                                        : null;
+                                                                                        const sellerName =
+                                                                                                seller?.businessName ||
+                                                                                                [seller?.firstName, seller?.lastName]
+                                                                                                        .filter(Boolean)
+                                                                                                        .join(" ") ||
+                                                                                                "Unknown seller";
+                                                                                        const sellerEmail = seller?.email || "";
+                                                                                        const sellerPhone = seller?.mobile || "";
+                                                                                        const subOrderStatus =
+                                                                                                typeof subOrder?.status === "string" && subOrder.status
+                                                                                                        ? subOrder.status
+                                                                                                        : "pending";
+                                                                                        const estimatedDelivery =
+                                                                                                formatDate(subOrder?.estimatedDelivery || subOrder?.edd);
+                                                                                        const actualDelivery = formatDate(subOrder?.actualDelivery);
+                                                                                        const subOrderTotal =
+                                                                                                subOrder?.totalAmount ??
+                                                                                                subOrder?.taxableAmount ??
+                                                                                                subOrder?.subtotal ??
+                                                                                                0;
+                                                                                        const paymentLabel =
+                                                                                                subOrder?.paymentMethod ||
+                                                                                                resolvedOrder.paymentMethod ||
+                                                                                                "";
+                                                                                        const normalizedPaymentLabel =
+                                                                                                paymentLabel
+                                                                                                        ? formatStatusLabel(String(paymentLabel))
+                                                                                                        : null;
+                                                                                        const products = Array.isArray(subOrder?.products)
+                                                                                                ? subOrder.products
+                                                                                                : [];
+
+                                                                                        return (
+                                                                                                <div
+                                                                                                        key={subOrder?._id || index}
+                                                                                                        className="border rounded-lg p-4 space-y-4"
+                                                                                                >
+                                                                                                        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                                                                                                                <div className="flex items-center gap-2">
+                                                                                                                        <Badge variant="outline" className="uppercase tracking-wide text-xs">
+                                                                                                                                Sub-order {index + 1}
+                                                                                                                        </Badge>
+                                                                                                                        {subOrder?._id && (
+                                                                                                                                <span className="text-xs text-gray-500 break-all">
+                                                                                                                                        #{subOrder._id}
+                                                                                                                                </span>
+                                                                                                                        )}
+                                                                                                                </div>
+                                                                                                                <Badge className={getStatusColor(subOrderStatus)}>
+                                                                                                                        {formatStatusLabel(subOrderStatus)}
+                                                                                                                </Badge>
+                                                                                                        </div>
+
+                                                                                                        <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-4">
+                                                                                                                <div className="space-y-1">
+                                                                                                                        <p className="text-xs uppercase text-gray-500">Seller</p>
+                                                                                                                        <p className="font-medium text-gray-900">{sellerName}</p>
+                                                                                                                </div>
+                                                                                                                <div className="space-y-1">
+                                                                                                                        <p className="text-xs uppercase text-gray-500">Seller contact</p>
+                                                                                                                        <div className="flex items-center gap-2 text-gray-700">
+                                                                                                                                <Mail className="w-4 h-4 text-gray-400" />
+                                                                                                                                <span>{sellerEmail || "N/A"}</span>
+                                                                                                                        </div>
+                                                                                                                        <div className="flex items-center gap-2 text-gray-700">
+                                                                                                                                <Phone className="w-4 h-4 text-gray-400" />
+                                                                                                                                <span>{sellerPhone || "N/A"}</span>
+                                                                                                                        </div>
+                                                                                                                </div>
+                                                                                                                <div className="space-y-1">
+                                                                                                                        <p className="text-xs uppercase text-gray-500">Fulfilment</p>
+                                                                                                                        {estimatedDelivery && (
+                                                                                                                                <p className="text-gray-700">EDD: {estimatedDelivery}</p>
+                                                                                                                        )}
+                                                                                                                        {actualDelivery && (
+                                                                                                                                <p className="text-gray-700">Delivered: {actualDelivery}</p>
+                                                                                                                        )}
+                                                                                                                        {!estimatedDelivery && !actualDelivery && (
+                                                                                                                                <p className="text-gray-500">No delivery timeline yet</p>
+                                                                                                                        )}
+                                                                                                                </div>
+                                                                                                                <div className="space-y-1">
+                                                                                                                        <p className="text-xs uppercase text-gray-500">Payment &amp; totals</p>
+                                                                                                                        <p className="text-gray-700">
+                                                                                                                                {normalizedPaymentLabel || "N/A"}
+                                                                                                                        </p>
+                                                                                                                        <p className="text-base font-semibold text-gray-900">
+                                                                                                                                {formatCurrency(subOrderTotal)}
+                                                                                                                        </p>
+                                                                                                                </div>
+                                                                                                        </div>
+
+                                                                                                        {products.length > 0 && (
+                                                                                                                <div className="space-y-2">
+                                                                                                                        <p className="text-xs uppercase text-gray-500">Items in this sub-order</p>
+                                                                                                                        <div className="space-y-3">
+                                                                                                                                {products.map((product, productIndex) => {
+                                                                                                                                        const productName =
+                                                                                                                                                product?.productName ||
+                                                                                                                                                product?.productId?.name ||
+                                                                                                                                                product?.productId?.title ||
+                                                                                                                                                "Unknown product";
+                                                                                                                                        const quantity = product?.quantity || 0;
+                                                                                                                                        const productTotal =
+                                                                                                                                                product?.totalPrice ??
+                                                                                                                                                getSafeAmount(product?.price) * quantity;
+
+                                                                                                                                        return (
+                                                                                                                                                <div
+                                                                                                                                                        key={product?.productId?._id || productIndex}
+                                                                                                                                                        className="flex flex-col gap-1 text-sm md:flex-row md:items-center md:justify-between"
+                                                                                                                                                >
+                                                                                                                                                        <div>
+                                                                                                                                                                <p className="font-medium text-gray-900">{productName}</p>
+                                                                                                                                                                <p className="text-xs text-gray-500">Qty: {quantity}</p>
+                                                                                                                                                        </div>
+                                                                                                                                                        <p className="font-medium text-gray-900">
+                                                                                                                                                                {formatCurrency(productTotal)}
+                                                                                                                                                        </p>
+                                                                                                                                                </div>
+                                                                                                                                        );
+                                                                                                                                })}
+                                                                                                                        </div>
+                                                                                                                </div>
+                                                                                                        )}
+                                                                                                </div>
+                                                                                        );
+                                                                                })}
+                                                                        </div>
+                                                                </CardContent>
+                                                        </Card>
+                                                )}
+
+                                                {/* Products */}
 						<Card>
                                                         <CardHeader>
                                                                 <CardTitle className="flex items-center gap-2">
