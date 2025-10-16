@@ -857,13 +857,13 @@ export const useCheckoutStore = create(
                                                 if (!gstin || gstin.length !== 15) {
                                                         toast.error("Please enter a valid 15-character GSTIN");
                                                         return { success: false, error: "Invalid GSTIN" };
-						}
+                                                }
 
-						if (!gstInvoice.legalName) {
-							toast.error("Please verify your GSTIN before placing the order");
-							return { success: false, error: "GSTIN not verified" };
-						}
-					}
+                                                if (!gstInvoice.lastVerifiedAt) {
+                                                        toast.error("Please verify your GSTIN before placing the order");
+                                                        return { success: false, error: "GSTIN not verified" };
+                                                }
+                                        }
 
 					set({ paymentLoading: true });
 
