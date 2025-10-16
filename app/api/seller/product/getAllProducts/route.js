@@ -1,6 +1,7 @@
 // api/seller/product/getAllProducts/route.js
 
 import { dbConnect } from "@/lib/dbConnect.js";
+import { slugify } from "@/lib/slugify.js";
 import Product from "@/model/Product.js";
 import jwt from "jsonwebtoken";
 
@@ -26,7 +27,8 @@ export async function GET(request) {
 
 		// Extract query parameters
 		const search = searchParams.get("search");
-		const category = searchParams.get("category");
+                const category = searchParams.get("category");
+                const subCategory = searchParams.get("subCategory");
 		const minPrice = searchParams.get("minPrice");
 		const maxPrice = searchParams.get("maxPrice");
 		const discount = searchParams.get("discount");
@@ -53,9 +55,13 @@ export async function GET(request) {
 		}
 
 		// Category filter
-		if (category && category !== "all") {
-			query.category = category;
-		}
+                if (category && category !== "all") {
+                        query.category = slugify(category);
+                }
+
+                if (subCategory && subCategory !== "all") {
+                        query.subCategory = slugify(subCategory);
+                }
 
 		// Price range filter
 		if (minPrice || maxPrice) {
