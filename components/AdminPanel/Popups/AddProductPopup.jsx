@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { motion } from "framer-motion"
 import {
   Dialog,
@@ -19,8 +19,9 @@ import { Switch } from "@/components/ui/switch"
 import { X, Plus, User } from "lucide-react"
 import { useAdminProductStore } from "@/store/adminProductStore.js"
 import { ImageUpload } from "@/components/AdminPanel/ImageUpload.jsx"
+import { slugify } from "@/lib/slugify.js"
 
-const normalizeValue = (value) => (typeof value === "string" ? value.trim().toLowerCase() : "")
+const toSlug = (value) => (value ? slugify(value) : "")
 
 const productTypes = [
   { value: "featured", label: "Featured" },
@@ -270,34 +271,53 @@ export function AddProductPopup({ open, onOpenChange }) {
     setFeatures(updatedFeatures)
   }
 
-  const selectedCategory = categories.find(
-    (category) => normalizeValue(category.name) === normalizeValue(formData.category)
+  const categoriesWithSlugs = useMemo(
+    () =>
+      categories.map((category) => {
+        const categorySlug = toSlug(category.slug || category.name)
+
+        return {
+          ...category,
+          slug: categorySlug,
+          subCategories: (category.subCategories || []).map((subCategory) => ({
+            ...subCategory,
+            slug: toSlug(subCategory.slug || subCategory.name),
+          })),
+        }
+      }),
+    [categories]
+  )
+
+  const selectedCategory = useMemo(
+    () => categoriesWithSlugs.find((category) => category.slug === formData.category),
+    [categoriesWithSlugs, formData.category]
   )
 
   const availableSubCategories = selectedCategory?.subCategories ?? []
 
   useEffect(() => {
-    if (!categories.length) return
-
-    const currentCategory = categories.find(
-      (category) => normalizeValue(category.name) === normalizeValue(formData.category)
-    )
-
-    if (!currentCategory) {
+    if (!formData.category) {
       if (formData.subCategory) {
         setFormData((prev) => ({ ...prev, subCategory: "" }))
       }
       return
     }
 
-    const hasValidSubCategory = (currentCategory.subCategories || []).some(
-      (subCategory) => normalizeValue(subCategory.name) === normalizeValue(formData.subCategory)
+    if (!selectedCategory) {
+      if (formData.category || formData.subCategory) {
+        setFormData((prev) => ({ ...prev, category: "", subCategory: "" }))
+      }
+      return
+    }
+
+    const hasValidSubCategory = availableSubCategories.some(
+      (subCategory) => subCategory.slug === formData.subCategory
     )
 
     if (!hasValidSubCategory && formData.subCategory) {
       setFormData((prev) => ({ ...prev, subCategory: "" }))
     }
-  }, [categories, formData.category, formData.subCategory])
+  }, [availableSubCategories, formData.category, formData.subCategory, selectedCategory])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -419,8 +439,8 @@ export function AddProductPopup({ open, onOpenChange }) {
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category._id} value={category.name}>
+                    {categoriesWithSlugs.map((category) => (
+                      <SelectItem key={category._id} value={category.slug}>
                         {category.name}
                       </SelectItem>
                     ))}
@@ -452,7 +472,7 @@ export function AddProductPopup({ open, onOpenChange }) {
                   <SelectContent>
                     <SelectItem value={NO_SUBCATEGORY_VALUE}>No subcategory</SelectItem>
                     {availableSubCategories.map((subCategory) => (
-                      <SelectItem key={subCategory.name} value={subCategory.name}>
+                      <SelectItem key={`${selectedCategory?.slug || ""}-${subCategory.slug}`} value={subCategory.slug}>
                         {subCategory.name}
                       </SelectItem>
                     ))}

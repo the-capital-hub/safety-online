@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
 	Dialog,
@@ -25,6 +25,7 @@ import { Switch } from "@/components/ui/switch";
 import { X, Plus } from "lucide-react";
 import { useSellerProductStore } from "@/store/sellerProductStore.js";
 import { ImageUpload } from "@/components/AdminPanel/ImageUpload.jsx";
+import { slugify } from "@/lib/slugify.js";
 
 // const categories = [
 // 	{ value: "personal-safety", label: "Personal Safety" },
@@ -45,11 +46,12 @@ const productTypes = [
 	{ value: "discounted", label: "Discounted" },
 ];
 
+const toSlug = (value) => (value ? slugify(value) : "");
+
 export function AddProductPopup({ open, onOpenChange }) {
         const { addProduct, categories, fetchCategories } = useSellerProductStore();
         const [isSubmitting, setIsSubmitting] = useState(false);
         const [features, setFeatures] = useState([""]);
-	const [selectedCategory, setSelectedCategory] = useState(null);
 
 	const [formData, setFormData] = useState({
 		title: "",
@@ -83,14 +85,58 @@ export function AddProductPopup({ open, onOpenChange }) {
 		}
 	}, [open, fetchCategories]);
 
-	useEffect(() => {
-		if (formData.category) {
-			const category = categories.find((cat) => cat.name === formData.category);
-			setSelectedCategory(category);
-			// Reset subcategory when category changes
-			setFormData((prev) => ({ ...prev, subCategory: "" }));
-		}
-	}, [formData.category, categories]);
+        const categoriesWithSlugs = useMemo(
+                () =>
+                        categories.map((category) => {
+                                const categorySlug = toSlug(category.slug || category.name);
+
+                                return {
+                                        ...category,
+                                        slug: categorySlug,
+                                        subCategories: (category.subCategories || []).map(
+                                                (subCategory) => ({
+                                                        ...subCategory,
+                                                        slug: toSlug(subCategory.slug || subCategory.name),
+                                                })
+                                        ),
+                                };
+                        }),
+                [categories]
+        );
+
+        const selectedCategory = useMemo(
+                () =>
+                        categoriesWithSlugs.find(
+                                (category) => category.slug === formData.category
+                        ),
+                [categoriesWithSlugs, formData.category]
+        );
+
+        const availableSubCategories = selectedCategory?.subCategories ?? [];
+
+        useEffect(() => {
+                if (!formData.category) {
+                        if (formData.subCategory) {
+                                setFormData((prev) => ({ ...prev, subCategory: "" }));
+                        }
+                        return;
+                }
+
+                if (!selectedCategory) {
+                        if (formData.category || formData.subCategory) {
+                                setFormData((prev) => ({ ...prev, category: "", subCategory: "" }));
+                        }
+                        return;
+                }
+
+                const hasValidSubCategory = availableSubCategories.some(
+                        (subCategory) => subCategory.slug === formData.subCategory
+                );
+
+                if (!hasValidSubCategory && formData.subCategory) {
+                        setFormData((prev) => ({ ...prev, subCategory: "" }));
+                }
+        }, [availableSubCategories, formData.category, formData.subCategory, selectedCategory]);
 
         const handleSubmit = async (e) => {
                 e.preventDefault();
@@ -281,54 +327,57 @@ export function AddProductPopup({ open, onOpenChange }) {
 								/>
 							</div>
 
-							<div>
-								<Label>Category *</Label>
-								<Select
-									value={formData.category}
-									onValueChange={(value) =>
-										setFormData({ ...formData, category: value })
-									}
-								>
-									<SelectTrigger className="mt-1">
-										<SelectValue placeholder="Select category" />
-									</SelectTrigger>
-									<SelectContent>
-										{categories
-											.filter((cat) => cat.published)
-											.map((category) => (
-												<SelectItem key={category._id} value={category.name}>
-													{category.name}
-												</SelectItem>
-											))}
-									</SelectContent>
-								</Select>
-							</div>
+                                                        <div>
+                                                                <Label>Category *</Label>
+                                                                <Select
+                                                                        value={formData.category}
+                                                                        onValueChange={(value) =>
+                                                                                setFormData({
+                                                                                        ...formData,
+                                                                                        category: value,
+                                                                                        subCategory: "",
+                                                                                })
+                                                                        }
+                                                                >
+                                                                        <SelectTrigger className="mt-1">
+                                                                                <SelectValue placeholder="Select category" />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent>
+                                                                                {categoriesWithSlugs
+                                                                                        .filter((cat) => cat.published !== false)
+                                                                                        .map((category) => (
+                                                                                                <SelectItem key={category._id} value={category.slug}>
+                                                                                                        {category.name}
+                                                                                                </SelectItem>
+                                                                                        ))}
+                                                                        </SelectContent>
+                                                                </Select>
+                                                        </div>
 
-							<div>
-								<Label>Sub Category</Label>
-								<Select
-									value={formData.subCategory}
-									onValueChange={(value) =>
-										setFormData({ ...formData, subCategory: value })
-									}
-									disabled={
-										!selectedCategory || !selectedCategory.subCategories?.length
-									}
-								>
-									<SelectTrigger className="mt-1">
-										<SelectValue placeholder="Select sub category" />
-									</SelectTrigger>
-									<SelectContent>
-										{selectedCategory?.subCategories?.map(
-											(subCategory, index) => (
-												<SelectItem key={index} value={subCategory.name}>
-													{subCategory.name}
-												</SelectItem>
-											)
-										)}
-									</SelectContent>
-								</Select>
-							</div>
+                                                        <div>
+                                                                <Label>Sub Category</Label>
+                                                                <Select
+                                                                        value={formData.subCategory}
+                                                                        onValueChange={(value) =>
+                                                                                setFormData({ ...formData, subCategory: value })
+                                                                        }
+                                                                        disabled={!availableSubCategories.length}
+                                                                >
+                                                                        <SelectTrigger className="mt-1">
+                                                                                <SelectValue placeholder="Select sub category" />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent>
+                                                                                {availableSubCategories.map((subCategory) => (
+                                                                                        <SelectItem
+                                                                                                key={`${selectedCategory?.slug || ""}-${subCategory.slug}`}
+                                                                                                value={subCategory.slug}
+                                                                                        >
+                                                                                                {subCategory.name}
+                                                                                        </SelectItem>
+                                                                                ))}
+                                                                        </SelectContent>
+                                                                </Select>
+                                                        </div>
 
 							<div>
 								<Label>Product Type</Label>
