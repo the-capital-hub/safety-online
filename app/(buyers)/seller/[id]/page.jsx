@@ -422,7 +422,7 @@ export default function SellerPage() {
                                 </div>
                         </div>
 
-                        {brands.length > 0 && (
+                        {/* {brands.length > 0 && (
                                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                                         <Card>
                                                 <CardContent className="p-6">
@@ -450,7 +450,7 @@ export default function SellerPage() {
                                                 </CardContent>
                                         </Card>
                                 </div>
-                        )}
+                        )} */}
 
                         <div id="products" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
                                 <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
