@@ -1,7 +1,7 @@
 import User from "@/model/User";
 import { dbConnect } from "@/lib/dbConnect";
-import { createToken } from "@/lib/auth";
 import nodemailer from "nodemailer";
+import crypto from "crypto";
 
 export async function POST(req) {
 	await dbConnect();
@@ -11,7 +11,11 @@ export async function POST(req) {
 	if (!user)
 		return Response.json({ message: "User not found" }, { status: 404 });
 
-        const token = createToken(user); // valid 15 mins
+        const rawToken = crypto.randomBytes(32).toString("hex");
+        user.passwordResetToken = crypto.createHash("sha256").update(rawToken).digest("hex");
+        user.passwordResetExpires = new Date(Date.now() + 10 * 60 * 1000);
+        user.passwordResetUsed = false;
+        await user.save();
 
         const requestUrl = new URL(req.url);
         const envBaseUrl = [process.env.NEXT_PUBLIC_BASE_URL, process.env.BASE_URL].reduce(
@@ -27,7 +31,7 @@ export async function POST(req) {
         );
 
         const resetUrl = new URL("/reset-password", envBaseUrl ?? requestUrl);
-        resetUrl.searchParams.set("token", token);
+        resetUrl.searchParams.set("token", rawToken);
         const resetLink = resetUrl.toString();
 
 	const transporter = nodemailer.createTransport({

@@ -11,14 +11,15 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-	Package,
-	User,
-	MapPin,
-	CreditCard,
-	Calendar,
-	Phone,
-	Mail,
-	Truck,
+        Package,
+        User,
+        MapPin,
+        CreditCard,
+        Calendar,
+        Phone,
+        Mail,
+        Truck,
+        BadgeCheck,
 } from "lucide-react";
 import Image from "next/image";
 import { buildGstLineItems } from "@/lib/utils/gst.js";
@@ -71,7 +72,42 @@ export function OrderDetailPopup({ open, onOpenChange, order }) {
 	const gstMode = order?.gst?.mode || "igst";
 	const shippingCost = order.shippingCost || order.shipping || 0;
 	const discount = order.discount || 0;
-	const totalAmount = order.totalAmount || order.total || 0;
+        const totalAmount = order.totalAmount || order.total || 0;
+
+        const businessInvoiceInfo = (() => {
+                if (!order?.billingInfo) {
+                        return null;
+                }
+
+                const {
+                        gstInvoiceRequested,
+                        gstNumber,
+                        gstVerifiedAt,
+                        gstLegalName,
+                        gstTradeName,
+                        gstState,
+                        gstAddress,
+                } = order.billingInfo;
+
+                if (!gstInvoiceRequested || !gstNumber || !gstVerifiedAt) {
+                        return null;
+                }
+
+                const verifiedDate = new Date(gstVerifiedAt);
+
+                if (Number.isNaN(verifiedDate.getTime())) {
+                        return null;
+                }
+
+                return {
+                        gstNumber,
+                        gstLegalName,
+                        gstTradeName,
+                        gstState,
+                        gstAddress,
+                        gstVerifiedAt: verifiedDate,
+                };
+        })();
 
 	function formatDate(date) {
 		const d = new Date(date);
@@ -92,11 +128,18 @@ export function OrderDetailPopup({ open, onOpenChange, order }) {
 					animate={{ scale: 1, opacity: 1 }}
 					transition={{ duration: 0.2 }}
 				>
-					<DialogHeader>
-						<DialogTitle className="text-xl font-bold">
-							Order Details - {orderNumber}
-						</DialogTitle>
-					</DialogHeader>
+                                        <DialogHeader>
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                        <DialogTitle className="text-xl font-bold">
+                                                                Order Details - {orderNumber}
+                                                        </DialogTitle>
+                                                        {businessInvoiceInfo && (
+                                                                <Badge className="bg-amber-100 text-amber-800 border border-amber-200">
+                                                                        Business Invoice
+                                                                </Badge>
+                                                        )}
+                                                </div>
+                                        </DialogHeader>
 
 					<div className="space-y-6 mt-6">
 						{/* Order Status and Basic Info */}
@@ -142,11 +185,11 @@ export function OrderDetailPopup({ open, onOpenChange, order }) {
 							</Card>
 						</div>
 
-						{/* Customer Information */}
-						<Card>
-							<CardHeader>
-								<CardTitle className="flex items-center gap-2">
-									<User className="w-5 h-5" />
+                                                {/* Customer Information */}
+                                                <Card>
+                                                        <CardHeader>
+                                                                <CardTitle className="flex items-center gap-2">
+                                                                        <User className="w-5 h-5" />
 									Customer Information
 								</CardTitle>
 							</CardHeader>
@@ -174,9 +217,68 @@ export function OrderDetailPopup({ open, onOpenChange, order }) {
                                         <p className="text-sm text-gray-600">Customer ID</p>
                                         <p className="font-medium text-blue-600">{userId}</p>
                                     </div> */}
-								</div>
-							</CardContent>
-						</Card>
+                                                                </div>
+                                                        </CardContent>
+                                                </Card>
+
+                                                {businessInvoiceInfo && (
+                                                        <Card>
+                                                                <CardHeader>
+                                                                        <CardTitle className="flex items-center gap-2">
+                                                                                <BadgeCheck className="w-5 h-5 text-amber-500" />
+                                                                                GST Invoice Details
+                                                                        </CardTitle>
+                                                                </CardHeader>
+                                                                <CardContent>
+                                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                                <div>
+                                                                                        <p className="text-sm text-gray-600">GSTIN</p>
+                                                                                        <p className="font-semibold text-gray-900">
+                                                                                                {businessInvoiceInfo.gstNumber}
+                                                                                        </p>
+                                                                                </div>
+                                                                                {businessInvoiceInfo.gstLegalName && (
+                                                                                        <div>
+                                                                                                <p className="text-sm text-gray-600">Registered Name</p>
+                                                                                                <p className="font-medium text-gray-900">
+                                                                                                        {businessInvoiceInfo.gstLegalName}
+                                                                                                </p>
+                                                                                        </div>
+                                                                                )}
+                                                                                {businessInvoiceInfo.gstTradeName && (
+                                                                                        <div>
+                                                                                                <p className="text-sm text-gray-600">Trade Name</p>
+                                                                                                <p className="font-medium text-gray-900">
+                                                                                                        {businessInvoiceInfo.gstTradeName}
+                                                                                                </p>
+                                                                                        </div>
+                                                                                )}
+                                                                                {businessInvoiceInfo.gstState && (
+                                                                                        <div>
+                                                                                                <p className="text-sm text-gray-600">State</p>
+                                                                                                <p className="font-medium text-gray-900">
+                                                                                                        {businessInvoiceInfo.gstState}
+                                                                                                </p>
+                                                                                        </div>
+                                                                                )}
+                                                                                <div>
+                                                                                        <p className="text-sm text-gray-600">Verification</p>
+                                                                                        <p className="text-sm text-gray-900">
+                                                                                                Verified on {businessInvoiceInfo.gstVerifiedAt.toLocaleString()}
+                                                                                        </p>
+                                                                                </div>
+                                                                        </div>
+                                                                        {businessInvoiceInfo.gstAddress && (
+                                                                                <div className="mt-4">
+                                                                                        <p className="text-sm text-gray-600">GST Registered Address</p>
+                                                                                        <p className="text-sm text-gray-900 whitespace-pre-line">
+                                                                                                {businessInvoiceInfo.gstAddress}
+                                                                                        </p>
+                                                                                </div>
+                                                                        )}
+                                                                </CardContent>
+                                                        </Card>
+                                                )}
 
 						{/* Delivery Address */}
 						{order.deliveryAddress && (

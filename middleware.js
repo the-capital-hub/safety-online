@@ -81,7 +81,6 @@ export function middleware(req) {
 
 	// Seller-only
         if (pathname.startsWith("/seller")) {
-                // Allow unauthenticated access to seller auth routes
                 const sellerPublicPaths = new Set(["/seller", "/seller/login", "/seller/register"]);
 
                 if (sellerPublicPaths.has(pathname)) {
@@ -90,10 +89,21 @@ export function middleware(req) {
                         });
                 }
 
-		if (!sellerToken || !isValidJWT(sellerToken)) {
-			return NextResponse.redirect(new URL("/seller/login", req.url));
-		}
-	}
+                const pathSegments = pathname.split("/").filter(Boolean);
+                const isPublicSellerStorefront =
+                        pathSegments.length === 2 &&
+                        /^[0-9a-fA-F]{24}$/.test(pathSegments[1]);
+
+                if (isPublicSellerStorefront) {
+                        return NextResponse.next({
+                                request: { headers: requestHeaders },
+                        });
+                }
+
+                if (!sellerToken || !isValidJWT(sellerToken)) {
+                        return NextResponse.redirect(new URL("/seller/login", req.url));
+                }
+        }
 
 	// Continue with forwarded headers
 	return NextResponse.next({

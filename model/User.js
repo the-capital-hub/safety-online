@@ -44,17 +44,20 @@ const UserSchema = new mongoose.Schema(
 			ref: "Company",
 			default: null,
 		},
-		status: {
-			type: String,
-			enum: ["active", "inactive", "suspended"],
-			default: "active",
-		},
-		lastLogin: { type: Date },
-		isVerified: { type: Boolean, default: false },
-	},
-	{
-		timestamps: true,
-	}
+                status: {
+                        type: String,
+                        enum: ["active", "inactive", "suspended"],
+                        default: "active",
+                },
+                lastLogin: { type: Date },
+                isVerified: { type: Boolean, default: false },
+                passwordResetToken: { type: String },
+                passwordResetExpires: { type: Date },
+                passwordResetUsed: { type: Boolean, default: false },
+        },
+        {
+                timestamps: true,
+        }
 );
 
 UserSchema.pre("save", async function () {

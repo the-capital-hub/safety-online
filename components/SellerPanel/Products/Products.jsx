@@ -100,14 +100,77 @@ export default function SellerProductsPage() {
 		}
 	}, [fetchProducts, fetchCategories, isAuthenticated]);
 
-	const categoryOptions = [
-		{ value: "all", label: "All Categories", productCount: 0 },
-		...categories.map((category) => ({
-			value: category.name.toLowerCase().replace(/\s+/g, "-"), // Convert to slug format
-			label: category.name,
-			productCount: category.productCount || 0,
-		})),
-	];
+        const totalCategoryProductCount = categories.reduce(
+                (total, category) => total + (Number(category.productCount) || 0),
+                0
+        );
+
+        const categoryOptions = [
+                {
+                        value: "all",
+                        label: "All Categories",
+                        productCount: totalCategoryProductCount,
+                        subCategories: [],
+                },
+                ...categories.map((category) => ({
+                        value: category.slug || category.name.toLowerCase().replace(/\s+/g, "-"),
+                        label: category.name,
+                        productCount: category.productCount || 0,
+                        subCategories: category.subCategories || [],
+                })),
+        ];
+
+        const activeCategoryValue = (() => {
+                if (!filters.category || filters.category === "all") {
+                        return "all";
+                }
+
+                const match = categoryOptions.find(
+                        (category) => category.value === filters.category || category.label === filters.category
+                );
+
+                return match ? match.value : "all";
+        })();
+
+        const selectedCategory =
+                activeCategoryValue && activeCategoryValue !== "all"
+                        ? categoryOptions.find((category) => category.value === activeCategoryValue)
+                        : null;
+
+        const subCategoryOptions = selectedCategory
+                ? [
+                                {
+                                        value: "all",
+                                        label: "All Subcategories",
+                                        productCount: (selectedCategory.subCategories || []).reduce(
+                                                (total, subCategory) =>
+                                                        total + (Number(subCategory.productCount) || 0),
+                                                0
+                                        ),
+                                },
+                                ...(selectedCategory.subCategories || []).map((subCategory) => ({
+                                        value:
+                                                subCategory.slug ||
+                                                subCategory.name.toLowerCase().replace(/\s+/g, "-"),
+                                        label: subCategory.name,
+                                        productCount: subCategory.productCount || 0,
+                                })),
+                        ]
+                : [];
+
+        const activeSubCategoryValue = (() => {
+                if (!filters.subCategory || filters.subCategory === "all") {
+                        return "all";
+                }
+
+                const match = subCategoryOptions.find(
+                        (subCategory) =>
+                                subCategory.value === filters.subCategory ||
+                                subCategory.label === filters.subCategory
+                );
+
+                return match ? match.value : "all";
+        })();
 
 	if (!isAuthenticated) {
 		return (
@@ -121,9 +184,14 @@ export default function SellerProductsPage() {
 		setFilters({ search: value });
 	};
 
-	const handleFilterChange = (key, value) => {
-		setFilters({ [key]: value });
-	};
+        const handleFilterChange = (keyOrObject, value) => {
+                if (typeof keyOrObject === "object" && keyOrObject !== null) {
+                        setFilters(keyOrObject);
+                        return;
+                }
+
+                setFilters({ [keyOrObject]: value });
+        };
 
 	const handleApplyFilters = () => {
 		fetchProducts();
@@ -220,13 +288,16 @@ export default function SellerProductsPage() {
 	};
 
 	// Helper function to get category display name
-	const getCategoryDisplayName = (categorySlug) => {
-		if (categorySlug === "all") return "All Categories";
-		const category = categories.find(
-			(cat) => cat.name.toLowerCase().replace(/\s+/g, "-") === categorySlug
-		);
-		return category ? category.name : categorySlug.replace("-", " ");
-	};
+        const getCategoryDisplayName = (categorySlug) => {
+                if (categorySlug === "all") return "All Categories";
+
+                const category = categories.find((cat) => {
+                        const slug = cat.slug || cat.name?.toLowerCase().replace(/\s+/g, "-");
+                        return slug === categorySlug;
+                });
+
+                return category ? category.name : toSentenceCase(categorySlug.replace(/-/g, " "));
+        };
 
 	function toSentenceCase(str) {
 		if (!str) return "";
@@ -332,17 +403,20 @@ export default function SellerProductsPage() {
 									/>
 								</div>
 
-								<Select
-									value={filters.category}
-									onValueChange={(value) =>
-										handleFilterChange("category", value)
-									}
-								>
-									<SelectTrigger className="w-48">
-										<SelectValue placeholder="Category" />
-									</SelectTrigger>
-									<SelectContent>
-										{categoryOptions.map((category) => (
+                                                                <Select
+                                                                        value={activeCategoryValue}
+                                                                        onValueChange={(value) =>
+                                                                                handleFilterChange({
+                                                                                        category: value,
+                                                                                        subCategory: "all",
+                                                                                })
+                                                                        }
+                                                                >
+                                                                        <SelectTrigger className="w-48">
+                                                                                <SelectValue placeholder="Category" />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent>
+                                                                                {categoryOptions.map((category) => (
 											<SelectItem key={category.value} value={category.value}>
 												<div className="flex items-center justify-between w-full">
 													<span>{toSentenceCase(category.label)}</span>
@@ -351,11 +425,57 @@ export default function SellerProductsPage() {
 															{category.productCount}
 														</Badge>
 													)}
-												</div>
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
+                                                                                                </div>
+                                                                                        </SelectItem>
+                                                                                ))}
+                                                                        </SelectContent>
+                                                                </Select>
+
+                                                                {selectedCategory && subCategoryOptions.length > 0 && (
+                                                                        <Select
+                                                                                value={activeSubCategoryValue}
+                                                                                onValueChange={(value) =>
+                                                                                        handleFilterChange(
+                                                                                                "subCategory",
+                                                                                                value
+                                                                                        )
+                                                                                }
+                                                                        >
+                                                                                <SelectTrigger className="w-56">
+                                                                                        <SelectValue placeholder="Subcategory" />
+                                                                                </SelectTrigger>
+                                                                                <SelectContent>
+                                                                                        {subCategoryOptions.map(
+                                                                                                (subCategory) => (
+                                                                                                        <SelectItem
+                                                                                                                key={`${selectedCategory.value}-${subCategory.value}`}
+                                                                                                                value={
+                                                                                                                        subCategory.value
+                                                                                                                }
+                                                                                                        >
+                                                                                                                <div className="flex items-center justify-between w-full">
+                                                                                                                        <span>
+                                                                                                                                {toSentenceCase(
+                                                                                                                                        subCategory.label
+                                                                                                                                )}
+                                                                                                                        </span>
+                                                                                                                        {subCategory.productCount > 0 && (
+                                                                                                                                <Badge
+                                                                                                                                        variant="secondary"
+                                                                                                                                        className="ml-2 text-xs"
+                                                                                                                                >
+                                                                                                                                        {
+                                                                                                                                                subCategory.productCount
+                                                                                                                                        }
+                                                                                                                                </Badge>
+                                                                                                                        )}
+                                                                                                                </div>
+                                                                                                        </SelectItem>
+                                                                                                )
+                                                                                        )}
+                                                                                </SelectContent>
+                                                                        </Select>
+                                                                )}
 
 								<div className="flex gap-2">
                                                                     <Input

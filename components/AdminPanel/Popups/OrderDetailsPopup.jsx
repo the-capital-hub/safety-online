@@ -28,8 +28,10 @@ import {
         Phone,
         Mail,
         Truck,
+        Activity,
         Store,
         Loader2,
+        BadgeCheck,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useAdminOrderStore } from "@/store/adminOrderStore.js";
@@ -41,6 +43,11 @@ import {
         getOrderStatusLabel,
 } from "@/constants/orderStatus.js";
 
+const normalizePaymentStatus = (value) =>
+        typeof value === "string" && value.trim().length > 0
+                ? value.trim().toLowerCase()
+                : "";
+
 export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated }) {
         const updateOrder = useAdminOrderStore((state) => state.updateOrder);
         const [detailedOrder, setDetailedOrder] = useState(order ?? null);
@@ -48,7 +55,7 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
         const resolvedOrder = detailedOrder ?? order ?? null;
         const [statusForm, setStatusForm] = useState({
                 status: resolvedOrder?.status || "",
-                paymentStatus: resolvedOrder?.paymentStatus || "",
+                paymentStatus: normalizePaymentStatus(resolvedOrder?.paymentStatus),
         });
         const [saving, setSaving] = useState(false);
 
@@ -106,7 +113,7 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
                 if (resolvedOrder) {
                         setStatusForm({
                                 status: resolvedOrder.status || "",
-                                paymentStatus: resolvedOrder.paymentStatus || "",
+                                paymentStatus: normalizePaymentStatus(resolvedOrder.paymentStatus),
                         });
                 }
         }, [resolvedOrder?.status, resolvedOrder?.paymentStatus, resolvedOrder?._id]);
@@ -159,6 +166,41 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
                 []
         );
 
+        const businessInvoiceInfo = useMemo(() => {
+                if (!resolvedOrder?.billingInfo) {
+                        return null;
+                }
+
+                const {
+                        gstInvoiceRequested,
+                        gstNumber,
+                        gstVerifiedAt,
+                        gstLegalName,
+                        gstTradeName,
+                        gstState,
+                        gstAddress,
+                } = resolvedOrder.billingInfo;
+
+                if (!gstInvoiceRequested || !gstNumber || !gstVerifiedAt) {
+                        return null;
+                }
+
+                const verifiedDate = new Date(gstVerifiedAt);
+
+                if (Number.isNaN(verifiedDate.getTime())) {
+                        return null;
+                }
+
+                return {
+                        gstNumber,
+                        gstLegalName,
+                        gstTradeName,
+                        gstState,
+                        gstAddress,
+                        gstVerifiedAt: verifiedDate,
+                };
+        }, [resolvedOrder?.billingInfo]);
+
         if (!resolvedOrder) {
                 return null;
         }
@@ -194,20 +236,57 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
                         ? resolvedOrder.userId?._id || resolvedOrder.userId?.id || ""
                         : resolvedOrder.userId;
 
+        const normalizedPaymentStatus = normalizePaymentStatus(resolvedOrder?.paymentStatus);
+        const paymentStatusLabel =
+                normalizedPaymentStatus.length > 0
+                        ? getOrderStatusLabel(normalizedPaymentStatus)
+                        : "Unknown";
+
         const statusOptions = ORDER_STATUS_UPDATE_OPTIONS;
 
         const paymentStatusOptions = ["pending", "paid", "failed", "refunded"];
 
         const formatStatusLabel = (value) => getOrderStatusLabel(value);
 
+        const formatDateTime = (value) => {
+                if (!value) {
+                        return null;
+                }
+
+                const date = new Date(value);
+                return Number.isNaN(date.getTime()) ? null : date.toLocaleString();
+        };
+
+        const formatHexalogStatus = (status) => {
+                if (typeof status !== "string" || status.length === 0) {
+                        return "N/A";
+                }
+
+                const normalized = status.trim().toLowerCase().replace(/\s+/g, "_");
+                const label = getOrderStatusLabel(normalized);
+
+                if (label && typeof label === "string" && label.length > 0) {
+                        return label;
+                }
+
+                return status
+                        .replace(/_/g, " ")
+                        .replace(/\b\w/g, (char) => char.toUpperCase());
+        };
+
+        const hasHexalogUpdate =
+                Boolean(resolvedOrder?.hexalogStatus) ||
+                Boolean(resolvedOrder?.hexalogStatusUpdatedAt) ||
+                Boolean(resolvedOrder?.hexalogNdrStatus);
+
         const hasStatusChanges =
-                resolvedOrder.status !== statusForm.status ||
-                resolvedOrder.paymentStatus !== statusForm.paymentStatus;
+                (resolvedOrder.status || "") !== statusForm.status ||
+                normalizedPaymentStatus !== statusForm.paymentStatus;
 
         const handleStatusChange = (field, value) => {
                 setStatusForm((prev) => ({
                         ...prev,
-                        [field]: value,
+                        [field]: field === "paymentStatus" ? normalizePaymentStatus(value) : value,
                 }));
         };
 
@@ -231,7 +310,7 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
                         toast.success(result.message || "Order status updated successfully");
                         setStatusForm({
                                 status: updatedOrder.status || "",
-                                paymentStatus: updatedOrder.paymentStatus || "",
+                                paymentStatus: normalizePaymentStatus(updatedOrder.paymentStatus),
                         });
                         setDetailedOrder(updatedOrder);
                         onOrderUpdated?.(updatedOrder);
@@ -243,14 +322,15 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
         const getStatusColor = (status) => getOrderStatusBadgeColor(status);
 
         const getPaymentStatusColor = (status) => {
-		const colors = {
-			paid: "bg-green-100 text-green-800",
-			pending: "bg-yellow-100 text-yellow-800",
-			failed: "bg-red-100 text-red-800",
-			refunded: "bg-gray-100 text-gray-800",
-		};
-		return colors[status] || "bg-gray-100 text-gray-800";
-	};
+                const colors = {
+                        paid: "bg-green-100 text-green-800",
+                        pending: "bg-yellow-100 text-yellow-800",
+                        failed: "bg-red-100 text-red-800",
+                        refunded: "bg-gray-100 text-gray-800",
+                };
+                const key = normalizePaymentStatus(status);
+                return colors[key] || "bg-gray-100 text-gray-800";
+        };
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -261,9 +341,16 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
 					transition={{ duration: 0.2 }}
 				>
                                         <DialogHeader>
-                                                <DialogTitle className="text-xl font-bold">
-                                                        Order Details - {resolvedOrder.orderNumber}
-                                                </DialogTitle>
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                        <DialogTitle className="text-xl font-bold">
+                                                                Order Details - {resolvedOrder.orderNumber}
+                                                        </DialogTitle>
+                                                        {businessInvoiceInfo && (
+                                                                <Badge className="bg-amber-100 text-amber-800 border border-amber-200">
+                                                                        Business Invoice
+                                                                </Badge>
+                                                        )}
+                                                </div>
                                         </DialogHeader>
 
                                         <div className="space-y-6 mt-6">
@@ -381,23 +468,23 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
 								</CardContent>
 							</Card>
 
-							<Card>
-								<CardContent className="p-4">
-									<div className="flex items-center gap-3">
-										<CreditCard className="w-8 h-8 text-green-600" />
-										<div>
-											<p className="text-sm text-gray-600">Payment Status</p>
-                                                                                <Badge
+                                                        <Card>
+                                                                <CardContent className="p-4">
+                                                                        <div className="flex items-center gap-3">
+                                                                                <CreditCard className="w-8 h-8 text-green-600" />
+                                                                                <div>
+                                                                                        <p className="text-sm text-gray-600">Payment Status</p>
+                                                                                        <Badge
                                                                                                 className={getPaymentStatusColor(
-                                                                                                        resolvedOrder.paymentStatus
+                                                                                                        normalizedPaymentStatus
                                                                                                 )}
-                                                                                >
-                                                                                                {resolvedOrder.paymentStatus.toUpperCase()}
-                                                                                </Badge>
-										</div>
-									</div>
-								</CardContent>
-							</Card>
+                                                                                        >
+                                                                                                {paymentStatusLabel}
+                                                                                        </Badge>
+                                                                                </div>
+                                                                        </div>
+                                                                </CardContent>
+                                                        </Card>
 
 							<Card>
 								<CardContent className="p-4">
@@ -414,46 +501,105 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
 							</Card>
 						</div>
 
-						{/* Customer Information */}
-						<Card>
-							<CardHeader>
-								<CardTitle className="flex items-center gap-2">
-									<User className="w-5 h-5" />
-									Customer Information
-								</CardTitle>
-							</CardHeader>
-							<CardContent>
-								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-									<div>
-										<p className="text-sm text-gray-600">Name</p>
+                                                {/* Customer Information */}
+                                                <Card>
+                                                        <CardHeader>
+                                                                <CardTitle className="flex items-center gap-2">
+                                                                        <User className="w-5 h-5" />
+                                                                        Customer Information
+                                                                </CardTitle>
+                                                        </CardHeader>
+                                                        <CardContent>
+                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                        <div>
+                                                                                <p className="text-sm text-gray-600">Name</p>
                                                                                 <p className="font-medium">{customerName || "N/A"}</p>
-									</div>
-									<div>
-										<p className="text-sm text-gray-600">Email</p>
-										<div className="flex items-center gap-2">
-											<Mail className="w-4 h-4 text-gray-400" />
+                                                                        </div>
+                                                                        <div>
+                                                                                <p className="text-sm text-gray-600">Email</p>
+                                                                                <div className="flex items-center gap-2">
+                                                                                        <Mail className="w-4 h-4 text-gray-400" />
                                                                                         <p className="font-medium">{customerEmail || "N/A"}</p>
-										</div>
-									</div>
-									<div>
-										<p className="text-sm text-gray-600">Phone</p>
-										<div className="flex items-center gap-2">
-											<Phone className="w-4 h-4 text-gray-400" />
+                                                                                </div>
+                                                                        </div>
+                                                                        <div>
+                                                                                <p className="text-sm text-gray-600">Phone</p>
+                                                                                <div className="flex items-center gap-2">
+                                                                                        <Phone className="w-4 h-4 text-gray-400" />
                                                                                         <p className="font-medium">{customerMobile || "N/A"}</p>
-										</div>
-									</div>
-									<div>
-										<p className="text-sm text-gray-600">Customer ID</p>
+                                                                                </div>
+                                                                        </div>
+                                                                        <div>
+                                                                                <p className="text-sm text-gray-600">Customer ID</p>
                                                                                 <p className="font-medium text-blue-600">{customerIdValue || "N/A"}</p>
-									</div>
-								</div>
-							</CardContent>
-						</Card>
+                                                                        </div>
+                                                                </div>
+                                                        </CardContent>
+                                                </Card>
 
-						{/* Delivery Address */}
+                                                {businessInvoiceInfo && (
+                                                        <Card>
+                                                                <CardHeader>
+                                                                        <CardTitle className="flex items-center gap-2">
+                                                                                <BadgeCheck className="w-5 h-5 text-amber-500" />
+                                                                                GST Invoice Details
+                                                                        </CardTitle>
+                                                                </CardHeader>
+                                                                <CardContent>
+                                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                                <div>
+                                                                                        <p className="text-sm text-gray-600">GSTIN</p>
+                                                                                        <p className="font-semibold text-gray-900">
+                                                                                                {businessInvoiceInfo.gstNumber}
+                                                                                        </p>
+                                                                                </div>
+                                                                                {businessInvoiceInfo.gstLegalName && (
+                                                                                        <div>
+                                                                                                <p className="text-sm text-gray-600">Registered Name</p>
+                                                                                                <p className="font-medium text-gray-900">
+                                                                                                        {businessInvoiceInfo.gstLegalName}
+                                                                                                </p>
+                                                                                        </div>
+                                                                                )}
+                                                                                {businessInvoiceInfo.gstTradeName && (
+                                                                                        <div>
+                                                                                                <p className="text-sm text-gray-600">Trade Name</p>
+                                                                                                <p className="font-medium text-gray-900">
+                                                                                                        {businessInvoiceInfo.gstTradeName}
+                                                                                                </p>
+                                                                                        </div>
+                                                                                )}
+                                                                                {businessInvoiceInfo.gstState && (
+                                                                                        <div>
+                                                                                                <p className="text-sm text-gray-600">State</p>
+                                                                                                <p className="font-medium text-gray-900">
+                                                                                                        {businessInvoiceInfo.gstState}
+                                                                                                </p>
+                                                                                        </div>
+                                                                                )}
+                                                                                <div>
+                                                                                        <p className="text-sm text-gray-600">Verification</p>
+                                                                                        <p className="text-sm text-gray-900">
+                                                                                                Verified on {businessInvoiceInfo.gstVerifiedAt.toLocaleString()}
+                                                                                        </p>
+                                                                                </div>
+                                                                        </div>
+                                                                        {businessInvoiceInfo.gstAddress && (
+                                                                                <div className="mt-4">
+                                                                                        <p className="text-sm text-gray-600">GST Registered Address</p>
+                                                                                        <p className="text-sm text-gray-900 whitespace-pre-line">
+                                                                                                {businessInvoiceInfo.gstAddress}
+                                                                                        </p>
+                                                                                </div>
+                                                                        )}
+                                                                </CardContent>
+                                                        </Card>
+                                                )}
+
+                                                {/* Delivery Address */}
                                                 {resolvedOrder.deliveryAddress && (
                                                         <Card>
-								<CardHeader>
+                                                                <CardHeader>
 									<CardTitle className="flex items-center gap-2">
 										<MapPin className="w-5 h-5" />
 										Delivery Address
@@ -524,6 +670,11 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
                                                                                         const products = Array.isArray(subOrder?.products)
                                                                                                 ? subOrder.products
                                                                                                 : [];
+                                                                                        const shipmentPackage =
+                                                                                                subOrder?.shipmentPackage &&
+                                                                                                typeof subOrder.shipmentPackage === "object"
+                                                                                                        ? subOrder.shipmentPackage
+                                                                                                        : null;
 
                                                                                         return (
                                                                                                 <div
@@ -616,6 +767,51 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
                                                                                                                                         );
                                                                                                                                 })}
                                                                                                                         </div>
+                                                                                                                </div>
+                                                                                                        )}
+
+                                                                                                        {shipmentPackage && (
+                                                                                                                <div className="space-y-3 rounded-lg border border-dashed border-gray-200 bg-gray-50 p-4">
+                                                                                                                        <div className="flex flex-wrap items-center justify-between gap-2">
+                                                                                                                                <p className="text-xs uppercase text-gray-500">Hexalog shipping</p>
+                                                                                                                                {shipmentPackage.status && (
+                                                                                                                                        <Badge className={getStatusColor(shipmentPackage.status)}>
+                                                                                                                                                {formatStatusLabel(shipmentPackage.status)}
+                                                                                                                                        </Badge>
+                                                                                                                                )}
+                                                                                                                        </div>
+                                                                                                                        <div className="grid grid-cols-1 gap-3 text-sm md:grid-cols-2">
+                                                                                                                                {shipmentPackage.trackingId && (
+                                                                                                                                        <div>
+                                                                                                                                                <p className="text-xs uppercase text-gray-500">Tracking ID</p>
+                                                                                                                                                <p className="font-medium text-gray-900">{shipmentPackage.trackingId}</p>
+                                                                                                                                        </div>
+                                                                                                                                )}
+                                                                                                                                {shipmentPackage.courierPartner && (
+                                                                                                                                        <div>
+                                                                                                                                                <p className="text-xs uppercase text-gray-500">Courier partner</p>
+                                                                                                                                                <p className="font-medium text-gray-900">{shipmentPackage.courierPartner}</p>
+                                                                                                                                        </div>
+                                                                                                                                )}
+                                                                                                                                {shipmentPackage.currentLocation && (
+                                                                                                                                        <div className="md:col-span-2">
+                                                                                                                                                <p className="text-xs uppercase text-gray-500">Current location</p>
+                                                                                                                                                <p className="text-gray-700">{shipmentPackage.currentLocation}</p>
+                                                                                                                                        </div>
+                                                                                                                                )}
+                                                                                                                                {Number.isFinite(shipmentPackage.deliveryAttempts) && shipmentPackage.deliveryAttempts > 0 && (
+                                                                                                                                        <div>
+                                                                                                                                                <p className="text-xs uppercase text-gray-500">Delivery attempts</p>
+                                                                                                                                                <p className="text-gray-700">{shipmentPackage.deliveryAttempts}</p>
+                                                                                                                                        </div>
+                                                                                                                                )}
+                                                                                                                        </div>
+                                                                                                                        {shipmentPackage.deliveryNotes && (
+                                                                                                                                <div>
+                                                                                                                                        <p className="text-xs uppercase text-gray-500">Latest update</p>
+                                                                                                                                        <p className="text-sm text-gray-700">{shipmentPackage.deliveryNotes}</p>
+                                                                                                                                </div>
+                                                                                                                        )}
                                                                                                                 </div>
                                                                                                         )}
                                                                                                 </div>
@@ -776,6 +972,55 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
                                                                 </div>
                                                         </CardContent>
                                                 </Card>
+
+                                                {hasHexalogUpdate && (
+                                                        <Card>
+                                                                <CardHeader>
+                                                                        <CardTitle className="flex items-center gap-2">
+                                                                                <Activity className="w-5 h-5" />
+                                                                                Latest Hexalog Update
+                                                                        </CardTitle>
+                                                                </CardHeader>
+                                                                <CardContent>
+                                                                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                                                                {resolvedOrder.hexalogStatus && (
+                                                                                        <div>
+                                                                                                <p className="text-sm text-gray-600">
+                                                                                                        Status
+                                                                                                </p>
+                                                                                                <p className="font-medium">
+                                                                                                        {formatHexalogStatus(
+                                                                                                                resolvedOrder.hexalogStatus
+                                                                                                        )}
+                                                                                                </p>
+                                                                                        </div>
+                                                                                )}
+                                                                                {resolvedOrder.hexalogStatusUpdatedAt && (
+                                                                                        <div>
+                                                                                                <p className="text-sm text-gray-600">
+                                                                                                        Updated At
+                                                                                                </p>
+                                                                                                <p className="font-medium">
+                                                                                                        {formatDateTime(
+                                                                                                                resolvedOrder.hexalogStatusUpdatedAt
+                                                                                                        )}
+                                                                                                </p>
+                                                                                        </div>
+                                                                                )}
+                                                                                {resolvedOrder.hexalogNdrStatus && (
+                                                                                        <div className="md:col-span-2">
+                                                                                                <p className="text-sm text-gray-600">
+                                                                                                        NDR Status
+                                                                                                </p>
+                                                                                                <p className="font-medium">
+                                                                                                        {resolvedOrder.hexalogNdrStatus}
+                                                                                                </p>
+                                                                                        </div>
+                                                                                )}
+                                                                        </div>
+                                                                </CardContent>
+                                                        </Card>
+                                                )}
 
                                                 {/* Tracking Information */}
                                                 {resolvedOrder.trackingNumber && (

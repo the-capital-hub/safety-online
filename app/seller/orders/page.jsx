@@ -26,24 +26,26 @@ import {
 	Calendar,
 	Search,
 	RotateCcw,
-	Package,
-	Clock,
-	CheckCircle,
-	IndianRupee,
-	Check,
-	X,
-	FileText,
+        Package,
+        Clock,
+        CheckCircle,
+        IndianRupee,
+        Check,
+        X,
+        FileText,
+        Eye,
 } from "lucide-react";
 import { useSellerOrderStore } from "@/store/sellerOrderStore.js";
 import { useIsSellerAuthenticated } from "@/store/sellerAuthStore.js";
 import { useRouter } from "next/navigation";
+import { SellerOrderDetailsPopup } from "@/components/SellerPanel/Orders/OrderDetailsPopup.jsx";
 
 function SellerOrdersPage() {
-	const {
-		orders,
-		loading,
-		error,
-		pagination,
+        const {
+                orders,
+                loading,
+                error,
+                pagination,
 		stats,
 		filters,
 		setFilters,
@@ -55,9 +57,10 @@ function SellerOrdersPage() {
                 markAsDelivered,
         } = useSellerOrderStore();
 
-	const isAuthenticated = useIsSellerAuthenticated();
-	const [isRedirecting, setIsRedirecting] = useState(false);
-	const router = useRouter();
+        const isAuthenticated = useIsSellerAuthenticated();
+        const [isRedirecting, setIsRedirecting] = useState(false);
+        const [detailsPopup, setDetailsPopup] = useState({ open: false, order: null });
+        const router = useRouter();
 
 	const handleFilterChange = (key, value) => {
 		setFilters({ [key]: value, page: 1 });
@@ -69,9 +72,20 @@ function SellerOrdersPage() {
 		}
 	};
 
-	const handlePageChange = (page) => {
-		setFilters({ page });
-	};
+        const handlePageChange = (page) => {
+                setFilters({ page });
+        };
+
+        const handleOpenOrderDetails = (selectedOrder) => {
+                setDetailsPopup({ open: true, order: selectedOrder });
+        };
+
+        const handleDetailsOpenChange = (open) => {
+                setDetailsPopup((prev) => ({
+                        open,
+                        order: open ? prev.order : null,
+                }));
+        };
 
 	const handleAcceptOrder = async (orderId) => {
 		const result = await acceptOrder(orderId);
@@ -132,10 +146,39 @@ function SellerOrdersPage() {
 		return colors[status] || "bg-gray-100 text-gray-800";
 	};
 
-	const getPaymentMethodDisplay = (method) => {
-		if (method === "cod") return "COD";
-		return "Prepaid";
-	};
+        const getPaymentMethodDisplay = (method) => {
+                if (method === "cod") return "COD";
+                return "Prepaid";
+        };
+
+        const getBusinessInvoiceInfo = (order) => {
+                if (!order) {
+                        return null;
+                }
+
+                const billingInfo = order.orderId?.billingInfo || order.billingInfo;
+
+                if (!billingInfo) {
+                        return null;
+                }
+
+                const { gstInvoiceRequested, gstNumber, gstVerifiedAt } = billingInfo;
+
+                if (!gstInvoiceRequested || !gstNumber || !gstVerifiedAt) {
+                        return null;
+                }
+
+                const verifiedDate = new Date(gstVerifiedAt);
+
+                if (Number.isNaN(verifiedDate.getTime())) {
+                        return null;
+                }
+
+                return {
+                        gstNumber,
+                        verifiedAt: verifiedDate,
+                };
+        };
 
 	useEffect(() => {
 		if (!isAuthenticated) {
@@ -362,9 +405,18 @@ function SellerOrdersPage() {
 											animate={{ opacity: 1, y: 0 }}
 											transition={{ duration: 0.2 }}
 										>
-											<TableCell className="font-medium">
-												{order.orderId?.orderNumber || order.orderNumber || "N/A"}
-											</TableCell>
+                                                                                        <TableCell className="font-medium">
+                                                                                                <div className="flex items-center gap-2">
+                                                                                                        <span>
+                                                                                                                {order.orderId?.orderNumber || order.orderNumber || "N/A"}
+                                                                                                        </span>
+                                                                                                        {getBusinessInvoiceInfo(order) && (
+                                                                                                                <Badge className="bg-amber-100 text-amber-800 border border-amber-200">
+                                                                                                                        Business Invoice
+                                                                                                                </Badge>
+                                                                                                        )}
+                                                                                                </div>
+                                                                                        </TableCell>
 											<TableCell>
 												{order.orderId?.orderDate ? new Date(order.orderId.orderDate).toLocaleDateString() : "N/A"}
 												<br />
@@ -429,11 +481,19 @@ function SellerOrdersPage() {
 													{order.status.toUpperCase()}
 												</Badge>
 											</TableCell>
-											<TableCell>
-												<div className="flex gap-1">
-													{order.status === "pending" && (
-														<>
-															<Button
+                                                                                        <TableCell>
+                                                                                                <div className="flex gap-1">
+                                                                                                        <Button
+                                                                                                                size="sm"
+                                                                                                                variant="outline"
+                                                                                                                onClick={() => handleOpenOrderDetails(order)}
+                                                                                                        >
+                                                                                                                <Eye className="w-4 h-4 mr-1" />
+                                                                                                                View
+                                                                                                        </Button>
+                                                                                                        {order.status === "pending" && (
+                                                                                                                <>
+                                                                                                                        <Button
 																size="sm"
 																className="bg-green-600 hover:bg-green-700"
 																onClick={() => handleAcceptOrder(order._id)}
@@ -535,10 +595,16 @@ function SellerOrdersPage() {
 							</div>
 						</>
 					)}
-				</CardContent>
-			</Card>
-		</div>
-	);
+                                </CardContent>
+                        </Card>
+
+                        <SellerOrderDetailsPopup
+                                open={detailsPopup.open}
+                                onOpenChange={handleDetailsOpenChange}
+                                order={detailsPopup.order}
+                        />
+                </div>
+        );
 }
 
 export default SellerOrdersPage;
