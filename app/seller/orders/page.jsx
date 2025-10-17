@@ -26,24 +26,26 @@ import {
 	Calendar,
 	Search,
 	RotateCcw,
-	Package,
-	Clock,
-	CheckCircle,
-	IndianRupee,
-	Check,
-	X,
-	FileText,
+        Package,
+        Clock,
+        CheckCircle,
+        IndianRupee,
+        Check,
+        X,
+        FileText,
+        Eye,
 } from "lucide-react";
 import { useSellerOrderStore } from "@/store/sellerOrderStore.js";
 import { useIsSellerAuthenticated } from "@/store/sellerAuthStore.js";
 import { useRouter } from "next/navigation";
+import { SellerOrderDetailsPopup } from "@/components/SellerPanel/Orders/OrderDetailsPopup.jsx";
 
 function SellerOrdersPage() {
-	const {
-		orders,
-		loading,
-		error,
-		pagination,
+        const {
+                orders,
+                loading,
+                error,
+                pagination,
 		stats,
 		filters,
 		setFilters,
@@ -55,9 +57,10 @@ function SellerOrdersPage() {
                 markAsDelivered,
         } = useSellerOrderStore();
 
-	const isAuthenticated = useIsSellerAuthenticated();
-	const [isRedirecting, setIsRedirecting] = useState(false);
-	const router = useRouter();
+        const isAuthenticated = useIsSellerAuthenticated();
+        const [isRedirecting, setIsRedirecting] = useState(false);
+        const [detailsPopup, setDetailsPopup] = useState({ open: false, order: null });
+        const router = useRouter();
 
 	const handleFilterChange = (key, value) => {
 		setFilters({ [key]: value, page: 1 });
@@ -69,9 +72,20 @@ function SellerOrdersPage() {
 		}
 	};
 
-	const handlePageChange = (page) => {
-		setFilters({ page });
-	};
+        const handlePageChange = (page) => {
+                setFilters({ page });
+        };
+
+        const handleOpenOrderDetails = (selectedOrder) => {
+                setDetailsPopup({ open: true, order: selectedOrder });
+        };
+
+        const handleDetailsOpenChange = (open) => {
+                setDetailsPopup((prev) => ({
+                        open,
+                        order: open ? prev.order : null,
+                }));
+        };
 
 	const handleAcceptOrder = async (orderId) => {
 		const result = await acceptOrder(orderId);
@@ -467,11 +481,19 @@ function SellerOrdersPage() {
 													{order.status.toUpperCase()}
 												</Badge>
 											</TableCell>
-											<TableCell>
-												<div className="flex gap-1">
-													{order.status === "pending" && (
-														<>
-															<Button
+                                                                                        <TableCell>
+                                                                                                <div className="flex gap-1">
+                                                                                                        <Button
+                                                                                                                size="sm"
+                                                                                                                variant="outline"
+                                                                                                                onClick={() => handleOpenOrderDetails(order)}
+                                                                                                        >
+                                                                                                                <Eye className="w-4 h-4 mr-1" />
+                                                                                                                View
+                                                                                                        </Button>
+                                                                                                        {order.status === "pending" && (
+                                                                                                                <>
+                                                                                                                        <Button
 																size="sm"
 																className="bg-green-600 hover:bg-green-700"
 																onClick={() => handleAcceptOrder(order._id)}
@@ -573,10 +595,16 @@ function SellerOrdersPage() {
 							</div>
 						</>
 					)}
-				</CardContent>
-			</Card>
-		</div>
-	);
+                                </CardContent>
+                        </Card>
+
+                        <SellerOrderDetailsPopup
+                                open={detailsPopup.open}
+                                onOpenChange={handleDetailsOpenChange}
+                                order={detailsPopup.order}
+                        />
+                </div>
+        );
 }
 
 export default SellerOrdersPage;
