@@ -116,16 +116,20 @@ export default function ProductDetail({
 		}
 	};
 
-	const renderStars = (rating) => {
-		return Array.from({ length: 5 }, (_, i) => (
-			<Star
-				key={i}
-				className={`w-4 h-4 ${
-					i < rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
-				}`}
-			/>
-		));
-	};
+        const renderStars = (rating) => {
+                return Array.from({ length: 5 }, (_, i) => (
+                        <Star
+                                key={i}
+                                className={`w-4 h-4 ${
+                                        i < rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+                                }`}
+                        />
+                ));
+        };
+
+        const sellerDisplayName =
+                seller?.brandName || seller?.companyName || "Trusted Seller";
+        const sellerProfileUrl = seller?.userId ? `/seller/${seller.userId}` : null;
 
 	const getSellerInitials = (name) => {
 		if (!name) return "";
@@ -762,40 +766,57 @@ export default function ProductDetail({
 									<Card className="bg-white shadow-md border border-orange-300 overflow-hidden">
 										<CardContent className="p-5">
 											<div className="flex flex-col items-center justify-between gap-4">
-												<div className="flex items-center gap-4">
-													{/* {seller?.companyLogo ? (
-														<div className="relative h-16 w-16 rounded-full border border-orange-200 bg-orange-50 flex items-center justify-center overflow-hidden">
-															<Image
-																src={seller.companyLogo}
-																alt={`${seller?.companyName || "Seller"} logo`}
-																width={64}
-																height={64}
-																className="object-contain p-2"
-															/>
-														</div>
-													) : (
-														<div className="h-16 w-16 rounded-full bg-orange-100 border border-orange-200 flex items-center justify-center text-xl font-semibold text-orange-700">
-															{getSellerInitials(seller?.companyName || seller?.brandName)}
-														</div>
-													)} */}
-													<div>
-														<p className="text-sm uppercase text-orange-600 font-semibold">
-															Sold by
-														</p>
-														<h2 className="text-lg drop-shadow-md flex justify-between items-center font-bold text-gray-900">
-															{seller?.brandName ||
-																seller?.companyName ||
-																"Trusted Seller"}
-															<span>
-																<ShieldCheck className="h-4 w-10 text-green-600" />
-															</span>
-														</h2>
-														<p className="text-xs text-gray-500 max-w-md">
-															{seller?.brandDescription ||
-																"Authorised safety equipment partner offering reliable quality and dedicated service."}
-														</p>
-													</div>
-												</div>
+                                                                                                <div className="flex items-center gap-4">
+                                                                                                        <div className="relative h-16 w-16 rounded-full border border-orange-200 bg-orange-50 flex items-center justify-center overflow-hidden">
+                                                                                                                {seller?.companyLogo ? (
+                                                                                                                        <Image
+                                                                                                                                src={seller.companyLogo}
+                                                                                                                                alt={`${sellerDisplayName} logo`}
+                                                                                                                                width={64}
+                                                                                                                                height={64}
+                                                                                                                                className="object-contain p-2"
+                                                                                                                        />
+                                                                                                                ) : (
+                                                                                                                        <div className="h-full w-full flex items-center justify-center text-xl font-semibold text-orange-700">
+                                                                                                                                {getSellerInitials(sellerDisplayName)}
+                                                                                                                        </div>
+                                                                                                                )}
+                                                                                                        </div>
+                                                                                                        <div>
+                                                                                                                <p className="text-sm uppercase text-orange-600 font-semibold">
+                                                                                                                        Sold by
+                                                                                                                </p>
+                                                                                                                <h2 className="text-lg drop-shadow-md flex justify-between items-center font-bold text-gray-900">
+                                                                                                                        {sellerProfileUrl ? (
+                                                                                                                                <Link
+                                                                                                                                        href={sellerProfileUrl}
+                                                                                                                                        className="hover:text-orange-600 transition-colors"
+                                                                                                                                >
+                                                                                                                                        {sellerDisplayName}
+                                                                                                                                </Link>
+                                                                                                                        ) : (
+                                                                                                                                <span>{sellerDisplayName}</span>
+                                                                                                                        )}
+                                                                                                                        <span>
+                                                                                                                                <ShieldCheck className="h-4 w-4 text-green-600" />
+                                                                                                                        </span>
+                                                                                                                </h2>
+                                                                                                                <p className="text-xs text-gray-500 max-w-md">
+                                                                                                                        {seller?.brandDescription ||
+                                                                                                                               "Authorised safety equipment partner offering reliable quality and dedicated service."}
+                                                                                                                </p>
+                                                                                                                {sellerProfileUrl && (
+                                                                                                                        <Link href={sellerProfileUrl} className="inline-block mt-3">
+                                                                                                                                <Button
+                                                                                                                                        variant="outline"
+                                                                                                                                        className="border-orange-500 text-orange-600 hover:bg-orange-50"
+                                                                                                                                >
+                                                                                                                                        Visit Store
+                                                                                                                                </Button>
+                                                                                                                        </Link>
+                                                                                                                )}
+                                                                                                        </div>
+                                                                                                </div>
 												<div className="flex flex-col items-start gap-2">
 													{seller?.gstinNumber && (
 														<span className="text-xs text-gray-500">

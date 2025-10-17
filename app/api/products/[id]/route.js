@@ -92,10 +92,12 @@ export async function GET(req, { params }) {
 
 		console.log("Average rating:", averageRating);
 
-		const sellerCompany = await companyDetails.findOne(
-			{ user: product.sellerId },
-			"companyName companyAddress"
-		);
+                const sellerCompanyDoc = await companyDetails
+                        .findOne(
+                                { user: product.sellerId },
+                                "companyName companyAddress companyLogo brandName brandDescription companyEmail phone gstinNumber user"
+                        )
+                        .lean();
 		// Get related products prioritising the same subcategory when available
 		const relatedProductBaseQuery = {
 			published: true,
@@ -200,12 +202,43 @@ export async function GET(req, { params }) {
 			type: p.type,
 		}));
 
-		return Response.json({
-			success: true,
-			product: transformedProduct,
-			relatedProducts: transformedRelatedProducts,
-			companyDetails: sellerCompany,
-		});
+                const sellerCompany = sellerCompanyDoc
+                        ? {
+                                  id: sellerCompanyDoc._id.toString(),
+                                  userId:
+                                          sellerCompanyDoc.user?.toString?.() ||
+                                          sellerCompanyDoc.user ||
+                                          product.sellerId?.toString?.() ||
+                                          product.sellerId,
+                                  companyName: sellerCompanyDoc.companyName || "",
+                                  companyLogo: sellerCompanyDoc.companyLogo || "",
+                                  brandName: sellerCompanyDoc.brandName || "",
+                                  brandDescription: sellerCompanyDoc.brandDescription || "",
+                                  companyEmail: sellerCompanyDoc.companyEmail || "",
+                                  phone: sellerCompanyDoc.phone || "",
+                                  gstinNumber: sellerCompanyDoc.gstinNumber || "",
+                                  companyAddress: Array.isArray(
+                                          sellerCompanyDoc.companyAddress
+                                  )
+                                          ? sellerCompanyDoc.companyAddress.map((address) => ({
+                                                    tagName: address.tagName || "",
+                                                    building: address.building || "",
+                                                    street: address.street || "",
+                                                    city: address.city || "",
+                                                    state: address.state || "",
+                                                    pincode: address.pincode || "",
+                                                    country: address.country || "",
+                                            }))
+                                          : [],
+                          }
+                        : null;
+
+                return Response.json({
+                        success: true,
+                        product: transformedProduct,
+                        relatedProducts: transformedRelatedProducts,
+                        companyDetails: sellerCompany,
+                });
 	} catch (error) {
 		console.error("Product fetch error:", error);
 		return Response.json(
