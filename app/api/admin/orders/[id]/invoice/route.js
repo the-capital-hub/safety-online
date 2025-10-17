@@ -44,10 +44,14 @@ export async function GET(request, { params }) {
                 });
 
 		// Create order object for PDF generation
-		const orderForPDF = {
-			_id: order._id,
-			orderNumber: order.orderNumber,
-			orderDate: order.orderDate,
+                const billingInfo = order.billingInfo?.toObject
+                        ? order.billingInfo.toObject()
+                        : order.billingInfo || null;
+
+                const orderForPDF = {
+                        _id: order._id,
+                        orderNumber: order.orderNumber,
+                        orderDate: order.orderDate,
 
 			// Customer information
 			customerName: order.customerName,
@@ -70,6 +74,9 @@ export async function GET(request, { params }) {
                         taxableAmount: order.taxableAmount,
                         totalAmount: order.totalAmount,
                         gst: order.gst,
+
+                        // Billing information (for GST invoices)
+                        billingInfo,
 
 			// Coupon information
 			couponApplied: order.couponApplied,

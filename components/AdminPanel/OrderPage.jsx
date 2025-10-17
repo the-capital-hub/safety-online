@@ -170,21 +170,56 @@ function OrderPage() {
 		}));
 	};
 
-	const handleDetailsOpenChange = (isOpen) => {
-		if (!isOpen) {
-			closePopup("details");
-		}
-	};
+        const handleDetailsOpenChange = (isOpen) => {
+                if (!isOpen) {
+                        closePopup("details");
+                }
+        };
 
         const getStatusColor = (status) => getOrderStatusBadgeColor(status);
 
         const formatStatusLabel = (status) => getOrderStatusLabel(status);
 
-	const getPaymentStatusColor = (status) => {
-		const colors = {
-			paid: "bg-green-100 text-green-800",
-			pending: "bg-yellow-100 text-yellow-800",
-			failed: "bg-red-100 text-red-800",
+        const getBusinessInvoiceInfo = (order) => {
+                if (!order || !order.billingInfo) {
+                        return null;
+                }
+
+                const {
+                        gstInvoiceRequested,
+                        gstNumber,
+                        gstVerifiedAt,
+                        gstLegalName,
+                        gstTradeName,
+                        gstState,
+                        gstAddress,
+                } = order.billingInfo;
+
+                if (!gstInvoiceRequested || !gstNumber || !gstVerifiedAt) {
+                        return null;
+                }
+
+                const verifiedDate = new Date(gstVerifiedAt);
+
+                if (Number.isNaN(verifiedDate.getTime())) {
+                        return null;
+                }
+
+                return {
+                        gstNumber,
+                        gstLegalName,
+                        gstTradeName,
+                        gstState,
+                        gstAddress,
+                        verifiedAt: verifiedDate,
+                };
+        };
+
+        const getPaymentStatusColor = (status) => {
+                const colors = {
+                        paid: "bg-green-100 text-green-800",
+                        pending: "bg-yellow-100 text-yellow-800",
+                        failed: "bg-red-100 text-red-800",
 			refunded: "bg-gray-100 text-gray-800",
 		};
 		return colors[status] || "bg-gray-100 text-gray-800";
@@ -519,9 +554,16 @@ function OrderPage() {
 														}}
 													/>
 												</TableCell>
-												<TableCell className="font-medium">
-													{order.orderNumber}
-												</TableCell>
+                                                                                        <TableCell className="font-medium">
+                                                                                                <div className="flex items-center gap-2">
+                                                                                                        <span>{order.orderNumber}</span>
+                                                                                                        {getBusinessInvoiceInfo(order) && (
+                                                                                                                <Badge className="bg-amber-100 text-amber-800 border border-amber-200">
+                                                                                                                        Business Invoice
+                                                                                                                </Badge>
+                                                                                                        )}
+                                                                                                </div>
+                                                                                                </TableCell>
 												<TableCell>
 													{new Date(order.orderDate).toLocaleDateString()}
 													<br />
