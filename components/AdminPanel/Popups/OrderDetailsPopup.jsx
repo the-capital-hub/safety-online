@@ -30,6 +30,7 @@ import {
         Truck,
         Store,
         Loader2,
+        BadgeCheck,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useAdminOrderStore } from "@/store/adminOrderStore.js";
@@ -198,6 +199,41 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
 
         const paymentStatusOptions = ["pending", "paid", "failed", "refunded"];
 
+        const businessInvoiceInfo = useMemo(() => {
+                if (!resolvedOrder?.billingInfo) {
+                        return null;
+                }
+
+                const {
+                        gstInvoiceRequested,
+                        gstNumber,
+                        gstVerifiedAt,
+                        gstLegalName,
+                        gstTradeName,
+                        gstState,
+                        gstAddress,
+                } = resolvedOrder.billingInfo;
+
+                if (!gstInvoiceRequested || !gstNumber || !gstVerifiedAt) {
+                        return null;
+                }
+
+                const verifiedDate = new Date(gstVerifiedAt);
+
+                if (Number.isNaN(verifiedDate.getTime())) {
+                        return null;
+                }
+
+                return {
+                        gstNumber,
+                        gstLegalName,
+                        gstTradeName,
+                        gstState,
+                        gstAddress,
+                        gstVerifiedAt: verifiedDate,
+                };
+        }, [resolvedOrder?.billingInfo]);
+
         const formatStatusLabel = (value) => getOrderStatusLabel(value);
 
         const hasStatusChanges =
@@ -261,9 +297,16 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
 					transition={{ duration: 0.2 }}
 				>
                                         <DialogHeader>
-                                                <DialogTitle className="text-xl font-bold">
-                                                        Order Details - {resolvedOrder.orderNumber}
-                                                </DialogTitle>
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                        <DialogTitle className="text-xl font-bold">
+                                                                Order Details - {resolvedOrder.orderNumber}
+                                                        </DialogTitle>
+                                                        {businessInvoiceInfo && (
+                                                                <Badge className="bg-amber-100 text-amber-800 border border-amber-200">
+                                                                        Business Invoice
+                                                                </Badge>
+                                                        )}
+                                                </div>
                                         </DialogHeader>
 
                                         <div className="space-y-6 mt-6">
@@ -414,46 +457,105 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
 							</Card>
 						</div>
 
-						{/* Customer Information */}
-						<Card>
-							<CardHeader>
-								<CardTitle className="flex items-center gap-2">
-									<User className="w-5 h-5" />
-									Customer Information
-								</CardTitle>
-							</CardHeader>
-							<CardContent>
-								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-									<div>
-										<p className="text-sm text-gray-600">Name</p>
+                                                {/* Customer Information */}
+                                                <Card>
+                                                        <CardHeader>
+                                                                <CardTitle className="flex items-center gap-2">
+                                                                        <User className="w-5 h-5" />
+                                                                        Customer Information
+                                                                </CardTitle>
+                                                        </CardHeader>
+                                                        <CardContent>
+                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                        <div>
+                                                                                <p className="text-sm text-gray-600">Name</p>
                                                                                 <p className="font-medium">{customerName || "N/A"}</p>
-									</div>
-									<div>
-										<p className="text-sm text-gray-600">Email</p>
-										<div className="flex items-center gap-2">
-											<Mail className="w-4 h-4 text-gray-400" />
+                                                                        </div>
+                                                                        <div>
+                                                                                <p className="text-sm text-gray-600">Email</p>
+                                                                                <div className="flex items-center gap-2">
+                                                                                        <Mail className="w-4 h-4 text-gray-400" />
                                                                                         <p className="font-medium">{customerEmail || "N/A"}</p>
-										</div>
-									</div>
-									<div>
-										<p className="text-sm text-gray-600">Phone</p>
-										<div className="flex items-center gap-2">
-											<Phone className="w-4 h-4 text-gray-400" />
+                                                                                </div>
+                                                                        </div>
+                                                                        <div>
+                                                                                <p className="text-sm text-gray-600">Phone</p>
+                                                                                <div className="flex items-center gap-2">
+                                                                                        <Phone className="w-4 h-4 text-gray-400" />
                                                                                         <p className="font-medium">{customerMobile || "N/A"}</p>
-										</div>
-									</div>
-									<div>
-										<p className="text-sm text-gray-600">Customer ID</p>
+                                                                                </div>
+                                                                        </div>
+                                                                        <div>
+                                                                                <p className="text-sm text-gray-600">Customer ID</p>
                                                                                 <p className="font-medium text-blue-600">{customerIdValue || "N/A"}</p>
-									</div>
-								</div>
-							</CardContent>
-						</Card>
+                                                                        </div>
+                                                                </div>
+                                                        </CardContent>
+                                                </Card>
 
-						{/* Delivery Address */}
+                                                {businessInvoiceInfo && (
+                                                        <Card>
+                                                                <CardHeader>
+                                                                        <CardTitle className="flex items-center gap-2">
+                                                                                <BadgeCheck className="w-5 h-5 text-amber-500" />
+                                                                                GST Invoice Details
+                                                                        </CardTitle>
+                                                                </CardHeader>
+                                                                <CardContent>
+                                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                                <div>
+                                                                                        <p className="text-sm text-gray-600">GSTIN</p>
+                                                                                        <p className="font-semibold text-gray-900">
+                                                                                                {businessInvoiceInfo.gstNumber}
+                                                                                        </p>
+                                                                                </div>
+                                                                                {businessInvoiceInfo.gstLegalName && (
+                                                                                        <div>
+                                                                                                <p className="text-sm text-gray-600">Registered Name</p>
+                                                                                                <p className="font-medium text-gray-900">
+                                                                                                        {businessInvoiceInfo.gstLegalName}
+                                                                                                </p>
+                                                                                        </div>
+                                                                                )}
+                                                                                {businessInvoiceInfo.gstTradeName && (
+                                                                                        <div>
+                                                                                                <p className="text-sm text-gray-600">Trade Name</p>
+                                                                                                <p className="font-medium text-gray-900">
+                                                                                                        {businessInvoiceInfo.gstTradeName}
+                                                                                                </p>
+                                                                                        </div>
+                                                                                )}
+                                                                                {businessInvoiceInfo.gstState && (
+                                                                                        <div>
+                                                                                                <p className="text-sm text-gray-600">State</p>
+                                                                                                <p className="font-medium text-gray-900">
+                                                                                                        {businessInvoiceInfo.gstState}
+                                                                                                </p>
+                                                                                        </div>
+                                                                                )}
+                                                                                <div>
+                                                                                        <p className="text-sm text-gray-600">Verification</p>
+                                                                                        <p className="text-sm text-gray-900">
+                                                                                                Verified on {businessInvoiceInfo.gstVerifiedAt.toLocaleString()}
+                                                                                        </p>
+                                                                                </div>
+                                                                        </div>
+                                                                        {businessInvoiceInfo.gstAddress && (
+                                                                                <div className="mt-4">
+                                                                                        <p className="text-sm text-gray-600">GST Registered Address</p>
+                                                                                        <p className="text-sm text-gray-900 whitespace-pre-line">
+                                                                                                {businessInvoiceInfo.gstAddress}
+                                                                                        </p>
+                                                                                </div>
+                                                                        )}
+                                                                </CardContent>
+                                                        </Card>
+                                                )}
+
+                                                {/* Delivery Address */}
                                                 {resolvedOrder.deliveryAddress && (
                                                         <Card>
-								<CardHeader>
+                                                                <CardHeader>
 									<CardTitle className="flex items-center gap-2">
 										<MapPin className="w-5 h-5" />
 										Delivery Address

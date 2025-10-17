@@ -132,10 +132,39 @@ function SellerOrdersPage() {
 		return colors[status] || "bg-gray-100 text-gray-800";
 	};
 
-	const getPaymentMethodDisplay = (method) => {
-		if (method === "cod") return "COD";
-		return "Prepaid";
-	};
+        const getPaymentMethodDisplay = (method) => {
+                if (method === "cod") return "COD";
+                return "Prepaid";
+        };
+
+        const getBusinessInvoiceInfo = (order) => {
+                if (!order) {
+                        return null;
+                }
+
+                const billingInfo = order.orderId?.billingInfo || order.billingInfo;
+
+                if (!billingInfo) {
+                        return null;
+                }
+
+                const { gstInvoiceRequested, gstNumber, gstVerifiedAt } = billingInfo;
+
+                if (!gstInvoiceRequested || !gstNumber || !gstVerifiedAt) {
+                        return null;
+                }
+
+                const verifiedDate = new Date(gstVerifiedAt);
+
+                if (Number.isNaN(verifiedDate.getTime())) {
+                        return null;
+                }
+
+                return {
+                        gstNumber,
+                        verifiedAt: verifiedDate,
+                };
+        };
 
 	useEffect(() => {
 		if (!isAuthenticated) {
@@ -362,9 +391,18 @@ function SellerOrdersPage() {
 											animate={{ opacity: 1, y: 0 }}
 											transition={{ duration: 0.2 }}
 										>
-											<TableCell className="font-medium">
-												{order.orderId?.orderNumber || order.orderNumber || "N/A"}
-											</TableCell>
+                                                                                        <TableCell className="font-medium">
+                                                                                                <div className="flex items-center gap-2">
+                                                                                                        <span>
+                                                                                                                {order.orderId?.orderNumber || order.orderNumber || "N/A"}
+                                                                                                        </span>
+                                                                                                        {getBusinessInvoiceInfo(order) && (
+                                                                                                                <Badge className="bg-amber-100 text-amber-800 border border-amber-200">
+                                                                                                                        Business Invoice
+                                                                                                                </Badge>
+                                                                                                        )}
+                                                                                                </div>
+                                                                                        </TableCell>
 											<TableCell>
 												{order.orderId?.orderDate ? new Date(order.orderId.orderDate).toLocaleDateString() : "N/A"}
 												<br />
