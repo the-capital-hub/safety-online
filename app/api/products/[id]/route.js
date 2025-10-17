@@ -92,10 +92,27 @@ export async function GET(req, { params }) {
 
 		console.log("Average rating:", averageRating);
 
-		const sellerCompany = await companyDetails.findOne(
-			{ user: product.sellerId },
-			"companyName companyAddress"
-		);
+                const sellerCompanyDoc = await companyDetails
+                        .findOne(
+                                { user: product.sellerId },
+                                "companyName companyAddress companyEmail phone brandName brandDescription companyLogo gstinNumber user"
+                        )
+                        .lean();
+
+                const sellerCompany = sellerCompanyDoc
+                        ? {
+                                id: sellerCompanyDoc._id.toString(),
+                                userId: sellerCompanyDoc.user?.toString?.() || null,
+                                companyName: sellerCompanyDoc.companyName,
+                                companyAddress: sellerCompanyDoc.companyAddress || [],
+                                companyEmail: sellerCompanyDoc.companyEmail || "",
+                                phone: sellerCompanyDoc.phone || "",
+                                brandName: sellerCompanyDoc.brandName || "",
+                                brandDescription: sellerCompanyDoc.brandDescription || "",
+                                companyLogo: sellerCompanyDoc.companyLogo || "",
+                                gstinNumber: sellerCompanyDoc.gstinNumber || "",
+                        }
+                        : null;
 		// Get related products prioritising the same subcategory when available
 		const relatedProductBaseQuery = {
 			published: true,
@@ -155,9 +172,13 @@ export async function GET(req, { params }) {
 		};
 
 		// Transform product data
-		const transformedProduct = {
-			id: product._id.toString(),
-			name: product.title,
+                const transformedProduct = {
+                        id: product._id.toString(),
+                        sellerId:
+                                typeof product.sellerId === "object"
+                                        ? product.sellerId?.toString?.()
+                                        : product.sellerId?.toString?.() || "",
+                        name: product.title,
 			description: product.description,
 			longDescription: product.longDescription || product.description,
 			price: product.salePrice > 0 ? product.salePrice : product.price,
