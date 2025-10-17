@@ -5,24 +5,42 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ShoppingCart, X, Plus, Minus } from "lucide-react";
+import { useEffect } from "react";
 import { useCartStore } from "@/store/cartStore";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import useRequireAuth from "@/hooks/useRequireAuth.js";
+import { useIsAuthenticated } from "@/store/authStore.js";
 
 export default function MiniCart() {
         const router = useRouter();
         const {
                 items,
-		isOpen,
-		closeCart,
-		totals,
-		updateQuantity,
-		removeItem,
+                isOpen,
+                closeCart,
+                totals,
+                updateQuantity,
+                removeItem,
                 getTotalItems,
                 isLoading,
+                fetchCart,
+                lastSyncTime,
         } = useCartStore();
+        const isAuthenticated = useIsAuthenticated();
         const requireAuth = useRequireAuth();
+
+        useEffect(() => {
+                if (!isOpen || !isAuthenticated) {
+                        return;
+                }
+
+                const shouldFetchCart =
+                        !items.length || !lastSyncTime || Date.now() - lastSyncTime > 30_000;
+
+                if (shouldFetchCart) {
+                        void fetchCart();
+                }
+        }, [fetchCart, isAuthenticated, isOpen, items.length, lastSyncTime]);
 
         const handleViewCart = () => {
                 if (!requireAuth({ message: "Please login to view your cart" })) {
