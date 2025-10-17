@@ -165,6 +165,41 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
                 []
         );
 
+        const businessInvoiceInfo = useMemo(() => {
+                if (!resolvedOrder?.billingInfo) {
+                        return null;
+                }
+
+                const {
+                        gstInvoiceRequested,
+                        gstNumber,
+                        gstVerifiedAt,
+                        gstLegalName,
+                        gstTradeName,
+                        gstState,
+                        gstAddress,
+                } = resolvedOrder.billingInfo;
+
+                if (!gstInvoiceRequested || !gstNumber || !gstVerifiedAt) {
+                        return null;
+                }
+
+                const verifiedDate = new Date(gstVerifiedAt);
+
+                if (Number.isNaN(verifiedDate.getTime())) {
+                        return null;
+                }
+
+                return {
+                        gstNumber,
+                        gstLegalName,
+                        gstTradeName,
+                        gstState,
+                        gstAddress,
+                        gstVerifiedAt: verifiedDate,
+                };
+        }, [resolvedOrder?.billingInfo]);
+
         if (!resolvedOrder) {
                 return null;
         }
@@ -209,41 +244,6 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
         const statusOptions = ORDER_STATUS_UPDATE_OPTIONS;
 
         const paymentStatusOptions = ["pending", "paid", "failed", "refunded"];
-
-        const businessInvoiceInfo = useMemo(() => {
-                if (!resolvedOrder?.billingInfo) {
-                        return null;
-                }
-
-                const {
-                        gstInvoiceRequested,
-                        gstNumber,
-                        gstVerifiedAt,
-                        gstLegalName,
-                        gstTradeName,
-                        gstState,
-                        gstAddress,
-                } = resolvedOrder.billingInfo;
-
-                if (!gstInvoiceRequested || !gstNumber || !gstVerifiedAt) {
-                        return null;
-                }
-
-                const verifiedDate = new Date(gstVerifiedAt);
-
-                if (Number.isNaN(verifiedDate.getTime())) {
-                        return null;
-                }
-
-                return {
-                        gstNumber,
-                        gstLegalName,
-                        gstTradeName,
-                        gstState,
-                        gstAddress,
-                        gstVerifiedAt: verifiedDate,
-                };
-        }, [resolvedOrder?.billingInfo]);
 
         const formatStatusLabel = (value) => getOrderStatusLabel(value);
 
