@@ -19,20 +19,23 @@ import {
 import { useState } from "react";
 import { useProductStore } from "@/store/productStore.js";
 import ProductCard from "@/components/BuyerPanel/products/ProductCard.jsx";
+import { useRouter } from "next/navigation";
 
 export default function ProductGrid() {
-	const [viewMode, setViewMode] = useState("grid");
+        const [viewMode, setViewMode] = useState("grid");
+        const router = useRouter();
 
-	const {
-		filteredProducts,
-		currentPage,
-		totalPages,
-		isLoading,
-		setCurrentPage,
-		setSorting,
-		sortBy,
-		sortOrder,
-	} = useProductStore();
+        const {
+                filteredProducts,
+                suggestions,
+                currentPage,
+                totalPages,
+                isLoading,
+                setCurrentPage,
+                setSorting,
+                sortBy,
+                sortOrder,
+        } = useProductStore();
 
 	const handlePageChange = (page) => {
 		setCurrentPage(page);
@@ -48,8 +51,12 @@ export default function ProductGrid() {
 		return `${sortBy}-${sortOrder}` || "createdAt-desc";
 	};
 
-	return (
-		<div className="space-y-6">
+        const handleSuggestionClick = (productId) => {
+                router.push(`/products/${productId}`);
+        };
+
+        return (
+                <div className="space-y-6">
 			{/* Header */}
 			<div className="bg-white rounded-lg p-6 shadow-sm">
 				<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -113,16 +120,64 @@ export default function ProductGrid() {
 						<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
 					</div>
 				</div>
-			) : filteredProducts.length === 0 ? (
-				<div className="bg-white rounded-lg p-12 shadow-sm text-center">
-					<h3 className="text-xl font-semibold text-gray-900 mb-2">
-						No products found
-					</h3>
-					<p className="text-gray-600">
-						Try adjusting your filters or search terms.
-					</p>
-				</div>
-			) : (
+                        ) : filteredProducts.length === 0 ? (
+                                <div className="bg-white rounded-lg p-12 shadow-sm text-center">
+                                        <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                                                No products found
+                                        </h3>
+                                        <p className="text-gray-600">
+                                                Try adjusting your filters or search terms.
+                                        </p>
+                                        {suggestions?.length > 0 && (
+                                                <div className="mt-8 text-left space-y-4">
+                                                        <h4 className="text-lg font-semibold text-gray-900">
+                                                                Closest matches
+                                                        </h4>
+                                                        <div className="grid gap-4 md:grid-cols-2">
+                                                                {suggestions.map((suggestion) => (
+                                                                        <div
+                                                                                key={suggestion.id}
+                                                                                className="rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow cursor-pointer"
+                                                                                onClick={() =>
+                                                                                        handleSuggestionClick(
+                                                                                                suggestion.id
+                                                                                        )
+                                                                                }
+                                                                        >
+                                                                                <div className="flex items-start justify-between gap-2">
+                                                                                        <h5 className="text-base font-semibold text-gray-900">
+                                                                                                {suggestion.title}
+                                                                                        </h5>
+                                                                                        {typeof suggestion.score === "number" && (
+                                                                                                <span className="text-xs font-medium text-gray-500">
+                                                                                                        Relevance: {Math.max(0, Math.round(suggestion.score))}
+                                                                                                </span>
+                                                                                        )}
+                                                                                </div>
+                                                                                <p className="mt-2 text-sm text-gray-600 line-clamp-3">
+                                                                                        {suggestion.description}
+                                                                                </p>
+                                                                                <div className="mt-3">
+                                                                                        <Button
+                                                                                                variant="link"
+                                                                                                className="px-0"
+                                                                                                onClick={(event) => {
+                                                                                                        event.stopPropagation();
+                                                                                                        handleSuggestionClick(
+                                                                                                                suggestion.id
+                                                                                                        );
+                                                                                                }}
+                                                                                        >
+                                                                                                View product
+                                                                                        </Button>
+                                                                                </div>
+                                                                        </div>
+                                                                ))}
+                                                        </div>
+                                                </div>
+                                        )}
+                                </div>
+                        ) : (
 				<motion.div
 					className={
 						viewMode === "grid"

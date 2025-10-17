@@ -24,9 +24,10 @@ export const useProductStore = create(
 	devtools(
 		persist(
 			(set, get) => ({
-				// Initial State
-				products: [],
-				filteredProducts: [],
+                                // Initial State
+                                products: [],
+                                filteredProducts: [],
+                                suggestions: [],
 				filters: {
 					categories: [],
 					priceRange: [0, 10000],
@@ -116,24 +117,30 @@ export const useProductStore = create(
 						const response = await fetch(`/api/products?${params}`);
 						const data = await response.json();
 
-						if (data.success) {
-							set({
-								products: data.products,
-								filteredProducts: data.products,
-								totalPages: data.pagination.totalPages,
-								isLoading: false,
-							});
-						} else {
-							set({ error: data.message, isLoading: false });
-						}
-					} catch (error) {
-						console.error("Fetch products error:", error);
-						set({
-							error: "Failed to fetch products",
-							isLoading: false,
-						});
-					}
-				},
+                                                if (data.success) {
+                                                        set({
+                                                                products: data.products,
+                                                                filteredProducts: data.products,
+                                                                totalPages: data.pagination.totalPages,
+                                                                suggestions: data.suggestions || [],
+                                                                isLoading: false,
+                                                        });
+                                                } else {
+                                                        set({
+                                                                error: data.message,
+                                                                isLoading: false,
+                                                                suggestions: [],
+                                                        });
+                                                }
+                                        } catch (error) {
+                                                console.error("Fetch products error:", error);
+                                                set({
+                                                        error: "Failed to fetch products",
+                                                        isLoading: false,
+                                                        suggestions: [],
+                                                });
+                                        }
+                                },
 
 				fetchFilters: async () => {
 					try {
@@ -253,13 +260,14 @@ export const useProductStore = create(
 						type: "",
 					};
 
-					set({
-						filters: defaultFilters,
-						currentCategory: "all",
-						currentSubCategory: "",
-						currentPage: 1,
-						searchQuery: "",
-					});
+                                        set({
+                                                filters: defaultFilters,
+                                                currentCategory: "all",
+                                                currentSubCategory: "",
+                                                currentPage: 1,
+                                                searchQuery: "",
+                                                suggestions: [],
+                                        });
 
 					// Fetch products after reset
 					setTimeout(() => get().fetchProducts(), 0);
