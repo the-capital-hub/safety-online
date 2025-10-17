@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,7 +30,9 @@ import {
         Calendar,
         Search,
         RotateCcw,
+        Download,
 } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 import { useSellerPaymentStore } from "@/store/sellerPaymentStore.js";
 import { useIsSellerAuthenticated } from "@/store/sellerAuthStore.js";
@@ -115,6 +117,7 @@ function SellerPaymentsPage() {
                 resetFilters,
                 fetchPayments,
         } = useSellerPaymentStore();
+        const [exporting, setExporting] = useState(false);
 
         useEffect(() => {
                 if (!isAuthenticated) {
@@ -143,6 +146,86 @@ function SellerPaymentsPage() {
         const handlePageChange = (page) => {
                 if (page < 1 || page > pagination.totalPages) return;
                 setFilters({ page });
+        };
+
+        const handleExportPayments = async () => {
+                if (!payments.length) {
+                        toast.error("No payments available to export");
+                        return;
+                }
+
+                setExporting(true);
+
+                try {
+                        const { exportToExcel } = await import("@/lib/exportToExcel.js");
+
+                        const formatExportDate = (value) => {
+                                if (!value) return "";
+                                const date = new Date(value);
+                                if (Number.isNaN(date.getTime())) return "";
+                                return date.toLocaleDateString("en-IN", {
+                                        day: "2-digit",
+                                        month: "short",
+                                        year: "numeric",
+                                });
+                        };
+
+                        const columns = [
+                                { key: "index", header: "S. No" },
+                                { key: "orderNumber", header: "Order Number" },
+                                { key: "subOrder", header: "Sub Order" },
+                                { key: "status", header: "Status" },
+                                { key: "totalAmount", header: "Order Total (₹)" },
+                                { key: "sellerShare", header: "Your Share (₹)" },
+                                { key: "commission", header: "Commission (₹)" },
+                                { key: "escrowDate", header: "Escrow Date" },
+                                { key: "releasedDate", header: "Released On" },
+                                { key: "paymentReference", header: "Payment Reference" },
+                        ];
+
+                        const rows = payments.map((payment, index) => {
+                                const subOrder = formatSubOrderReference(payment.subOrderId);
+                                const paymentReference =
+                                        payment.razorpayPaymentId ||
+                                        payment.razorpayOrderId ||
+                                        payment.payoutReference ||
+                                        "";
+
+                                return {
+                                        index: index + 1,
+                                        orderNumber: payment.orderNumber || "",
+                                        subOrder: subOrder === "--" ? "" : subOrder,
+                                        status: formatStatus(payment.status),
+                                        totalAmount: Number(payment.totalAmount || 0),
+                                        sellerShare: Number(payment.sellerAmount || 0),
+                                        commission: Number(payment.commissionAmount || 0),
+                                        escrowDate: formatExportDate(payment.escrowActivatedAt || payment.createdAt),
+                                        releasedDate: formatExportDate(payment.releasedAt),
+                                        paymentReference,
+                                };
+                        });
+
+                        const currentDate = new Date().toISOString().slice(0, 10);
+                        const filename = `seller-payments-${currentDate}.xls`;
+
+                        const exported = await exportToExcel({
+                                columns,
+                                rows,
+                                filename,
+                                sheetName: "SellerPayments",
+                        });
+
+                        if (exported) {
+                                toast.success("Payments exported successfully");
+                        } else {
+                                toast.error("Failed to export payments");
+                        }
+                } catch (error) {
+                        console.error("Export seller payments error:", error);
+                        toast.error("An error occurred while exporting payments");
+                } finally {
+                        setExporting(false);
+                }
         };
 
         if (!isAuthenticated) {
@@ -279,7 +362,16 @@ function SellerPaymentsPage() {
                                                                 />
                                                         </div>
                                                 </div>
-                                                <div className="col-span-6 lg:col-span-1 flex justify-end">
+                                                <div className="col-span-12 lg:col-span-2 flex flex-col sm:flex-row lg:flex-col gap-2">
+                                                        <Button
+                                                                type="button"
+                                                                className="w-full"
+                                                                onClick={handleExportPayments}
+                                                                disabled={exporting || loading || payments.length === 0}
+                                                        >
+                                                                <Download className="h-4 w-4 mr-2" />
+                                                                {exporting ? "Exporting..." : "Export Excel"}
+                                                        </Button>
                                                         <Button
                                                                 type="button"
                                                                 variant="outline"
