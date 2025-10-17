@@ -93,7 +93,24 @@ const TOOLBAR_BUTTONS = ({ handleImageButtonClick, isUploadingImage }) => [
 export function RichTextEditor({ value, onChange, label = "Content" }) {
         const editorRef = useRef(null);
         const fileInputRef = useRef(null);
+        const imageControlsRef = useRef(null);
         const [isUploadingImage, setIsUploadingImage] = useState(false);
+        const [selectedImage, setSelectedImage] = useState(null);
+        const [imageWidth, setImageWidth] = useState(100);
+
+        useEffect(() => {
+                if (!editorRef.current) return;
+
+                const images = editorRef.current.querySelectorAll("img");
+                images.forEach((image) => {
+                        if (!image.style.maxWidth) {
+                                image.style.maxWidth = "100%";
+                        }
+                        if (!image.style.height) {
+                                image.style.height = "auto";
+                        }
+                });
+        }, [value]);
 
         useEffect(() => {
                 if (editorRef.current && editorRef.current.innerHTML !== value) {
@@ -111,6 +128,15 @@ export function RichTextEditor({ value, onChange, label = "Content" }) {
                 if (!url) return;
                 editorRef.current?.focus();
                 document.execCommand("insertImage", false, url);
+
+                // Ensure inserted images respect container width by default
+                const images = editorRef.current?.querySelectorAll("img") || [];
+                images.forEach((image) => {
+                        if (image.src === url) {
+                                image.style.maxWidth = "100%";
+                                image.style.height = "auto";
+                        }
+                });
                 handleInput();
         };
 
@@ -178,6 +204,94 @@ export function RichTextEditor({ value, onChange, label = "Content" }) {
 
         const toolbarButtons = TOOLBAR_BUTTONS({ handleImageButtonClick, isUploadingImage });
 
+        useEffect(() => {
+                const previouslySelectedImage = editorRef.current?.querySelector(
+                        "img[data-editor-selected=\"true\"]",
+                );
+
+                if (previouslySelectedImage && previouslySelectedImage !== selectedImage) {
+                        previouslySelectedImage.removeAttribute("data-editor-selected");
+                        previouslySelectedImage.style.outline = "";
+                        previouslySelectedImage.style.outlineOffset = "";
+                }
+
+                if (selectedImage) {
+                        selectedImage.setAttribute("data-editor-selected", "true");
+                        selectedImage.style.outline = "2px solid #2563eb";
+                        selectedImage.style.outlineOffset = "2px";
+                        selectedImage.style.maxWidth = "100%";
+                        selectedImage.style.height = "auto";
+                }
+        }, [selectedImage]);
+
+        useEffect(() => {
+                const handleDocumentClick = (event) => {
+                        const target = event.target;
+                        const editorElement = editorRef.current;
+                        const controlsElement = imageControlsRef.current;
+
+                        if (
+                                selectedImage &&
+                                editorElement &&
+                                !editorElement.contains(target) &&
+                                !controlsElement?.contains(target)
+                        ) {
+                                setSelectedImage(null);
+                        }
+                };
+
+                document.addEventListener("mousedown", handleDocumentClick);
+                return () => document.removeEventListener("mousedown", handleDocumentClick);
+        }, [selectedImage]);
+
+        const handleEditorClick = (event) => {
+                const target = event.target;
+                if (!(target instanceof HTMLImageElement)) {
+                        setSelectedImage(null);
+                        return;
+                }
+
+                setSelectedImage(target);
+
+                const styleWidth = target.style.width;
+                if (styleWidth?.includes("%")) {
+                        const parsed = parseFloat(styleWidth);
+                        if (!Number.isNaN(parsed)) {
+                                setImageWidth(parsed);
+                                return;
+                        }
+                }
+
+                const containerWidth = target.parentElement?.clientWidth || target.width;
+                if (containerWidth) {
+                        const percent = Math.round((target.width / containerWidth) * 100);
+                        if (percent > 0) {
+                                setImageWidth(Math.min(100, Math.max(10, percent)));
+                                return;
+                        }
+                }
+
+                setImageWidth(100);
+        };
+
+        const handleImageSizeChange = (event) => {
+                const newWidth = Number(event.target.value);
+                if (!selectedImage || Number.isNaN(newWidth)) return;
+
+                setImageWidth(newWidth);
+                selectedImage.style.width = `${newWidth}%`;
+                selectedImage.style.height = "auto";
+                handleInput();
+        };
+
+        const handleResetImageSize = () => {
+                if (!selectedImage) return;
+                setImageWidth(100);
+                selectedImage.style.width = "";
+                selectedImage.style.height = "auto";
+                handleInput();
+        };
+
         return (
                 <div className="space-y-3">
                         <div className="flex items-center justify-between">
@@ -228,6 +342,32 @@ export function RichTextEditor({ value, onChange, label = "Content" }) {
                                         />
                                 </div>
 
+                                {selectedImage ? (
+                                        <div
+                                                ref={imageControlsRef}
+                                                className="flex flex-wrap items-center gap-3 border-b border-blue-100 bg-blue-50 px-4 py-2 text-xs text-blue-700"
+                                        >
+                                                <span className="font-medium uppercase tracking-wide">Image width</span>
+                                                <input
+                                                        type="range"
+                                                        min={10}
+                                                        max={100}
+                                                        step={5}
+                                                        value={imageWidth}
+                                                        onChange={handleImageSizeChange}
+                                                        className="h-2 w-48 cursor-pointer accent-blue-600"
+                                                />
+                                                <span className="font-semibold">{imageWidth}%</span>
+                                                <button
+                                                        type="button"
+                                                        className="rounded border border-blue-200 px-2 py-1 font-medium text-blue-700 transition hover:bg-blue-600 hover:text-white"
+                                                        onClick={handleResetImageSize}
+                                                >
+                                                        Reset
+                                                </button>
+                                        </div>
+                                ) : null}
+
                                 <div
                                         ref={editorRef}
                                         className="min-h-[320px] space-y-3 px-4 py-4 text-sm leading-relaxed text-slate-800 outline-none"
@@ -235,6 +375,7 @@ export function RichTextEditor({ value, onChange, label = "Content" }) {
                                         suppressContentEditableWarning
                                         onInput={handleInput}
                                         onBlur={handleInput}
+                                        onClick={handleEditorClick}
                                 />
                         </div>
                 </div>
