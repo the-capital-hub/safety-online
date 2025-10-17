@@ -351,12 +351,12 @@ export default function SellerPage() {
                                                                                 <span>{seller.companyEmail}</span>
                                                                         </div>
                                                                 )}
-                                                                {seller?.phone && (
+                                                                {/* {seller?.phone && (
                                                                         <div className="flex items-center gap-2">
                                                                                 <Phone className="h-4 w-4" />
                                                                                 <span>{seller.phone}</span>
                                                                         </div>
-                                                                )}
+                                                                )} */}
                                                                 {headOfficeAddress && (
                                                                         <div className="flex items-start gap-2 max-w-lg">
                                                                                 <MapPin className="h-4 w-4 mt-0.5" />
