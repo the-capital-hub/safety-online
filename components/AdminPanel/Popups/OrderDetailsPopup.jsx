@@ -28,6 +28,7 @@ import {
         Phone,
         Mail,
         Truck,
+        Activity,
         Store,
         Loader2,
         BadgeCheck,
@@ -246,6 +247,37 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
         const paymentStatusOptions = ["pending", "paid", "failed", "refunded"];
 
         const formatStatusLabel = (value) => getOrderStatusLabel(value);
+
+        const formatDateTime = (value) => {
+                if (!value) {
+                        return null;
+                }
+
+                const date = new Date(value);
+                return Number.isNaN(date.getTime()) ? null : date.toLocaleString();
+        };
+
+        const formatHexalogStatus = (status) => {
+                if (typeof status !== "string" || status.length === 0) {
+                        return "N/A";
+                }
+
+                const normalized = status.trim().toLowerCase().replace(/\s+/g, "_");
+                const label = getOrderStatusLabel(normalized);
+
+                if (label && typeof label === "string" && label.length > 0) {
+                        return label;
+                }
+
+                return status
+                        .replace(/_/g, " ")
+                        .replace(/\b\w/g, (char) => char.toUpperCase());
+        };
+
+        const hasHexalogUpdate =
+                Boolean(resolvedOrder?.hexalogStatus) ||
+                Boolean(resolvedOrder?.hexalogStatusUpdatedAt) ||
+                Boolean(resolvedOrder?.hexalogNdrStatus);
 
         const hasStatusChanges =
                 (resolvedOrder.status || "") !== statusForm.status ||
@@ -638,6 +670,11 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
                                                                                         const products = Array.isArray(subOrder?.products)
                                                                                                 ? subOrder.products
                                                                                                 : [];
+                                                                                        const shipmentPackage =
+                                                                                                subOrder?.shipmentPackage &&
+                                                                                                typeof subOrder.shipmentPackage === "object"
+                                                                                                        ? subOrder.shipmentPackage
+                                                                                                        : null;
 
                                                                                         return (
                                                                                                 <div
@@ -730,6 +767,51 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
                                                                                                                                         );
                                                                                                                                 })}
                                                                                                                         </div>
+                                                                                                                </div>
+                                                                                                        )}
+
+                                                                                                        {shipmentPackage && (
+                                                                                                                <div className="space-y-3 rounded-lg border border-dashed border-gray-200 bg-gray-50 p-4">
+                                                                                                                        <div className="flex flex-wrap items-center justify-between gap-2">
+                                                                                                                                <p className="text-xs uppercase text-gray-500">Hexalog shipping</p>
+                                                                                                                                {shipmentPackage.status && (
+                                                                                                                                        <Badge className={getStatusColor(shipmentPackage.status)}>
+                                                                                                                                                {formatStatusLabel(shipmentPackage.status)}
+                                                                                                                                        </Badge>
+                                                                                                                                )}
+                                                                                                                        </div>
+                                                                                                                        <div className="grid grid-cols-1 gap-3 text-sm md:grid-cols-2">
+                                                                                                                                {shipmentPackage.trackingId && (
+                                                                                                                                        <div>
+                                                                                                                                                <p className="text-xs uppercase text-gray-500">Tracking ID</p>
+                                                                                                                                                <p className="font-medium text-gray-900">{shipmentPackage.trackingId}</p>
+                                                                                                                                        </div>
+                                                                                                                                )}
+                                                                                                                                {shipmentPackage.courierPartner && (
+                                                                                                                                        <div>
+                                                                                                                                                <p className="text-xs uppercase text-gray-500">Courier partner</p>
+                                                                                                                                                <p className="font-medium text-gray-900">{shipmentPackage.courierPartner}</p>
+                                                                                                                                        </div>
+                                                                                                                                )}
+                                                                                                                                {shipmentPackage.currentLocation && (
+                                                                                                                                        <div className="md:col-span-2">
+                                                                                                                                                <p className="text-xs uppercase text-gray-500">Current location</p>
+                                                                                                                                                <p className="text-gray-700">{shipmentPackage.currentLocation}</p>
+                                                                                                                                        </div>
+                                                                                                                                )}
+                                                                                                                                {Number.isFinite(shipmentPackage.deliveryAttempts) && shipmentPackage.deliveryAttempts > 0 && (
+                                                                                                                                        <div>
+                                                                                                                                                <p className="text-xs uppercase text-gray-500">Delivery attempts</p>
+                                                                                                                                                <p className="text-gray-700">{shipmentPackage.deliveryAttempts}</p>
+                                                                                                                                        </div>
+                                                                                                                                )}
+                                                                                                                        </div>
+                                                                                                                        {shipmentPackage.deliveryNotes && (
+                                                                                                                                <div>
+                                                                                                                                        <p className="text-xs uppercase text-gray-500">Latest update</p>
+                                                                                                                                        <p className="text-sm text-gray-700">{shipmentPackage.deliveryNotes}</p>
+                                                                                                                                </div>
+                                                                                                                        )}
                                                                                                                 </div>
                                                                                                         )}
                                                                                                 </div>
@@ -890,6 +972,55 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
                                                                 </div>
                                                         </CardContent>
                                                 </Card>
+
+                                                {hasHexalogUpdate && (
+                                                        <Card>
+                                                                <CardHeader>
+                                                                        <CardTitle className="flex items-center gap-2">
+                                                                                <Activity className="w-5 h-5" />
+                                                                                Latest Hexalog Update
+                                                                        </CardTitle>
+                                                                </CardHeader>
+                                                                <CardContent>
+                                                                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                                                                {resolvedOrder.hexalogStatus && (
+                                                                                        <div>
+                                                                                                <p className="text-sm text-gray-600">
+                                                                                                        Status
+                                                                                                </p>
+                                                                                                <p className="font-medium">
+                                                                                                        {formatHexalogStatus(
+                                                                                                                resolvedOrder.hexalogStatus
+                                                                                                        )}
+                                                                                                </p>
+                                                                                        </div>
+                                                                                )}
+                                                                                {resolvedOrder.hexalogStatusUpdatedAt && (
+                                                                                        <div>
+                                                                                                <p className="text-sm text-gray-600">
+                                                                                                        Updated At
+                                                                                                </p>
+                                                                                                <p className="font-medium">
+                                                                                                        {formatDateTime(
+                                                                                                                resolvedOrder.hexalogStatusUpdatedAt
+                                                                                                        )}
+                                                                                                </p>
+                                                                                        </div>
+                                                                                )}
+                                                                                {resolvedOrder.hexalogNdrStatus && (
+                                                                                        <div className="md:col-span-2">
+                                                                                                <p className="text-sm text-gray-600">
+                                                                                                        NDR Status
+                                                                                                </p>
+                                                                                                <p className="font-medium">
+                                                                                                        {resolvedOrder.hexalogNdrStatus}
+                                                                                                </p>
+                                                                                        </div>
+                                                                                )}
+                                                                        </div>
+                                                                </CardContent>
+                                                        </Card>
+                                                )}
 
                                                 {/* Tracking Information */}
                                                 {resolvedOrder.trackingNumber && (
