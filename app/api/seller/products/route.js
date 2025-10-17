@@ -20,8 +20,8 @@ export async function GET(request) {
       );
     }
 
-    // Build query
-    const query = { seller: sellerId };
+    // Build query - only include published catalog items for the storefront
+    const query = { sellerId, published: true };
     
     // Add category filter if provided
     if (category && category !== "all") {
