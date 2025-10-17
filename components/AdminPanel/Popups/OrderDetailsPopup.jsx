@@ -42,6 +42,11 @@ import {
         getOrderStatusLabel,
 } from "@/constants/orderStatus.js";
 
+const normalizePaymentStatus = (value) =>
+        typeof value === "string" && value.trim().length > 0
+                ? value.trim().toLowerCase()
+                : "";
+
 export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated }) {
         const updateOrder = useAdminOrderStore((state) => state.updateOrder);
         const [detailedOrder, setDetailedOrder] = useState(order ?? null);
@@ -49,7 +54,7 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
         const resolvedOrder = detailedOrder ?? order ?? null;
         const [statusForm, setStatusForm] = useState({
                 status: resolvedOrder?.status || "",
-                paymentStatus: resolvedOrder?.paymentStatus || "",
+                paymentStatus: normalizePaymentStatus(resolvedOrder?.paymentStatus),
         });
         const [saving, setSaving] = useState(false);
 
@@ -107,7 +112,7 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
                 if (resolvedOrder) {
                         setStatusForm({
                                 status: resolvedOrder.status || "",
-                                paymentStatus: resolvedOrder.paymentStatus || "",
+                                paymentStatus: normalizePaymentStatus(resolvedOrder.paymentStatus),
                         });
                 }
         }, [resolvedOrder?.status, resolvedOrder?.paymentStatus, resolvedOrder?._id]);
@@ -195,6 +200,12 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
                         ? resolvedOrder.userId?._id || resolvedOrder.userId?.id || ""
                         : resolvedOrder.userId;
 
+        const normalizedPaymentStatus = normalizePaymentStatus(resolvedOrder?.paymentStatus);
+        const paymentStatusLabel =
+                normalizedPaymentStatus.length > 0
+                        ? getOrderStatusLabel(normalizedPaymentStatus)
+                        : "Unknown";
+
         const statusOptions = ORDER_STATUS_UPDATE_OPTIONS;
 
         const paymentStatusOptions = ["pending", "paid", "failed", "refunded"];
@@ -237,13 +248,13 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
         const formatStatusLabel = (value) => getOrderStatusLabel(value);
 
         const hasStatusChanges =
-                resolvedOrder.status !== statusForm.status ||
-                resolvedOrder.paymentStatus !== statusForm.paymentStatus;
+                (resolvedOrder.status || "") !== statusForm.status ||
+                normalizedPaymentStatus !== statusForm.paymentStatus;
 
         const handleStatusChange = (field, value) => {
                 setStatusForm((prev) => ({
                         ...prev,
-                        [field]: value,
+                        [field]: field === "paymentStatus" ? normalizePaymentStatus(value) : value,
                 }));
         };
 
@@ -267,7 +278,7 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
                         toast.success(result.message || "Order status updated successfully");
                         setStatusForm({
                                 status: updatedOrder.status || "",
-                                paymentStatus: updatedOrder.paymentStatus || "",
+                                paymentStatus: normalizePaymentStatus(updatedOrder.paymentStatus),
                         });
                         setDetailedOrder(updatedOrder);
                         onOrderUpdated?.(updatedOrder);
@@ -279,14 +290,15 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
         const getStatusColor = (status) => getOrderStatusBadgeColor(status);
 
         const getPaymentStatusColor = (status) => {
-		const colors = {
-			paid: "bg-green-100 text-green-800",
-			pending: "bg-yellow-100 text-yellow-800",
-			failed: "bg-red-100 text-red-800",
-			refunded: "bg-gray-100 text-gray-800",
-		};
-		return colors[status] || "bg-gray-100 text-gray-800";
-	};
+                const colors = {
+                        paid: "bg-green-100 text-green-800",
+                        pending: "bg-yellow-100 text-yellow-800",
+                        failed: "bg-red-100 text-red-800",
+                        refunded: "bg-gray-100 text-gray-800",
+                };
+                const key = normalizePaymentStatus(status);
+                return colors[key] || "bg-gray-100 text-gray-800";
+        };
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -424,23 +436,23 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
 								</CardContent>
 							</Card>
 
-							<Card>
-								<CardContent className="p-4">
-									<div className="flex items-center gap-3">
-										<CreditCard className="w-8 h-8 text-green-600" />
-										<div>
-											<p className="text-sm text-gray-600">Payment Status</p>
-                                                                                <Badge
+                                                        <Card>
+                                                                <CardContent className="p-4">
+                                                                        <div className="flex items-center gap-3">
+                                                                                <CreditCard className="w-8 h-8 text-green-600" />
+                                                                                <div>
+                                                                                        <p className="text-sm text-gray-600">Payment Status</p>
+                                                                                        <Badge
                                                                                                 className={getPaymentStatusColor(
-                                                                                                        resolvedOrder.paymentStatus
+                                                                                                        normalizedPaymentStatus
                                                                                                 )}
-                                                                                >
-                                                                                                {resolvedOrder.paymentStatus.toUpperCase()}
-                                                                                </Badge>
-										</div>
-									</div>
-								</CardContent>
-							</Card>
+                                                                                        >
+                                                                                                {paymentStatusLabel}
+                                                                                        </Badge>
+                                                                                </div>
+                                                                        </div>
+                                                                </CardContent>
+                                                        </Card>
 
 							<Card>
 								<CardContent className="p-4">
