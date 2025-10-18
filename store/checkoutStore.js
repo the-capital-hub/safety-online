@@ -637,13 +637,18 @@ export const useCheckoutStore = create(
 							get();
 						const addr = addresses.find((a) => a._id === addrId);
 
-						const totals = calculateGstTotals({
-							subtotal: orderSummary.subtotal,
-							discount: orderSummary.discount,
-							shippingCost: response.preTax || 0,
-							address: addr,
-							gstMode: orderSummary.gst?.mode,
-						});
+                                                const gstModeOverride = addr
+                                                        ? null
+                                                        : orderSummary.gst?.mode;
+                                                const totals = calculateGstTotals({
+                                                        subtotal: orderSummary.subtotal,
+                                                        discount: orderSummary.discount,
+                                                        shippingCost: response.preTax || 0,
+                                                        address: addr,
+                                                        ...(gstModeOverride
+                                                                ? { gstMode: gstModeOverride }
+                                                                : {}),
+                                                });
 
 						set((state) => ({
 							orderSummary: {
@@ -786,13 +791,18 @@ export const useCheckoutStore = create(
 					);
 
 					// Use calculateGstTotals for all calculations
-					const totals = calculateGstTotals({
-						subtotal: orderSummary.subtotal,
-						discount,
-						shippingCost,
-						address: selectedAddress,
-						gstMode: orderSummary.gst?.mode,
-					});
+                                        const gstModeOverride = selectedAddress
+                                                ? null
+                                                : orderSummary.gst?.mode;
+                                        const totals = calculateGstTotals({
+                                                subtotal: orderSummary.subtotal,
+                                                discount,
+                                                shippingCost,
+                                                address: selectedAddress,
+                                                ...(gstModeOverride
+                                                        ? { gstMode: gstModeOverride }
+                                                        : {}),
+                                        });
 
 					set({
 						orderSummary: {
@@ -873,13 +883,18 @@ export const useCheckoutStore = create(
 							checkoutType === "cart" ? cartAppliedCoupon : appliedCoupon;
 
 						// Prepare order data
-						const totals = calculateGstTotals({
-							subtotal: orderSummary.subtotal,
-							discount: orderSummary.discount,
-							shippingCost: orderSummary.shippingCost,
-							address: selectedAddress,
-							gstMode: orderSummary.gst?.mode,
-						});
+                                                const gstModeOverride = selectedAddress
+                                                        ? null
+                                                        : orderSummary.gst?.mode;
+                                                const totals = calculateGstTotals({
+                                                        subtotal: orderSummary.subtotal,
+                                                        discount: orderSummary.discount,
+                                                        shippingCost: orderSummary.shippingCost,
+                                                        address: selectedAddress,
+                                                        ...(gstModeOverride
+                                                                ? { gstMode: gstModeOverride }
+                                                                : {}),
+                                                });
 
 						set({
 							orderSummary: {
