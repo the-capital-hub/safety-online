@@ -7,6 +7,17 @@ import User from "@/model/User";
 import { companyCreateSchema } from "@/zodSchema/companyScema.js";
 import { fetchGstDetails, extractPrimaryGstAddress } from "@/lib/services/gstVerification.js";
 
+const sanitizePromotionalBanners = (banners) =>
+        Array.isArray(banners)
+                ? banners
+                                .filter((banner) => banner && typeof banner.imageUrl === "string" && banner.imageUrl.trim())
+                                .map((banner) => ({
+                                        imageUrl: banner.imageUrl.trim(),
+                                        title: banner.title?.trim() || "",
+                                        description: banner.description?.trim() || "",
+                                }))
+                : [];
+
 export async function POST(req) {
 	try {
 		await dbConnect();
@@ -82,6 +93,8 @@ export async function POST(req) {
                         }),
                 ];
 
+                const promotionalBanners = sanitizePromotionalBanners(parsed.data.promotionalBanners);
+
                 const company = await companyDetails.create({
                         user: user._id,
                         companyName: parsed.data.companyName,
@@ -90,6 +103,7 @@ export async function POST(req) {
                         phone: parsed.data.phone,
                         companyLogo: parsed.data.companyLogo,
                         gstinNumber: normalizedGstin,
+                        promotionalBanners,
                         primaryPickupAddress: gstPrimaryAddress || mergedAddresses[0] || null,
                 });
 

@@ -29,6 +29,16 @@ const formatSeller = (companyDoc = {}, fallbackUserId = null) => ({
         country: address.country || "",
       }))
     : [],
+  promotionalBanners: Array.isArray(companyDoc.promotionalBanners)
+    ? companyDoc.promotionalBanners
+        .filter((banner) => banner && banner.imageUrl)
+        .map((banner, index) => ({
+          id: banner._id?.toString?.() || `banner-${index}`,
+          imageUrl: banner.imageUrl || "",
+          title: banner.title || "",
+          description: banner.description || "",
+        }))
+    : [],
 });
 
 export async function GET(request, { params }) {
@@ -39,7 +49,7 @@ export async function GET(request, { params }) {
     // Fetch company details
     const companyDetails = await CompanyDetails.findOne(
       { user: id },
-      "companyName companyAddress companyLogo brandName brandDescription companyEmail phone gstinNumber user"
+      "companyName companyAddress companyLogo brandName brandDescription companyEmail phone gstinNumber promotionalBanners user"
     ).lean();
 
     if (!companyDetails) {

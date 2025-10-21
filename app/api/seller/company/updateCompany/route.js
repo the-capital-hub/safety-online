@@ -6,9 +6,20 @@ import { dbConnect } from "@/lib/dbConnect";
 import companyDetails from "@/model/companyDetails";
 import { companyUpdateSchema } from "@/zodSchema/companyScema.js";
 import {
-	fetchGstDetails,
-	extractPrimaryGstAddress,
+        fetchGstDetails,
+        extractPrimaryGstAddress,
 } from "@/lib/services/gstVerification.js";
+
+const sanitizePromotionalBanners = (banners) =>
+        Array.isArray(banners)
+                ? banners
+                                .filter((banner) => banner && typeof banner.imageUrl === "string" && banner.imageUrl.trim())
+                                .map((banner) => ({
+                                        imageUrl: banner.imageUrl.trim(),
+                                        title: banner.title?.trim() || "",
+                                        description: banner.description?.trim() || "",
+                                }))
+                : [];
 
 export async function PUT(req) {
 	try {
@@ -77,20 +88,24 @@ export async function PUT(req) {
 			updateData.gstinNumber = normalizedGstin;
 		}
 
-		Object.entries(updateData).forEach(([key, value]) => {
-			if (key === "companyAddress" || typeof value === "undefined") {
-				return;
-			}
-			companyDoc[key] = value;
-		});
+                Object.entries(updateData).forEach(([key, value]) => {
+                        if (
+                                key === "companyAddress" ||
+                                key === "promotionalBanners" ||
+                                typeof value === "undefined"
+                        ) {
+                                return;
+                        }
+                        companyDoc[key] = value;
+                });
 
 		const baseAddresses =
 			typeof updateData.companyAddress !== "undefined"
 				? updateData.companyAddress
 				: companyDoc.companyAddress || [];
 
-		if (gstPrimaryAddress) {
-			const normalize = (value = "") => `${value}`.trim().toLowerCase();
+                if (gstPrimaryAddress) {
+                        const normalize = (value = "") => `${value}`.trim().toLowerCase();
 			const remainingAddresses = Array.isArray(baseAddresses)
 				? baseAddresses.filter((address, index) => {
 						if (!address) return false;
@@ -112,12 +127,18 @@ export async function PUT(req) {
 
 			companyDoc.companyAddress = [gstPrimaryAddress, ...remainingAddresses];
 			companyDoc.primaryPickupAddress = gstPrimaryAddress;
-		} else if (typeof updateData.companyAddress !== "undefined") {
-			companyDoc.companyAddress = baseAddresses;
-			companyDoc.primaryPickupAddress = Array.isArray(baseAddresses)
-				? baseAddresses[0] || companyDoc.primaryPickupAddress
-				: companyDoc.primaryPickupAddress;
-		}
+                } else if (typeof updateData.companyAddress !== "undefined") {
+                        companyDoc.companyAddress = baseAddresses;
+                        companyDoc.primaryPickupAddress = Array.isArray(baseAddresses)
+                                ? baseAddresses[0] || companyDoc.primaryPickupAddress
+                                : companyDoc.primaryPickupAddress;
+                }
+
+                if (typeof updateData.promotionalBanners !== "undefined") {
+                        companyDoc.promotionalBanners = sanitizePromotionalBanners(
+                                updateData.promotionalBanners
+                        );
+                }
 
 		await companyDoc.save();
 

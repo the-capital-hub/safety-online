@@ -14,6 +14,15 @@ const addressFields = {
 
 const AddressSchema = new Schema(addressFields, { _id: false });
 
+const PromotionalBannerSchema = new Schema(
+        {
+                imageUrl: { type: String, required: true },
+                title: { type: String, trim: true },
+                description: { type: String, trim: true },
+        },
+        { _id: false }
+);
+
 const CompanySchema = new Schema(
         {
                 user: {
@@ -51,16 +60,20 @@ const CompanySchema = new Schema(
 			type: String,
 			trim: true,
 		},
-		brandDescription: {
-			type: String,
-			trim: true,
-		},
-		gstinNumber: {
-			type: String,
-			trim: true,
-		},
-	},
-	{ timestamps: true }
+                brandDescription: {
+                        type: String,
+                        trim: true,
+                },
+                gstinNumber: {
+                        type: String,
+                        trim: true,
+                },
+                promotionalBanners: {
+                        type: [PromotionalBannerSchema],
+                        default: [],
+                },
+        },
+        { timestamps: true }
 );
 
 export default mongoose.models.Company ||
