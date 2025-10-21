@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import ProductCard from "@/components/BuyerPanel/products/ProductCard";
+import SellerPromotionalCarousel from "@/components/BuyerPanel/seller/SellerPromotionalCarousel";
 
 const FALLBACK_IMAGE =
         "https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png";
@@ -412,6 +413,11 @@ export default function SellerPage() {
                                         </div>
                                 </div>
                         </div>
+
+                        <SellerPromotionalCarousel
+                                banners={seller?.promotionalBanners}
+                                sellerName={sellerDisplayName}
+                        />
 
                         <div className="sticky top-0 z-20 bg-white border-b shadow-sm">
                                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

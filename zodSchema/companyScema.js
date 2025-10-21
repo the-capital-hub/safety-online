@@ -33,7 +33,25 @@ export const companyBaseSchema = z.object({
                 .trim()
                 .regex(gstinRegex, "Enter a valid GSTIN")
                 .transform((value) => value.toUpperCase()),
-	companyLogo: z.string().url("Invalid logo URL").optional().or(z.literal("")),
+        companyLogo: z.string().url("Invalid logo URL").optional().or(z.literal("")),
+        promotionalBanners: z
+                .array(
+                        z.object({
+                                imageUrl: z.string().url("Banner image must be a valid URL"),
+                                title: z
+                                        .string()
+                                        .max(80, "Banner title must be 80 characters or less")
+                                        .optional()
+                                        .or(z.literal("")),
+                                description: z
+                                        .string()
+                                        .max(160, "Banner description must be 160 characters or less")
+                                        .optional()
+                                        .or(z.literal("")),
+                        })
+                )
+                .max(5, "You can upload up to 5 promotional banners")
+                .optional(),
 });
 
 export const companyCreateSchema = companyBaseSchema.extend({
