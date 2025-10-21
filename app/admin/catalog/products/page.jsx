@@ -43,6 +43,7 @@ import { AddProductPopup } from "@/components/AdminPanel/Popups/AddProductPopup.
 import { UpdateProductPopup } from "@/components/AdminPanel/Popups/UpdateProductPopup.jsx";
 import { BulkUploadPopup } from "@/components/AdminPanel/Popups/BulkProductUploadPopup.jsx";
 import { useIsAuthenticated } from "@/store/adminAuthStore.js";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 
@@ -740,12 +741,17 @@ export default function AdminProductsPage() {
 														}
 													/>
 												</TableCell>
-												<TableCell className="font-medium">
-													<div className="flex items-center gap-3">
-														<div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-															{product.images?.[0] ? (
-																<img
-																	src={
+                                                                                                <TableCell className="font-medium">
+                                                                                                        <Link
+                                                                                                                href={`/products/${product.slug || product._id}`}
+                                                                                                                target="_blank"
+                                                                                                                rel="noopener noreferrer"
+                                                                                                                className="flex items-center gap-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary/50"
+                                                                                                        >
+                                                                                                                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
+                                                                                                                        {product.images?.[0] ? (
+                                                                                                                               <img
+                                                                                                                                src={
 																		product.images[0] ||
 																		"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"
 																	}
@@ -756,16 +762,16 @@ export default function AdminProductsPage() {
 																<div className="text-xs text-gray-400">IMG</div>
 															)}
 														</div>
-														<div>
-															<div className="font-medium truncate max-w-md">
-																{product.title}
-															</div>
-															<div className="text-sm text-gray-500 truncate max-w-md">
-																{product.description}
-															</div>
-														</div>
-													</div>
-												</TableCell>
+                                                                                                                <div className="min-w-0">
+                                                                                                                        <div className="font-medium truncate max-w-md group-hover:underline">
+                                                                                                                               {product.title}
+                                                                                                                       </div>
+                                                                                                                        <div className="text-sm text-gray-500 truncate max-w-md">
+                                                                                                                                {product.description}
+                                                                                                                       </div>
+                                                                                                               </div>
+                                                                                                        </Link>
+                                                                                                </TableCell>
 												<TableCell>
 													<Badge variant="outline" className="capitalize">
 														{product.category.replace("-", " ")}
