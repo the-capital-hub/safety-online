@@ -45,6 +45,26 @@ const toSentenceCase = (str = "") =>
                 .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
                 .join(" ");
 
+const formatCategoryLabel = (value = "") => {
+        if (typeof value !== "string") {
+                return "All Products";
+        }
+
+        const trimmed = value.trim();
+
+        if (!trimmed) {
+                return "All Products";
+        }
+
+        return trimmed
+                .replace(/[-_]+/g, " ")
+                .replace(/\s+/g, " ")
+                .split(" ")
+                .filter(Boolean)
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                .join(" ");
+};
+
 const normalizeProduct = (product = {}) => {
         const salePrice =
                 typeof product.salePrice === "number" && product.salePrice > 0
@@ -243,6 +263,11 @@ export default function SellerPage() {
                 });
         }, [products, searchQuery]);
 
+        const activeCategoryLabel = useMemo(
+                () => formatCategoryLabel(activeCategory),
+                [activeCategory]
+        );
+
         const headOfficeAddress = useMemo(() => {
                 if (!seller?.companyAddress?.length) {
                         return null;
@@ -403,7 +428,7 @@ export default function SellerPage() {
                                                                         }`}
                                                                         onClick={() => setActiveCategory(category)}
                                                                 >
-                                                                        {category}
+                                                                        {formatCategoryLabel(category)}
                                                                 </Button>
                                                         ))}
                                                 </div>
@@ -458,7 +483,7 @@ export default function SellerPage() {
                                                 <h2 className="text-2xl font-semibold text-gray-900">
                                                         {activeCategory === "All Products"
                                                                 ? "All Products"
-                                                                : `${activeCategory} Products`}
+                                                                : `${activeCategoryLabel} Products`}
                                                 </h2>
                                                 <p className="text-sm text-gray-500">
                                                         Showing {filteredProducts.length.toLocaleString()} product
@@ -466,7 +491,7 @@ export default function SellerPage() {
                                                         {searchQuery
                                                                 ? ` for "${searchQuery}"`
                                                                 : activeCategory !== "All Products"
-                                                                ? ` in ${activeCategory}`
+                                                                ? ` in ${activeCategoryLabel}`
                                                                 : " from this seller"}
                                                 </p>
                                         </div>
@@ -486,15 +511,15 @@ export default function SellerPage() {
                                                 <h3 className="text-lg font-medium text-gray-900 mb-2">
                                                         No products found
                                                 </h3>
-                                                <p className="text-gray-600">
-                                                        {searchQuery
-                                                                ? `No products match "${searchQuery}". Try a different search term.`
-                                                                : `No ${
-                                                                          activeCategory !== "All Products"
-                                                                                  ? activeCategory.toLowerCase()
-                                                                                  : ""
-                                                                  } products available from this seller yet.`}
-                                                </p>
+                                                        <p className="text-gray-600">
+                                                                {searchQuery
+                                                                        ? `No products match "${searchQuery}". Try a different search term.`
+                                                                        : `No ${
+                                                                                  activeCategory !== "All Products"
+                                                                                          ? activeCategoryLabel.toLowerCase()
+                                                                                          : ""
+                                                                          } products available from this seller yet.`}
+                                                        </p>
                                         </div>
                                 ) : (
                                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
