@@ -77,7 +77,7 @@ export default function AdminProductsPage() {
 		update: { open: false, product: null },
 		bulkUpload: false,
 	});
-        const [categories, setCategories] = useState([]);
+	const [categories, setCategories] = useState([]);
 	const [editingProductId, setEditingProductId] = useState(null);
 	const [savingProductId, setSavingProductId] = useState(null);
 	const [editValues, setEditValues] = useState({
@@ -122,98 +122,101 @@ export default function AdminProductsPage() {
 		setFilters({ search: value });
 	};
 
-        const handleFilterChange = (keyOrObject, value) => {
-                if (typeof keyOrObject === "object" && keyOrObject !== null) {
-                        setFilters(keyOrObject);
-                        return;
-                }
+	const handleFilterChange = (keyOrObject, value) => {
+		if (typeof keyOrObject === "object" && keyOrObject !== null) {
+			setFilters(keyOrObject);
+			return;
+		}
 
-                setFilters({ [keyOrObject]: value });
-        };
+		setFilters({ [keyOrObject]: value });
+	};
 
-        const handleApplyFilters = () => {
-                fetchProducts();
-        };
+	const handleApplyFilters = () => {
+		fetchProducts();
+	};
 
-        const totalCategoryProductCount = categories.reduce(
-                (total, category) => total + (Number(category.productCount) || 0),
-                0
-        );
+	const totalCategoryProductCount = categories.reduce(
+		(total, category) => total + (Number(category.productCount) || 0),
+		0
+	);
 
-        const categoryOptions = [
-                {
-                        value: "all",
-                        label: "All Categories",
-                        productCount: totalCategoryProductCount,
-                        subCategories: [],
-                },
-                ...categories.map((category) => ({
-                        value: category.slug || category.name?.toLowerCase().replace(/\s+/g, "-"),
-                        label: category.name,
-                        productCount: category.productCount || 0,
-                        subCategories: category.subCategories || [],
-                })),
-        ];
+	const categoryOptions = [
+		{
+			value: "all",
+			label: "All Categories",
+			productCount: totalCategoryProductCount,
+			subCategories: [],
+		},
+		...categories.map((category) => ({
+			value: category.slug || category.name?.toLowerCase().replace(/\s+/g, "-"),
+			label: category.name,
+			productCount: category.productCount || 0,
+			subCategories: category.subCategories || [],
+		})),
+	];
 
-        const activeCategoryValue = (() => {
-                if (!filters.category || filters.category === "all") {
-                        return "all";
-                }
+	const activeCategoryValue = (() => {
+		if (!filters.category || filters.category === "all") {
+			return "all";
+		}
 
-                const match = categoryOptions.find(
-                        (option) => option.value === filters.category || option.label === filters.category
-                );
+		const match = categoryOptions.find(
+			(option) =>
+				option.value === filters.category || option.label === filters.category
+		);
 
-                return match ? match.value : "all";
-        })();
+		return match ? match.value : "all";
+	})();
 
-        const selectedCategory =
-                activeCategoryValue && activeCategoryValue !== "all"
-                        ? categoryOptions.find((option) => option.value === activeCategoryValue)
-                        : null;
+	const selectedCategory =
+		activeCategoryValue && activeCategoryValue !== "all"
+			? categoryOptions.find((option) => option.value === activeCategoryValue)
+			: null;
 
-        const subCategoryOptions = selectedCategory
-                ? [
-                                {
-                                        value: "all",
-                                        label: "All Subcategories",
-                                        productCount: (selectedCategory.subCategories || []).reduce(
-                                                (total, subCategory) =>
-                                                        total + (Number(subCategory.productCount) || 0),
-                                                0
-                                        ),
-                                },
-                                ...(selectedCategory.subCategories || []).map((subCategory) => ({
-                                        value:
-                                                subCategory.slug ||
-                                                subCategory.name?.toLowerCase().replace(/\s+/g, "-"),
-                                        label: subCategory.name,
-                                        productCount: subCategory.productCount || 0,
-                                })),
-                        ]
-                : [];
+	const subCategoryOptions = selectedCategory
+		? [
+				{
+					value: "all",
+					label: "All Subcategories",
+					productCount: (selectedCategory.subCategories || []).reduce(
+						(total, subCategory) =>
+							total + (Number(subCategory.productCount) || 0),
+						0
+					),
+				},
+				...(selectedCategory.subCategories || []).map((subCategory) => ({
+					value: subCategory.name?.toLowerCase().replace(/\s+/g, "-"),
+					label: subCategory.name,
+					productCount: subCategory.productCount || 0,
+				})),
+		  ]
+		: [];
 
-        const activeSubCategoryValue = (() => {
-                if (!filters.subCategory || filters.subCategory === "all") {
-                        return "all";
-                }
+	// console.log("subCategoryOptions", subCategoryOptions);
 
-                const match = subCategoryOptions.find(
-                        (option) => option.value === filters.subCategory || option.label === filters.subCategory
-                );
+	const activeSubCategoryValue = (() => {
+		if (!filters.subCategory || filters.subCategory === "all") {
+			return "all";
+		}
 
-                return match ? match.value : "all";
-        })();
+		const match = subCategoryOptions.find(
+			(option) =>
+				option.value === filters.subCategory ||
+				option.label === filters.subCategory
+		);
 
-        const toSentenceCase = (str) => {
-                if (!str) return "";
+		return match ? match.value : "all";
+	})();
 
-                return str
-                        .toLowerCase()
-                        .split(" ")
-                        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                        .join(" ");
-        };
+	const toSentenceCase = (str) => {
+		if (!str) return "";
+
+		return str
+			.toLowerCase()
+			.split(" ")
+			.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+			.join(" ");
+	};
 
 	const startQuickEdit = (product) => {
 		setEditingProductId(product._id);
@@ -523,80 +526,66 @@ export default function AdminProductsPage() {
 									/>
 								</div>
 
-                                                                <Select
-                                                                        value={activeCategoryValue}
-                                                                        onValueChange={(value) =>
-                                                                                handleFilterChange({
-                                                                                        category: value,
-                                                                                        subCategory: "all",
-                                                                                })
-                                                                        }
-                                                                >
-                                                                        <SelectTrigger className="w-48">
-                                                                                <SelectValue placeholder="Category" />
-                                                                        </SelectTrigger>
-                                                                        <SelectContent>
-                                                                                {categoryOptions.map((category) => (
-                                                                                        <SelectItem key={category.value} value={category.value}>
-                                                                                                <div className="flex items-center justify-between w-full">
-                                                                                                        <span>
-                                                                                                                {toSentenceCase(
-                                                                                                                        category.label
-                                                                                                                )}
-                                                                                                        </span>
-                                                                                                        {category.productCount > 0 && (
-                                                                                                                <Badge
-                                                                                                                        variant="secondary"
-                                                                                                                        className="ml-2 text-xs"
-                                                                                                                >
-                                                                                                                        {category.productCount}
-                                                                                                                </Badge>
-                                                                                                        )}
-                                                                                                </div>
-                                                                                        </SelectItem>
-                                                                                ))}
-                                                                        </SelectContent>
-                                                                </Select>
+								<Select
+									value={activeCategoryValue}
+									onValueChange={(value) =>
+										handleFilterChange({
+											category: value,
+											subCategory: "all",
+										})
+									}
+								>
+									<SelectTrigger className="w-48">
+										<SelectValue placeholder="Category" />
+									</SelectTrigger>
+									<SelectContent>
+										{categoryOptions.map((category) => (
+											<SelectItem key={category.value} value={category.value}>
+												<div className="flex items-center justify-between w-full">
+													<span>{toSentenceCase(category.label)}</span>
+													{category.productCount > 0 && (
+														<Badge variant="secondary" className="ml-2 text-xs">
+															{category.productCount}
+														</Badge>
+													)}
+												</div>
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
 
-                                                                {selectedCategory && subCategoryOptions.length > 0 && (
-                                                                        <Select
-                                                                                value={activeSubCategoryValue}
-                                                                                onValueChange={(value) =>
-                                                                                        handleFilterChange(
-                                                                                                "subCategory",
-                                                                                                value
-                                                                                        )
-                                                                                }
-                                                                        >
-                                                                                <SelectTrigger className="w-56">
-                                                                                        <SelectValue placeholder="Subcategory" />
-                                                                                </SelectTrigger>
-                                                                                <SelectContent>
-                                                                                        {subCategoryOptions.map((subCategory) => (
-                                                                                                <SelectItem
-                                                                                                        key={`${selectedCategory.value}-${subCategory.value}`}
-                                                                                                        value={subCategory.value}
-                                                                                                >
-                                                                                                        <div className="flex items-center justify-between w-full">
-                                                                                                                <span>
-                                                                                                                        {toSentenceCase(
-                                                                                                                                subCategory.label
-                                                                                                                        )}
-                                                                                                                </span>
-                                                                                                                {subCategory.productCount > 0 && (
-                                                                                                                        <Badge
-                                                                                                                                variant="secondary"
-                                                                                                                                className="ml-2 text-xs"
-                                                                                                                        >
-                                                                                                                                {subCategory.productCount}
-                                                                                                                        </Badge>
-                                                                                                                )}
-                                                                                                        </div>
-                                                                                                </SelectItem>
-                                                                                        ))}
-                                                                                </SelectContent>
-                                                                        </Select>
-                                                                )}
+								{selectedCategory && subCategoryOptions.length > 0 && (
+									<Select
+										value={activeSubCategoryValue}
+										onValueChange={(value) =>
+											handleFilterChange("subCategory", value)
+										}
+									>
+										<SelectTrigger className="w-56">
+											<SelectValue placeholder="Subcategory" />
+										</SelectTrigger>
+										<SelectContent>
+											{subCategoryOptions.map((subCategory) => (
+												<SelectItem
+													key={`${selectedCategory.value}-${subCategory.value}`}
+													value={subCategory.value}
+												>
+													<div className="flex items-center justify-between w-full">
+														<span>{toSentenceCase(subCategory.label)}</span>
+														{subCategory.productCount > 0 && (
+															<Badge
+																variant="secondary"
+																className="ml-2 text-xs"
+															>
+																{subCategory.productCount}
+															</Badge>
+														)}
+													</div>
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+								)}
 
 								<div className="flex gap-2">
 									<Input
@@ -714,152 +703,155 @@ export default function AdminProductsPage() {
 										</TableRow>
 									</TableHeader>
 									<TableBody>
-                                        {products.map((product, index) => {
-                                                const stockCount = Number(product.stocks) || 0;
-                                                const isLowStock = stockCount < 10;
+										{products.map((product, index) => {
+											const stockCount = Number(product.stocks) || 0;
+											const isLowStock = stockCount < 10;
 
-                                                return (
-                                                        <motion.tr
-                                                                key={product._id}
-                                                                initial={{ opacity: 0, y: 10 }}
-                                                                animate={{ opacity: 1, y: 0 }}
-                                                                transition={{
-                                                                        duration: 0.2,
-                                                                        delay: index * 0.05,
-                                                                }}
-                                                                className={`transition-colors ${
-                                                                        isLowStock
-                                                                                ? "bg-amber-50/70"
-                                                                                : "bg-white"
-                                                                }`}
-                                                        >
-												<TableCell>
-													<Checkbox
-														checked={selectedProducts.includes(product._id)}
-														onCheckedChange={() =>
-															toggleProductSelection(product._id)
-														}
-													/>
-												</TableCell>
-                                                                                                <TableCell className="font-medium">
-                                                                                                        <Link
-                                                                                                                href={`/products/${product.slug || product._id}`}
-                                                                                                                target="_blank"
-                                                                                                                rel="noopener noreferrer"
-                                                                                                                className="flex items-center gap-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary/50"
-                                                                                                        >
-                                                                                                                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
-                                                                                                                        {product.images?.[0] ? (
-                                                                                                                               <img
-                                                                                                                                src={
-																		product.images[0] ||
-																		"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"
+											return (
+												<motion.tr
+													key={product._id}
+													initial={{ opacity: 0, y: 10 }}
+													animate={{ opacity: 1, y: 0 }}
+													transition={{
+														duration: 0.2,
+														delay: index * 0.05,
+													}}
+													className={`transition-colors ${
+														isLowStock ? "bg-amber-50/70" : "bg-white"
+													}`}
+												>
+													<TableCell>
+														<Checkbox
+															checked={selectedProducts.includes(product._id)}
+															onCheckedChange={() =>
+																toggleProductSelection(product._id)
+															}
+														/>
+													</TableCell>
+													<TableCell className="font-medium">
+														<Link
+															href={`/products/${product.slug || product._id}`}
+															target="_blank"
+															rel="noopener noreferrer"
+															className="flex items-center gap-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary/50"
+														>
+															<div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
+																{product.images?.[0] ? (
+																	<img
+																		src={
+																			product.images[0] ||
+																			"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"
+																		}
+																		alt={product.title}
+																		className="w-full h-full object-cover rounded-lg"
+																	/>
+																) : (
+																	<div className="text-xs text-gray-400">
+																		IMG
+																	</div>
+																)}
+															</div>
+															<div className="min-w-0">
+																<div className="font-medium truncate max-w-md group-hover:underline">
+																	{product.title}
+																</div>
+																<div className="text-sm text-gray-500 truncate max-w-md">
+																	{product.description}
+																</div>
+															</div>
+														</Link>
+													</TableCell>
+													<TableCell>
+														<Badge variant="outline" className="capitalize">
+															{product.category.replace("-", " ")}
+														</Badge>
+													</TableCell>
+													<TableCell>
+														<Badge variant="outline" className="capitalize">
+															{product.subCategory.replace("-", " ") || "N/A"}
+														</Badge>
+													</TableCell>
+													<TableCell className="font-medium">
+														{editingProductId === product._id ? (
+															<Input
+																type="number"
+																min={0}
+																step="0.01"
+																value={editValues.price}
+																onChange={(e) =>
+																	handleEditValueChange("price", e.target.value)
+																}
+																className="min-w-[160px]"
+															/>
+														) : (
+															<>₹{product.price.toLocaleString()}</>
+														)}
+													</TableCell>
+													<TableCell className="font-medium">
+														{editingProductId === product._id ? (
+															<Input
+																type="number"
+																min={0}
+																step="0.01"
+																value={editValues.salePrice}
+																onChange={(e) =>
+																	handleEditValueChange(
+																		"salePrice",
+																		e.target.value
+																	)
+																}
+																placeholder="0"
+																className="min-w-[160px]"
+															/>
+														) : product.salePrice > 0 ? (
+															`₹${product.salePrice.toLocaleString()}`
+														) : (
+															"-"
+														)}
+													</TableCell>
+													<TableCell>
+														{editingProductId === product._id ? (
+															<Input
+																type="number"
+																min={0}
+																max={1000000}
+																step={1}
+																value={editValues.stocks}
+																onChange={(e) =>
+																	handleEditValueChange(
+																		"stocks",
+																		e.target.value
+																	)
+																}
+																className="max-w-[140px]"
+															/>
+														) : (
+															<div className="flex flex-wrap items-center gap-2">
+																<span
+																	className={
+																		isLowStock
+																			? "font-semibold text-amber-700"
+																			: undefined
 																	}
-																	alt={product.title}
-																	className="w-full h-full object-cover rounded-lg"
+																>
+																	{stockCount}
+																</span>
+																<div
+																	className={`w-2 h-2 rounded-full ${
+																		product.inStock
+																			? "bg-green-500"
+																			: "bg-red-500"
+																	}`}
 																/>
-															) : (
-																<div className="text-xs text-gray-400">IMG</div>
-															)}
-														</div>
-                                                                                                                <div className="min-w-0">
-                                                                                                                        <div className="font-medium truncate max-w-md group-hover:underline">
-                                                                                                                               {product.title}
-                                                                                                                       </div>
-                                                                                                                        <div className="text-sm text-gray-500 truncate max-w-md">
-                                                                                                                                {product.description}
-                                                                                                                       </div>
-                                                                                                               </div>
-                                                                                                        </Link>
-                                                                                                </TableCell>
-												<TableCell>
-													<Badge variant="outline" className="capitalize">
-														{product.category.replace("-", " ")}
-													</Badge>
-												</TableCell>
-												<TableCell>
-													<Badge variant="outline" className="capitalize">
-														{product.subCategory.replace("-", " ") || "N/A"}
-													</Badge>
-												</TableCell>
-												<TableCell className="font-medium">
-													{editingProductId === product._id ? (
-														<Input
-															type="number"
-															min={0}
-															step="0.01"
-															value={editValues.price}
-															onChange={(e) =>
-																handleEditValueChange("price", e.target.value)
-															}
-															className="min-w-[160px]"
-														/>
-													) : (
-														<>₹{product.price.toLocaleString()}</>
-													)}
-												</TableCell>
-												<TableCell className="font-medium">
-													{editingProductId === product._id ? (
-														<Input
-															type="number"
-															min={0}
-															step="0.01"
-															value={editValues.salePrice}
-															onChange={(e) =>
-																handleEditValueChange(
-																	"salePrice",
-																	e.target.value
-																)
-															}
-															placeholder="0"
-															className="min-w-[160px]"
-														/>
-													) : product.salePrice > 0 ? (
-														`₹${product.salePrice.toLocaleString()}`
-													) : (
-														"-"
-													)}
-												</TableCell>
-                                                                                                <TableCell>
-                                                                                                        {editingProductId === product._id ? (
-                                                                                                                <Input
-                                                                                                                        type="number"
-                                                                                                                        min={0}
-															max={1000000}
-															step={1}
-															value={editValues.stocks}
-															onChange={(e) =>
-																handleEditValueChange("stocks", e.target.value)
-															}
-															className="max-w-[140px]"
-														/>
-                                                                                                        ) : (
-                                                                                                                <div className="flex flex-wrap items-center gap-2">
-                                                                                                                        <span
-                                                                                                                                className={
-                                                                                                                                        isLowStock
-                                                                                                                                                ? "font-semibold text-amber-700"
-                                                                                                                                                : undefined
-                                                                                                                                }
-                                                                                                                        >
-                                                                                                                                {stockCount}
-                                                                                                                        </span>
-                                                                                                                        <div
-                                                                                                                                className={`w-2 h-2 rounded-full ${
-                                                                                                                                        product.inStock
-                                                                                                                                                ? "bg-green-500"
-                                                                                                                                                : "bg-red-500"
-                                                                                                                                }`}
-                                                                                                                        />
-                                                                                                                        {isLowStock && (
-                                                                                                                                <Badge className="bg-amber-100 text-amber-800 border-amber-200">
-                                                                                                                                        Low stock
-                                                                                                                                </Badge>
-                                                                                                                        )}
-                                                                                                                </div>
-                                                                                                        )}
-                                                                                                </TableCell>
-												{/* <TableCell>
+																{isLowStock && (
+																	<Badge className="bg-amber-100 text-amber-800 border-amber-200">
+																		Low stock
+																	</Badge>
+																)}
+															</div>
+														)}
+													</TableCell>
+													{/* <TableCell>
 													<Badge
 														className={
 															product.inStock
@@ -870,73 +862,73 @@ export default function AdminProductsPage() {
 														{product.inStock ? "In Stock" : "Out of Stock"}
 													</Badge>
 												</TableCell> */}
-												<TableCell>
-													<Switch
-														checked={product.published}
-														onCheckedChange={(checked) =>
-															handlePublishToggle(product._id, checked)
-														}
-													/>
-												</TableCell>
-												<TableCell>
-													<div className="flex flex-wrap gap-2">
-														{editingProductId === product._id ? (
-															<>
-																<Button
-																	size="sm"
-																	onClick={() => saveQuickEdit(product)}
-																	disabled={savingProductId === product._id}
-																>
-																	{savingProductId === product._id
-																		? "Saving..."
-																		: "Save"}
-																</Button>
-																<Button
-																	size="sm"
-																	variant="outline"
-																	onClick={cancelQuickEdit}
-																	disabled={savingProductId === product._id}
-																>
-																	Cancel
-																</Button>
-															</>
-														) : (
-															<>
-																<Button
-																	size="sm"
-																	variant="outline"
-																	onClick={() => startQuickEdit(product)}
-																	disabled={
-																		!!editingProductId &&
-																		editingProductId !== product._id
-																	}
-																>
-																	Quick Edit
-																</Button>
-																<Button
-																	size="icon"
-																	variant="outline"
-																	onClick={() => handleUpdate(product)}
-																	disabled={savingProductId !== null}
-																>
-																	<Edit className="w-4 h-4" />
-																</Button>
-																<Button
-																	size="icon"
-																	variant="outline"
-																	className="text-red-600 hover:text-red-700 bg-transparent"
-																	onClick={() => handleDelete(product)}
-																	disabled={savingProductId !== null}
-																>
-																	<Trash2 className="w-4 h-4" />
-																</Button>
-															</>
-														)}
-													</div>
-												</TableCell>
-                                                        </motion.tr>
-                                                );
-                                        })}
+													<TableCell>
+														<Switch
+															checked={product.published}
+															onCheckedChange={(checked) =>
+																handlePublishToggle(product._id, checked)
+															}
+														/>
+													</TableCell>
+													<TableCell>
+														<div className="flex flex-wrap gap-2">
+															{editingProductId === product._id ? (
+																<>
+																	<Button
+																		size="sm"
+																		onClick={() => saveQuickEdit(product)}
+																		disabled={savingProductId === product._id}
+																	>
+																		{savingProductId === product._id
+																			? "Saving..."
+																			: "Save"}
+																	</Button>
+																	<Button
+																		size="sm"
+																		variant="outline"
+																		onClick={cancelQuickEdit}
+																		disabled={savingProductId === product._id}
+																	>
+																		Cancel
+																	</Button>
+																</>
+															) : (
+																<>
+																	<Button
+																		size="sm"
+																		variant="outline"
+																		onClick={() => startQuickEdit(product)}
+																		disabled={
+																			!!editingProductId &&
+																			editingProductId !== product._id
+																		}
+																	>
+																		Quick Edit
+																	</Button>
+																	<Button
+																		size="icon"
+																		variant="outline"
+																		onClick={() => handleUpdate(product)}
+																		disabled={savingProductId !== null}
+																	>
+																		<Edit className="w-4 h-4" />
+																	</Button>
+																	<Button
+																		size="icon"
+																		variant="outline"
+																		className="text-red-600 hover:text-red-700 bg-transparent"
+																		onClick={() => handleDelete(product)}
+																		disabled={savingProductId !== null}
+																	>
+																		<Trash2 className="w-4 h-4" />
+																	</Button>
+																</>
+															)}
+														</div>
+													</TableCell>
+												</motion.tr>
+											);
+										})}
 									</TableBody>
 								</Table>
 
