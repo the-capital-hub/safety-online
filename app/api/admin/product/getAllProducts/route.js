@@ -27,8 +27,8 @@ export async function GET(request) {
 
 		// Extract query parameters
 		const search = searchParams.get("search");
-                const category = searchParams.get("category");
-                const subCategory = searchParams.get("subCategory");
+		const category = searchParams.get("category");
+		const subCategory = searchParams.get("subCategory");
 		const minPrice = searchParams.get("minPrice");
 		const maxPrice = searchParams.get("maxPrice");
 		const discount = searchParams.get("discount");
@@ -55,13 +55,14 @@ export async function GET(request) {
 		}
 
 		// Category filter
-                if (category && category !== "all") {
-                        query.category = slugify(category);
-                }
+		if (category && category !== "all") {
+			query.category = slugify(category);
+		}
 
-                if (subCategory && subCategory !== "all") {
-                        query.subCategory = slugify(subCategory);
-                }
+		if (subCategory && subCategory !== "all") {
+			// query.subCategory = slugify(subCategory);
+			query.subCategory = subCategory;
+		}
 
 		// Price range filter
 		if (minPrice || maxPrice) {
