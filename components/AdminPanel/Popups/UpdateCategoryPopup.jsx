@@ -123,7 +123,7 @@ export function UpdateCategoryPopup({ open, onOpenChange, category }) {
                                         initial={{ scale: 0.95, opacity: 0 }}
                                         animate={{ scale: 1, opacity: 1 }}
                                         transition={{ duration: 0.2 }}
-                                        className="flex h-full flex-col"
+                                        className="flex max-h-[85vh] flex-col overflow-hidden"
                                 >
                                         <DialogHeader className="border-b border-gray-200 px-6 pb-4 pt-6">
                                                 <DialogTitle className="text-lg font-semibold">
@@ -136,7 +136,7 @@ export function UpdateCategoryPopup({ open, onOpenChange, category }) {
 
                                         <form
                                                 onSubmit={handleSubmit}
-                                                className="flex-1 space-y-6 overflow-y-auto px-6 py-6"
+                                                className="flex-1 space-y-6 overflow-y-auto px-6 py-6 min-h-0"
                                         >
                                                 <div>
                                                         <Label htmlFor="name">Category Name *</Label>
