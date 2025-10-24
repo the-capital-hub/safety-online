@@ -765,12 +765,16 @@ export default function AdminProductsPage() {
 													</TableCell>
 													<TableCell>
 														<Badge variant="outline" className="capitalize">
-															{product.category.replace("-", " ")}
+                                                                                                           {product.category
+                                                                                                                   ? product.category.replace(/-/g, " ")
+                                                                                                                   : "Uncategorized"}
 														</Badge>
 													</TableCell>
 													<TableCell>
 														<Badge variant="outline" className="capitalize">
-															{product.subCategory.replace("-", " ") || "N/A"}
+                                                                                                           {product.subCategory
+                                                                                                                   ? product.subCategory.replace(/-/g, " ")
+                                                                                                                   : "N/A"}
 														</Badge>
 													</TableCell>
 													<TableCell className="font-medium">
