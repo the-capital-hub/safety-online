@@ -48,7 +48,7 @@ export function InvoicePopup({ open, onOpenChange, order }) {
 						<div>
 							<h2 className="text-3xl font-bold text-orange-500">SAFETY</h2>
 							<p className="text-sm text-gray-600">www.website.com</p>
-							<p className="text-sm text-gray-600">hello@gmail.com</p>
+							<p className="text-sm text-gray-600">hello@microsoftonline.com</p>
 							<p className="text-sm text-gray-600">+00 00000 00000</p>
 						</div>
 						<div className="text-right">

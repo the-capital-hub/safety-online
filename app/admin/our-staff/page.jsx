@@ -34,7 +34,7 @@ const staff = [
 	{
 		id: "S001",
 		name: "Karthik Kumar",
-		email: "karthikkumar@gmail.com",
+		email: "karthikkumar@microsoftonline.com",
 		contact: "+91 9876765234",
 		joiningDate: "24/05/2025",
 		role: "Admin",

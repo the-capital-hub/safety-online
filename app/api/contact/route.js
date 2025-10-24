@@ -4,7 +4,7 @@ import AdminContact from "@/model/AdminContact.js";
 import { sendMail } from "@/lib/mail.js";
 import { companyInfo } from "@/constants/companyInfo";
 
-const CONTACT_RECIPIENT = "de.capitalhub@gmail.com";
+const CONTACT_RECIPIENT = "de.capitalhub@microsoftonline.com";
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(request) {
