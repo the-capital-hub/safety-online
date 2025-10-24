@@ -59,6 +59,7 @@ export default function AdminProductsPage() {
 		setFilters,
 		resetFilters,
 		setPage,
+		setLimit,
 		setSorting,
 		selectAllProducts,
 		clearSelection,
@@ -88,6 +89,7 @@ export default function AdminProductsPage() {
 	const isAuthenticated = useIsAuthenticated();
 	const [isRedirecting, setIsRedirecting] = useState(false);
 	const router = useRouter();
+
 	useEffect(() => {
 		fetchProducts();
 	}, [fetchProducts]);
@@ -943,7 +945,27 @@ export default function AdminProductsPage() {
 										)}{" "}
 										of {pagination.totalProducts} products
 									</p>
+
 									<div className="flex gap-2">
+										<Select
+											value={pagination.limit.toString()}
+											onValueChange={(value) => {
+												const newLimit = Number(value);
+												setLimit(newLimit);
+												setPage(1); // Reset to first page when changing limit
+												fetchProducts(); // Refetch with new limit
+											}}
+										>
+											<SelectTrigger className="w-24">
+												<SelectValue placeholder="Limit" />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="10">10</SelectItem>
+												<SelectItem value="25">25</SelectItem>
+												<SelectItem value="50">50</SelectItem>
+												<SelectItem value="100">100</SelectItem>
+											</SelectContent>
+										</Select>
 										<Button
 											variant="outline"
 											size="sm"

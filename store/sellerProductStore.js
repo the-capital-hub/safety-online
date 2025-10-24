@@ -13,16 +13,16 @@ export const useSellerProductStore = create(
 				categories: [],
 				isLoading: false,
 				error: null,
-                                filters: {
-                                        search: "",
-                                        category: "all",
-                                        subCategory: "all",
-                                        minPrice: "",
-                                        maxPrice: "",
-                                        discount: "",
-                                        published: null,
-                                        inStock: null,
-                                },
+				filters: {
+					search: "",
+					category: "all",
+					subCategory: "all",
+					minPrice: "",
+					maxPrice: "",
+					discount: "",
+					published: null,
+					inStock: null,
+				},
 				pagination: {
 					currentPage: 1,
 					totalPages: 1,
@@ -409,16 +409,16 @@ export const useSellerProductStore = create(
 
 				resetFilters: () => {
 					set({
-                                                filters: {
-                                                        search: "",
-                                                        category: "all",
-                                                        subCategory: "all",
-                                                        minPrice: "",
-                                                        maxPrice: "",
-                                                        discount: "",
-                                                        published: null,
-                                                        inStock: null,
-                                                },
+						filters: {
+							search: "",
+							category: "all",
+							subCategory: "all",
+							minPrice: "",
+							maxPrice: "",
+							discount: "",
+							published: null,
+							inStock: null,
+						},
 						pagination: { ...get().pagination, currentPage: 1 },
 					});
 					get().fetchProducts();
@@ -427,6 +427,13 @@ export const useSellerProductStore = create(
 				setPage: (page) => {
 					set((state) => ({
 						pagination: { ...state.pagination, currentPage: page },
+					}));
+					get().fetchProducts();
+				},
+
+				setLimit: (limit) => {
+					set((state) => ({
+						pagination: { ...state.pagination, limit },
 					}));
 					get().fetchProducts();
 				},
