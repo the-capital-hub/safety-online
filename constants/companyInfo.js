@@ -7,7 +7,7 @@ export const companyInfo = {
   ccEmails: [],
   bccEmails: [
     "Sunil@ladwas.com",
-    "dev.capitalhub@gmail.com",
+    "dev.capitalhub@microsoftonline.com",
     "Sumithra@ladwas.com",
     "Pramod@ladwas.com",
   ],
