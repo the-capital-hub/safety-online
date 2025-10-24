@@ -1,7 +1,7 @@
 import User from "@/model/User";
 import { dbConnect } from "@/lib/dbConnect";
-import nodemailer from "nodemailer";
 import crypto from "crypto";
+import { createMailTransport } from "@/lib/mail";
 
 export async function POST(req) {
         await dbConnect();
@@ -42,13 +42,7 @@ export async function POST(req) {
         resetUrl.searchParams.set("redirect", "/seller/login");
         const resetLink = resetUrl.toString();
 
-        const transporter = nodemailer.createTransport({
-                service: "gmail",
-                auth: {
-                        user: process.env.MAIL_USER,
-                        pass: process.env.MAIL_PASS,
-                },
-        });
+        const transporter = createMailTransport();
 
         await transporter.sendMail({
                 from: process.env.MAIL_USER,
