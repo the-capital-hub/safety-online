@@ -63,6 +63,7 @@ export default function SellerProductsPage() {
 		setFilters,
 		resetFilters,
 		setPage,
+		setLimit,
 		setSorting,
 		selectAllProducts,
 		clearSelection,
@@ -101,77 +102,81 @@ export default function SellerProductsPage() {
 		}
 	}, [fetchProducts, fetchCategories, isAuthenticated]);
 
-        const totalCategoryProductCount = categories.reduce(
-                (total, category) => total + (Number(category.productCount) || 0),
-                0
-        );
+	const totalCategoryProductCount = categories.reduce(
+		(total, category) => total + (Number(category.productCount) || 0),
+		0
+	);
 
-        const categoryOptions = [
-                {
-                        value: "all",
-                        label: "All Categories",
-                        productCount: totalCategoryProductCount,
-                        subCategories: [],
-                },
-                ...categories.map((category) => ({
-                        value: category.slug || category.name.toLowerCase().replace(/\s+/g, "-"),
-                        label: category.name,
-                        productCount: category.productCount || 0,
-                        subCategories: category.subCategories || [],
-                })),
-        ];
+	const categoryOptions = [
+		{
+			value: "all",
+			label: "All Categories",
+			productCount: totalCategoryProductCount,
+			subCategories: [],
+		},
+		...categories.map((category) => ({
+			value: category.slug || category.name.toLowerCase().replace(/\s+/g, "-"),
+			label: category.name,
+			productCount: category.productCount || 0,
+			subCategories: category.subCategories || [],
+		})),
+	];
 
-        const activeCategoryValue = (() => {
-                if (!filters.category || filters.category === "all") {
-                        return "all";
-                }
+	const activeCategoryValue = (() => {
+		if (!filters.category || filters.category === "all") {
+			return "all";
+		}
 
-                const match = categoryOptions.find(
-                        (category) => category.value === filters.category || category.label === filters.category
-                );
+		const match = categoryOptions.find(
+			(category) =>
+				category.value === filters.category ||
+				category.label === filters.category
+		);
 
-                return match ? match.value : "all";
-        })();
+		return match ? match.value : "all";
+	})();
 
-        const selectedCategory =
-                activeCategoryValue && activeCategoryValue !== "all"
-                        ? categoryOptions.find((category) => category.value === activeCategoryValue)
-                        : null;
+	const selectedCategory =
+		activeCategoryValue && activeCategoryValue !== "all"
+			? categoryOptions.find(
+					(category) => category.value === activeCategoryValue
+			  )
+			: null;
 
-        const subCategoryOptions = selectedCategory
-                ? [
-                                {
-                                        value: "all",
-                                        label: "All Subcategories",
-                                        productCount: (selectedCategory.subCategories || []).reduce(
-                                                (total, subCategory) =>
-                                                        total + (Number(subCategory.productCount) || 0),
-                                                0
-                                        ),
-                                },
-                                ...(selectedCategory.subCategories || []).map((subCategory) => ({
-                                        value:
-                                                subCategory.slug ||
-                                                subCategory.name.toLowerCase().replace(/\s+/g, "-"),
-                                        label: subCategory.name,
-                                        productCount: subCategory.productCount || 0,
-                                })),
-                        ]
-                : [];
+	const subCategoryOptions = selectedCategory
+		? [
+				{
+					value: "all",
+					label: "All Subcategories",
+					productCount: (selectedCategory.subCategories || []).reduce(
+						(total, subCategory) =>
+							total + (Number(subCategory.productCount) || 0),
+						0
+					),
+				},
+				...(selectedCategory.subCategories || []).map((subCategory) => ({
+					value:
+						subCategory.slug ||
+						subCategory.name.toLowerCase().replace(/\s+/g, "-"),
+					label: subCategory.name,
+					productCount: subCategory.productCount || 0,
+				})),
+		  ]
+		: [];
 
-        const activeSubCategoryValue = (() => {
-                if (!filters.subCategory || filters.subCategory === "all") {
-                        return "all";
-                }
+	const activeSubCategoryValue = (() => {
+		if (!filters.subCategory || filters.subCategory === "all") {
+			return "all";
+		}
 
-                const match = subCategoryOptions.find(
-                        (subCategory) =>
-                                subCategory.value === filters.subCategory ||
-                                subCategory.label === filters.subCategory
-                );
+		const match = subCategoryOptions.find(
+			(subCategory) =>
+				subCategory.value === filters.subCategory ||
+				subCategory.label === filters.subCategory
+		);
 
-                return match ? match.value : "all";
-        })();
+		return match ? match.value : "all";
+	})();
 
 	if (!isAuthenticated) {
 		return (
@@ -185,14 +190,14 @@ export default function SellerProductsPage() {
 		setFilters({ search: value });
 	};
 
-        const handleFilterChange = (keyOrObject, value) => {
-                if (typeof keyOrObject === "object" && keyOrObject !== null) {
-                        setFilters(keyOrObject);
-                        return;
-                }
+	const handleFilterChange = (keyOrObject, value) => {
+		if (typeof keyOrObject === "object" && keyOrObject !== null) {
+			setFilters(keyOrObject);
+			return;
+		}
 
-                setFilters({ [keyOrObject]: value });
-        };
+		setFilters({ [keyOrObject]: value });
+	};
 
 	const handleApplyFilters = () => {
 		fetchProducts();
@@ -289,16 +294,18 @@ export default function SellerProductsPage() {
 	};
 
 	// Helper function to get category display name
-        const getCategoryDisplayName = (categorySlug) => {
-                if (categorySlug === "all") return "All Categories";
+	const getCategoryDisplayName = (categorySlug) => {
+		if (categorySlug === "all") return "All Categories";
 
-                const category = categories.find((cat) => {
-                        const slug = cat.slug || cat.name?.toLowerCase().replace(/\s+/g, "-");
-                        return slug === categorySlug;
-                });
+		const category = categories.find((cat) => {
+			const slug = cat.slug || cat.name?.toLowerCase().replace(/\s+/g, "-");
+			return slug === categorySlug;
+		});
 
-                return category ? category.name : toSentenceCase(categorySlug.replace(/-/g, " "));
-        };
+		return category
+			? category.name
+			: toSentenceCase(categorySlug.replace(/-/g, " "));
+	};
 
 	function toSentenceCase(str) {
 		if (!str) return "";
@@ -396,7 +403,8 @@ export default function SellerProductsPage() {
 							<div className="flex gap-4 items-center flex-wrap">
 								<div className="relative flex-1 max-w-md">
 									<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-									<Input name="searchQuery"
+									<Input
+										name="searchQuery"
 										placeholder="Search products..."
 										value={filters.search}
 										onChange={(e) => handleSearch(e.target.value)}
@@ -404,20 +412,20 @@ export default function SellerProductsPage() {
 									/>
 								</div>
 
-                                                                <Select
-                                                                        value={activeCategoryValue}
-                                                                        onValueChange={(value) =>
-                                                                                handleFilterChange({
-                                                                                        category: value,
-                                                                                        subCategory: "all",
-                                                                                })
-                                                                        }
-                                                                >
-                                                                        <SelectTrigger className="w-48">
-                                                                                <SelectValue placeholder="Category" />
-                                                                        </SelectTrigger>
-                                                                        <SelectContent>
-                                                                                {categoryOptions.map((category) => (
+								<Select
+									value={activeCategoryValue}
+									onValueChange={(value) =>
+										handleFilterChange({
+											category: value,
+											subCategory: "all",
+										})
+									}
+								>
+									<SelectTrigger className="w-48">
+										<SelectValue placeholder="Category" />
+									</SelectTrigger>
+									<SelectContent>
+										{categoryOptions.map((category) => (
 											<SelectItem key={category.value} value={category.value}>
 												<div className="flex items-center justify-between w-full">
 													<span>{toSentenceCase(category.label)}</span>
@@ -426,62 +434,49 @@ export default function SellerProductsPage() {
 															{category.productCount}
 														</Badge>
 													)}
-                                                                                                </div>
-                                                                                        </SelectItem>
-                                                                                ))}
-                                                                        </SelectContent>
-                                                                </Select>
+												</div>
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
 
-                                                                {selectedCategory && subCategoryOptions.length > 0 && (
-                                                                        <Select
-                                                                                value={activeSubCategoryValue}
-                                                                                onValueChange={(value) =>
-                                                                                        handleFilterChange(
-                                                                                                "subCategory",
-                                                                                                value
-                                                                                        )
-                                                                                }
-                                                                        >
-                                                                                <SelectTrigger className="w-56">
-                                                                                        <SelectValue placeholder="Subcategory" />
-                                                                                </SelectTrigger>
-                                                                                <SelectContent>
-                                                                                        {subCategoryOptions.map(
-                                                                                                (subCategory) => (
-                                                                                                        <SelectItem
-                                                                                                                key={`${selectedCategory.value}-${subCategory.value}`}
-                                                                                                                value={
-                                                                                                                        subCategory.value
-                                                                                                                }
-                                                                                                        >
-                                                                                                                <div className="flex items-center justify-between w-full">
-                                                                                                                        <span>
-                                                                                                                                {toSentenceCase(
-                                                                                                                                        subCategory.label
-                                                                                                                                )}
-                                                                                                                        </span>
-                                                                                                                        {subCategory.productCount > 0 && (
-                                                                                                                                <Badge
-                                                                                                                                        variant="secondary"
-                                                                                                                                        className="ml-2 text-xs"
-                                                                                                                                >
-                                                                                                                                        {
-                                                                                                                                                subCategory.productCount
-                                                                                                                                        }
-                                                                                                                                </Badge>
-                                                                                                                        )}
-                                                                                                                </div>
-                                                                                                        </SelectItem>
-                                                                                                )
-                                                                                        )}
-                                                                                </SelectContent>
-                                                                        </Select>
-                                                                )}
+								{selectedCategory && subCategoryOptions.length > 0 && (
+									<Select
+										value={activeSubCategoryValue}
+										onValueChange={(value) =>
+											handleFilterChange("subCategory", value)
+										}
+									>
+										<SelectTrigger className="w-56">
+											<SelectValue placeholder="Subcategory" />
+										</SelectTrigger>
+										<SelectContent>
+											{subCategoryOptions.map((subCategory) => (
+												<SelectItem
+													key={`${selectedCategory.value}-${subCategory.value}`}
+													value={subCategory.value}
+												>
+													<div className="flex items-center justify-between w-full">
+														<span>{toSentenceCase(subCategory.label)}</span>
+														{subCategory.productCount > 0 && (
+															<Badge
+																variant="secondary"
+																className="ml-2 text-xs"
+															>
+																{subCategory.productCount}
+															</Badge>
+														)}
+													</div>
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+								)}
 
 								<div className="flex gap-2">
-                                                                    <Input
-                                                                    name="minPrice"
-                                                                    placeholder="Min Price"
+									<Input
+										name="minPrice"
+										placeholder="Min Price"
 										value={filters.minPrice}
 										onChange={(e) =>
 											handleFilterChange("minPrice", e.target.value)
@@ -489,9 +484,9 @@ export default function SellerProductsPage() {
 										className="w-24"
 										type="number"
 									/>
-                                                                    <Input
-                                                                    name="maxPrice"
-                                                                    placeholder="Max Price"
+									<Input
+										name="maxPrice"
+										placeholder="Max Price"
 										value={filters.maxPrice}
 										onChange={(e) =>
 											handleFilterChange("maxPrice", e.target.value)
@@ -608,17 +603,17 @@ export default function SellerProductsPage() {
 														}
 													/>
 												</TableCell>
-                                                                                                <TableCell className="font-medium">
-                                                                                                        <Link
-                                                                                                                href={`/products/${product.slug || product._id}`}
-                                                                                                                target="_blank"
-                                                                                                                rel="noopener noreferrer"
-                                                                                                                className="flex items-center gap-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary/50"
-                                                                                                        >
-                                                                                                                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
-                                                                                                                        {product.images?.[0] ? (
-                                                                                                                               <img
-                                                                                                                                src={
+												<TableCell className="font-medium">
+													<Link
+														href={`/products/${product.slug || product._id}`}
+														target="_blank"
+														rel="noopener noreferrer"
+														className="flex items-center gap-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary/50"
+													>
+														<div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
+															{product.images?.[0] ? (
+																<img
+																	src={
 																		product.images[0] ||
 																		"https://res.cloudinary.com/drjt9guif/image/upload/v1755168534/safetyonline_fks0th.png"
 																	}
@@ -629,16 +624,16 @@ export default function SellerProductsPage() {
 																<div className="text-xs text-gray-400">IMG</div>
 															)}
 														</div>
-                                                                                                                <div className="min-w-0">
-                                                                                                                        <div className="font-medium max-w-xl truncate group-hover:underline">
-                                                                                                                                {product.title}
-                                                                                                                       </div>
-                                                                                                                        <div className="text-sm text-gray-500 max-w-xl truncate">
-                                                                                                                                {product.description}
-                                                                                                                       </div>
-                                                                                                               </div>
-                                                                                                        </Link>
-                                                                                                </TableCell>
+														<div className="min-w-0">
+															<div className="font-medium max-w-xl truncate group-hover:underline">
+																{product.title}
+															</div>
+															<div className="text-sm text-gray-500 max-w-xl truncate">
+																{product.description}
+															</div>
+														</div>
+													</Link>
+												</TableCell>
 												<TableCell>
 													<Badge variant="outline" className="capitalize">
 														{product.category.replace("-", " ")}
@@ -716,6 +711,7 @@ export default function SellerProductsPage() {
 								<div className="flex items-center justify-between mt-6">
 									<p className="text-sm text-gray-600">
 										Showing{" "}
+										{(pagination.currentPage - 1) * pagination.limit + 1} to{" "}
 										{Math.min(
 											pagination.currentPage * pagination.limit,
 											pagination.totalProducts
@@ -723,6 +719,25 @@ export default function SellerProductsPage() {
 										of {pagination.totalProducts} products
 									</p>
 									<div className="flex gap-2">
+										<Select
+											value={pagination.limit.toString()}
+											onValueChange={(value) => {
+												const newLimit = Number(value);
+												setLimit(newLimit);
+												setPage(1); // Reset to first page when changing limit
+												fetchProducts(); // Refetch with new limit
+											}}
+										>
+											<SelectTrigger className="w-24">
+												<SelectValue placeholder="Limit" />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="10">10</SelectItem>
+												<SelectItem value="25">25</SelectItem>
+												<SelectItem value="50">50</SelectItem>
+												<SelectItem value="100">100</SelectItem>
+											</SelectContent>
+										</Select>
 										<Button
 											variant="outline"
 											size="sm"
