@@ -82,32 +82,24 @@ const CouponAppliedSchema = new mongoose.Schema(
 );
 
 const generateInvoiceNumber = async (orderModel) => {
-	const now = new Date();
-	const fullYear = now.getFullYear();
-	const yearSuffix = fullYear.toString().slice(-2);
-	const prefix = `LSI-SO${yearSuffix}-`;
-	const startOfYear = new Date(fullYear, 0, 1);
-	const startOfNextYear = new Date(fullYear + 1, 0, 1);
+        const prefix = "SO-LSI-1";
 
-	const lastOrder = await orderModel
-		.findOne({
-			createdAt: { $gte: startOfYear, $lt: startOfNextYear },
-			orderNumber: { $regex: `^${prefix}` },
-		})
-		.sort({ createdAt: -1, _id: -1 })
-		.lean();
+        const lastOrder = await orderModel
+                .findOne({ orderNumber: { $regex: `^${prefix}\\d{4}$` } })
+                .sort({ createdAt: -1, _id: -1 })
+                .lean();
 
-	let sequence = 1;
+        let sequence = 1;
 
-	if (lastOrder?.orderNumber) {
-		const match = lastOrder.orderNumber.match(/(\d+)$/);
+        if (lastOrder?.orderNumber) {
+                const match = lastOrder.orderNumber.match(/(\d{4})$/);
 
-		if (match) {
-			sequence = parseInt(match[1], 10) + 1;
-		}
-	}
+                if (match) {
+                        sequence = parseInt(match[1], 10) + 1;
+                }
+        }
 
-	return `${prefix}${sequence.toString().padStart(5, "0")}`;
+        return `${prefix}${sequence.toString().padStart(4, "0")}`;
 };
 
 const OrderSchema = new mongoose.Schema(
