@@ -1083,12 +1083,12 @@ export default function CheckoutPage() {
 							onClick={() => setPaymentMethod("cod")}
 						>
 							<div className="flex items-center justify-between">
-								<div>
-									<p className="font-medium">Cash on Delivery</p>
-									<p className="text-sm text-gray-600">
-										Pay when you receive your order
-									</p>
-								</div>
+                                                                <div>
+                                                                        <p className="font-medium">Create Purchase Order</p>
+                                                                        <p className="text-sm text-gray-600">
+                                                                                Generate a purchase order for this order
+                                                                        </p>
+                                                                </div>
 								<div
 									className={`w-4 h-4 rounded-full border-2 ${
 										paymentMethod === "cod"
