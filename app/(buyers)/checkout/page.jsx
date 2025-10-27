@@ -232,12 +232,15 @@ export default function CheckoutPage() {
 	}, [user, loadUserAddresses]);
 
 	// Fetch recommended coupons
-	useEffect(() => {
-		if (!recommendedLoading) {
-			//&& recommendedCoupons.length === 0
-			fetchRecommendedCoupons();
-		}
-	}, [fetchRecommendedCoupons, recommendedLoading]);
+        useEffect(() => {
+                if (recommendedLoading) {
+                        return;
+                }
+
+                if (!Array.isArray(recommendedCoupons) || recommendedCoupons.length === 0) {
+                        fetchRecommendedCoupons();
+                }
+        }, [fetchRecommendedCoupons, recommendedLoading, recommendedCoupons]);
 
 	// Initialize checkout based on URL params
 	useEffect(() => {
