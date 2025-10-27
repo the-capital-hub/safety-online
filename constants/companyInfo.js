@@ -1,23 +1,27 @@
 export const companyInfo = {
   name: "Safety Online",
   logo: "/SafetyLogo.png",
-  website: "https://safetyonline.com",
-  email: "contact@safetyonline.com",
+  website: "https://safetyonline.in",
+  email: "contact@safetyonline.in",
   adminEmail: "admin@safetyonline.com",
   ccEmails: [],
   bccEmails: [
-    "Sunil@ladwas.com",
-    "dev.capitalhub@microsoftonline.com",
-    "Sumithra@ladwas.com",
-    "Pramod@ladwas.com",
+    "sunil@ladwas.com",
+    "dev.capitalhub@gmail.com",
+    "amandwdi@gmail.com",
+    "sumithra@ladwas.com",
+    "pramod@ladwas.com",
+    "sales@ladwas.com",
+    "stores@ladwas.com",
+    "deepak@ladwas.com",
   ],
-  phone: "+91 9945234161",
+  phone: "+91 6360737631",
   address: [
     "Ladwa Solutions Inc NO. 3, 4 AND 9, Khata No. 37/1,",
     "Singasandra Village, Begur Hobli,",
-    "Bengaluru - 560 068 Bengaluru Urban, Karnataka,BHARATH.",
+    "Bengaluru - 560 068 Bengaluru Urban, Karnataka, BHARATH.",
   ],
-  taxId: "GSTIN 29ABCDE1234F1Z5",
+  taxId: "GSTIN  29AAFFL4425M1ZY",
 };
 
 export default companyInfo;
