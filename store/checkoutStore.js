@@ -854,7 +854,7 @@ export const useCheckoutStore = create(
 
                                         if (totalOrderWeightKg > 100) {
                                                 toast.error(
-                                                        "Weight more than 100kg is not deliverable. Contact help@safetyonline.in"
+                                                        "Weight more than 100kg is not deliverable. Contact contact@safetyonline.in"
                                                 );
                                                 return {
                                                         success: false,

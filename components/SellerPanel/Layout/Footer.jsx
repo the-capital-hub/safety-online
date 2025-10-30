@@ -8,7 +8,7 @@ export default function Footer() {
 		support: {
 			title: "Support",
 			links: [
-				{ label: "help@safetyonline.in", href: "mailto:help@safetyonline.in" },
+				{ label: "contact@safetyonline.in", href: "mailto:contact@safetyonline.in" },
 				{ label: "9945234161", href: "#" },
 			],
 		},

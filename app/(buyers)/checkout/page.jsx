@@ -58,7 +58,7 @@ export default function CheckoutPage() {
 
         const WEIGHT_LIMIT_KG = 100;
         const weightLimitMessage =
-                "Weight more than 100kg is not deliverable. Contact help@safetyonline.in";
+                "Weight more than 100kg is not deliverable. Contact contact@safetyonline.in";
 
 	// Auth store
 	const user = useLoggedInUser();

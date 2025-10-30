@@ -13,12 +13,12 @@ export default function SupportSection() {
 		{
 			icon: PhoneCall,
 			title: "GIVE US A CALL",
-			description: "+91 9945234161",
+			description: "+91 7795976568",
 		},
 		{
 			icon: MailCheck,
 			title: "EMAIL SUPPORT",
-			description: "help@safetyonline.in",
+			description: "contact@safetyonline.in",
 		},
 		{
 			icon: ShieldCheck,

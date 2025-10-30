@@ -51,7 +51,7 @@ export default function Footer() {
 	const footerSections = {
 		support: {
 			title: "Support",
-			items: ["help@safetyonline.in", "+91 9945234161"],
+			items: ["contact@safetyonline.in", "+91 7795976568"],
 		},
 		account: {
 			title: "Account",

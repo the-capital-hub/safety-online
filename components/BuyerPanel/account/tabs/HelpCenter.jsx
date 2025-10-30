@@ -157,7 +157,7 @@ export function HelpCenter() {
 		);
 
 		// Construct mailto link
-		const mailtoLink = `mailto:help@safetyonline.in?subject=${subject}&body=${body}`;
+		const mailtoLink = `mailto:contact@safetyonline.in?subject=${subject}&body=${body}`;
 
 		// Open default mail client
 		window.location.href = mailtoLink;
