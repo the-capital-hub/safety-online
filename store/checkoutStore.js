@@ -3,7 +3,6 @@
 import { create } from "zustand";
 import { persist, devtools } from "zustand/middleware";
 import { toast } from "react-hot-toast";
-import { generateInvoicePDFAsBase64 } from "@/lib/invoicePDF.js";
 import { calculateGstTotals, GST_RATE_PERCENT } from "@/lib/utils/gst.js";
 import {
         calculateShippingParams,
@@ -133,16 +132,6 @@ const paymentAPI = {
 	},
 };
 
-// Helper function to generate PDF client-side
-const generateClientSidePDF = async (orderData) => {
-	try {
-		return await generateInvoicePDFAsBase64(orderData);
-	} catch (error) {
-		console.error("Client-side PDF generation failed:", error);
-		return null;
-	}
-};
-
 export const useCheckoutStore = create(
 	devtools(
 		persist(
@@ -220,7 +209,7 @@ export const useCheckoutStore = create(
 				isLoading: false,
 				paymentLoading: false,
 				currentStep: 1, // 1: Address, 2: Payment
-				paymentMethod: "razorpay", // "razorpay", "cod", "credit_card","debit_card", "net_banking", "upi", "wallet"
+                                paymentMethod: "razorpay", // Razorpay is the only supported payment method
 
 				// Actions
 				setCheckoutType: (type, product = null, quantity = 1) => {
@@ -289,9 +278,9 @@ export const useCheckoutStore = create(
 					set({ currentStep: step });
 				},
 
-				setPaymentMethod: (method) => {
-					set({ paymentMethod: method });
-				},
+                                setPaymentMethod: () => {
+                                        set({ paymentMethod: "razorpay" });
+                                },
 
 				// Initialize checkout data
 				initializeCheckout: (
@@ -585,12 +574,7 @@ export const useCheckoutStore = create(
 
 				// Fetch shipping estimate - UPDATED VERSION
 				fetchShippingEstimate: async () => {
-					const {
-						savedAddresses,
-						selectedAddressId,
-						orderSummary,
-						paymentMethod,
-					} = get();
+                                        const { savedAddresses, selectedAddressId, orderSummary } = get();
 
 					const selectedAddress = savedAddresses.find(
 						(addr) => addr._id === selectedAddressId
@@ -611,11 +595,11 @@ export const useCheckoutStore = create(
 						set({ isLoading: true });
 
 						// Calculate shipping parameters dynamically from order items
-						const shippingParams = calculateShippingParams(orderSummary.items, {
-							pickupPincode: "560068", // Seller pincode - should come from seller's company details
-							dropPincode: selectedAddress.zipCode || selectedAddress.pincode,
-							paymentType: paymentMethod === "cod" ? "COD" : "Prepaid",
-						});
+                                                const shippingParams = calculateShippingParams(orderSummary.items, {
+                                                        pickupPincode: "560068", // Seller pincode - should come from seller's company details
+                                                        dropPincode: selectedAddress.zipCode || selectedAddress.pincode,
+                                                        paymentType: "Prepaid",
+                                                });
 
 						// Validate parameters before API call
 						const validation = validateShippingParams(shippingParams);
@@ -961,196 +945,115 @@ export const useCheckoutStore = create(
 									  },
 						};
 
-						if (paymentMethod === "razorpay") {
-							// Create Razorpay order
-							const { order: razorpayOrder } =
-								await paymentAPI.createRazorpayOrder({
-									amount: orderSummary.total,
-									currency: "INR",
-									receipt: `order_${Date.now()}`,
-								});
+                                                if (paymentMethod === "razorpay") {
+                                                        // Create Razorpay order
+                                                        const { order: razorpayOrder } =
+                                                                await paymentAPI.createRazorpayOrder({
+                                                                        amount: orderSummary.total,
+                                                                        currency: "INR",
+                                                                        receipt: `order_${Date.now()}`,
+                                                                });
 
-							// Initialize Razorpay payment
-							const options = {
-								key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-								amount: razorpayOrder.amount,
-								currency: razorpayOrder.currency,
-								name: "Your Store Name",
-								description: "Purchase from Your Store",
-								order_id: razorpayOrder.id,
-								handler: async function (response) {
-									try {
-										// Verify payment
-										const verificationData = {
-											razorpay_order_id: response.razorpay_order_id,
-											razorpay_payment_id: response.razorpay_payment_id,
-											razorpay_signature: response.razorpay_signature,
-											orderData,
-											userId: userId,
-											clearCart: checkoutType === "cart",
-											status: "success",
-										};
+                                                        // Initialize Razorpay payment
+                                                        const options = {
+                                                                key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+                                                                amount: razorpayOrder.amount,
+                                                                currency: razorpayOrder.currency,
+                                                                name: "Your Store Name",
+                                                                description: "Purchase from Your Store",
+                                                                order_id: razorpayOrder.id,
+                                                                handler: async function (response) {
+                                                                        try {
+                                                                                // Verify payment
+                                                                                const verificationData = {
+                                                                                        razorpay_order_id: response.razorpay_order_id,
+                                                                                        razorpay_payment_id: response.razorpay_payment_id,
+                                                                                        razorpay_signature: response.razorpay_signature,
+                                                                                        orderData,
+                                                                                        userId: userId,
+                                                                                        clearCart: checkoutType === "cart",
+                                                                                        status: "success",
+                                                                                };
 
-										const verificationResult = await paymentAPI.verifyPayment(
-											verificationData
-										);
+                                                                                const verificationResult = await paymentAPI.verifyPayment(
+                                                                                        verificationData
+                                                                                );
 
-										if (verificationResult.success) {
-											// Clear cart if it was a cart checkout
-											if (checkoutType === "cart" && clearCartCallback) {
-												clearCartCallback();
-											}
+                                                                                if (verificationResult.success) {
+                                                                                        // Clear cart if it was a cart checkout
+                                                                                        if (checkoutType === "cart" && clearCartCallback) {
+                                                                                                clearCartCallback();
+                                                                                        }
 
-											// Reset checkout
-											get().resetCheckout();
+                                                                                        // Reset checkout
+                                                                                        get().resetCheckout();
 
-											toast.success("Payment successful! Order placed.");
+                                                                                        toast.success("Payment successful! Order placed.");
 
-											// Redirect to success page
-											window.location.href = `/order-success?orderId=${verificationResult.orderId}&orderNumber=${verificationResult.orderNumber}`;
-										} else {
-											toast.error("Payment verification failed");
-										}
-									} catch (error) {
-										console.error("Payment verification error:", error);
-										toast.error("Payment verification failed");
-									} finally {
-										set({ paymentLoading: false });
-									}
-								},
-								prefill: {
-									name: customerInfo.name,
-									email: customerInfo.email,
-									contact: customerInfo.mobile,
-								},
-								theme: {
-									color: "#000000",
-								},
-								modal: {
-									ondismiss: function () {
-										set({ paymentLoading: false });
-										toast.error("Payment cancelled");
-									},
-								},
-							};
+                                                                                        // Redirect to success page
+                                                                                        window.location.href = `/order-success?orderId=${verificationResult.orderId}&orderNumber=${verificationResult.orderNumber}`;
+                                                                                } else {
+                                                                                        toast.error("Payment verification failed");
+                                                                                }
+                                                                        } catch (error) {
+                                                                                console.error("Payment verification error:", error);
+                                                                                toast.error("Payment verification failed");
+                                                                        } finally {
+                                                                                set({ paymentLoading: false });
+                                                                        }
+                                                                },
+                                                                prefill: {
+                                                                        name: customerInfo.name,
+                                                                        email: customerInfo.email,
+                                                                        contact: customerInfo.mobile,
+                                                                },
+                                                                theme: {
+                                                                        color: "#000000",
+                                                                },
+                                                                modal: {
+                                                                        ondismiss: function () {
+                                                                                set({ paymentLoading: false });
+                                                                                toast.error("Payment cancelled");
+                                                                        },
+                                                                },
+                                                        };
 
-							const razorpay = new window.Razorpay(options);
-							razorpay.on("payment.failed", async function (response) {
-								const failureData = {
-									status: "failed",
-									orderData,
-									userId: userId,
-									clearCart: false,
-									razorpay_order_id:
-										response?.error?.metadata?.order_id || razorpayOrder.id,
-									razorpay_payment_id:
-										response?.error?.metadata?.payment_id || null,
-									failureReason:
-										response?.error?.description ||
-										response?.error?.reason ||
-										response?.error?.code ||
-										"Payment failed",
-								};
+                                                        const razorpay = new window.Razorpay(options);
+                                                        razorpay.on("payment.failed", async function (response) {
+                                                                const failureData = {
+                                                                        status: "failed",
+                                                                        orderData,
+                                                                        userId: userId,
+                                                                        clearCart: false,
+                                                                        razorpay_order_id:
+                                                                                response?.error?.metadata?.order_id || razorpayOrder.id,
+                                                                        razorpay_payment_id:
+                                                                                response?.error?.metadata?.payment_id || null,
+                                                                        failureReason:
+                                                                                response?.error?.description ||
+                                                                                response?.error?.reason ||
+                                                                                response?.error?.code ||
+                                                                                "Payment failed",
+                                                                };
 
-								try {
-									await paymentAPI.verifyPayment(failureData);
-								} catch (recordError) {
-									console.error(
-										"Payment failure recording error:",
-										recordError
-									);
-								} finally {
-									set({ paymentLoading: false });
-									toast.error("Payment failed. Please try again.");
-								}
-							});
-							razorpay.open();
+                                                                try {
+                                                                        await paymentAPI.verifyPayment(failureData);
+                                                                } catch (recordError) {
+                                                                        console.error(
+                                                                                "Payment failure recording error:",
+                                                                                recordError
+                                                                        );
+                                                                } finally {
+                                                                        set({ paymentLoading: false });
+                                                                        toast.error("Payment failed. Please try again.");
+                                                                }
+                                                        });
+                                                        razorpay.open();
 
-							return { success: true, paymentMethod: "razorpay" };
-						} else if (paymentMethod === "cod") {
-							// Handle Cash on Delivery
-							const codOrderData = {
-								orderData: {
-									...orderData,
-									paymentStatus: "pending",
-									status: "confirmed",
-								},
-								userId: userId,
-								clearCart: checkoutType === "cart",
-							};
+                                                        return { success: true, paymentMethod: "razorpay" };
+                                                }
 
-							const result = await paymentAPI.createOrder(codOrderData);
-
-							if (result.success) {
-								// Clear cart if it was a cart checkout
-								if (checkoutType === "cart" && clearCartCallback) {
-									clearCartCallback();
-								}
-
-								// Send confirmation email (don't block on this)
-								try {
-									const order = result.order;
-									// Extract all products from subOrders if they exist
-									const allProducts = Array.isArray(order.subOrders)
-										? order.subOrders.flatMap((sub) =>
-												Array.isArray(sub.products)
-													? sub.products.map((p) => ({
-															productName:
-																p.productId?.productName ||
-																p.productId?.name ||
-																p.productId?.title ||
-																"Unknown",
-															quantity: p.quantity || 0,
-															price: p.price || p.productId?.price || 0,
-															totalPrice:
-																(p.price || p.productId?.price || 0) *
-																(p.quantity || 0),
-													  }))
-													: []
-										  )
-										: order.products || [];
-
-									const orderForPDF = {
-										...order,
-										customerName: order.customerName,
-										customerEmail: order.customerEmail,
-										customerMobile: order.customerMobile,
-										products: allProducts,
-									};
-
-									const pdfBase64 = await generateClientSidePDF(orderForPDF);
-
-									console.log("pdfBase64", !!pdfBase64 ? "generated" : "null");
-									if (!pdfBase64) {
-										throw new Error("PDF generation failed");
-									}
-
-									const emailResult = await paymentAPI.sendOrderConfirmation(
-										orderForPDF,
-										userId,
-										pdfBase64
-									);
-									// console.log("emailResult", emailResult);
-								} catch (emailError) {
-									console.error("Email sending failed:", emailError);
-									// Don't stop the flow if email fails
-									// return { success: false, paymentMethod: "cod" };
-								}
-
-								// Reset checkout
-								get().resetCheckout();
-
-								toast.success("Order placed successfully!");
-
-								// Redirect to success page
-								window.location.href = `/order-success?orderId=${result.orderId}&orderNumber=${result.orderNumber}`;
-
-								return { success: true, paymentMethod: "cod" };
-							} else {
-								toast.error("Failed to place order");
-								return { success: false, error: result.error };
-							}
-						}
+                                                throw new Error("Unsupported payment method");
 					} catch (error) {
 						console.error("Payment processing error:", error);
 						toast.error("Payment processing failed");
@@ -1267,9 +1170,9 @@ export const useCheckoutStore = create(
 			}),
 			{
 				name: "checkout-storage",
-				partialize: (state) => ({
-					paymentMethod: state.paymentMethod,
-				}),
+                                partialize: () => ({
+                                        paymentMethod: "razorpay",
+                                }),
 			}
 		)
 	)
