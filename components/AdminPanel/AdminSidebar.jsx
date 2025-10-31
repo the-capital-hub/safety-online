@@ -50,6 +50,8 @@ import {
         BarChart3,
         BellRing,
         FileText,
+        PieChart,
+        Download,
 } from "lucide-react";
 import Logo from "@/public/SafetyLogo.png";
 import { useIsAuthenticated } from "@/store/adminAuthStore.js";
@@ -64,6 +66,17 @@ const menuItems = [
                 title: "Analytics",
                 icon: BarChart3,
                 href: "/admin/analytics",
+        },
+        {
+                title: "Reports",
+                icon: PieChart,
+                items: [
+                        {
+                                title: "Bulk Invoice Download",
+                                href: "/admin/reports/bulk-invoice-download",
+                                icon: Download,
+                        },
+                ],
         },
         {
                 title: "Notifications",
