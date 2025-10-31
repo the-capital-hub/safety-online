@@ -52,6 +52,7 @@ import {
         FileText,
         PieChart,
         Download,
+        FileBarChart,
 } from "lucide-react";
 import Logo from "@/public/SafetyLogo.png";
 import { useIsAuthenticated } from "@/store/adminAuthStore.js";
@@ -71,6 +72,11 @@ const menuItems = [
                 title: "Reports",
                 icon: PieChart,
                 items: [
+                        {
+                                title: "Sales Report",
+                                href: "/admin/reports/sales-report",
+                                icon: FileBarChart,
+                        },
                         {
                                 title: "Bulk Invoice Download",
                                 href: "/admin/reports/bulk-invoice-download",
