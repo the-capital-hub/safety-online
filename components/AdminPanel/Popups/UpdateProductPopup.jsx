@@ -443,6 +443,10 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
                         return;
                 }
 
+                if (!categoriesWithSlugs.length) {
+                        return;
+                }
+
                 if (!selectedCategory) {
                         if (formData.category || formData.subCategory) {
                                 setFormData((prev) => ({
@@ -461,7 +465,12 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
                 if (!hasValidSubCategory && formData.subCategory) {
                         setFormData((prev) => ({ ...prev, subCategory: "" }));
                 }
-        }, [formData.category, formData.subCategory, selectedCategory]);
+        }, [
+                categoriesWithSlugs.length,
+                formData.category,
+                formData.subCategory,
+                selectedCategory,
+        ]);
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
