@@ -62,9 +62,20 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [features, setFeatures] = useState([""]);
 	const [categories, setCategories] = useState([]);
-	const [sellers, setSellers] = useState([]);
-	const [loadingSellers, setLoadingSellers] = useState(false);
-	const [priceError, setPriceError] = useState("");
+        const [sellers, setSellers] = useState([]);
+        const [loadingSellers, setLoadingSellers] = useState(false);
+        const [priceError, setPriceError] = useState("");
+        const [mainImageIndex, setMainImageIndex] = useState(-1);
+
+        const reorderImagesForSubmission = (images, index) => {
+                if (!images.length || index <= 0 || index >= images.length) {
+                        return images;
+                }
+
+                const updatedImages = [...images];
+                const [selectedImage] = updatedImages.splice(index, 1);
+                return [selectedImage, ...updatedImages];
+        };
 
 	const [formData, setFormData] = useState({
 		title: "",
@@ -149,9 +160,9 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 		}
 	};
 
-	useEffect(() => {
-		if (open) {
-			// Fetch categories
+        useEffect(() => {
+                if (open) {
+                        // Fetch categories
 			const fetchCategories = async () => {
 				try {
 					const res = await fetch("/api/admin/categories");
@@ -183,7 +194,13 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 			fetchCategories();
 			fetchSellers();
 		}
-	}, [open]);
+        }, [open]);
+
+        useEffect(() => {
+                if (!product) {
+                        setMainImageIndex(-1);
+                }
+        }, [product]);
 
 	// Helper function to convert URL to base64
 	const convertUrlToBase64 = async (url) => {
@@ -226,9 +243,9 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 					);
 				}
 
-				setFormData({
-					title: product.title || "",
-					description: product.description || "",
+                                setFormData({
+                                        title: product.title || "",
+                                        description: product.description || "",
 					longDescription: product.longDescription || "",
                                         category: toSlug(product.category) || "",
                                         subCategory: toSlug(product.subCategory) || "",
@@ -250,10 +267,21 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 					weight: product.weight?.toString() || "",
 					colour: product.colour || "",
 					material: product.material || "",
-					size: product.size || "",
-					sellerId: product.sellerId || "",
-				});
-			};
+                                        size: product.size || "",
+                                        sellerId: product.sellerId || "",
+                                });
+
+                                const originalMainIndex = (product.images || []).findIndex(
+                                        (imageUrl) => imageUrl === product.mainImage
+                                );
+                                setMainImageIndex(
+                                        originalMainIndex >= 0
+                                                ? originalMainIndex
+                                                : convertedImages.length > 0
+                                                ? 0
+                                                : -1
+                                );
+                        };
 
 			convertImages();
 
@@ -296,9 +324,9 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 				.map((feature) => ({ title: feature, description: feature }));
 
 			// Prepare the update data similar to addProduct
-			const updateData = {
-				title: formData.title,
-				description: formData.description,
+                        const updateData = {
+                                title: formData.title,
+                                description: formData.description,
 				longDescription: formData.longDescription || formData.description,
 				category: formData.category,
 				subCategory: formData.subCategory,
@@ -311,7 +339,7 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 				type: formData.type,
 				published: formData.published,
 				features: formattedFeatures,
-				images: formData.images, // Pass the base64 images array
+                                images: reorderImagesForSubmission(formData.images, mainImageIndex), // Pass the base64 images array
 				hsnCode: formData.hsnCode,
 				brand: formData.brand,
 				length: formData.length ? Number.parseFloat(formData.length) : null,
@@ -337,9 +365,36 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 		}
 	};
 
-	const addFeature = () => {
-		setFeatures([...features, ""]);
-	};
+        const addFeature = () => {
+                setFeatures([...features, ""]);
+        };
+
+        const handleImagesChange = (images) => {
+                const currentMainImage =
+                        mainImageIndex >= 0 && mainImageIndex < formData.images.length
+                                ? formData.images[mainImageIndex]
+                                : null;
+
+                setFormData((prev) => ({ ...prev, images }));
+                setMainImageIndex(() => {
+                        if (!images.length) {
+                                return -1;
+                        }
+
+                        if (currentMainImage) {
+                                const newIndex = images.findIndex((image) => image === currentMainImage);
+                                if (newIndex !== -1) {
+                                        return newIndex;
+                                }
+                        }
+
+                        return 0;
+                });
+        };
+
+        const handleMainImageChange = (index) => {
+                setMainImageIndex(index);
+        };
 
 	const removeFeature = (index) => {
 		setFeatures(features.filter((_, i) => i !== index));
@@ -530,17 +585,17 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 								/>
 							</div>
 
-							<div className="md:col-span-2">
-								<ImageUpload
-									images={formData.images}
-									onImagesChange={(images) =>
-										setFormData({ ...formData, images })
-									}
-									maxImages={5}
-									label="Product Images"
-									required={false}
-								/>
-							</div>
+                                                        <div className="md:col-span-2">
+                                                                <ImageUpload
+                                                                        images={formData.images}
+                                                                        onImagesChange={handleImagesChange}
+                                                                        maxImages={5}
+                                                                        label="Product Images"
+                                                                        required={false}
+                                                                        mainImageIndex={mainImageIndex}
+                                                                        onMainImageChange={handleMainImageChange}
+                                                                />
+                                                        </div>
 
 							<div>
 								<Label>Category *</Label>

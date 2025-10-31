@@ -58,6 +58,17 @@ export function AddProductPopup({ open, onOpenChange }) {
   const [sellers, setSellers] = useState([])
   const [loadingSellers, setLoadingSellers] = useState(false)
   const [priceError, setPriceError] = useState("")
+  const [mainImageIndex, setMainImageIndex] = useState(-1)
+
+  const reorderImagesForSubmission = (images, index) => {
+    if (!images.length || index <= 0 || index >= images.length) {
+      return images
+    }
+
+    const updatedImages = [...images]
+    const [selectedImage] = updatedImages.splice(index, 1)
+    return [selectedImage, ...updatedImages]
+  }
 
   const [formData, setFormData] = useState({
     title: "",
@@ -201,7 +212,7 @@ export function AddProductPopup({ open, onOpenChange }) {
         discount: formData.discount ? Number.parseFloat(formData.discount) : 0,
         type: formData.type,
         published: formData.published,
-        images: formData.images,
+        images: reorderImagesForSubmission(formData.images, mainImageIndex),
         hsnCode: formData.hsnCode,
         brand: formData.brand,
         length: formData.length ? Number.parseFloat(formData.length) : null,
@@ -255,7 +266,36 @@ export function AddProductPopup({ open, onOpenChange }) {
     })
     setFeatures([""])
     setPriceError("")
+    setMainImageIndex(-1)
   }
+
+  const handleImagesChange = (images) => {
+    const currentMainImage =
+      mainImageIndex >= 0 && mainImageIndex < formData.images.length
+        ? formData.images[mainImageIndex]
+        : null
+
+    setFormData((prev) => ({ ...prev, images }))
+    setMainImageIndex(() => {
+      if (!images.length) {
+        return -1
+      }
+
+      if (currentMainImage) {
+        const newIndex = images.findIndex((image) => image === currentMainImage)
+        if (newIndex !== -1) {
+          return newIndex
+        }
+      }
+
+      return 0
+    })
+  }
+
+  const handleMainImageChange = (index) => {
+    setMainImageIndex(index)
+  }
+
 
   const addFeature = () => {
     setFeatures([...features, ""])
@@ -420,10 +460,12 @@ export function AddProductPopup({ open, onOpenChange }) {
               <div className="md:col-span-2">
                 <ImageUpload
                   images={formData.images}
-                  onImagesChange={(images) => setFormData({ ...formData, images })}
+                  onImagesChange={handleImagesChange}
                   maxImages={5}
                   label="Product Images"
                   required={true}
+                  mainImageIndex={mainImageIndex}
+                  onMainImageChange={handleMainImageChange}
                 />
               </div>
 

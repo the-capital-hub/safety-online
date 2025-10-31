@@ -246,33 +246,48 @@ export const useAdminProductStore = create((set, get) => ({
 			formData.append("features", JSON.stringify(updateData.features || []));
 
 			// Handle images - convert base64 to blobs
-			if (updateData.images && updateData.images.length > 0) {
-				updateData.images.forEach((image, index) => {
-					// Check if it's a base64 string (new image) or URL (existing image)
-					if (typeof image === "string" && image.startsWith("data:")) {
-						// New base64 image - convert to blob
-						const base64Data = image.split(",")[1];
-						const mimeType = image.split(",")[0].split(":")[1].split(";")[0];
+                        if (updateData.images && updateData.images.length > 0) {
+                                const imageOrder = [];
+                                let newImageCounter = 0;
+                                let existingImageCounter = 0;
 
-						const byteCharacters = atob(base64Data);
-						const byteNumbers = new Array(byteCharacters.length);
-						for (let i = 0; i < byteCharacters.length; i++) {
-							byteNumbers[i] = byteCharacters.charCodeAt(i);
-						}
-						const byteArray = new Uint8Array(byteNumbers);
+                                updateData.images.forEach((image, index) => {
+                                        // Check if it's a base64 string (new image) or URL (existing image)
+                                        if (typeof image === "string" && image.startsWith("data:")) {
+                                                // New base64 image - convert to blob
+                                                const base64Data = image.split(",")[1];
+                                                const mimeType = image.split(",")[0].split(":")[1].split(";")[0];
 
-						const blob = new Blob([byteArray], { type: mimeType });
-						formData.append(
-							"images",
-							blob,
-							`image_${index}.${mimeType.split("/")[1]}`
-						);
-					} else if (typeof image === "string" && image.startsWith("http")) {
-						// Existing image URL - append as text
-						formData.append("existingImages", image);
-					}
-				});
-			}
+                                                const byteCharacters = atob(base64Data);
+                                                const byteNumbers = new Array(byteCharacters.length);
+                                                for (let i = 0; i < byteCharacters.length; i++) {
+                                                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                                                }
+                                                const byteArray = new Uint8Array(byteNumbers);
+
+                                                const blob = new Blob([byteArray], { type: mimeType });
+                                                formData.append(
+                                                        "images",
+                                                        blob,
+                                                        `image_${index}.${mimeType.split("/")[1]}`
+                                                );
+                                                imageOrder.push({ type: "new", index: newImageCounter });
+                                                newImageCounter += 1;
+                                        } else if (typeof image === "string" && image) {
+                                                // Existing image URL - append as text
+                                                formData.append("existingImages", image);
+                                                imageOrder.push({
+                                                        type: "existing",
+                                                        index: existingImageCounter,
+                                                });
+                                                existingImageCounter += 1;
+                                        }
+                                });
+
+                                if (imageOrder.length > 0) {
+                                        formData.append("imageOrder", JSON.stringify(imageOrder));
+                                }
+                        }
 
 			const response = await fetch("/api/admin/product/updateProduct", {
 				method: "PUT",

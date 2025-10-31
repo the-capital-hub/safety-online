@@ -2,13 +2,15 @@
 
 import { useState, useRef } from "react";
 import { Label } from "@/components/ui/label";
-import { Upload, X, ImageIcon } from "lucide-react";
+import { Upload, X } from "lucide-react";
 
 export function ImageUpload({
-	images = [], // Array of base64 strings
-	onImagesChange,
-	label = "Product Images",
-	required = true,
+        images = [], // Array of base64 strings
+        onImagesChange,
+        label = "Product Images",
+        required = true,
+        mainImageIndex = -1,
+        onMainImageChange,
 }) {
 	const [isDragging, setIsDragging] = useState(false);
 	const [errors, setErrors] = useState([]);
@@ -121,12 +123,20 @@ export function ImageUpload({
 		}
 	};
 
-	const removeImage = (index) => {
-		const updatedImages = images.filter((_, i) => i !== index);
-		const updatedMetadata = imageMetadata.filter((_, i) => i !== index);
-		onImagesChange(updatedImages);
-		setImageMetadata(updatedMetadata);
-	};
+        const removeImage = (index) => {
+                const updatedImages = images.filter((_, i) => i !== index);
+                const updatedMetadata = imageMetadata.filter((_, i) => i !== index);
+                onImagesChange(updatedImages);
+                setImageMetadata(updatedMetadata);
+        };
+
+        const handleSetAsMain = (index) => {
+                if (typeof onMainImageChange !== "function") {
+                        return;
+                }
+
+                onMainImageChange(index);
+        };
 
 	const openFileDialog = () => {
 		fileInputRef.current?.click();
@@ -200,31 +210,52 @@ export function ImageUpload({
 			)}
 
 			{/* Image Previews */}
-			{images.length > 0 && (
-				<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-					{images.map((base64, index) => (
-						<div key={index} className="relative group">
-							<div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-								<img
-									src={base64}
-									alt={`Upload ${index + 1}`}
-									className="w-full h-full object-cover"
-								/>
-							</div>
-							<button
-								type="button"
-								onClick={() => removeImage(index)}
-								className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-							>
-								<X className="w-4 h-4" />
-							</button>
-							<p className="text-xs text-gray-500 mt-1 truncate">
-								{imageMetadata[index]?.name || `Image ${index + 1}`}
-							</p>
-						</div>
-					))}
-				</div>
-			)}
+                        {images.length > 0 && (
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                        {images.map((base64, index) => (
+                                                <div
+                                                        key={index}
+                                                        className={`relative group rounded-lg ${
+                                                                mainImageIndex === index
+                                                                        ? "ring-2 ring-blue-500"
+                                                                        : ""
+                                                        }`}
+                                                >
+                                                        <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                                                                <img
+                                                                        src={base64}
+                                                                        alt={`Upload ${index + 1}`}
+                                                                        className="w-full h-full object-cover"
+                                                                />
+                                                        </div>
+                                                        {typeof onMainImageChange === "function" && (
+                                                                <button
+                                                                        type="button"
+                                                                        onClick={() => handleSetAsMain(index)}
+                                                                        className={`absolute left-2 top-2 rounded-full px-3 py-1 text-xs font-medium shadow transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${
+                                                                                mainImageIndex === index
+                                                                                        ? "bg-blue-600 text-white"
+                                                                                        : "bg-white/80 text-gray-700 hover:bg-white"
+                                                                        }`}
+                                                                        aria-pressed={mainImageIndex === index}
+                                                                >
+                                                                        {mainImageIndex === index ? "Main Image" : "Set as Main"}
+                                                                </button>
+                                                        )}
+                                                        <button
+                                                                type="button"
+                                                                onClick={() => removeImage(index)}
+                                                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                                        >
+                                                                <X className="w-4 h-4" />
+                                                        </button>
+                                                        <p className="text-xs text-gray-500 mt-1 truncate">
+                                                                {imageMetadata[index]?.name || `Image ${index + 1}`}
+                                                        </p>
+                                                </div>
+                                        ))}
+                                </div>
+                        )}
 
 			{/* Image Counter */}
 			<div className="text-right">
