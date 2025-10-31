@@ -90,10 +90,9 @@ export default function CheckoutPage() {
 		orderSummary,
 		appliedCoupon,
 		cartAppliedCoupon,
-		currentStep,
-		isLoading,
-		paymentLoading,
-		paymentMethod,
+                currentStep,
+                isLoading,
+                paymentLoading,
                 gstInvoice,
         } = useCheckoutStore();
 
@@ -576,15 +575,17 @@ export default function CheckoutPage() {
         }, [checkoutType, removeCartPromoCode, removeCoupon]);
 
         const handlePayment = useCallback(async () => {
-                if (!isRazorpayLoaded && paymentMethod === "razorpay") {
+                if (!isRazorpayLoaded) {
                         toast.error("Payment system is loading. Please wait.");
                         return;
                 }
 
-		if (orderSummary.total > 49999) {
-			toast.error("Payments greater than Rs.49999 is not allowed as COD.");
-			return;
-		}
+                if (orderSummary.total > 49999) {
+                        toast.error(
+                                "Online payments above Rs. 49,999 aren't supported. Please contact contact@safetyonline.in."
+                        );
+                        return;
+                }
 
                 if (!getSelectedAddress()) {
                         toast.error("Please select a delivery address");
@@ -611,7 +612,6 @@ export default function CheckoutPage() {
 		}
         }, [
                 isRazorpayLoaded,
-                paymentMethod,
                 processPayment,
                 user,
                 checkoutType,
@@ -1035,9 +1035,13 @@ export default function CheckoutPage() {
 		]
 	);
 
-	// Payment Step Component
-	const PaymentStep = useMemo(
-		() => (
+        useEffect(() => {
+                setPaymentMethod();
+        }, [setPaymentMethod]);
+
+        // Payment Step Component
+        const PaymentStep = useMemo(
+                () => (
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
@@ -1047,81 +1051,35 @@ export default function CheckoutPage() {
 				</CardHeader>
 				<CardContent className="space-y-4">
 					{/* Payment Method Selection */}
-					<div className="space-y-3">
-						<div
-							className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-								paymentMethod === "razorpay"
-									? "border-blue-500 bg-blue-50"
-									: "border-gray-200 hover:border-gray-300"
-							}`}
-							onClick={() => setPaymentMethod("razorpay")}
-						>
-							<div className="flex items-center justify-between">
-								<div>
-									<p className="font-medium">Online Payment</p>
-									<p className="text-sm text-gray-600">
-										Pay securely with Razorpay
-									</p>
-								</div>
-								<div
-									className={`w-4 h-4 rounded-full border-2 ${
-										paymentMethod === "razorpay"
-											? "border-blue-500 bg-blue-500"
-											: "border-gray-300"
-									}`}
-								>
-									{paymentMethod === "razorpay" && (
-										<div className="w-2 h-2 bg-white rounded-full m-0.5" />
-									)}
-								</div>
-							</div>
-						</div>
-
-						<div
-							className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-								paymentMethod === "cod"
-									? "border-blue-500 bg-blue-50"
-									: "border-gray-200 hover:border-gray-300"
-							}`}
-							onClick={() => setPaymentMethod("cod")}
-						>
-							<div className="flex items-center justify-between">
+                                        <div className="space-y-3">
+                                                <div className="p-4 border rounded-lg bg-blue-50 border-blue-500">
+                                                        <div className="flex items-center justify-between">
                                                                 <div>
-                                                                        <p className="font-medium">Create Purchase Order</p>
+                                                                        <p className="font-medium">Online Payment</p>
                                                                         <p className="text-sm text-gray-600">
-                                                                                Generate a purchase order for this order
+                                                                                Pay securely with Razorpay
                                                                         </p>
                                                                 </div>
-								<div
-									className={`w-4 h-4 rounded-full border-2 ${
-										paymentMethod === "cod"
-											? "border-blue-500 bg-blue-500"
-											: "border-gray-300"
-									}`}
-								>
-									{paymentMethod === "cod" && (
-										<div className="w-2 h-2 bg-white rounded-full m-0.5" />
-									)}
-								</div>
-							</div>
-						</div>
-					</div>
-
-                                        {paymentMethod === "razorpay" && (
-                                                <>
-                                                        <div className="p-4 bg-blue-50 rounded-lg">
-                                                                <p className="text-sm text-blue-800">
-                                                                        You will be redirected to Razorpay for secure payment
-                                                                        processing.
-                                                                </p>
+                                                                <div className="w-4 h-4 rounded-full border-2 border-blue-500 bg-blue-500">
+                                                                        <div className="w-2 h-2 bg-white rounded-full m-0.5" />
+                                                                </div>
                                                         </div>
-                                                        {!isRazorpayLoaded && (
-                                                                <p className="text-sm text-yellow-700 bg-yellow-50 border border-yellow-200 rounded-md p-3">
-                                                                        Initializing Razorpay checkout... Please wait a moment.
-                                                                </p>
-                                                        )}
-                                                </>
-                                        )}
+                                                </div>
+                                        </div>
+
+                                        <>
+                                                <div className="p-4 bg-blue-50 rounded-lg">
+                                                        <p className="text-sm text-blue-800">
+                                                                You will be redirected to Razorpay for secure payment
+                                                                processing.
+                                                        </p>
+                                                </div>
+                                                {!isRazorpayLoaded && (
+                                                        <p className="text-sm text-yellow-700 bg-yellow-50 border border-yellow-200 rounded-md p-3">
+                                                                Initializing Razorpay checkout... Please wait a moment.
+                                                        </p>
+                                                )}
+                                        </>
 
                                         {exceedsWeightLimit && (
                                                 <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
@@ -1138,59 +1096,31 @@ export default function CheckoutPage() {
                                                         <ArrowLeft className="mr-2 h-4 w-4" />
                                                         Back
                                                 </Button>
-                                                {paymentMethod === "razorpay" && (
-                                                        <Button
-                                                                onClick={handlePayment}
-                                                                disabled={
-                                                                        paymentLoading ||
-                                                                        exceedsWeightLimit ||
-                                                                        (paymentMethod === "razorpay" && !isRazorpayLoaded)
-                                                                }
-                                                                className="flex-1 bg-green-600 hover:bg-green-700"
-                                                        >
-                                                                {paymentLoading ? (
-                                                                        <>
-										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-										Processing...
-									</>
-								) : (
-									<>
-										{`Pay ₹${orderSummary.total.toLocaleString()}`}
-										<ArrowRight className="ml-2 h-4 w-4" />
-									</>
-								)}
-							</Button>
-						)}
-
-                                                {paymentMethod === "cod" && (
-                                                        <Button
-                                                                onClick={handlePayment}
-                                                                disabled={paymentLoading || exceedsWeightLimit}
-                                                                className="flex-1 bg-green-600 hover:bg-green-700"
-                                                        >
-                                                                {paymentLoading ? (
-                                                                        <>
-                                                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-										Processing...
-									</>
-								) : (
-									<>
-										Place Order
-										<ArrowRight className="ml-2 h-4 w-4" />
-									</>
-								)}
-							</Button>
-						)}
-					</div>
+                                                <Button
+                                                        onClick={handlePayment}
+                                                        disabled={paymentLoading || exceedsWeightLimit || !isRazorpayLoaded}
+                                                        className="flex-1 bg-green-600 hover:bg-green-700"
+                                                >
+                                                        {paymentLoading ? (
+                                                                <>
+                                                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                                        Processing...
+                                                                </>
+                                                        ) : (
+                                                                <>
+                                                                        {`Pay ₹${orderSummary.total.toLocaleString()}`}
+                                                                        <ArrowRight className="ml-2 h-4 w-4" />
+                                                                </>
+                                                        )}
+                                                </Button>
+                                        </div>
 				</CardContent>
 			</Card>
 		),
                 [
-                        paymentMethod,
                         paymentLoading,
                         isRazorpayLoaded,
                         orderSummary.total,
-                        setPaymentMethod,
                         setCurrentStep,
                         handlePayment,
                         exceedsWeightLimit,
