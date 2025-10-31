@@ -753,14 +753,11 @@ export default function AdminProductsPage() {
 																	</div>
 																)}
 															</div>
-															<div className="min-w-0">
-																<div className="font-medium truncate max-w-md group-hover:underline">
-																	{product.title}
-																</div>
-																<div className="text-sm text-gray-500 truncate max-w-md">
-																	{product.description}
-																</div>
-															</div>
+                                                                                                                        <div className="min-w-0">
+                                                                                                                                <div className="font-medium max-w-md group-hover:underline">
+                                                                                                                                        {product.title}
+                                                                                                                                </div>
+                                                                                                                        </div>
 														</Link>
 													</TableCell>
 													<TableCell>

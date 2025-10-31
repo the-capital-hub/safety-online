@@ -624,14 +624,11 @@ export default function SellerProductsPage() {
 																<div className="text-xs text-gray-400">IMG</div>
 															)}
 														</div>
-														<div className="min-w-0">
-															<div className="font-medium max-w-xl truncate group-hover:underline">
-																{product.title}
-															</div>
-															<div className="text-sm text-gray-500 max-w-xl truncate">
-																{product.description}
-															</div>
-														</div>
+                                                                                                                <div className="min-w-0">
+                                                                                                                        <div className="font-medium max-w-xl break-words group-hover:underline">
+                                                                                                                                {product.title}
+                                                                                                                        </div>
+                                                                                                                </div>
 													</Link>
 												</TableCell>
 												<TableCell>
