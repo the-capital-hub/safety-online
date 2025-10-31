@@ -75,20 +75,30 @@ export async function PUT(request) {
 			features = [];
 		}
 
-		// Handle images
-		let imageUrls = [];
+                // Handle images
+                let imageOrder = [];
+                const imageOrderRaw = formData.get("imageOrder");
 
-		// Get existing images that should be kept
-		const existingImages = formData.getAll("existingImages");
-		imageUrls = [...existingImages];
+                if (imageOrderRaw) {
+                        try {
+                                imageOrder = JSON.parse(imageOrderRaw);
+                        } catch (error) {
+                                console.error("Error parsing image order:", error);
+                                imageOrder = [];
+                        }
+                }
 
-		// Get new image files to upload
-		const newImageFiles = formData.getAll("images");
+                // Get existing images that should be kept
+                const existingImages = formData.getAll("existingImages");
 
-		if (newImageFiles.length > 0) {
-			try {
-				// Upload new images to Cloudinary
-				const uploadPromises = newImageFiles.map(async (file) => {
+                // Get new image files to upload
+                const newImageFiles = formData.getAll("images");
+                let newImageUrls = [];
+
+                if (newImageFiles.length > 0) {
+                        try {
+                                // Upload new images to Cloudinary
+                                const uploadPromises = newImageFiles.map(async (file) => {
 					try {
 						// Check if file is a Blob/File object
 						if (!(file instanceof Blob)) {
@@ -123,11 +133,10 @@ export async function PUT(request) {
 					}
 				});
 
-				const newImageUrls = await Promise.all(uploadPromises);
-				imageUrls = [...imageUrls, ...newImageUrls];
+                                newImageUrls = await Promise.all(uploadPromises);
 
-				console.log("New images uploaded successfully:", newImageUrls.length);
-			} catch (error) {
+                                console.log("New images uploaded successfully:", newImageUrls.length);
+                        } catch (error) {
 				console.error("Image upload error:", error);
 				return NextResponse.json(
 					{
@@ -151,8 +160,33 @@ export async function PUT(request) {
 		product.type = type;
 		product.published = published;
 		product.features = features;
-		product.images = imageUrls;
-		product.mainImage = imageUrls.length > 0 ? imageUrls[0] : "";
+                let imageUrls = [];
+
+                if (imageOrder.length > 0) {
+                        imageOrder.forEach((item) => {
+                                if (item?.type === "existing") {
+                                        const existingImage = existingImages[item.index] || null;
+                                        if (existingImage) {
+                                                imageUrls.push(existingImage);
+                                        }
+                                } else if (item?.type === "new") {
+                                        const newImage = newImageUrls[item.index] || null;
+                                        if (newImage) {
+                                                imageUrls.push(newImage);
+                                        }
+                                }
+                        });
+
+                        // Fallback to default order if reconstruction failed
+                        if (!imageUrls.length) {
+                                imageUrls = [...existingImages, ...newImageUrls];
+                        }
+                } else {
+                        imageUrls = [...existingImages, ...newImageUrls];
+                }
+
+                product.images = imageUrls;
+                product.mainImage = imageUrls.length > 0 ? imageUrls[0] : "";
 		product.subCategory = formData.get("subCategory") || "";
 		product.hsnCode = formData.get("hsnCode") || "";
 		product.brand = formData.get("brand") || "";
