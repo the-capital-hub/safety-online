@@ -26,6 +26,7 @@ import { Plus, X, User } from "lucide-react";
 import { useAdminProductStore } from "@/store/adminProductStore.js";
 import { ImageUpload } from "@/components/AdminPanel/ImageUpload.jsx";
 import { slugify } from "@/lib/slugify.js";
+import { clampWords, countWords } from "@/lib/utils/text.js";
 
 const toSlug = (value) => (value ? slugify(value) : "");
 
@@ -37,6 +38,11 @@ const productTypes = [
 ];
 
 const NO_SUBCATEGORY_VALUE = "__no_subcategory__";
+
+const WORD_LIMITS = {
+        shortDescription: 300,
+        longDescription: 500,
+};
 
 const calculateDiscountPercentage = (mrp, salePrice) => {
 	const isSaleProvided =
@@ -302,32 +308,41 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 		}
 	}, [product]);
 
-	const handleSubmit = async (e) => {
-		e.preventDefault();
+        const handleSubmit = async (e) => {
+                e.preventDefault();
 
-		if (!e.currentTarget.checkValidity()) {
-			e.currentTarget.reportValidity();
+                if (!e.currentTarget.checkValidity()) {
+                        e.currentTarget.reportValidity();
 
-			return;
-		}
-		if (!validatePricing(formData.price, formData.salePrice)) {
-			return;
-		}
-		if (!product) return;
+                        return;
+                }
+                if (!validatePricing(formData.price, formData.salePrice)) {
+                        return;
+                }
+                if (!product) return;
 
-		setIsSubmitting(true);
+                setIsSubmitting(true);
 
-		try {
-			const formattedFeatures = features
-				.map((feature) => feature.trim())
-				.filter((feature) => feature.length > 0)
-				.map((feature) => ({ title: feature, description: feature }));
+                try {
+                        const limitedDescription = clampWords(
+                                formData.description,
+                                WORD_LIMITS.shortDescription
+                        );
+                        const limitedLongDescription = clampWords(
+                                formData.longDescription,
+                                WORD_LIMITS.longDescription
+                        );
 
-			// Prepare the update data similar to addProduct
+                        const formattedFeatures = features
+                                .map((feature) => feature.trim())
+                                .filter((feature) => feature.length > 0)
+                                .map((feature) => ({ title: feature, description: feature }));
+
+                        // Prepare the update data similar to addProduct
                         const updateData = {
                                 title: formData.title,
-                                description: formData.description,
-				longDescription: formData.longDescription || formData.description,
+                                description: limitedDescription,
+                                longDescription: limitedLongDescription || limitedDescription,
 				category: formData.category,
 				subCategory: formData.subCategory,
 				price: Number.parseFloat(formData.price),
@@ -394,6 +409,43 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 
         const handleMainImageChange = (index) => {
                 setMainImageIndex(index);
+        };
+
+        const handleDescriptionChange = (value) => {
+                setFormData((prev) => {
+                        const isDeleting = value.length <= prev.description.length;
+
+                        if (countWords(value) <= WORD_LIMITS.shortDescription || isDeleting) {
+                                return { ...prev, description: value };
+                        }
+
+                        const truncated = clampWords(value, WORD_LIMITS.shortDescription);
+
+                        if (truncated === prev.description) {
+                                return prev;
+                        }
+
+                        return { ...prev, description: truncated };
+                });
+        };
+
+        const handleLongDescriptionChange = (value) => {
+                setFormData((prev) => {
+                        const currentLongDescription = prev.longDescription || "";
+                        const isDeleting = value.length <= currentLongDescription.length;
+
+                        if (countWords(value) <= WORD_LIMITS.longDescription || isDeleting) {
+                                return { ...prev, longDescription: value };
+                        }
+
+                        const truncated = clampWords(value, WORD_LIMITS.longDescription);
+
+                        if (truncated === currentLongDescription) {
+                                return prev;
+                        }
+
+                        return { ...prev, longDescription: truncated };
+                });
         };
 
 	const removeFeature = (index) => {
@@ -564,35 +616,38 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 
 							<div className="md:col-span-2">
 								<Label htmlFor="description">Short Description *</Label>
-								<Textarea
-									id="description"
-									placeholder="Brief product description"
-									value={formData.description}
-									onChange={(e) =>
-										setFormData({ ...formData, description: e.target.value })
-									}
-									className="mt-1"
-									rows={3}
-									required
-								/>
-							</div>
+                                                                <Textarea
+                                                                        id="description"
+                                                                        placeholder="Brief product description"
+                                                                        value={formData.description}
+                                                                        onChange={(e) =>
+                                                                                handleDescriptionChange(e.target.value)
+                                                                        }
+                                                                        className="mt-1"
+                                                                        rows={3}
+                                                                        required
+                                                                />
+                                                                <p className="mt-1 text-xs text-gray-500 text-right">
+                                                                        {countWords(formData.description)} / {WORD_LIMITS.shortDescription} words
+                                                                </p>
+                                                        </div>
 
-							<div className="md:col-span-2">
-								<Label htmlFor="longDescription">Detailed Description</Label>
-								<Textarea
-									id="longDescription"
-									placeholder="Detailed product description"
-									value={formData.longDescription}
-									onChange={(e) =>
-										setFormData({
-											...formData,
-											longDescription: e.target.value,
-										})
-									}
-									className="mt-1"
-									rows={4}
-								/>
-							</div>
+                                                        <div className="md:col-span-2">
+                                                                <Label htmlFor="longDescription">Detailed Description</Label>
+                                                                <Textarea
+                                                                        id="longDescription"
+                                                                        placeholder="Detailed product description"
+                                                                        value={formData.longDescription}
+                                                                        onChange={(e) =>
+                                                                                handleLongDescriptionChange(e.target.value)
+                                                                        }
+                                                                        className="mt-1"
+                                                                        rows={4}
+                                                                />
+                                                                <p className="mt-1 text-xs text-gray-500 text-right">
+                                                                        {countWords(formData.longDescription)} / {WORD_LIMITS.longDescription} words
+                                                                </p>
+                                                        </div>
 
                                                         <div className="md:col-span-2">
                                                                 <ImageUpload
