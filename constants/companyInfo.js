@@ -9,11 +9,14 @@ export const companyInfo = {
     "sunil@ladwas.com",
     "dev.capitalhub@gmail.com",
     "amandwdi@gmail.com",
-    "sumithra@ladwas.com",
     "pramod@ladwas.com",
     "sales@ladwas.com",
     "stores@ladwas.com",
     "deepak@ladwas.com",
+  ],
+  invoiceEmails: [
+    "accounts@ladwas.com",
+    "sumithra@ladwas.com",
   ],
   phone: "+91 6360737631",
   address: [
