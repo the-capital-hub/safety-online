@@ -36,9 +36,21 @@ import {
         SelectTrigger,
         SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Filter, RefreshCw, CalendarRange, Search } from "lucide-react";
+import {
+        Loader2,
+        Filter,
+        RefreshCw,
+        CalendarRange,
+        Search,
+        FileSpreadsheet,
+        FileText,
+} from "lucide-react";
 import { useIsAuthenticated } from "@/store/adminAuthStore";
 import { getOrderStatusLabel } from "@/constants/orderStatus";
+import {
+        downloadSalesReportExcel,
+        downloadSalesReportPdf,
+} from "@/lib/reports/salesReportExports";
 
 const currencyFormatter = new Intl.NumberFormat("en-IN", {
         style: "currency",
@@ -129,6 +141,8 @@ export function SalesReport() {
         const [report, setReport] = useState(initialReportState);
         const [loading, setLoading] = useState(false);
         const [error, setError] = useState(null);
+        const [exporting, setExporting] = useState(null);
+        const [hasFetched, setHasFetched] = useState(false);
 
         const totalPages = useMemo(
                 () => Math.max(report.pagination.totalPages || 1, 1),
@@ -210,6 +224,7 @@ export function SalesReport() {
                                 toast.error(message);
                         } finally {
                                 setLoading(false);
+                                setHasFetched(true);
                         }
                 },
                 [isAuthenticated, router]
@@ -218,6 +233,38 @@ export function SalesReport() {
         useEffect(() => {
                 fetchReport(appliedFilters);
         }, [appliedFilters, fetchReport]);
+
+        const handleExport = useCallback(
+                async (type) => {
+                        if (!hasFetched) {
+                                toast.error(
+                                        "The sales report is still loading. Please try again in a moment."
+                                );
+                                return;
+                        }
+
+                        try {
+                                setExporting(type);
+                                if (type === "excel") {
+                                        await Promise.resolve(
+                                                downloadSalesReportExcel(report, appliedFilters)
+                                        );
+                                } else {
+                                        await Promise.resolve(
+                                                downloadSalesReportPdf(report, appliedFilters)
+                                        );
+                                }
+                        } catch (exportError) {
+                                console.error("Sales report export error", exportError);
+                                toast.error(
+                                        "Unable to download the sales report. Please try again."
+                                );
+                        } finally {
+                                setExporting(null);
+                        }
+                },
+                [appliedFilters, hasFetched, report]
+        );
 
         const summaryCards = useMemo(
                 () => [
@@ -330,14 +377,44 @@ export function SalesReport() {
 
         return (
                 <div className="space-y-6">
-                        <div className="flex flex-col gap-1">
-                                <h1 className="text-2xl font-semibold tracking-tight">
-                                        Sales report
-                                </h1>
-                                <p className="text-sm text-muted-foreground">
-                                        Review order performance with detailed product, customer,
-                                        and seller insights.
-                                </p>
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                <div className="flex flex-col gap-1">
+                                        <h1 className="text-2xl font-semibold tracking-tight">
+                                                Sales report
+                                        </h1>
+                                        <p className="text-sm text-muted-foreground">
+                                                Review order performance with detailed product, customer,
+                                                and seller insights.
+                                        </p>
+                                </div>
+                                <div className="flex flex-wrap items-center gap-2">
+                                        <Button
+                                                variant="outline"
+                                                className="gap-2"
+                                                onClick={() => handleExport("excel")}
+                                                disabled={loading || exporting !== null || !hasFetched}
+                                        >
+                                                {exporting === "excel" ? (
+                                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                                ) : (
+                                                        <FileSpreadsheet className="h-4 w-4" />
+                                                )}
+                                                <span>Download Excel</span>
+                                        </Button>
+                                        <Button
+                                                variant="outline"
+                                                className="gap-2"
+                                                onClick={() => handleExport("pdf")}
+                                                disabled={loading || exporting !== null || !hasFetched}
+                                        >
+                                                {exporting === "pdf" ? (
+                                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                                ) : (
+                                                        <FileText className="h-4 w-4" />
+                                                )}
+                                                <span>Download PDF</span>
+                                        </Button>
+                                </div>
                         </div>
 
                         <Card>
