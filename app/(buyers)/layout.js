@@ -17,6 +17,19 @@ export default function BuyersPanelLayout({ children }) {
 
         return (
                 <>
+                        <Script
+                                src="https://www.googletagmanager.com/gtag/js?id=G-N75FVD4HG5"
+                                strategy="afterInteractive"
+                        />
+                        <Script id="google-analytics" strategy="afterInteractive">
+                                {`
+                                        window.dataLayer = window.dataLayer || [];
+                                        function gtag(){dataLayer.push(arguments);}
+                                        gtag('js', new Date());
+
+                                        gtag('config', 'G-N75FVD4HG5');
+                                `}
+                        </Script>
                         <Script id="tawk-to" strategy="afterInteractive">
                                 {`
                                         var Tawk_API = Tawk_API || {}, Tawk_LoadStart = new Date();
