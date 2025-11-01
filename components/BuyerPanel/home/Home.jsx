@@ -10,6 +10,7 @@ import CategorySection from "@/components/BuyerPanel/home/CategorySection.jsx";
 import SupportSection from "@/components/BuyerPanel/home/SupportSection.jsx";
 import FeaturedSection from "@/components/BuyerPanel/home/FeaturedSection.jsx";
 import SearchSection from "@/components/BuyerPanel/home/SearchSection.jsx";
+import PartnersSection from "./OurPartners";
 
 export default function HomePage() {
 	const [searchQuery, setSearchQuery] = useState("");
@@ -71,6 +72,7 @@ export default function HomePage() {
 		<div className="min-h-[calc(100vh-68px)] bg-white hide-scrollbar">
 			<NavigationBar />
                         <HeroSection />
+						<PartnersSection/>
                         {brandPromotions?.length > 0 && (
                                 <BrandPromotionSection banners={brandPromotions} />
                         )}
