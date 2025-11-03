@@ -46,10 +46,14 @@ export async function GET(request) {
 		const skip = (page - 1) * limit;
 
                 const orders = await Order.find(query)
-                        // .populate("subOrders", "products")
                         .sort({ orderDate: -1 })
                         .skip(skip)
-                        .limit(limit);
+                        .limit(limit)
+                        .populate({
+                                path: "subOrders",
+                                select: "shipmentPackage sellerId status totalAmount",
+                        })
+                        .lean({ virtuals: true });
 
                 const total = await Order.countDocuments(query);
 
@@ -87,10 +91,21 @@ export async function GET(request) {
 			},
 		]);
 
-                const ordersWithReturns = orders.map((order) => ({
-                        ...order.toObject(),
-                        returnRequests: requestsByOrder.get(order._id.toString()) || [],
-                }));
+                const ordersWithReturns = orders.map((order) => {
+                        const orderId = order._id?.toString?.() ?? "";
+                        const hasShipmentAttention = Array.isArray(order.subOrders)
+                                ? order.subOrders.some(
+                                          (subOrder) =>
+                                                  subOrder?.shipmentPackage?.requiresAttention === true
+                                  )
+                                : false;
+
+                        return {
+                                ...order,
+                                hasShipmentAttention,
+                                returnRequests: requestsByOrder.get(orderId) || [],
+                        };
+                });
 
                 return NextResponse.json({
                         success: true,

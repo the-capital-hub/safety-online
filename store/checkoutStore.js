@@ -175,15 +175,16 @@ export const useCheckoutStore = create(
 				isAddingNewAddress: false,
 
 				// Order Summary
-				orderSummary: {
-					items: [],
-					subtotal: 0,
-					shippingCost: 0,
-					discount: 0,
-					total: 0,
-					taxableAmount: 0,
-					gst: {
-						mode: "igst",
+                                orderSummary: {
+                                        items: [],
+                                        subtotal: 0,
+                                        shippingCost: 0,
+                                        hasShippingCost: false,
+                                        discount: 0,
+                                        total: 0,
+                                        taxableAmount: 0,
+                                        gst: {
+                                                mode: "igst",
 						rate: GST_RATE_PERCENT,
 						cgst: 0,
 						sgst: 0,
@@ -357,17 +358,19 @@ export const useCheckoutStore = create(
 						address: selectedAddress,
 					});
 
-					set({
-						orderSummary: {
-							items,
-							subtotal: totals.subtotal,
-							shippingCost: totals.shippingCost,
-							discount: totals.discount,
-							total: totals.total,
-							taxableAmount: totals.taxableAmount,
-							gst: totals.gst,
-						},
-					});
+                                       set((state) => ({
+                                               orderSummary: {
+                                                       ...state.orderSummary,
+                                                       items,
+                                                       subtotal: totals.subtotal,
+                                                       shippingCost: totals.shippingCost,
+                                                       hasShippingCost: totals.shippingCost > 0,
+                                                       discount: totals.discount,
+                                                       total: totals.total,
+                                                       taxableAmount: totals.taxableAmount,
+                                                       gst: totals.gst,
+                                               },
+                                       }));
 				},
 
 				// Load user addresses
@@ -452,16 +455,17 @@ export const useCheckoutStore = create(
 
 				// Select address
 				selectAddress: (addressId) => {
-					set((state) => ({
-						selectedAddressId: addressId,
-						orderSummary: {
-							...state.orderSummary,
-							shippingCost: 0,
-							shippingEstimate: {
-								minDays: null,
-								maxDays: null,
-								estimatedCost: null,
-								estimatedTax: null,
+                                        set((state) => ({
+                                                selectedAddressId: addressId,
+                                                orderSummary: {
+                                                        ...state.orderSummary,
+                                                        shippingCost: 0,
+                                                        hasShippingCost: false,
+                                                        shippingEstimate: {
+                                                                minDays: null,
+                                                                maxDays: null,
+                                                                estimatedCost: null,
+                                                                estimatedTax: null,
 								estimatedTotal: null,
 							},
 							edd: "N/A",
@@ -616,10 +620,15 @@ export const useCheckoutStore = create(
 							shippingParams
 						);
 
-						// Recalculate totals with new shipping cost
-						const { savedAddresses: addresses, selectedAddressId: addrId } =
-							get();
-						const addr = addresses.find((a) => a._id === addrId);
+                                                const rawPreTax = Number(response?.preTax);
+                                                const hasNumericPreTax = Number.isFinite(rawPreTax);
+                                                const effectiveShippingCost = hasNumericPreTax ? rawPreTax : null;
+                                                const hasShippingCost =
+                                                        effectiveShippingCost !== null && effectiveShippingCost > 0;
+
+                                                // Recalculate totals with new shipping cost
+                                                const { savedAddresses: addresses, selectedAddressId: addrId } = get();
+                                                const addr = addresses.find((a) => a._id === addrId);
 
                                                 const gstModeOverride = addr
                                                         ? null
@@ -627,63 +636,81 @@ export const useCheckoutStore = create(
                                                 const totals = calculateGstTotals({
                                                         subtotal: orderSummary.subtotal,
                                                         discount: orderSummary.discount,
-                                                        shippingCost: response.preTax || 0,
+                                                        shippingCost: hasShippingCost ? effectiveShippingCost : 0,
                                                         address: addr,
                                                         ...(gstModeOverride
                                                                 ? { gstMode: gstModeOverride }
                                                                 : {}),
                                                 });
 
-						set((state) => ({
-							orderSummary: {
-								...state.orderSummary,
-								shippingCost: response.preTax || 0,
-								edd: response.tat
-									? `${response.tat.min}-${response.tat.max} days`
-									: "N/A",
-								shippingEstimate: {
-									minDays: response.tat?.min || null,
-									maxDays: response.tat?.max || null,
-									estimatedCost: response.preTax || 0,
-									estimatedTax: response.tax || 0,
-									estimatedTotal: response.total || 0,
-								},
-								// Update all totals with new shipping cost
-								taxableAmount: totals.taxableAmount,
-								total: totals.total,
-								gst: totals.gst,
-							},
-						}));
+                                                set((state) => ({
+                                                        orderSummary: {
+                                                                ...state.orderSummary,
+                                                                shippingCost: hasShippingCost ? effectiveShippingCost : 0,
+                                                                hasShippingCost,
+                                                                edd:
+                                                                        hasShippingCost && response.tat
+                                                                                ? `${response.tat.min}-${response.tat.max} days`
+                                                                                : "N/A",
+                                                                shippingEstimate: hasShippingCost
+                                                                        ? {
+                                                                                minDays: response.tat?.min || null,
+                                                                                maxDays: response.tat?.max || null,
+                                                                                estimatedCost: effectiveShippingCost,
+                                                                                estimatedTax: response.tax || 0,
+                                                                                estimatedTotal: response.total || 0,
+                                                                        }
+                                                                        : {
+                                                                                minDays: null,
+                                                                                maxDays: null,
+                                                                                estimatedCost: null,
+                                                                                estimatedTax: null,
+                                                                                estimatedTotal: null,
+                                                                        },
+                                                                // Update all totals with new shipping cost
+                                                                taxableAmount: totals.taxableAmount,
+                                                                total: totals.total,
+                                                                gst: totals.gst,
+                                                        },
+                                                }));
 
-						toast.success(
-							`Shipping estimate: ₹${response.preTax} (${response.tat.min}-${response.tat.max} days)`
-						);
+                                                if (hasShippingCost) {
+                                                        toast.success(
+                                                                `Shipping estimate: ₹${effectiveShippingCost.toLocaleString()} (${response.tat.min}-${response.tat.max} days)`
+                                                        );
+                                                        return response;
+                                                }
 
-						return response;
-					} catch (error) {
-						console.error("Failed to fetch shipping estimate:", error);
+                                                toast.error(
+                                                        "Shipping charges were not returned by Hexalog. Please try again or contact support."
+                                                );
+                                                return null;
+                                        } catch (error) {
+                                                console.error("Failed to fetch shipping estimate:", error);
 
-						// Show user-friendly error message
+                                                // Show user-friendly error message
 						// const errorMessage =
 						// 	error.message || "Failed to get shipping estimate";
 						// toast.error(errorMessage);
 						toast.error("Failed to get shipping estimate");
 
 						// Reset shipping cost and estimate on error
-						set((state) => ({
-							orderSummary: {
-								...state.orderSummary,
-								shippingCost: 0,
-								edd: "N/A",
-								shippingEstimate: {
-									minDays: null,
-									maxDays: null,
-									estimatedCost: null,
-									estimatedTax: null,
-									estimatedTotal: null,
-								},
-							},
-						}));
+                                                set((state) => ({
+                                                        orderSummary: {
+                                                                ...state.orderSummary,
+                                                                shippingCost: 0,
+                                                                hasShippingCost: false,
+                                                                edd: "N/A",
+                                                                shippingEstimate: {
+                                                                        minDays: null,
+                                                                        maxDays: null,
+                                                estimatedCost: null,
+                                                estimatedTax: null,
+                                                estimatedTotal: null,
+                                        },
+                                        edd: "N/A",
+                                                        },
+                                                }));
 
 						return null;
 					} finally {
@@ -788,16 +815,17 @@ export const useCheckoutStore = create(
                                                         : {}),
                                         });
 
-					set({
-						orderSummary: {
-							...orderSummary,
-							shippingCost: totals.shippingCost,
-							discount: totals.discount,
-							taxableAmount: totals.taxableAmount,
-							total: totals.total,
-							gst: totals.gst,
-						},
-					});
+                                       set({
+                                               orderSummary: {
+                                                       ...orderSummary,
+                                                       shippingCost: totals.shippingCost,
+                                                       hasShippingCost: totals.shippingCost > 0,
+                                                       discount: totals.discount,
+                                                       taxableAmount: totals.taxableAmount,
+                                                       total: totals.total,
+                                                       gst: totals.gst,
+                                               },
+                                       });
 				},
 
 				// Get selected address
@@ -859,7 +887,14 @@ export const useCheckoutStore = create(
                                                 }
                                         }
 
-					set({ paymentLoading: true });
+                                        if (!orderSummary.hasShippingCost || orderSummary.shippingCost <= 0) {
+                                                toast.error(
+                                                        "Shipping charges are required before proceeding with payment. Please wait for the shipping estimate."
+                                                );
+                                                return { success: false, error: "SHIPPING_COST_MISSING" };
+                                        }
+
+                                        set({ paymentLoading: true });
 
 					try {
 						// Determine which coupon to use
@@ -880,16 +915,17 @@ export const useCheckoutStore = create(
                                                                 : {}),
                                                 });
 
-						set({
-							orderSummary: {
-								...orderSummary,
-								shippingCost: totals.shippingCost,
-								discount: totals.discount,
-								total: totals.total,
-								taxableAmount: totals.taxableAmount,
-								gst: totals.gst,
-							},
-						});
+                                               set({
+                                                       orderSummary: {
+                                                               ...orderSummary,
+                                                               shippingCost: totals.shippingCost,
+                                                               hasShippingCost: totals.shippingCost > 0,
+                                                               discount: totals.discount,
+                                                               total: totals.total,
+                                                               taxableAmount: totals.taxableAmount,
+                                                               gst: totals.gst,
+                                                       },
+                                               });
 
 						const orderData = {
 							userId: userId,
@@ -1092,23 +1128,32 @@ export const useCheckoutStore = create(
 							lastVerifiedAt: null,
 						},
 						isAddingNewAddress: false,
-						orderSummary: {
-							items: [],
-							subtotal: 0,
-							shippingCost: 0,
-							discount: 0,
-							total: 0,
-							taxableAmount: 0,
-							gst: {
-								mode: "igst",
-								rate: GST_RATE_PERCENT,
-								cgst: 0,
-								sgst: 0,
-								igst: 0,
-								total: 0,
-								taxableAmount: 0,
-							},
-						},
+                                                orderSummary: {
+                                                        items: [],
+                                                        subtotal: 0,
+                                                        shippingCost: 0,
+                                                        hasShippingCost: false,
+                                                        discount: 0,
+                                                        total: 0,
+                                                        taxableAmount: 0,
+                                                        gst: {
+                                                                mode: "igst",
+                                                                rate: GST_RATE_PERCENT,
+                                                                cgst: 0,
+                                                                sgst: 0,
+                                                                igst: 0,
+                                                                total: 0,
+                                                                taxableAmount: 0,
+                                                        },
+                                                        shippingEstimate: {
+                                                                minDays: null,
+                                                                maxDays: null,
+                                                                estimatedCost: null,
+                                                                estimatedTax: null,
+                                                                estimatedTotal: null,
+                                                        },
+                                                        edd: "N/A",
+                                                },
 						appliedCoupon: null,
 						cartAppliedCoupon: null,
 						currentStep: 1,
