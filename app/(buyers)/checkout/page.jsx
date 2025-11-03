@@ -592,6 +592,13 @@ export default function CheckoutPage() {
                         return;
                 }
 
+                if (!orderSummary.hasShippingCost || orderSummary.shippingCost <= 0) {
+                        toast.error(
+                                "Shipping charges are unavailable. Please wait for the Hexalog estimate before proceeding."
+                        );
+                        return;
+                }
+
                 if (exceedsWeightLimit) {
                         toast.error(weightLimitMessage);
                         return;
@@ -617,6 +624,8 @@ export default function CheckoutPage() {
                 checkoutType,
                 clearCart,
                 getSelectedAddress,
+                orderSummary.hasShippingCost,
+                orderSummary.shippingCost,
                 exceedsWeightLimit,
                 weightLimitMessage,
         ]);
@@ -1079,6 +1088,15 @@ export default function CheckoutPage() {
                                                                 Initializing Razorpay checkout... Please wait a moment.
                                                         </p>
                                                 )}
+                                                {!orderSummary.hasShippingCost && (
+                                                        <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                                                                <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                                                                <span>
+                                                                        We're waiting for Hexalog to confirm the shipping charges.
+                                                                        Payment will be enabled once the estimate is available.
+                                                                </span>
+                                                        </div>
+                                                )}
                                         </>
 
                                         {exceedsWeightLimit && (
@@ -1098,7 +1116,12 @@ export default function CheckoutPage() {
                                                 </Button>
                                                 <Button
                                                         onClick={handlePayment}
-                                                        disabled={paymentLoading || exceedsWeightLimit || !isRazorpayLoaded}
+                                                        disabled={
+                                                                paymentLoading ||
+                                                                exceedsWeightLimit ||
+                                                                !isRazorpayLoaded ||
+                                                                !orderSummary.hasShippingCost
+                                                        }
                                                         className="flex-1 bg-green-600 hover:bg-green-700"
                                                 >
                                                         {paymentLoading ? (
@@ -1108,19 +1131,29 @@ export default function CheckoutPage() {
                                                                 </>
                                                         ) : (
                                                                 <>
-                                                                        {`Pay ₹${orderSummary.total.toLocaleString()}`}
-                                                                        <ArrowRight className="ml-2 h-4 w-4" />
+                                                                        {orderSummary.hasShippingCost ? (
+                                                                                <>
+                                                                                        {`Pay ₹${orderSummary.total.toLocaleString()}`}
+                                                                                        <ArrowRight className="ml-2 h-4 w-4" />
+                                                                                </>
+                                                                        ) : (
+                                                                                <>
+                                                                                        <AlertTriangle className="mr-2 h-4 w-4" />
+                                                                                        Shipping quote required
+                                                                                </>
+                                                                        )}
                                                                 </>
                                                         )}
                                                 </Button>
                                         </div>
-				</CardContent>
+                                </CardContent>
 			</Card>
 		),
                 [
                         paymentLoading,
                         isRazorpayLoaded,
                         orderSummary.total,
+                        orderSummary.hasShippingCost,
                         setCurrentStep,
                         handlePayment,
                         exceedsWeightLimit,
@@ -1343,15 +1376,18 @@ export default function CheckoutPage() {
                                                         <span>₹{orderSummary.subtotal.toLocaleString()}</span>
                                                 </div>
                                                 <div className="flex justify-between">
-							<span>Shipping</span>
-							<span>
-								{orderSummary.shippingCost === 0 ? (
-									<Badge variant="secondary">FREE</Badge>
-								) : (
-									`₹${orderSummary.shippingCost}`
-								)}
-							</span>
-						</div>
+                                                        <span>Shipping</span>
+                                                        <span>
+                                                                {orderSummary.hasShippingCost ? (
+                                                                        `₹${orderSummary.shippingCost.toLocaleString()}`
+                                                                ) : (
+                                                                        <span className="flex items-center gap-1 text-sm text-amber-700">
+                                                                                <AlertTriangle className="h-4 w-4" />
+                                                                                Awaiting quote
+                                                                        </span>
+                                                                )}
+                                                        </span>
+                                                </div>
 						{orderSummary.discount > 0 && (
 							<div className="flex justify-between text-green-600">
 								<span className="flex items-center gap-2">
@@ -1371,11 +1407,17 @@ export default function CheckoutPage() {
 								<span>₹{line.amount.toLocaleString()}</span>
 							</div>
 						))}
-						<Separator />
-						<div className="flex justify-between font-bold text-lg">
-							<span>Total</span>
-							<span>₹{orderSummary.total.toLocaleString()}</span>
-						</div>
+                                                <Separator />
+                                                <div className="flex justify-between font-bold text-lg">
+                                                        <span>Total</span>
+                                                        <span>₹{orderSummary.total.toLocaleString()}</span>
+                                                </div>
+                                                {!orderSummary.hasShippingCost && (
+                                                        <p className="text-xs text-amber-600">
+                                                                Shipping charges will be added once the Hexalog estimate is
+                                                                available.
+                                                        </p>
+                                                )}
                                                 {gstLines.length > 0 && (
                                                         <p className="text-xs text-gray-500">
                                                                 {orderSummary.gst?.mode === "cgst_sgst"
