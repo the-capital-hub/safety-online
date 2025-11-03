@@ -245,13 +245,18 @@ const ShipmentPackageSchema = new mongoose.Schema(
 			street: String,
 		},
 
-		// Hexalog shipment details
-		trackingId: String, // Tracking ID from Hexalog
-		courierPartner: String, // Selected courier partner
-		barcodes: { type: Object }, // Barcodes object from Hexalog
+                // Hexalog shipment details
+                trackingId: String, // Tracking ID from Hexalog
+                courierPartner: String, // Selected courier partner
+                barcodes: { type: Object }, // Barcodes object from Hexalog
 
-		// Shipment status and tracking
-		status: {
+                // Alerting & monitoring
+                requiresAttention: { type: Boolean, default: false },
+                attentionReason: { type: String, default: null },
+                attentionDetails: { type: String, default: null },
+
+                // Shipment status and tracking
+                status: {
 			type: String,
 			enum: [
 				"order_placed",

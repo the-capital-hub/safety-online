@@ -528,17 +528,33 @@ function OrderPage() {
 										</TableRow>
 									</TableHeader>
 									<TableBody>
-										{orders.map((order) => (
-											<motion.tr
-												key={order._id}
-												initial={{ opacity: 0, y: 10 }}
-												animate={{ opacity: 1, y: 0 }}
-												transition={{ duration: 0.2 }}
-											>
-												<TableCell>
-													<Checkbox
-														checked={selectedOrders.includes(order._id)}
-														onCheckedChange={(checked) => {
+                                                                                {orders.map((order) => {
+                                                                                        const hasShipmentAlert =
+                                                                                                order?.hasShipmentAttention ??
+                                                                                                (Array.isArray(order?.subOrders)
+                                                                                                        ? order.subOrders.some(
+                                                                                                                  (subOrder) =>
+                                                                                                                          subOrder?.shipmentPackage?.requiresAttention ===
+                                                                                                                          true
+                                                                                                          )
+                                                                                                        : false);
+
+                                                                                        return (
+                                                                                                <motion.tr
+                                                                                                        key={order._id}
+                                                                                                        initial={{ opacity: 0, y: 10 }}
+                                                                                                        animate={{ opacity: 1, y: 0 }}
+                                                                                                        transition={{ duration: 0.2 }}
+                                                                                                        className={`transition-colors ${
+                                                                                                                hasShipmentAlert
+                                                                                                                        ? "bg-amber-50"
+                                                                                                                        : ""
+                                                                                                        }`}
+                                                                                                >
+                                                                                                <TableCell>
+                                                                                                        <Checkbox
+                                                                                                                checked={selectedOrders.includes(order._id)}
+                                                                                                                onCheckedChange={(checked) => {
 															if (checked) {
 																setSelectedOrders([
 																	...selectedOrders,
@@ -554,15 +570,20 @@ function OrderPage() {
 														}}
 													/>
 												</TableCell>
-                                                                                        <TableCell className="font-medium">
-                                                                                                <div className="flex items-center gap-2">
-                                                                                                        <span>{order.orderNumber}</span>
-                                                                                                        {getBusinessInvoiceInfo(order) && (
-                                                                                                                <Badge className="bg-amber-100 text-amber-800 border border-amber-200">
-                                                                                                                        Business Invoice
-                                                                                                                </Badge>
-                                                                                                        )}
-                                                                                                </div>
+                                                                                                <TableCell className="font-medium">
+                                                                                                        <div className="flex flex-wrap items-center gap-2">
+                                                                                                                <span>{order.orderNumber}</span>
+                                                                                                                {hasShipmentAlert && (
+                                                                                                                        <Badge className="bg-amber-100 text-amber-800 border border-amber-200">
+                                                                                                                                Logistics attention
+                                                                                                                        </Badge>
+                                                                                                                )}
+                                                                                                                {getBusinessInvoiceInfo(order) && (
+                                                                                                                        <Badge className="bg-amber-100 text-amber-800 border border-amber-200">
+                                                                                                                                Business Invoice
+                                                                                                                        </Badge>
+                                                                                                                )}
+                                                                                                        </div>
                                                                                                 </TableCell>
 												<TableCell>
 													{new Date(order.orderDate).toLocaleDateString()}
@@ -625,34 +646,35 @@ function OrderPage() {
                                                                                                                 </SelectContent>
                                                                                                         </Select>
 												</TableCell>
-												<TableCell>
-													<div className="flex gap-1">
-														<Button
-															size="icon"
-															variant="outline"
-															onClick={() => openPopup("details", order)}
-														>
-															<Eye className="w-4 h-4" />
-														</Button>
-														<Button
-															size="icon"
-															variant="outline"
-															onClick={() => handleDownloadInvoice(order)}
-														>
-															<Printer className="w-4 h-4" />
-														</Button>
-														<Button
-															size="icon"
-															variant="outline"
-															className="text-red-600 hover:text-red-700 bg-transparent"
-															onClick={() => openPopup("delete", order)}
-														>
-															<Trash2 className="w-4 h-4" />
-														</Button>
-													</div>
-												</TableCell>
-											</motion.tr>
-										))}
+                                                                                                <TableCell>
+                                                                                                        <div className="flex gap-1">
+                                                                                                                <Button
+                                                                                                                        size="icon"
+                                                                                                                        variant="outline"
+                                                                                                                        onClick={() => openPopup("details", order)}
+                                                                                                                >
+                                                                                                                        <Eye className="w-4 h-4" />
+                                                                                                                </Button>
+                                                                                                                <Button
+                                                                                                                        size="icon"
+                                                                                                                        variant="outline"
+                                                                                                                        onClick={() => handleDownloadInvoice(order)}
+                                                                                                                >
+                                                                                                                        <Printer className="w-4 h-4" />
+                                                                                                                </Button>
+                                                                                                                <Button
+                                                                                                                        size="icon"
+                                                                                                                        variant="outline"
+                                                                                                                        className="text-red-600 hover:text-red-700 bg-transparent"
+                                                                                                                        onClick={() => openPopup("delete", order)}
+                                                                                                                >
+                                                                                                                        <Trash2 className="w-4 h-4" />
+                                                                                                                </Button>
+                                                                                                        </div>
+                                                                                                </TableCell>
+                                                                                                </motion.tr>
+                                                                                        );
+                                                                                })}
 									</TableBody>
 								</Table>
 

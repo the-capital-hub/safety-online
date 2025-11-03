@@ -34,7 +34,8 @@ export async function GET(request, { params }) {
                                         },
                                 ],
                         })
-			.populate("couponApplied.couponId", "code discountType discountValue");
+                        .populate("couponApplied.couponId", "code discountType discountValue")
+                        .lean({ virtuals: true });
 
 		if (!order) {
 			return NextResponse.json(
@@ -43,10 +44,17 @@ export async function GET(request, { params }) {
 			);
 		}
 
-		return NextResponse.json({
-			success: true,
-			order,
-		});
+                const hasShipmentAttention = Array.isArray(order.subOrders)
+                        ? order.subOrders.some(
+                                  (subOrder) =>
+                                          subOrder?.shipmentPackage?.requiresAttention === true
+                          )
+                        : false;
+
+                return NextResponse.json({
+                        success: true,
+                        order: { ...order, hasShipmentAttention },
+                });
 	} catch (error) {
 		console.error("Error fetching order:", error);
 		return NextResponse.json(
@@ -103,11 +111,11 @@ export async function PUT(request, { params }) {
 			);
 		}
 
-		const order = await Order.findByIdAndUpdate(id, updateData, {
-			new: true,
-			runValidators: true,
-		})
-			.populate("userId", "firstName lastName email")
+                const order = await Order.findByIdAndUpdate(id, updateData, {
+                        new: true,
+                        runValidators: true,
+                })
+                        .populate("userId", "firstName lastName email")
                         .populate({
                                 path: "subOrders",
                                 populate: [
@@ -122,7 +130,7 @@ export async function PUT(request, { params }) {
                                 ],
                         });
 
-		if (!order) {
+                if (!order) {
 			return NextResponse.json(
 				{ success: false, message: "Order not found" },
 				{ status: 404 }
@@ -150,11 +158,19 @@ export async function PUT(request, { params }) {
 			}
 		}
 
-		return NextResponse.json({
-			success: true,
-			message: "Order updated successfully",
-			order,
-		});
+                const orderObject = order.toObject({ virtuals: true });
+                const hasShipmentAttention = Array.isArray(orderObject.subOrders)
+                        ? orderObject.subOrders.some(
+                                  (subOrder) =>
+                                          subOrder?.shipmentPackage?.requiresAttention === true
+                          )
+                        : false;
+
+                return NextResponse.json({
+                        success: true,
+                        message: "Order updated successfully",
+                        order: { ...orderObject, hasShipmentAttention },
+                });
 	} catch (error) {
 		console.error("Error updating order:", error);
 		return NextResponse.json(

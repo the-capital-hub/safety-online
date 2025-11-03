@@ -29,6 +29,7 @@ import {
         Mail,
         Truck,
         Activity,
+        AlertTriangle,
         Store,
         Loader2,
         BadgeCheck,
@@ -675,6 +676,12 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
                                                                                                 typeof subOrder.shipmentPackage === "object"
                                                                                                         ? subOrder.shipmentPackage
                                                                                                         : null;
+                                                                                        const shipmentAttentionMessage =
+                                                                                                shipmentPackage?.attentionDetails ||
+                                                                                                (shipmentPackage?.attentionReason ===
+                                                                                                "missing_tracking_id"
+                                                                                                        ? "Hexalog did not return a tracking ID for this booking. Please follow up with Hexalog support."
+                                                                                                        : null);
 
                                                                                         return (
                                                                                                 <div
@@ -773,17 +780,29 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
                                                                                                         {shipmentPackage && (
                                                                                                                 <div className="space-y-3 rounded-lg border border-dashed border-gray-200 bg-gray-50 p-4">
                                                                                                                         <div className="flex flex-wrap items-center justify-between gap-2">
-                                                                                                                                <p className="text-xs uppercase text-gray-500">Hexalog shipping</p>
-                                                                                                                                {shipmentPackage.status && (
+                                                                                                                               <p className="text-xs uppercase text-gray-500">Hexalog shipping</p>
+                                                                                                                               {shipmentPackage.status && (
                                                                                                                                         <Badge className={getStatusColor(shipmentPackage.status)}>
                                                                                                                                                 {formatStatusLabel(shipmentPackage.status)}
                                                                                                                                         </Badge>
                                                                                                                                 )}
                                                                                                                         </div>
+                                                                                                                        {shipmentPackage.requiresAttention && (
+                                                                                                                                <div className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+                                                                                                                                        <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600" />
+                                                                                                                                        <div className="space-y-1">
+                                                                                                                                                <p className="font-medium">Shipment requires attention</p>
+                                                                                                                                                <p>
+                                                                                                                                                        {shipmentAttentionMessage ||
+                                                                                                                                                                "This shipment was flagged for manual review."}
+                                                                                                                                                </p>
+                                                                                                                                        </div>
+                                                                                                                                </div>
+                                                                                                                        )}
                                                                                                                         <div className="grid grid-cols-1 gap-3 text-sm md:grid-cols-2">
-                                                                                                                                {shipmentPackage.trackingId && (
-                                                                                                                                        <div>
-                                                                                                                                                <p className="text-xs uppercase text-gray-500">Tracking ID</p>
+                                                                                                                               {shipmentPackage.trackingId && (
+                                                                                                                                       <div>
+                                                                                                                                               <p className="text-xs uppercase text-gray-500">Tracking ID</p>
                                                                                                                                                 <p className="font-medium text-gray-900">{shipmentPackage.trackingId}</p>
                                                                                                                                         </div>
                                                                                                                                 )}
