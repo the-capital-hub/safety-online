@@ -7,16 +7,15 @@ export const companyInfo = {
   ccEmails: [],
   bccEmails: [
     "sunil@ladwas.com",
-    "dev.capitalhub@gmail.com",
-    "amandwdi@gmail.com",
-    "pramod@ladwas.com",
+    "sales@ladwas.com",
+  ],
+  invoiceEmails: [
+    "sumithra@ladwas.com",
+    "accounts@ladwas.com",
+    "sunil@ladwas.com",
     "sales@ladwas.com",
     "stores@ladwas.com",
     "deepak@ladwas.com",
-  ],
-  invoiceEmails: [
-    "accounts@ladwas.com",
-    "sumithra@ladwas.com",
   ],
   phone: "+91 6360737631",
   address: [
