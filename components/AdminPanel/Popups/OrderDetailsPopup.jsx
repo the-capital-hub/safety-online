@@ -927,18 +927,18 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
                                                                                 <span>Subtotal</span>
                                                                                 <span>{formatCurrency(resolvedOrder.subtotal)}</span>
                                                                         </div>
-                                                                        {gstLines.map((line) => (
-                                                                                <div className="flex justify-between" key={line.key}>
-                                                                                        <span>{line.label}</span>
-                                                                                        <span>{formatCurrency(line.amount)}</span>
-                                                                                </div>
-                                                                        ))}
                                                                         {resolvedOrder.shippingCost > 0 && (
                                                                                 <div className="flex justify-between">
                                                                                         <span>Shipping</span>
                                                                                         <span>{formatCurrency(resolvedOrder.shippingCost)}</span>
                                                                                 </div>
                                                                         )}
+                                                                        {gstLines.map((line) => (
+                                                                                <div className="flex justify-between" key={line.key}>
+                                                                                        <span>{line.label}</span>
+                                                                                        <span>{formatCurrency(line.amount)}</span>
+                                                                                </div>
+                                                                        ))}
                                                                         {resolvedOrder.discount > 0 && (
                                                                                 <div className="flex justify-between text-green-600">
                                                                                         <span>Discount</span>

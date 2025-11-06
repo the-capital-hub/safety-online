@@ -1388,25 +1388,25 @@ export default function CheckoutPage() {
                                                                 )}
                                                         </span>
                                                 </div>
-						{orderSummary.discount > 0 && (
-							<div className="flex justify-between text-green-600">
-								<span className="flex items-center gap-2">
-									Discount
-									{currentCoupon?.code && (
-										<Badge className="bg-green-100 text-green-700">
-											{currentCoupon.code}
-										</Badge>
-									)}
-								</span>
-								<span>-₹{orderSummary.discount.toLocaleString()}</span>
-							</div>
-						)}
-						{gstLines.map((line) => (
-							<div className="flex justify-between" key={line.key}>
-								<span>{line.label}</span>
-								<span>₹{line.amount.toLocaleString()}</span>
-							</div>
-						))}
+                                                {gstLines.map((line) => (
+                                                        <div className="flex justify-between" key={line.key}>
+                                                                <span>{line.label}</span>
+                                                                <span>₹{line.amount.toLocaleString()}</span>
+                                                        </div>
+                                                ))}
+                                                {orderSummary.discount > 0 && (
+                                                        <div className="flex justify-between text-green-600">
+                                                                <span className="flex items-center gap-2">
+                                                                        Discount
+                                                                        {currentCoupon?.code && (
+                                                                                <Badge className="bg-green-100 text-green-700">
+                                                                                        {currentCoupon.code}
+                                                                                </Badge>
+                                                                        )}
+                                                                </span>
+                                                                <span>-₹{orderSummary.discount.toLocaleString()}</span>
+                                                        </div>
+                                                )}
                                                 <Separator />
                                                 <div className="flex justify-between font-bold text-lg">
                                                         <span>Total</span>

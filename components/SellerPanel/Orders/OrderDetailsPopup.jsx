@@ -329,12 +329,12 @@ export function SellerOrderDetailsPopup({ open, onOpenChange, order }) {
                                                                         <span>{formatCurrencyValue(resolvedOrder?.subtotal)}</span>
                                                                 </div>
                                                                 <div className="flex items-center justify-between">
-                                                                        <span>Tax</span>
-                                                                        <span>{formatCurrencyValue(resolvedOrder?.tax)}</span>
-                                                                </div>
-                                                                <div className="flex items-center justify-between">
                                                                         <span>Shipping</span>
                                                                         <span>{formatCurrencyValue(resolvedOrder?.shippingCost)}</span>
+                                                                </div>
+                                                                <div className="flex items-center justify-between">
+                                                                        <span>Tax</span>
+                                                                        <span>{formatCurrencyValue(resolvedOrder?.tax)}</span>
                                                                 </div>
                                                                 {getSafeNumber(resolvedOrder?.discount) > 0 && (
                                                                         <div className="flex items-center justify-between text-green-600">
