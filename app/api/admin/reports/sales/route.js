@@ -6,6 +6,7 @@ import { dbConnect } from "@/lib/dbConnect";
 import { verifyToken } from "@/lib/auth";
 import SubOrder from "@/model/SubOrder";
 import User from "@/model/User";
+import { normalizeInvoiceTypeFilter } from "@/constants/invoice";
 
 const toStartOfDay = (date) => {
         const copy = new Date(date);
@@ -119,6 +120,7 @@ export async function GET(request) {
                         endDate = temp;
                 }
 
+                const invoiceType = normalizeInvoiceTypeFilter(params.get("invoiceType"));
                 const page = Math.max(Number.parseInt(params.get("page") || "1", 10), 1);
                 const limitRaw = Number.parseInt(params.get("limit") || "25", 10);
                 const limit = Number.isFinite(limitRaw) && limitRaw > 0 ? Math.min(limitRaw, 200) : 25;
@@ -171,6 +173,27 @@ export async function GET(request) {
                 if (paymentMethods.length) {
                         pipeline.push({
                                 $match: { "order.paymentMethod": { $in: paymentMethods } },
+                        });
+                }
+
+                if (invoiceType === "business") {
+                        pipeline.push({
+                                $match: {
+                                        "order.billingInfo.gstInvoiceRequested": true,
+                                },
+                        });
+                } else if (invoiceType === "standard") {
+                        pipeline.push({
+                                $match: {
+                                        $or: [
+                                                {
+                                                        "order.billingInfo.gstInvoiceRequested": {
+                                                                $ne: true,
+                                                        },
+                                                },
+                                                { "order.billingInfo": { $exists: false } },
+                                        ],
+                                },
                         });
                 }
 
@@ -364,6 +387,23 @@ export async function GET(request) {
                                                                 email: "$sellerEmail",
                                                                 phone: "$sellerPhone",
                                                                 status: "$sellerStatus",
+                                                        },
+                                                        invoiceType: {
+                                                                $cond: [
+                                                                        {
+                                                                                $eq: [
+                                                                                        {
+                                                                                                $ifNull: [
+                                                                                                        "$order.billingInfo.gstInvoiceRequested",
+                                                                                                        false,
+                                                                                                ],
+                                                                                        },
+                                                                                        true,
+                                                                                ],
+                                                                        },
+                                                                        "business",
+                                                                        "standard",
+                                                                ],
                                                         },
                                                         products: {
                                                                 $map: {

@@ -35,6 +35,7 @@ import { useIsAuthenticated } from "@/store/adminAuthStore.js";
 import { useAdminOrderStore } from "@/store/adminOrderStore.js";
 import { createZipBlob } from "@/lib/createZip.js";
 import { generateInvoicePDF } from "@/lib/invoicePDF.js";
+import { INVOICE_TYPE_FILTER_OPTIONS, getInvoiceTypeLabel } from "@/constants/invoice.js";
 import {
         ORDER_STATUS_OPTIONS,
         getOrderStatusLabel,
@@ -46,6 +47,7 @@ const DEFAULT_FILTERS = {
         startDate: "",
         endDate: "",
         status: "all",
+        invoiceType: "all",
         limit: "50",
 };
 
@@ -77,17 +79,24 @@ const formatCurrency = (value) => {
         return currencyFormatter.format(amount);
 };
 
+const deriveInvoiceType = (order) =>
+        order?.billingInfo?.gstInvoiceRequested ? "business" : "standard";
+
 const getZipFileName = (filters) => {
+        const invoiceTypePrefix =
+                filters.invoiceType && filters.invoiceType !== "all"
+                        ? `${filters.invoiceType}-`
+                        : "";
         if (filters.startDate && filters.endDate) {
-                return `invoices-${filters.startDate}-to-${filters.endDate}.zip`;
+                return `${invoiceTypePrefix}invoices-${filters.startDate}-to-${filters.endDate}.zip`;
         }
         if (filters.startDate) {
-                return `invoices-from-${filters.startDate}.zip`;
+                return `${invoiceTypePrefix}invoices-from-${filters.startDate}.zip`;
         }
         if (filters.endDate) {
-                return `invoices-until-${filters.endDate}.zip`;
+                return `${invoiceTypePrefix}invoices-until-${filters.endDate}.zip`;
         }
-        return "invoices-selection.zip";
+        return `${invoiceTypePrefix}invoices-selection.zip`;
 };
 
 export function BulkInvoiceDownload() {
@@ -95,7 +104,7 @@ export function BulkInvoiceDownload() {
         const isAuthenticated = useIsAuthenticated();
         const { fetchOrderForInvoice } = useAdminOrderStore();
 
-        const [filters, setFilters] = useState(DEFAULT_FILTERS);
+        const [filters, setFilters] = useState(() => ({ ...DEFAULT_FILTERS }));
         const [orders, setOrders] = useState([]);
         const [loading, setLoading] = useState(false);
         const [downloading, setDownloading] = useState(false);
@@ -134,7 +143,7 @@ export function BulkInvoiceDownload() {
         };
 
         const resetFilters = () => {
-                setFilters(DEFAULT_FILTERS);
+                setFilters({ ...DEFAULT_FILTERS });
                 setOrders([]);
                 setSelectedOrderIds([]);
                 setHasFetched(false);
@@ -166,6 +175,9 @@ export function BulkInvoiceDownload() {
                         if (filters.status && filters.status !== "all") {
                                 params.set("status", filters.status);
                         }
+                        if (filters.invoiceType && filters.invoiceType !== "all") {
+                                params.set("invoiceType", filters.invoiceType);
+                        }
 
                         const response = await fetch(`/api/admin/orders?${params.toString()}`);
                         const data = await response.json();
@@ -174,7 +186,13 @@ export function BulkInvoiceDownload() {
                                 throw new Error(data.message || "Failed to fetch orders");
                         }
 
-                        setOrders(Array.isArray(data.orders) ? data.orders : []);
+                        const normalizedOrders = Array.isArray(data.orders)
+                                ? data.orders.map((order) => ({
+                                          ...order,
+                                          invoiceType: deriveInvoiceType(order),
+                                  }))
+                                : [];
+                        setOrders(normalizedOrders);
                         setHasFetched(true);
                         setLastUpdated(new Date());
                 } catch (error) {
@@ -294,7 +312,7 @@ export function BulkInvoiceDownload() {
                                         </CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
                                                 <div className="space-y-2">
                                                         <label className="text-sm font-medium text-muted-foreground">
                                                                 Start date
@@ -353,6 +371,28 @@ export function BulkInvoiceDownload() {
                                                                                         key={option.value}
                                                                                         value={option.value}
                                                                                 >
+                                                                                        {option.label}
+                                                                                </SelectItem>
+                                                                        ))}
+                                                                </SelectContent>
+                                                        </Select>
+                                                </div>
+                                                <div className="space-y-2">
+                                                        <label className="text-sm font-medium text-muted-foreground">
+                                                                Invoice type
+                                                        </label>
+                                                        <Select
+                                                                value={filters.invoiceType}
+                                                                onValueChange={(value) =>
+                                                                        handleFilterChange("invoiceType", value)
+                                                                }
+                                                        >
+                                                                <SelectTrigger>
+                                                                        <SelectValue placeholder="All invoice types" />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                        {INVOICE_TYPE_FILTER_OPTIONS.map((option) => (
+                                                                                <SelectItem key={option.value} value={option.value}>
                                                                                         {option.label}
                                                                                 </SelectItem>
                                                                         ))}
@@ -514,6 +554,9 @@ export function BulkInvoiceDownload() {
                                                                                                         <div className="text-xs text-muted-foreground">
                                                                                                                 {order.customerName || order.customerEmail || "Customer details unavailable"}
                                                                                                         </div>
+                                                                                                        <Badge variant="outline" className="mt-1 w-fit">
+                                                                                                                {getInvoiceTypeLabel(order.invoiceType)}
+                                                                                                        </Badge>
                                                                                                 </TableCell>
                                                                                                 <TableCell>
                                                                                                         <Badge
