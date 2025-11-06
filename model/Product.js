@@ -5,7 +5,8 @@ const ProductSchema = new mongoose.Schema(
 		title: { type: String, required: true },
 		description: { type: String, required: true },
 		longDescription: { type: String, required: true },
-		images: [{ type: String }],
+                images: [{ type: String }],
+                productIds: [{ type: String, trim: true }],
 		category: { type: String, required: true },
 		stocks: { type: Number, required: true },
 		price: { type: Number, required: true }, // Treat this as the regular price / MRP

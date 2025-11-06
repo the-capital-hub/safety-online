@@ -747,32 +747,49 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
                                                                                                                 <div className="space-y-2">
                                                                                                                         <p className="text-xs uppercase text-gray-500">Items in this sub-order</p>
                                                                                                                         <div className="space-y-3">
-                                                                                                                                {products.map((product, productIndex) => {
-                                                                                                                                        const productName =
-                                                                                                                                                product?.productName ||
-                                                                                                                                                product?.productId?.name ||
-                                                                                                                                                product?.productId?.title ||
-                                                                                                                                                "Unknown product";
-                                                                                                                                        const quantity = product?.quantity || 0;
-                                                                                                                                        const productTotal =
-                                                                                                                                                product?.totalPrice ??
-                                                                                                                                                getSafeAmount(product?.price) * quantity;
+        {products.map((product, productIndex) => {
+                const productName =
+                        product?.productName ||
+                        product?.productId?.name ||
+                        product?.productId?.title ||
+                        "Unknown product";
+                const quantity = product?.quantity || 0;
+                const productTotal =
+                        product?.totalPrice ??
+                        getSafeAmount(product?.price) * quantity;
+                const resolvedIds = Array.isArray(product?.productIds)
+                        ? product.productIds
+                        : Array.isArray(product?.productId?.productIds)
+                        ? product.productId.productIds
+                        : [];
+                const uniqueProductIds = resolvedIds
+                        .map((id) => (typeof id === "string" ? id.trim() : String(id || "")))
+                        .filter((id, index, arr) => id.length > 0 && arr.indexOf(id) === index);
+                const hsnCode = product?.hsnCode || product?.productId?.hsnCode || "";
 
-                                                                                                                                        return (
-                                                                                                                                                <div
-                                                                                                                                                        key={product?.productId?._id || productIndex}
-                                                                                                                                                        className="flex flex-col gap-1 text-sm md:flex-row md:items-center md:justify-between"
-                                                                                                                                                >
-                                                                                                                                                        <div>
-                                                                                                                                                                <p className="font-medium text-gray-900">{productName}</p>
-                                                                                                                                                                <p className="text-xs text-gray-500">Qty: {quantity}</p>
-                                                                                                                                                        </div>
-                                                                                                                                                        <p className="font-medium text-gray-900">
-                                                                                                                                                                {formatCurrency(productTotal)}
-                                                                                                                                                        </p>
-                                                                                                                                                </div>
-                                                                                                                                        );
-                                                                                                                                })}
+                return (
+                        <div
+                                key={product?.productId?._id || productIndex}
+                                className="flex flex-col gap-1 text-sm md:flex-row md:items-center md:justify-between"
+                        >
+                                <div>
+                                        <p className="font-medium text-gray-900">{productName}</p>
+                                        <p className="text-xs text-gray-500">Qty: {quantity}</p>
+                                        {uniqueProductIds.length > 0 && (
+                                                <p className="text-xs text-gray-500 break-words">
+                                                        IDs: {uniqueProductIds.join(", ")}
+                                                </p>
+                                        )}
+                                        {hsnCode && (
+                                                <p className="text-xs text-gray-500">HSN: {hsnCode}</p>
+                                        )}
+                                </div>
+                                <p className="font-medium text-gray-900">
+                                        {formatCurrency(productTotal)}
+                                </p>
+                        </div>
+                );
+        })}
                                                                                                                         </div>
                                                                                                                 </div>
                                                                                                         )}

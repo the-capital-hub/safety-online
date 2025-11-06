@@ -66,7 +66,8 @@ const calculateDiscountPercentage = (mrp, salePrice) => {
 export function UpdateProductPopup({ open, onOpenChange, product }) {
 	const { updateProduct } = useAdminProductStore();
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const [features, setFeatures] = useState([""]);
+        const [features, setFeatures] = useState([""]);
+        const [productIds, setProductIds] = useState([""]);
 	const [categories, setCategories] = useState([]);
         const [sellers, setSellers] = useState([]);
         const [loadingSellers, setLoadingSellers] = useState(false);
@@ -303,10 +304,17 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 				(feature) => feature.length > 0
 			);
 
-			setFeatures(sanitizedFeatures.length > 0 ? sanitizedFeatures : [""]);
-			validatePricing(initialPrice, initialSalePrice);
-		}
-	}, [product]);
+                        setFeatures(sanitizedFeatures.length > 0 ? sanitizedFeatures : [""]);
+
+                        const normalizedProductIds = Array.isArray(product.productIds)
+                                ? product.productIds.filter((id) => typeof id === "string" && id.trim().length > 0)
+                                : [];
+                        setProductIds(
+                                normalizedProductIds.length > 0 ? normalizedProductIds : [""]
+                        );
+                        validatePricing(initialPrice, initialSalePrice);
+                }
+        }, [product]);
 
         const handleSubmit = async (e) => {
                 e.preventDefault();
@@ -338,6 +346,10 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
                                 .filter((feature) => feature.length > 0)
                                 .map((feature) => ({ title: feature, description: feature }));
 
+                        const formattedProductIds = productIds
+                                .map((id) => id.trim())
+                                .filter((id, index, arr) => id.length > 0 && arr.indexOf(id) === index);
+
                         // Prepare the update data similar to addProduct
                         const updateData = {
                                 title: formData.title,
@@ -353,7 +365,8 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 				discount: formData.discount ? Number.parseFloat(formData.discount) : 0,
 				type: formData.type,
 				published: formData.published,
-				features: formattedFeatures,
+                                features: formattedFeatures,
+                                productIds: formattedProductIds,
                                 images: reorderImagesForSubmission(formData.images, mainImageIndex), // Pass the base64 images array
 				hsnCode: formData.hsnCode,
 				brand: formData.brand,
@@ -452,11 +465,27 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 		setFeatures(features.filter((_, i) => i !== index));
 	};
 
-	const updateFeature = (index, value) => {
-		const updatedFeatures = [...features];
-		updatedFeatures[index] = value;
-		setFeatures(updatedFeatures);
-	};
+        const updateFeature = (index, value) => {
+                const updatedFeatures = [...features];
+                updatedFeatures[index] = value;
+                setFeatures(updatedFeatures);
+        };
+
+        const addProductIdField = () => {
+                setProductIds((prev) => [...prev, ""]);
+        };
+
+        const removeProductIdField = (index) => {
+                setProductIds((prev) => prev.filter((_, i) => i !== index));
+        };
+
+        const updateProductIdValue = (index, value) => {
+                setProductIds((prev) => {
+                        const next = [...prev];
+                        next[index] = value;
+                        return next;
+                });
+        };
 
         const categoriesWithSlugs = useMemo(
                 () =>
@@ -940,8 +969,54 @@ export function UpdateProductPopup({ open, onOpenChange, product }) {
 							</div>
 						</div>
 
-						{/* Features Section */}
-						<div>
+                                                {/* Product Identifiers */}
+                                                <div>
+                                                        <div className="flex items-center justify-between mb-3">
+                                                                <Label>Product IDs</Label>
+                                                                <Button
+                                                                        type="button"
+                                                                        variant="outline"
+                                                                        size="sm"
+                                                                        onClick={addProductIdField}
+                                                                >
+                                                                        <Plus className="w-4 h-4 mr-1" />
+                                                                        Add Product ID
+                                                                </Button>
+                                                        </div>
+                                                        <p className="text-xs text-gray-500 mb-2">
+                                                                Add one or more identifiers that should appear on invoices and
+                                                                order details.
+                                                        </p>
+                                                        <div className="space-y-3">
+                                                                {productIds.map((value, index) => (
+                                                                        <div key={index} className="flex gap-3 items-start">
+                                                                                <Input
+                                                                                        name={`product-id-${index}`}
+                                                                                        placeholder="Enter product identifier"
+                                                                                        value={value}
+                                                                                        onChange={(e) =>
+                                                                                                updateProductIdValue(index, e.target.value)
+                                                                                        }
+                                                                                        className="flex-1"
+                                                                                />
+                                                                                {productIds.length > 1 && (
+                                                                                        <Button
+                                                                                                type="button"
+                                                                                                variant="outline"
+                                                                                                size="icon"
+                                                                                                onClick={() => removeProductIdField(index)}
+                                                                                                aria-label="Remove product id"
+                                                                                        >
+                                                                                                <X className="w-4 h-4" />
+                                                                                        </Button>
+                                                                                )}
+                                                                        </div>
+                                                                ))}
+                                                        </div>
+                                                </div>
+
+                                                {/* Features Section */}
+                                                <div>
 							<div className="flex items-center justify-between mb-3">
 								<Label>Product Features</Label>
 								<Button

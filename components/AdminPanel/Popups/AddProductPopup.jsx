@@ -60,6 +60,7 @@ export function AddProductPopup({ open, onOpenChange }) {
   const { addProduct } = useAdminProductStore()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [features, setFeatures] = useState([""])
+  const [productIds, setProductIds] = useState([""])
   const [categories, setCategories] = useState([])
   const [sellers, setSellers] = useState([])
   const [loadingSellers, setLoadingSellers] = useState(false)
@@ -212,6 +213,10 @@ export function AddProductPopup({ open, onOpenChange }) {
         .filter((feature) => feature.length > 0)
         .map((feature) => ({ title: feature, description: feature }))
 
+      const formattedProductIds = productIds
+        .map((id) => id.trim())
+        .filter((id, index, arr) => id.length > 0 && arr.indexOf(id) === index)
+
       const productData = {
         title: formData.title,
         description: limitedDescription,
@@ -236,6 +241,7 @@ export function AddProductPopup({ open, onOpenChange }) {
         size: formData.size,
         features: formattedFeatures,
         sellerId: formData.sellerId,
+        productIds: formattedProductIds,
       }
 
       const success = await addProduct(productData)
@@ -277,6 +283,7 @@ export function AddProductPopup({ open, onOpenChange }) {
       sellerId: "",
     })
     setFeatures([""])
+    setProductIds([""])
     setPriceError("")
     setMainImageIndex(-1)
   }
@@ -355,6 +362,22 @@ export function AddProductPopup({ open, onOpenChange }) {
     const updatedFeatures = [...features]
     updatedFeatures[index] = value
     setFeatures(updatedFeatures)
+  }
+
+  const addProductIdField = () => {
+    setProductIds((prev) => [...prev, ""])
+  }
+
+  const removeProductIdField = (index) => {
+    setProductIds((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  const updateProductIdValue = (index, value) => {
+    setProductIds((prev) => {
+      const next = [...prev]
+      next[index] = value
+      return next
+    })
   }
 
   const categoriesWithSlugs = useMemo(
@@ -752,6 +775,43 @@ export function AddProductPopup({ open, onOpenChange }) {
                   onChange={(e) => setFormData({ ...formData, size: e.target.value })}
                   className="mt-1"
                 />
+              </div>
+            </div>
+
+            {/* Product Identifiers */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <Label>Product IDs</Label>
+                <Button type="button" variant="outline" size="sm" onClick={addProductIdField}>
+                  <Plus className="w-4 h-4 mr-1" /> Add Product ID
+                </Button>
+              </div>
+              <p className="text-xs text-gray-500 mb-2">
+                Add one or more identifiers that should appear on invoices and order details.
+              </p>
+              <div className="space-y-3">
+                {productIds.map((value, index) => (
+                  <div key={index} className="flex gap-3 items-start">
+                    <Input
+                      name={`product-id-${index}`}
+                      placeholder="Enter product identifier"
+                      value={value}
+                      onChange={(e) => updateProductIdValue(index, e.target.value)}
+                      className="flex-1"
+                    />
+                    {productIds.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={() => removeProductIdField(index)}
+                        aria-label="Remove product id"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
 

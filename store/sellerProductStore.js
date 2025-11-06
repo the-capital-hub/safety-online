@@ -130,10 +130,14 @@ export const useSellerProductStore = create(
 						if (productData.size) formData.append("size", productData.size);
 
 						// Add features as JSON string
-						formData.append(
-							"features",
-							JSON.stringify(productData.features || [])
-						);
+                                                formData.append(
+                                                        "features",
+                                                        JSON.stringify(productData.features || [])
+                                                );
+                                                formData.append(
+                                                        "productIds",
+                                                        JSON.stringify(productData.productIds || [])
+                                                );
 
 						// Handle base64 images - convert them to Blob objects
 						if (productData.images && productData.images.length > 0) {
@@ -231,10 +235,14 @@ export const useSellerProductStore = create(
 						if (updateData.size) formData.append("size", updateData.size);
 
 						// Add features as JSON string
-						formData.append(
-							"features",
-							JSON.stringify(updateData.features || [])
-						);
+                                                formData.append(
+                                                        "features",
+                                                        JSON.stringify(updateData.features || [])
+                                                );
+                                                formData.append(
+                                                        "productIds",
+                                                        JSON.stringify(updateData.productIds || [])
+                                                );
 
 						// Handle images - convert base64 to blobs
 						if (updateData.images && updateData.images.length > 0) {

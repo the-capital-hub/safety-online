@@ -63,17 +63,34 @@ export async function PUT(request) {
 		const type = formData.get("type");
 		const published = formData.get("published") === "true";
 
-		// Parse features
-		let features = [];
-		try {
-			const featuresString = formData.get("features");
-			if (featuresString) {
-				features = JSON.parse(featuresString);
-			}
-		} catch (error) {
-			console.error("Error parsing features:", error);
-			features = [];
-		}
+        // Parse features
+        let features = [];
+        try {
+                const featuresString = formData.get("features");
+                if (featuresString) {
+                        features = JSON.parse(featuresString);
+                }
+        } catch (error) {
+                console.error("Error parsing features:", error);
+                features = [];
+        }
+
+        // Parse product IDs
+        let productIds = [];
+        try {
+                const rawProductIds = formData.get("productIds");
+                if (rawProductIds) {
+                        const parsed = JSON.parse(rawProductIds);
+                        if (Array.isArray(parsed)) {
+                                productIds = parsed
+                                        .map((id) => (typeof id === "string" ? id.trim() : String(id || "")))
+                                        .filter((id, index, arr) => id.length > 0 && arr.indexOf(id) === index);
+                        }
+                }
+        } catch (error) {
+                console.error("Error parsing product IDs:", error);
+                productIds = [];
+        }
 
 		// Handle images
 		let imageUrls = [];
@@ -150,7 +167,8 @@ export async function PUT(request) {
 		product.discount = discount;
 		product.type = type;
 		product.published = published;
-		product.features = features;
+        product.features = features;
+        product.productIds = productIds;
 		product.images = imageUrls;
 		product.mainImage = imageUrls.length > 0 ? imageUrls[0] : "";
 		product.subCategory = formData.get("subCategory") || "";

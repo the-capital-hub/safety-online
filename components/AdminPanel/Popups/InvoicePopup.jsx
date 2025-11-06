@@ -136,11 +136,24 @@ export function InvoicePopup({ open, onOpenChange, order }) {
 							<div className="col-span-2 text-right">TOTAL</div>
 						</div>
 
-						{order.products.map((product, index) => (
-							<div
-								key={index}
-								className="grid grid-cols-12 gap-4 py-4 border-b"
-							>
+                                                  {order.products.map((product, index) => {
+                                                          const resolvedIds = Array.isArray(product.productIds)
+                                                                  ? product.productIds
+                                                                  : Array.isArray(product.productId?.productIds)
+                                                                  ? product.productId.productIds
+                                                                  : [];
+                                                          const uniqueProductIds = resolvedIds
+                                                                  .map((id) =>
+                                                                          typeof id === "string" ? id.trim() : String(id || "")
+                                                                  )
+                                                                  .filter((id, idx, arr) => id.length > 0 && arr.indexOf(id) === idx);
+                                                          const hsnCode = product.hsnCode || product.productId?.hsnCode;
+
+                                                          return (
+                                                          <div
+                                                                  key={index}
+                                                                  className="grid grid-cols-12 gap-4 py-4 border-b"
+                                                          >
 								<div className="col-span-6">
 									<div className="flex items-center gap-3">
 										{product.productImage && (
@@ -150,25 +163,31 @@ export function InvoicePopup({ open, onOpenChange, order }) {
 												className="w-12 h-12 object-cover rounded"
 											/>
 										)}
-										<div>
-											<p className="font-medium">{product.productName}</p>
-											<p className="text-sm text-gray-600">
-												Product ID: {product.productId}
-											</p>
-										</div>
-									</div>
-								</div>
-								<div className="col-span-2 text-center flex items-center justify-center">
-									{product.quantity}
-								</div>
-								<div className="col-span-2 text-center flex items-center justify-center">
-									${product.price.toFixed(2)}
-								</div>
-								<div className="col-span-2 text-right flex items-center justify-end">
-									${product.totalPrice.toFixed(2)}
-								</div>
-							</div>
-						))}
+                                                                                  <div>
+                                                                                          <p className="font-medium">{product.productName}</p>
+                                                                                          {uniqueProductIds.length > 0 && (
+                                                                                                  <p className="text-sm text-gray-600">
+                                                                                                          IDs: {uniqueProductIds.join(", ")}
+                                                                                                  </p>
+                                                                                          )}
+                                                                                          {hsnCode && (
+                                                                                                  <p className="text-sm text-gray-600">HSN: {hsnCode}</p>
+                                                                                          )}
+                                                                                  </div>
+                                                                          </div>
+                                                                  </div>
+                                                                  <div className="col-span-2 text-center flex items-center justify-center">
+                                                                          {product.quantity}
+                                                                  </div>
+                                                                  <div className="col-span-2 text-center flex items-center justify-center">
+                                                                          ${product.price.toFixed(2)}
+                                                                  </div>
+                                                                  <div className="col-span-2 text-right flex items-center justify-end">
+                                                                          ${product.totalPrice.toFixed(2)}
+                                                                  </div>
+                                                          </div>
+                                                          );
+                                                  })}
 					</div>
 
 					{/* Totals */}
