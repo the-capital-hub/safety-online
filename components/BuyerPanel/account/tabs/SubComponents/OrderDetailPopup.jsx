@@ -424,18 +424,18 @@ export function OrderDetailPopup({ open, onOpenChange, order }) {
 										<span>Subtotal</span>
 										<span>₹{subtotal.toFixed(2)}</span>
 									</div>
-									{gstLines.map((line) => (
-										<div className="flex justify-between" key={line.key}>
-											<span>{line.label}</span>
-											<span>₹{line.amount.toFixed(2)}</span>
-										</div>
-									))}
-									{shippingCost > 0 && (
-										<div className="flex justify-between">
-											<span>Shipping</span>
-											<span>₹{shippingCost.toFixed(2)}</span>
-										</div>
-									)}
+                                                                        {shippingCost > 0 && (
+                                                                                <div className="flex justify-between">
+                                                                                        <span>Shipping</span>
+                                                                                        <span>₹{shippingCost.toFixed(2)}</span>
+                                                                                </div>
+                                                                        )}
+                                                                        {gstLines.map((line) => (
+                                                                                <div className="flex justify-between" key={line.key}>
+                                                                                        <span>{line.label}</span>
+                                                                                        <span>₹{line.amount.toFixed(2)}</span>
+                                                                                </div>
+                                                                        ))}
 									{discount > 0 && (
 										<div className="flex justify-between text-green-600">
 											<span>Discount</span>
