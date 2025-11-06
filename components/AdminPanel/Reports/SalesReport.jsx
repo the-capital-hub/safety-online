@@ -51,6 +51,7 @@ import {
         downloadSalesReportExcel,
         downloadSalesReportPdf,
 } from "@/lib/reports/salesReportExports";
+import { INVOICE_TYPE_FILTER_OPTIONS, getInvoiceTypeLabel } from "@/constants/invoice";
 
 const currencyFormatter = new Intl.NumberFormat("en-IN", {
         style: "currency",
@@ -93,6 +94,7 @@ const getDefaultFilters = () => {
                 search: "",
                 page: 1,
                 limit: "25",
+                invoiceType: "all",
         };
 };
 
@@ -180,6 +182,9 @@ export function SalesReport() {
                         }
                         if (activeFilters.sellers?.length) {
                                 params.set("sellers", activeFilters.sellers.join(","));
+                        }
+                        if (activeFilters.invoiceType && activeFilters.invoiceType !== "all") {
+                                params.set("invoiceType", activeFilters.invoiceType);
                         }
                         const search = activeFilters.search?.trim();
                         if (search) {
@@ -374,6 +379,7 @@ export function SalesReport() {
         const selectedSellerLabel = filters.sellers.length
                 ? `Sellers (${filters.sellers.length})`
                 : "Sellers";
+        const invoiceTypeLabel = getInvoiceTypeLabel(filters.invoiceType);
 
         return (
                 <div className="space-y-6">
@@ -426,7 +432,7 @@ export function SalesReport() {
                                         </CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
-                                        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+                                        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-5">
                                                 <div className="space-y-1">
                                                         <label className="text-sm font-medium text-muted-foreground">
                                                                 Start date
@@ -509,6 +515,27 @@ export function SalesReport() {
                                                                         {LIMIT_OPTIONS.map((option) => (
                                                                                 <SelectItem key={option} value={option}>
                                                                                         {option}
+                                                                                </SelectItem>
+                                                                        ))}
+                                                                </SelectContent>
+                                                        </Select>
+                                                </div>
+                                                <div className="space-y-1">
+                                                        <label className="text-sm font-medium text-muted-foreground">
+                                                                Invoice type
+                                                        </label>
+                                                        <Select
+                                                                value={filters.invoiceType}
+                                                                onValueChange={(value) => handleFilterChange("invoiceType", value)}
+                                                                disabled={loading}
+                                                        >
+                                                                <SelectTrigger>
+                                                                        <SelectValue placeholder={invoiceTypeLabel} />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                        {INVOICE_TYPE_FILTER_OPTIONS.map((option) => (
+                                                                                <SelectItem key={option.value} value={option.value}>
+                                                                                        {option.label}
                                                                                 </SelectItem>
                                                                         ))}
                                                                 </SelectContent>
@@ -677,6 +704,7 @@ export function SalesReport() {
                                                                         <TableHead className="min-w-[240px]">Products</TableHead>
                                                                         <TableHead className="whitespace-nowrap">Units</TableHead>
                                                                         <TableHead className="whitespace-nowrap">Invoice value</TableHead>
+                                                                        <TableHead className="whitespace-nowrap">Invoice type</TableHead>
                                                                         <TableHead className="whitespace-nowrap">Payment</TableHead>
                                                                         <TableHead className="whitespace-nowrap">Status</TableHead>
                                                                 </TableRow>
@@ -752,6 +780,11 @@ export function SalesReport() {
                                                                                                 {order.unitCount ?? 0}
                                                                                         </TableCell>
                                                                                         <TableCell>{formatCurrency(order.invoiceValue)}</TableCell>
+                                                                                        <TableCell>
+                                                                                                <Badge variant="outline" className="w-fit">
+                                                                                                        {getInvoiceTypeLabel(order.invoiceType)}
+                                                                                                </Badge>
+                                                                                        </TableCell>
                                                                                         <TableCell>
                                                                                                 {order.paymentMethod === "unknown"
                                                                                                         ? "Unknown"

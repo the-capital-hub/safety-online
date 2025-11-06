@@ -14,8 +14,9 @@ export async function GET(request) {
 		const search = searchParams.get("search") || "";
 		const status = searchParams.get("status") || "";
 		const paymentMethod = searchParams.get("paymentMethod") || "";
-		const startDate = searchParams.get("startDate");
-		const endDate = searchParams.get("endDate");
+                const startDate = searchParams.get("startDate");
+                const endDate = searchParams.get("endDate");
+                const invoiceType = searchParams.get("invoiceType") || "all";
 
 		// Build query
 		const query = {};
@@ -36,12 +37,18 @@ export async function GET(request) {
 			query.paymentMethod = paymentMethod;
 		}
 
-		if (startDate && endDate) {
-			query.orderDate = {
-				$gte: new Date(startDate),
-				$lte: new Date(endDate),
-			};
-		}
+                if (startDate && endDate) {
+                        query.orderDate = {
+                                $gte: new Date(startDate),
+                                $lte: new Date(endDate),
+                        };
+                }
+
+                if (invoiceType === "business") {
+                        query["billingInfo.gstInvoiceRequested"] = true;
+                } else if (invoiceType === "standard") {
+                        query["billingInfo.gstInvoiceRequested"] = { $ne: true };
+                }
 
 		const skip = (page - 1) * limit;
 
