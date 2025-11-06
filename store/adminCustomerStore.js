@@ -5,22 +5,23 @@ export const useAdminCustomerStore = create((set, get) => ({
 	customers: [],
 	loading: false,
 	error: null,
-	pagination: {
-		page: 1,
-		limit: 10,
-		total: 0,
-		pages: 0,
-	},
-	filters: {
-		search: "",
-		status: "",
-	},
+        pagination: {
+                page: 1,
+                limit: 10,
+                total: 0,
+                pages: 0,
+        },
+        filters: {
+                search: "",
+                status: "",
+                limit: 10,
+        },
 
 	// Fetch customers
 	fetchCustomers: async (params = {}) => {
 		set({ loading: true, error: null });
 		try {
-			const { page = 1, limit = 10, search = "", status = "" } = params;
+                        const { page = 1, limit = 10, search = "", status = "" } = params;
 
 			const queryParams = new URLSearchParams({
 				page: page.toString(),
@@ -36,7 +37,7 @@ export const useAdminCustomerStore = create((set, get) => ({
 				set({
 					customers: data.data,
 					pagination: data.pagination,
-					filters: { search, status },
+                                        filters: { search, status, limit },
 					loading: false,
 				});
 			} else {
@@ -177,11 +178,11 @@ export const useAdminCustomerStore = create((set, get) => ({
 	},
 
 	// Reset filters
-	resetFilters: () => {
-		set({
-			filters: { search: "", status: "" },
-		});
-	},
+        resetFilters: () => {
+                set({
+                        filters: { search: "", status: "", limit: 10 },
+                });
+        },
 
 	// Export functionality
 	exportToCSV: () => {

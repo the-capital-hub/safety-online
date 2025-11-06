@@ -44,10 +44,10 @@ import { useIsAuthenticated } from "@/store/adminAuthStore.js";
 import { useRouter } from "next/navigation";
 
 export default function AdminCustomersPage() {
-	const {
-		customers,
-		loading,
-		pagination,
+        const {
+                customers,
+                loading,
+                pagination,
 		filters,
 		fetchCustomers,
 		deleteCustomer,
@@ -55,24 +55,31 @@ export default function AdminCustomersPage() {
 		setFilters,
 		resetFilters,
 		exportToCSV,
-		exportToJSON,
-	} = useAdminCustomerStore();
+                exportToJSON,
+        } = useAdminCustomerStore();
 
-	// console.log("Customers:", customers);
+        // console.log("Customers:", customers);
 
-	const [selectedCustomers, setSelectedCustomers] = useState([]);
+        const [selectedCustomers, setSelectedCustomers] = useState([]);
 	const [deletePopup, setDeletePopup] = useState({
 		open: false,
 		customer: null,
 	});
 	const [addPopup, setAddPopup] = useState(false);
-	const [updatePopup, setUpdatePopup] = useState({
-		open: false,
-		customer: null,
-	});
-	const isAuthenticated = useIsAuthenticated();
-	const [isRedirecting, setIsRedirecting] = useState(false);
-	const router = useRouter();
+        const [updatePopup, setUpdatePopup] = useState({
+                open: false,
+                customer: null,
+        });
+        const isAuthenticated = useIsAuthenticated();
+        const [isRedirecting, setIsRedirecting] = useState(false);
+        const router = useRouter();
+        const pageSizeOptions = [10, 25, 50, 100];
+        const currentLimit = filters.limit || pagination.limit || 10;
+        const startIndex = pagination.total > 0 ? (pagination.page - 1) * pagination.limit + 1 : 0;
+        const endIndex =
+                pagination.total > 0
+                        ? Math.min(pagination.page * pagination.limit, pagination.total)
+                        : 0;
 	useEffect(() => {
 		if (!isAuthenticated) {
 			setIsRedirecting(true);
@@ -84,26 +91,28 @@ export default function AdminCustomersPage() {
 		}
 	}, [isAuthenticated, router]);
 
-	useEffect(() => {
-		fetchCustomers();
-	}, []);
+        useEffect(() => {
+                fetchCustomers();
+        }, []);
 
-	const handleSearch = (value) => {
-		setFilters({ search: value });
-		fetchCustomers({ ...filters, search: value, page: 1 });
-	};
+        const handleSearch = (value) => {
+                setFilters({ search: value });
+                const limit = filters.limit || pagination.limit || 10;
+                fetchCustomers({ ...filters, search: value, page: 1, limit });
+        };
 
-	const handleStatusFilter = (status) => {
-		if (status === "all") status = "";
+        const handleStatusFilter = (status) => {
+                if (status === "all") status = "";
 
-		setFilters({ status });
-		fetchCustomers({ ...filters, status, page: 1 });
-	};
+                setFilters({ status });
+                const limit = filters.limit || pagination.limit || 10;
+                fetchCustomers({ ...filters, status, page: 1, limit });
+        };
 
-	const handleReset = () => {
-		resetFilters();
-		fetchCustomers({ search: "", status: "", page: 1 });
-	};
+        const handleReset = () => {
+                resetFilters();
+                fetchCustomers({ search: "", status: "", limit: 10, page: 1 });
+        };
 
 	const handleSelectAll = (checked) => {
 		if (checked) {
@@ -142,9 +151,16 @@ export default function AdminCustomersPage() {
 		}
 	};
 
-	const handlePageChange = (page) => {
-		fetchCustomers({ ...filters, page });
-	};
+        const handlePageChange = (page) => {
+                const limit = filters.limit || pagination.limit || 10;
+                fetchCustomers({ ...filters, page, limit });
+        };
+
+        const handlePageSizeChange = (value) => {
+                const limit = Number(value);
+                setFilters({ limit });
+                fetchCustomers({ ...filters, limit, page: 1 });
+        };
 
 	const getStatusColor = (status) => {
 		switch (status) {
@@ -248,21 +264,21 @@ export default function AdminCustomersPage() {
 							</div>
 
 							{/* Search and Filter Row */}
-							<div className="flex gap-4 items-center">
-								<div className="relative flex-1 max-w-md">
-									<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-									<Input
-										name="searchQuery"
+                                                        <div className="flex gap-4 items-center">
+                                                                <div className="relative flex-1 max-w-md">
+                                                                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                                                        <Input
+                                                                                name="searchQuery"
 										placeholder="Search customers..."
 										value={filters.search}
 										onChange={(e) => handleSearch(e.target.value)}
 										className="pl-10"
 									/>
-								</div>
+                                                                </div>
 
-								<Select
-									value={filters.status}
-									onValueChange={handleStatusFilter}
+                                                                <Select
+                                                                        value={filters.status}
+                                                                        onValueChange={handleStatusFilter}
 								>
 									<SelectTrigger className="w-40">
 										<SelectValue placeholder="All Status" />
@@ -273,12 +289,31 @@ export default function AdminCustomersPage() {
 										<SelectItem value="inactive">Inactive</SelectItem>
 										<SelectItem value="suspended">Suspended</SelectItem>
 									</SelectContent>
-								</Select>
+                                                                </Select>
 
-								<Button variant="outline" onClick={handleReset}>
-									<RotateCcw className="w-4 h-4 mr-2" />
-									Reset
-								</Button>
+                                                                <div className="flex items-center gap-2 text-sm text-gray-600">
+                                                                        <span>Rows per page</span>
+                                                                        <Select
+                                                                                value={String(currentLimit)}
+                                                                                onValueChange={handlePageSizeChange}
+                                                                        >
+                                                                                <SelectTrigger className="w-28">
+                                                                                        <SelectValue />
+                                                                                </SelectTrigger>
+                                                                                <SelectContent>
+                                                                                        {pageSizeOptions.map((size) => (
+                                                                                                <SelectItem key={size} value={String(size)}>
+                                                                                                        {size}
+                                                                                                </SelectItem>
+                                                                                        ))}
+                                                                                </SelectContent>
+                                                                        </Select>
+                                                                </div>
+
+                                                                <Button variant="outline" onClick={handleReset}>
+                                                                        <RotateCcw className="w-4 h-4 mr-2" />
+                                                                        Reset
+                                                                </Button>
 							</div>
 						</div>
 					</CardHeader>
@@ -392,14 +427,12 @@ export default function AdminCustomersPage() {
 							</TableBody>
 						</Table>
 
-						{/* Pagination */}
-						<div className="flex items-center justify-between mt-4">
-							<p className="text-sm text-gray-600">
-								Showing {(pagination.page - 1) * pagination.limit + 1}-
-								{Math.min(pagination.page * pagination.limit, pagination.total)}{" "}
-								of {pagination.total}
-							</p>
-							<div className="flex gap-2">
+                                                {/* Pagination */}
+                                                <div className="flex items-center justify-between mt-4">
+                                                        <p className="text-sm text-gray-600">
+                                                                Showing {startIndex}-{endIndex} of {pagination.total}
+                                                        </p>
+                                                        <div className="flex gap-2">
 								<Button
 									variant="outline"
 									size="sm"
