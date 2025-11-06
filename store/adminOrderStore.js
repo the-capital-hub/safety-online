@@ -117,29 +117,50 @@ export const useAdminOrderStore = create(
 					const data = await response.json();
 
 					if (data.success) {
-						const order = data.order;
-						// Extract all products from subOrders if they exist
-						const allProducts = Array.isArray(order.subOrders)
-							? order.subOrders.flatMap((sub) =>
-									Array.isArray(sub.products)
-										? sub.products.map((p) => ({
-												productName:
-													p.productId?.productName ||
-													p.productId?.name ||
-													p.productId?.title ||
-													"Unknown",
-												quantity: p.quantity || 0,
-												price: p.price || p.productId?.price || 0,
-												totalPrice:
-													(p.price || p.productId?.price || 0) *
-													(p.quantity || 0),
-										  }))
-										: []
-							  )
-							: order.products || [];
+                                                const order = data.order;
 
-						const orderForPDF = {
-							...order,
+                                                const mapOrderProduct = (product) => {
+                                                        const productDoc = product?.productId || {};
+                                                        const priceValue = product?.price ?? productDoc?.price ?? 0;
+                                                        const quantityValue = product?.quantity || 0;
+                                                        const resolvedIds = Array.isArray(product?.productIds)
+                                                                ? product.productIds
+                                                                : Array.isArray(productDoc?.productIds)
+                                                                ? productDoc.productIds
+                                                                : [];
+                                                        const uniqueProductIds = resolvedIds
+                                                                .map((id) =>
+                                                                        typeof id === "string" ? id.trim() : String(id || "")
+                                                                )
+                                                                .filter((id, index, arr) => id.length > 0 && arr.indexOf(id) === index);
+
+                                                        return {
+                                                                productName:
+                                                                        product?.productName ||
+                                                                        productDoc?.productName ||
+                                                                        productDoc?.name ||
+                                                                        productDoc?.title ||
+                                                                        "Unknown",
+                                                                quantity: quantityValue,
+                                                                price: priceValue,
+                                                                totalPrice: product?.totalPrice ?? priceValue * quantityValue,
+                                                                productIds: uniqueProductIds,
+                                                                hsnCode: product?.hsnCode || productDoc?.hsnCode || "",
+                                                        };
+                                                };
+
+                                                const allProducts = Array.isArray(order.subOrders)
+                                                        ? order.subOrders.flatMap((sub) =>
+                                                                Array.isArray(sub.products)
+                                                                        ? sub.products.map(mapOrderProduct)
+                                                                        : []
+                                                          )
+                                                        : Array.isArray(order.products)
+                                                        ? order.products.map(mapOrderProduct)
+                                                        : [];
+
+                                                const orderForPDF = {
+                                                        ...order,
 							customerName: order.customerName,
 							customerEmail: order.customerEmail,
 							customerMobile: order.customerMobile,

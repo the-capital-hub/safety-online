@@ -302,6 +302,17 @@ export function SellerOrderDetailsPopup({ open, onOpenChange, order }) {
                                                                         const quantity = getSafeNumber(product?.quantity || 0);
                                                                         const totalPrice =
                                                                                 product?.totalPrice ?? getSafeNumber(product?.price) * quantity;
+                                                                        const resolvedIds = Array.isArray(product?.productIds)
+                                                                                ? product.productIds
+                                                                                : Array.isArray(product?.productId?.productIds)
+                                                                                ? product.productId.productIds
+                                                                                : [];
+                                                                        const uniqueProductIds = resolvedIds
+                                                                                .map((id) =>
+                                                                                        typeof id === "string" ? id.trim() : String(id || "")
+                                                                                )
+                                                                                .filter((id, idx, arr) => id.length > 0 && arr.indexOf(id) === idx);
+                                                                        const hsnCode = product?.hsnCode || product?.productId?.hsnCode || "";
 
                                                                         return (
                                                                                 <div
@@ -311,6 +322,14 @@ export function SellerOrderDetailsPopup({ open, onOpenChange, order }) {
                                                                                         <div>
                                                                                                 <p className="font-medium text-gray-900">{productName}</p>
                                                                                                 <p className="text-xs text-gray-500">Qty: {quantity}</p>
+                                                                                                {uniqueProductIds.length > 0 && (
+                                                                                                        <p className="text-xs text-gray-500 break-words">
+                                                                                                                IDs: {uniqueProductIds.join(", ")}
+                                                                                                        </p>
+                                                                                                )}
+                                                                                                {hsnCode && (
+                                                                                                        <p className="text-xs text-gray-500">HSN: {hsnCode}</p>
+                                                                                                )}
                                                                                         </div>
                                                                                         <p className="font-medium text-gray-900">{formatCurrencyValue(totalPrice)}</p>
                                                                                 </div>

@@ -99,17 +99,36 @@ export async function POST(request) {
 
 		const imageUrls = await Promise.all(uploadPromises);
 
-		// Parse features safely
-		let features = [];
-		try {
-			const featuresString = formData.get("features");
-			if (featuresString) {
-				features = JSON.parse(featuresString);
-			}
-		} catch (error) {
-			console.error("Error parsing features:", error);
-			features = [];
-		}
+                // Parse features safely
+                let features = [];
+                try {
+                        const featuresString = formData.get("features");
+                        if (featuresString) {
+                                features = JSON.parse(featuresString);
+                        }
+                } catch (error) {
+                        console.error("Error parsing features:", error);
+                        features = [];
+                }
+
+                // Parse product IDs
+                let productIds = [];
+                try {
+                        const productIdsRaw = formData.get("productIds");
+                        if (productIdsRaw) {
+                                const parsed = JSON.parse(productIdsRaw);
+                                if (Array.isArray(parsed)) {
+                                        productIds = parsed
+                                                .map((id) =>
+                                                        typeof id === "string" ? id.trim() : String(id || "")
+                                                )
+                                                .filter((id, index, arr) => id.length > 0 && arr.indexOf(id) === index);
+                                }
+                        }
+                } catch (error) {
+                        console.error("Error parsing product IDs:", error);
+                        productIds = [];
+                }
 
 		// Create new product
 		const product = new Product({
@@ -129,7 +148,8 @@ export async function POST(request) {
 				? Number.parseFloat(formData.get("discount"))
 				: 0,
 			type: formData.get("type") || "featured",
-			features: features,
+                        features: features,
+                        productIds,
 			subCategory: formData.get("subCategory") || "",
 			mainImage: imageUrls.length > 0 ? imageUrls[0] : "",
 			hsnCode: formData.get("hsnCode") || "",

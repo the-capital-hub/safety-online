@@ -63,17 +63,36 @@ export async function PUT(request) {
 		const published = formData.get("published") === "true";
 		const sellerId = formData.get("sellerId"); // Get sellerId from form
 
-		// Parse features
-		let features = [];
-		try {
-			const featuresString = formData.get("features");
-			if (featuresString) {
-				features = JSON.parse(featuresString);
-			}
-		} catch (error) {
-			console.error("Error parsing features:", error);
-			features = [];
-		}
+                // Parse features
+                let features = [];
+                try {
+                        const featuresString = formData.get("features");
+                        if (featuresString) {
+                                features = JSON.parse(featuresString);
+                        }
+                } catch (error) {
+                        console.error("Error parsing features:", error);
+                        features = [];
+                }
+
+                // Parse product IDs
+                let productIds = [];
+                try {
+                        const productIdsRaw = formData.get("productIds");
+                        if (productIdsRaw) {
+                                const parsed = JSON.parse(productIdsRaw);
+                                if (Array.isArray(parsed)) {
+                                        productIds = parsed
+                                                .map((id) =>
+                                                        typeof id === "string" ? id.trim() : String(id || "")
+                                                )
+                                                .filter((id, index, arr) => id.length > 0 && arr.indexOf(id) === index);
+                                }
+                        }
+                } catch (error) {
+                        console.error("Error parsing product IDs:", error);
+                        productIds = [];
+                }
 
                 // Handle images
                 let imageOrder = [];
@@ -159,7 +178,8 @@ export async function PUT(request) {
 		product.discount = discount;
 		product.type = type;
 		product.published = published;
-		product.features = features;
+                product.features = features;
+                product.productIds = productIds;
                 let imageUrls = [];
 
                 if (imageOrder.length > 0) {

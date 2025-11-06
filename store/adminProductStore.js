@@ -133,7 +133,11 @@ export const useAdminProductStore = create((set, get) => ({
 				formData.append("weight", productData.weight.toString());
 			}
 
-			formData.append("features", JSON.stringify(productData.features || []));
+                        formData.append("features", JSON.stringify(productData.features || []));
+                        formData.append(
+                                "productIds",
+                                JSON.stringify(productData.productIds || [])
+                        );
 
 			if (productData.images && productData.images.length > 0) {
 				productData.images.forEach((base64Image, index) => {
@@ -243,7 +247,11 @@ export const useAdminProductStore = create((set, get) => ({
 				formData.append("weight", updateData?.weight?.toString());
 			}
 
-			formData.append("features", JSON.stringify(updateData.features || []));
+                        formData.append("features", JSON.stringify(updateData.features || []));
+                        formData.append(
+                                "productIds",
+                                JSON.stringify(updateData.productIds || [])
+                        );
 
 			// Handle images - convert base64 to blobs
                         if (updateData.images && updateData.images.length > 0) {

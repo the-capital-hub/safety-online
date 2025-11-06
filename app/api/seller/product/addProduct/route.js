@@ -120,9 +120,28 @@ export async function POST(request) {
 			features = [];
 		}
 
-		// Create new product
-		const product = new Product({
-			sellerId: userId,
+                // Parse product IDs
+                let productIds = [];
+                try {
+                        const rawProductIds = formData.get("productIds");
+                        if (rawProductIds) {
+                                const parsed = JSON.parse(rawProductIds);
+                                if (Array.isArray(parsed)) {
+                                        productIds = parsed
+                                                .map((id) =>
+                                                        typeof id === "string" ? id.trim() : String(id || "")
+                                                )
+                                                .filter((id, index, arr) => id.length > 0 && arr.indexOf(id) === index);
+                                }
+                        }
+                } catch (error) {
+                        console.error("Error parsing product IDs:", error);
+                        productIds = [];
+                }
+
+                // Create new product
+                const product = new Product({
+                        sellerId: userId,
 			title,
 			description,
 			longDescription: formData.get("longDescription") || description,
@@ -157,8 +176,9 @@ export async function POST(request) {
 				: null,
 			colour: formData.get("colour") || "",
 			material: formData.get("material") || "",
-			size: formData.get("size") || "",
-		});
+                        size: formData.get("size") || "",
+                        productIds,
+                });
 
 		await product.save();
 

@@ -57,7 +57,8 @@ const WORD_LIMITS = {
 export function AddProductPopup({ open, onOpenChange }) {
         const { addProduct, categories, fetchCategories } = useSellerProductStore();
         const [isSubmitting, setIsSubmitting] = useState(false);
-        const [features, setFeatures] = useState([""]);
+        const [features, setFeatures] = useState([""]); 
+        const [productIds, setProductIds] = useState([""]);
 
 	const [formData, setFormData] = useState({
 		title: "",
@@ -179,6 +180,10 @@ export function AddProductPopup({ open, onOpenChange }) {
                                 .filter((feature) => feature.length > 0)
                                 .map((feature) => ({ title: feature, description: feature }));
 
+                        const formattedProductIds = productIds
+                                .map((id) => id.trim())
+                                .filter((id, index, arr) => id.length > 0 && arr.indexOf(id) === index);
+
                         // Prepare product data with proper types
                         const productData = {
                                 title: formData.title,
@@ -202,10 +207,11 @@ export function AddProductPopup({ open, onOpenChange }) {
 				width: formData.width ? Number.parseFloat(formData.width) : null,
 				height: formData.height ? Number.parseFloat(formData.height) : null,
 				weight: formData.weight ? Number.parseFloat(formData.weight) : null,
-				colour: formData.colour,
-				material: formData.material,
-				size: formData.size,
-			};
+                                colour: formData.colour,
+                                material: formData.material,
+                                size: formData.size,
+                                productIds: formattedProductIds,
+                        };
 
 			console.log("Product Data:", productData);
 
@@ -246,9 +252,10 @@ export function AddProductPopup({ open, onOpenChange }) {
 			weight: "",
 			colour: "",
 			material: "",
-			size: "",
-		});
+                        size: "",
+                });
                 setFeatures([""]);
+                setProductIds([""]);
         };
 
         const handleDescriptionChange = (value) => {
@@ -300,6 +307,22 @@ export function AddProductPopup({ open, onOpenChange }) {
                 const updatedFeatures = [...features];
                 updatedFeatures[index] = value;
                 setFeatures(updatedFeatures);
+        };
+
+        const addProductIdField = () => {
+                setProductIds((prev) => [...prev, ""]);
+        };
+
+        const removeProductIdField = (index) => {
+                setProductIds((prev) => prev.filter((_, i) => i !== index));
+        };
+
+        const updateProductIdValue = (index, value) => {
+                setProductIds((prev) => {
+                        const next = [...prev];
+                        next[index] = value;
+                        return next;
+                });
         };
 
 	return (
@@ -649,9 +672,54 @@ export function AddProductPopup({ open, onOpenChange }) {
 							</div>
 						</div>
 
-						<div>
-							<div className="flex items-center justify-between mb-3">
-								<Label>Product Features</Label>
+                                                <div>
+                                                        <div className="flex items-center justify-between mb-3">
+                                                                <Label>Product IDs</Label>
+                                                                <Button
+                                                                        type="button"
+                                                                        variant="outline"
+                                                                        size="sm"
+                                                                        onClick={addProductIdField}
+                                                                >
+                                                                        <Plus className="w-4 h-4 mr-1" />
+                                                                        Add Product ID
+                                                                </Button>
+                                                        </div>
+                                                        <p className="text-xs text-gray-500 mb-2">
+                                                                Add one or more identifiers that should appear on invoices and
+                                                                order details.
+                                                        </p>
+                                                        <div className="space-y-3">
+                                                                {productIds.map((value, index) => (
+                                                                        <div key={index} className="flex gap-3 items-start">
+                                                                                <Input
+                                                                                        id={`product-id-${index}`}
+                                                                                        placeholder="Enter product identifier"
+                                                                                        value={value}
+                                                                                        onChange={(e) =>
+                                                                                                updateProductIdValue(index, e.target.value)
+                                                                                        }
+                                                                                        className="flex-1"
+                                                                                />
+                                                                                {productIds.length > 1 && (
+                                                                                        <Button
+                                                                                                type="button"
+                                                                                                variant="outline"
+                                                                                                size="icon"
+                                                                                                onClick={() => removeProductIdField(index)}
+                                                                                                aria-label="Remove product id"
+                                                                                        >
+                                                                                                <X className="w-4 h-4" />
+                                                                                        </Button>
+                                                                                )}
+                                                                        </div>
+                                                                ))}
+                                                        </div>
+                                                </div>
+
+                                                <div>
+                                                        <div className="flex items-center justify-between mb-3">
+                                                                <Label>Product Features</Label>
 								<Button
 									type="button"
 									variant="outline"
