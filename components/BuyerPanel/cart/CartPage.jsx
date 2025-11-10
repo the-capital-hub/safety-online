@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -80,9 +81,9 @@ export default function CartPage() {
 
 	return (
 		<div className="min-h-screen bg-gray-50">
-			<div className="container mx-auto px-4 py-8">
-				{/* Header */}
-				<div className="flex items-center justify-between mb-8">
+                        <div className="container mx-auto px-4 py-8">
+                                {/* Header */}
+                                <div className="flex items-center justify-between mb-8">
 					<div className="flex items-center gap-4">
 						<Button variant="outline" size="icon" onClick={handleGoBack}>
 							<ArrowLeft className="h-4 w-4" />
@@ -112,9 +113,9 @@ export default function CartPage() {
 					)}
 				</div>
 
-				{items.length === 0 ? (
-					/* Empty Cart State */
-					<motion.div
+                                {items.length === 0 ? (
+                                        /* Empty Cart State */
+                                        <motion.div
 						initial={{ opacity: 0, y: 20 }}
 						animate={{ opacity: 1, y: 0 }}
 						className="text-center py-16"
@@ -140,9 +141,9 @@ export default function CartPage() {
 							</CardContent>
 						</Card>
 					</motion.div>
-				) : (
-					/* Cart with Items */
-					<div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                ) : (
+                                        /* Cart with Items */
+                                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 						{/* Cart Items */}
 						<div className="lg:col-span-2 space-y-4">
 							<AnimatePresence mode="popLayout">
@@ -157,8 +158,48 @@ export default function CartPage() {
 							<CartSummary />
 						</div>
 					</div>
-				)}
-			</div>
-		</div>
-	);
+                                )}
+
+                                <section className="mt-12 rounded-3xl bg-white p-8 shadow-sm">
+                                        <h2 className="text-2xl font-semibold text-gray-900">Plan your next safety order with confidence</h2>
+                                        <p className="mt-4 text-base leading-relaxed text-gray-600">
+                                                Your cart keeps shortlisted products synchronised across devices so procurement teams can pause, collaborate, and return without losing progress.
+                                                Use this space to compare specifications, update quantities based on workforce strength, and document any onsite risk assessments before checkout.
+                                                Our fulfilment partners maintain audited inventories, ensuring the PPE, signage, or fire safety gear you save here is ready for dispatch across India.
+                                        </p>
+                                        <p className="mt-4 text-base leading-relaxed text-gray-600">
+                                                Need personalised guidance? Share project requirements through the
+                                                {" "}
+                                                <Link href="/contact" className="font-semibold text-black underline underline-offset-4">
+                                                        contact form
+                                                </Link>
+                                                {" "}
+                                                and our specialists will recommend compatible equipment sets, compliance documentation, and GST invoicing support.
+                                                For budget planning, review negotiated slabs in the
+                                                {" "}
+                                                <Link href="/pricing-policy" className="font-semibold text-black underline underline-offset-4">
+                                                        pricing policy
+                                                </Link>
+                                                , then align delivery schedules using our
+                                                {" "}
+                                                <Link href="/shipping-policy" className="font-semibold text-black underline underline-offset-4">
+                                                        shipping commitments
+                                                </Link>
+                                                .
+                                        </p>
+                                        <ul className="mt-6 grid gap-3 text-sm text-gray-600 md:grid-cols-3">
+                                                <li className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                                                        Track order status and re-order essentials directly from your account dashboard once checkout is complete.
+                                                </li>
+                                                <li className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                                                        Document safety audit findings here so stakeholders can justify procurement decisions during approvals.
+                                                </li>
+                                                <li className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                                                        Coordinate deliveries across multiple sites by tagging shipping notes for each location before placing the order.
+                                                </li>
+                                        </ul>
+                                </section>
+                        </div>
+                </div>
+        );
 }

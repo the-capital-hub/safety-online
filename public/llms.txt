@@ -1,0 +1,7 @@
+# Safety Online llms.txt
+This site curates industrial safety equipment, compliance resources, and ecommerce workflows for Indian businesses.
+Key URLs:
+- Homepage: https://www.safetyonline.in/home
+- Product catalogue: https://www.safetyonline.in/products
+- Learning hub: https://www.safetyonline.in/blog
+- Support & enquiries: https://www.safetyonline.in/contact
