@@ -60,11 +60,11 @@ export default function ProductGrid() {
 			{/* Header */}
 			<div className="bg-white rounded-lg p-6 shadow-sm">
 				<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-					<div>
-						<h1 className="text-3xl font-bold text-gray-900">Products</h1>
-						<p className="text-gray-600 mt-1">
-							{isLoading
-								? "Loading products..."
+                                        <div>
+                                                <h2 className="text-3xl font-bold text-gray-900">Products</h2>
+                                                <p className="text-gray-600 mt-1">
+                                                        {isLoading
+                                                                ? "Loading products..."
 								: `Showing ${filteredProducts.length} products`}
 						</p>
 					</div>
