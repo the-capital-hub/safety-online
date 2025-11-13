@@ -78,6 +78,7 @@ const formatCategoryLabel = (value = "") => {
                 .join(" ");
 };
 
+const DEFAULT_CATEGORY = "All Products";
 const DEFAULT_SORT_OPTION = "recommended";
 
 const SORT_OPTIONS = [
@@ -147,6 +148,22 @@ const formatCurrency = (value) => {
         return `₹${normalized.toLocaleString()}`;
 };
 
+const getInitialCategory = () => {
+        if (typeof window === "undefined") {
+                return DEFAULT_CATEGORY;
+        }
+
+        const params = new URLSearchParams(window.location.search);
+        const categoryParam = params.get("category");
+
+        if (!categoryParam) {
+                return DEFAULT_CATEGORY;
+        }
+
+        const normalized = categoryParam.trim();
+        return normalized || DEFAULT_CATEGORY;
+};
+
 export default function SellerPage() {
         const { id } = useParams();
         const [seller, setSeller] = useState(null);
@@ -155,7 +172,7 @@ export default function SellerPage() {
         const [brands, setBrands] = useState([]);
         const [selectedBrands, setSelectedBrands] = useState([]);
         const [onlyInStock, setOnlyInStock] = useState(false);
-        const [activeCategory, setActiveCategory] = useState("All Products");
+        const [activeCategory, setActiveCategory] = useState(getInitialCategory);
         const [searchQuery, setSearchQuery] = useState("");
         const [sortOption, setSortOption] = useState(DEFAULT_SORT_OPTION);
         const [priceRange, setPriceRange] = useState([0, 0]);
@@ -337,8 +354,30 @@ export default function SellerPage() {
                 setOnlyInStock(false);
                 setSortOption(DEFAULT_SORT_OPTION);
                 setSearchQuery("");
-                setActiveCategory("All Products");
+                setActiveCategory(DEFAULT_CATEGORY);
                 setPriceRange([priceRangeBounds.min, priceRangeBounds.max]);
+        };
+
+        const handleCategoryNavigation = (category) => {
+                if (!category || category === activeCategory) {
+                        return;
+                }
+
+                setActiveCategory(category);
+
+                if (typeof window === "undefined") {
+                        return;
+                }
+
+                const url = new URL(window.location.href);
+
+                if (category === DEFAULT_CATEGORY) {
+                        url.searchParams.delete("category");
+                } else {
+                        url.searchParams.set("category", category);
+                }
+
+                window.location.assign(url.toString());
         };
 
         const handlePriceRangeChange = (value) => {
@@ -773,7 +812,7 @@ export default function SellerPage() {
                                                                                                 ? "bg-orange-500 text-white hover:bg-orange-600"
                                                                                                 : "text-gray-600 hover:text-gray-900"
                                                                                 }`}
-                                                                                onClick={() => setActiveCategory(category)}
+                                                                                onClick={() => handleCategoryNavigation(category)}
                                                                         >
                                                                                 {formatCategoryLabel(category)}
                                                                         </Button>
