@@ -151,6 +151,15 @@ export default function NavigationBar({ isMenuOpen = false, onMenuClose }) {
         const [activeCategorySlug, setActiveCategorySlug] = useState(HOME_SLUG);
         const [activeSubCategorySlug, setActiveSubCategorySlug] = useState("");
 
+        const navigateWithFullRefresh = (url) => {
+                if (typeof window !== "undefined") {
+                        window.location.href = url;
+                        return;
+                }
+
+                router.push(url);
+        };
+
         const closeMenuIfNeeded = () => {
                 if (onMenuClose) onMenuClose();
         };
@@ -357,14 +366,14 @@ export default function NavigationBar({ isMenuOpen = false, onMenuClose }) {
         const handleHomeNavigation = () => {
                 setActiveCategorySlug(HOME_SLUG);
                 setActiveSubCategorySlug("");
-                router.push("/home");
+                navigateWithFullRefresh("/home");
                 closeMenuIfNeeded();
         };
 
         const handleContactNavigation = () => {
                 setActiveCategorySlug(CONTACT_SLUG);
                 setActiveSubCategorySlug("");
-                router.push("/contact");
+                navigateWithFullRefresh("/contact");
                 closeMenuIfNeeded();
         };
 
@@ -375,7 +384,9 @@ export default function NavigationBar({ isMenuOpen = false, onMenuClose }) {
                 setActiveSubCategorySlug("");
 
                 if (categoryHasProducts(category)) {
-                        router.push(`/products?category=${encodeURIComponent(categorySlug)}`);
+                        navigateWithFullRefresh(
+                                `/products?category=${encodeURIComponent(categorySlug)}`
+                        );
                 } else {
                         const params = new URLSearchParams({
                                 section: categorySlug,
@@ -383,7 +394,7 @@ export default function NavigationBar({ isMenuOpen = false, onMenuClose }) {
                                 type: "category",
                         });
 
-                        router.push(`/coming-soon?${params.toString()}`);
+                        navigateWithFullRefresh(`/coming-soon?${params.toString()}`);
                 }
 
                 closeMenuIfNeeded();
@@ -402,7 +413,7 @@ export default function NavigationBar({ isMenuOpen = false, onMenuClose }) {
                                 subCategory: subCategorySlug,
                         });
 
-                        router.push(`/products?${params.toString()}`);
+                        navigateWithFullRefresh(`/products?${params.toString()}`);
                 } else {
                         const params = new URLSearchParams({
                                 section: subCategorySlug,
@@ -412,7 +423,7 @@ export default function NavigationBar({ isMenuOpen = false, onMenuClose }) {
                                 type: "sub",
                         });
 
-                        router.push(`/coming-soon?${params.toString()}`);
+                        navigateWithFullRefresh(`/coming-soon?${params.toString()}`);
                 }
 
                 closeMenuIfNeeded();
