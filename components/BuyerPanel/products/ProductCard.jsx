@@ -25,7 +25,7 @@ export default function ProductCard({ product, viewMode = "grid" }) {
 	const isInWishlist = isItemInWishlist(product.id);
 
         const handleViewProduct = () => {
-                router.push(`/products/${product.id}`);
+                window.open(`/products/${product.id}`, "_blank");
         };
 
         const handleAddToCart = async (e) => {

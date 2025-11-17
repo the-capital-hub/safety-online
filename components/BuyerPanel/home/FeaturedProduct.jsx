@@ -41,9 +41,9 @@ export default function FeaturedProduct({ product }) {
 		router.push(`/checkout?buyNow=true&id=${product.id}&qty=1`);
 	};
 
-	const handleViewProduct = () => {
-		router.push(`/products/${product.id}`);
-	};
+        const handleViewProduct = () => {
+                window.open(`/products/${product.id}`, "_blank");
+        };
 
 	return (
 		<motion.div
