@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -79,16 +79,17 @@ export default function AdminProductsPage() {
 		bulkUpload: false,
 	});
 	const [categories, setCategories] = useState([]);
-	const [editingProductId, setEditingProductId] = useState(null);
-	const [savingProductId, setSavingProductId] = useState(null);
-	const [editValues, setEditValues] = useState({
-		price: "",
-		salePrice: "",
-		stocks: "",
-	});
-	const isAuthenticated = useIsAuthenticated();
-	const [isRedirecting, setIsRedirecting] = useState(false);
-	const router = useRouter();
+        const [editingProductId, setEditingProductId] = useState(null);
+        const [savingProductId, setSavingProductId] = useState(null);
+        const [editValues, setEditValues] = useState({
+                price: "",
+                salePrice: "",
+                stocks: "",
+        });
+        const isAuthenticated = useIsAuthenticated();
+        const [isRedirecting, setIsRedirecting] = useState(false);
+        const hasInitializedSearch = useRef(false);
+        const router = useRouter();
 
 	useEffect(() => {
 		fetchProducts();
@@ -104,10 +105,10 @@ export default function AdminProductsPage() {
 		}
 	}, [isAuthenticated, router]);
 
-	useEffect(() => {
-		const fetchCategories = async () => {
-			try {
-				const res = await fetch("/api/categories");
+        useEffect(() => {
+                const fetchCategories = async () => {
+                        try {
+                                const res = await fetch("/api/categories");
 				const data = await res.json();
 				if (data.success) {
 					setCategories(data.categories);
@@ -117,7 +118,22 @@ export default function AdminProductsPage() {
 			}
 		};
 		fetchCategories();
-	}, []);
+        }, []);
+
+        useEffect(() => {
+                if (!hasInitializedSearch.current) {
+                        hasInitializedSearch.current = true;
+                        return;
+                }
+
+                const searchDelay = filters.search?.trim() ? 350 : 200;
+
+                const timeoutId = setTimeout(() => {
+                        fetchProducts();
+                }, searchDelay);
+
+                return () => clearTimeout(timeoutId);
+        }, [fetchProducts, filters.search]);
 
 	// Show redirecting message if not authenticated
 	const handleSearch = (value) => {
