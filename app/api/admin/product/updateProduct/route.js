@@ -4,8 +4,16 @@ import cloudinary from "@/lib/cloudinary.js";
 import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 
+export const config = {
+        api: {
+                bodyParser: {
+                        sizeLimit: "20mb",
+                },
+        },
+};
+
 export async function PUT(request) {
-	await dbConnect();
+        await dbConnect();
 
 	// Get token from cookies
 	const token = request.cookies.get("admin_token")?.value;
