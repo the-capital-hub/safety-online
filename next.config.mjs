@@ -25,6 +25,11 @@ const nextConfig = {
                         },
                 ];
         },
+        api: {
+                bodyParser: {
+                        sizeLimit: "20mb",
+                },
+        },
         async redirects() {
                 return [
                         {

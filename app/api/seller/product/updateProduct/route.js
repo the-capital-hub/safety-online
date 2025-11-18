@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 
 export async function PUT(request) {
-	await dbConnect();
+        await dbConnect();
 
 	// Get token from cookies
 	const token = request.cookies.get("seller-auth-token")?.value;
