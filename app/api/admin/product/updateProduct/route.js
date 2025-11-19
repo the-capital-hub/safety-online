@@ -52,7 +52,11 @@ export async function PUT(request) {
 		const title = formData.get("title");
 		const description = formData.get("description");
 		const longDescription = formData.get("longDescription");
-		const category = formData.get("category");
+		const categoryInput = formData.get("category");
+		const category =
+		typeof categoryInput === "string" && categoryInput.trim().length > 0
+			? categoryInput.trim()
+			: product.category;
 		const price = Number.parseFloat(formData.get("price"));
 		const salePrice = formData.get("salePrice")
 			? Number.parseFloat(formData.get("salePrice"))
@@ -173,6 +177,15 @@ export async function PUT(request) {
 		product.title = title;
 		product.description = description;
 		product.longDescription = longDescription || description;
+		if (!category) {
+			return NextResponse.json(
+				{
+					success: false,
+					message: "Category is required",
+				},
+				{ status: 400 }
+			);
+		}
 		product.category = category;
 		product.price = price;
 		product.salePrice = salePrice;
