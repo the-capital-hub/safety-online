@@ -6,7 +6,9 @@ import { createHmac } from "crypto";
 // ✅ Ensure raw body available (needed for HMAC)
 export const config = {
 	api: {
-		bodyParser: false,
+    bodyParser: {
+      sizeLimit: '20mb'
+    	},
 	},
 };
 

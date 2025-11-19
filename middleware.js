@@ -121,4 +121,9 @@ export const config = {
 		"/admin/login",
 		"/seller/login",
 	],
+	api: {
+		bodyParser: {
+		sizeLimit: '20mb', // or '20mb', '50mb'
+		},
+	},
 };
