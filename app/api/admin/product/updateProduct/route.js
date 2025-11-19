@@ -4,6 +4,8 @@ import cloudinary from "@/lib/cloudinary.js";
 import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 
+export const maxRequestBodySize = "20mb";
+
 export async function PUT(request) {
         await dbConnect();
 
