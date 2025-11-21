@@ -155,8 +155,14 @@ const OrderSchema = new mongoose.Schema(
                         type: CouponAppliedSchema,
                         default: null,
 
-			set: normalizeCouponValue,
-		},
+                        set: normalizeCouponValue,
+                },
+
+                donationSupport: {
+                        amount: { type: Number, default: 0 },
+                        cause: { type: String, default: null },
+                        note: { type: String, default: null },
+                },
 
 		// Payment
 		paymentMethod: {

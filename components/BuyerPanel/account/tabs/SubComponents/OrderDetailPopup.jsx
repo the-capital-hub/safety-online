@@ -442,18 +442,24 @@ export function OrderDetailPopup({ open, onOpenChange, order }) {
 											<span>-₹{discount.toFixed(2)}</span>
 										</div>
 									)}
-									{order.couponApplied && (
-										<div className="flex justify-between text-blue-600">
-											<span>Coupon ({order.couponApplied.couponCode})</span>
-											<span>
-												-₹{order.couponApplied.discountAmount.toFixed(2)}
-											</span>
-										</div>
-									)}
-									<Separator />
-									<div className="flex justify-between text-lg font-bold">
-										<span>Total Amount</span>
-										<span>₹{totalAmount.toFixed(2)}</span>
+                                                                        {order.couponApplied && (
+                                                                                <div className="flex justify-between text-blue-600">
+                                                                                        <span>Coupon ({order.couponApplied.couponCode})</span>
+                                                                                        <span>
+                                                                                                -₹{order.couponApplied.discountAmount.toFixed(2)}
+                                                                                        </span>
+                                                                                </div>
+                                                                        )}
+                                                                        {order?.donationSupport?.amount > 0 && (
+                                                                                <div className="flex justify-between text-blue-700">
+                                                                                        <span>Donation (FOP)</span>
+                                                                                        <span>₹{order.donationSupport.amount.toFixed(2)}</span>
+                                                                                </div>
+                                                                        )}
+                                                                        <Separator />
+                                                                        <div className="flex justify-between text-lg font-bold">
+                                                                                <span>Total Amount</span>
+                                                                                <span>₹{totalAmount.toFixed(2)}</span>
 									</div>
                                                                         {gstLines.length > 0 && (
                                                                                 <p className="text-xs text-gray-500">
