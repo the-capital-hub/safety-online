@@ -18,11 +18,21 @@ const normalizeWeight = (value) => {
         return Number.isFinite(numericValue) ? numericValue : null;
 };
 
+const MIN_DONATION_AMOUNT = 5;
 const MAX_DONATION_AMOUNT = 50000;
 
 const sanitizeDonation = (value) => {
         const numeric = Number(value);
-        return Number.isFinite(numeric) && numeric > 0 ? numeric : 0;
+
+        if (!Number.isFinite(numeric) || numeric <= 0) {
+                return 0;
+        }
+
+        if (numeric < MIN_DONATION_AMOUNT) {
+                return 0;
+        }
+
+        return numeric;
 };
 
 const appendDonationToTotals = (totals, donationAmount = 0) => {
@@ -304,6 +314,16 @@ export const useCheckoutStore = create(
 
                                         if (Number.isNaN(numericAmount) || numericAmount < 0) {
                                                 toast.error("Please enter a valid donation amount");
+                                                return;
+                                        }
+
+                                        if (
+                                                numericAmount > 0 &&
+                                                numericAmount < MIN_DONATION_AMOUNT
+                                        ) {
+                                                toast.error(
+                                                        `Minimum donation amount is ₹${MIN_DONATION_AMOUNT}`
+                                                );
                                                 return;
                                         }
 

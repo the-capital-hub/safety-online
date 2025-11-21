@@ -1401,7 +1401,7 @@ export default function CheckoutPageClient() {
 
                                         <div className="space-y-1">
                                                 <Label htmlFor="customDonation" className="text-sm text-orange-800">
-                                                        Or enter a custom amount (less than ₹50,000)
+                                                        Or enter a custom amount (₹5 - ₹49,999)
                                                 </Label>
                                                 <Input
                                                         id="customDonation"
