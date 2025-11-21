@@ -51,14 +51,15 @@ export default function OrderSuccessPage() {
 						month: "short",
 						day: "numeric",
 					}),
-					products, // save all products
-					amount: orderData?.totalAmount || 0,
-					discount: orderData?.discount || 0,
-					paymentMethod: orderData?.paymentMethod,
-					orderDate: orderData?.orderDate,
-					customer: {
-						name: orderData?.customerName,
-						email: orderData?.customerEmail,
+                                        products, // save all products
+                                        amount: orderData?.totalAmount || 0,
+                                        discount: orderData?.discount || 0,
+                                        donation: orderData?.donationSupport?.amount || 0,
+                                        paymentMethod: orderData?.paymentMethod,
+                                        orderDate: orderData?.orderDate,
+                                        customer: {
+                                                name: orderData?.customerName,
+                                                email: orderData?.customerEmail,
 						mobile: orderData?.customerMobile,
 					},
 					address: orderData?.deliveryAddress,
@@ -257,18 +258,26 @@ export default function OrderSuccessPage() {
 										</span>
 									</div>
 								)}
-								<div className="flex justify-between items-center">
-									<span className="text-gray-600">Discount:</span>
-									<span className="font-medium text-green-700">
-										-₹
-										{Number(orderDetails.discount || 0).toLocaleString("en-IN")}
-									</span>
-								</div>
-								<div className="flex justify-between items-center">
-									<span className="text-gray-600">Payment Method:</span>
-									<Badge className="font-medium bg-blue-300 text-blue-600 rounded-xl">
-										{orderDetails.paymentMethod}
-									</Badge>
+                                                                <div className="flex justify-between items-center">
+                                                                        <span className="text-gray-600">Discount:</span>
+                                                                        <span className="font-medium text-green-700">
+                                                                                -₹
+                                                                                {Number(orderDetails.discount || 0).toLocaleString("en-IN")}
+                                                                        </span>
+                                                                </div>
+                                                                {Number(orderDetails.donation || 0) > 0 && (
+                                                                        <div className="flex justify-between items-center">
+                                                                                <span className="text-gray-600">Donation (FOP):</span>
+                                                                                <span className="font-medium text-blue-700">
+                                                                                        ₹{Number(orderDetails.donation).toLocaleString("en-IN")}
+                                                                                </span>
+                                                                        </div>
+                                                                )}
+                                                                <div className="flex justify-between items-center">
+                                                                        <span className="text-gray-600">Payment Method:</span>
+                                                                        <Badge className="font-medium bg-blue-300 text-blue-600 rounded-xl">
+                                                                                {orderDetails.paymentMethod}
+                                                                        </Badge>
 								</div>
 							</div>
 						</CardContent>

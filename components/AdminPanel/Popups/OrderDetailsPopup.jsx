@@ -993,6 +993,12 @@ export function OrderDetailsPopup({ open, onOpenChange, order, onOrderUpdated })
                                                                                         })()}
                                                                                 </div>
                                                                         )}
+                                                                        {resolvedOrder?.donationSupport?.amount > 0 && (
+                                                                                <div className="flex justify-between text-blue-700">
+                                                                                        <span>Donation (FOP)</span>
+                                                                                        <span>{formatCurrency(resolvedOrder.donationSupport.amount)}</span>
+                                                                                </div>
+                                                                        )}
                                                                         <Separator />
                                                                         <div className="flex justify-between text-lg font-bold">
                                                                                 <span>Total Amount</span>

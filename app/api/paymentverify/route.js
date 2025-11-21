@@ -7,6 +7,7 @@ import { createOrderWithSubOrders } from "@/lib/orders/createOrder.js";
 import { ensureEscrowPayments } from "@/lib/payments/ensureEscrowPayments.js";
 import {
         sendOrderConfirmationEmail,
+        sendDonationThankYouEmail,
         sendOrderFailureEmail,
 } from "@/lib/orders/email.js";
 import { companyInfo } from "@/constants/companyInfo.js";
@@ -195,6 +196,10 @@ export async function POST(req) {
                                         cc: adminCc,
                                         attachInvoice: true,
                                 });
+                                await sendDonationThankYouEmail({
+                                        order: existingOrder,
+                                        to: existingOrder.customerEmail,
+                                });
                         } catch (emailError) {
                                 console.error("Order confirmation email error:", emailError);
                         }
@@ -239,6 +244,10 @@ export async function POST(req) {
                                 to: orderObject.customerEmail || orderData.customerEmail,
                                 cc: adminCc,
                                 attachInvoice: true,
+                        });
+                        await sendDonationThankYouEmail({
+                                order: orderObject,
+                                to: orderObject.customerEmail || orderData.customerEmail,
                         });
                 } catch (emailError) {
                         console.error("Order confirmation email error:", emailError);

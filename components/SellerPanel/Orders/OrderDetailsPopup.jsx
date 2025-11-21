@@ -361,11 +361,22 @@ export function SellerOrderDetailsPopup({ open, onOpenChange, order }) {
                                                                                 <span>-{formatCurrencyValue(resolvedOrder?.discount)}</span>
                                                                         </div>
                                                                 )}
+                                                                {getSafeNumber(resolvedOrder?.donationSupport?.amount) > 0 && (
+                                                                        <div className="flex items-center justify-between text-blue-700">
+                                                                                <span>Donation (FOP)</span>
+                                                                                <span>{formatCurrencyValue(resolvedOrder?.donationSupport?.amount)}</span>
+                                                                        </div>
+                                                                )}
                                                                 <Separator />
                                                                 <div className="flex items-center justify-between text-base font-semibold">
                                                                         <span>Total</span>
                                                                         <span>{formatCurrencyValue(resolvedOrder?.totalAmount)}</span>
                                                                 </div>
+                                                                {getSafeNumber(resolvedOrder?.donationSupport?.amount) > 0 && (
+                                                                        <p className="text-xs text-gray-500">
+                                                                                Donation amounts are directed to patient support and are not included in seller payouts.
+                                                                        </p>
+                                                                )}
                                                         </CardContent>
                                                 </Card>
                                         </div>

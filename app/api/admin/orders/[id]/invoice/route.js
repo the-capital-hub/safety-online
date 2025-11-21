@@ -73,6 +73,7 @@ export async function GET(request, { params }) {
                         discount: order.discount,
                         taxableAmount: order.taxableAmount,
                         totalAmount: order.totalAmount,
+                        donationSupport: order.donationSupport,
                         gst: order.gst,
 
                         // Billing information (for GST invoices)

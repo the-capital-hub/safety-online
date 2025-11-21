@@ -18,6 +18,21 @@ const normalizeWeight = (value) => {
         return Number.isFinite(numericValue) ? numericValue : null;
 };
 
+const MAX_DONATION_AMOUNT = 50000;
+
+const sanitizeDonation = (value) => {
+        const numeric = Number(value);
+        return Number.isFinite(numeric) && numeric > 0 ? numeric : 0;
+};
+
+const appendDonationToTotals = (totals, donationAmount = 0) => {
+        const donation = sanitizeDonation(donationAmount);
+        return {
+                ...totals,
+                total: (totals?.total || 0) + donation,
+        };
+};
+
 // Payment API functions
 const paymentAPI = {
 	async createRazorpayOrder(orderData) {
@@ -181,6 +196,7 @@ export const useCheckoutStore = create(
                                         shippingCost: 0,
                                         hasShippingCost: false,
                                         discount: 0,
+                                        donationAmount: 0,
                                         total: 0,
                                         taxableAmount: 0,
                                         gst: {
@@ -192,15 +208,15 @@ export const useCheckoutStore = create(
 						total: 0,
 						taxableAmount: 0,
 					},
-					shippingEstimate: {
-						minDays: null,
-						maxDays: null,
-						estimatedCost: null,
-						estimatedTax: null,
-						estimatedTotal: null,
-					},
-					edd: "N/A", // Estimated Delivery Date
-				},
+                                                shippingEstimate: {
+                                                        minDays: null,
+                                                        maxDays: null,
+                                                        estimatedCost: null,
+                                                        estimatedTax: null,
+                                                        estimatedTotal: null,
+                                                },
+                                                edd: "N/A", // Estimated Delivery Date
+                                },
 
 				// Applied Coupon (only for buyNow flow)
 				appliedCoupon: null,
@@ -283,6 +299,29 @@ export const useCheckoutStore = create(
                                         set({ paymentMethod: "razorpay" });
                                 },
 
+                                setDonationAmount: (amount) => {
+                                        const numericAmount = Number(amount);
+
+                                        if (Number.isNaN(numericAmount) || numericAmount < 0) {
+                                                toast.error("Please enter a valid donation amount");
+                                                return;
+                                        }
+
+                                        if (numericAmount >= MAX_DONATION_AMOUNT) {
+                                                toast.error("Donations must be less than ₹50,000");
+                                                return;
+                                        }
+
+                                        set((state) => ({
+                                                orderSummary: {
+                                                        ...state.orderSummary,
+                                                        donationAmount: numericAmount,
+                                                },
+                                        }));
+
+                                        get().recalculateTotal();
+                                },
+
 				// Initialize checkout data
 				initializeCheckout: (
 					cartItems = [],
@@ -358,20 +397,27 @@ export const useCheckoutStore = create(
 						address: selectedAddress,
 					});
 
-                                       set((state) => ({
-                                               orderSummary: {
-                                                       ...state.orderSummary,
-                                                       items,
-                                                       subtotal: totals.subtotal,
-                                                       shippingCost: totals.shippingCost,
-                                                       hasShippingCost: totals.shippingCost > 0,
-                                                       discount: totals.discount,
-                                                       total: totals.total,
-                                                       taxableAmount: totals.taxableAmount,
-                                                       gst: totals.gst,
-                                               },
-                                       }));
-				},
+                                       set((state) => {
+                                               const totalsWithDonation = appendDonationToTotals(
+                                                       totals,
+                                                       state.orderSummary.donationAmount
+                                               );
+
+                                               return {
+                                                       orderSummary: {
+                                                               ...state.orderSummary,
+                                                               items,
+                                                               subtotal: totals.subtotal,
+                                                               shippingCost: totals.shippingCost,
+                                                               hasShippingCost: totals.shippingCost > 0,
+                                                               discount: totals.discount,
+                                                               total: totalsWithDonation.total,
+                                                               taxableAmount: totals.taxableAmount,
+                                                               gst: totals.gst,
+                                                       },
+                                               };
+                                       });
+                                },
 
 				// Load user addresses
 				loadUserAddresses: async () => {
@@ -669,7 +715,10 @@ export const useCheckoutStore = create(
                                                                         },
                                                                 // Update all totals with new shipping cost
                                                                 taxableAmount: totals.taxableAmount,
-                                                                total: totals.total,
+                                                                total: appendDonationToTotals(
+                                                                        totals,
+                                                                        state.orderSummary.donationAmount
+                                                                ).total,
                                                                 gst: totals.gst,
                                                         },
                                                 }));
@@ -815,6 +864,11 @@ export const useCheckoutStore = create(
                                                         : {}),
                                         });
 
+                                       const totalsWithDonation = appendDonationToTotals(
+                                               totals,
+                                               orderSummary.donationAmount
+                                       );
+
                                        set({
                                                orderSummary: {
                                                        ...orderSummary,
@@ -822,11 +876,11 @@ export const useCheckoutStore = create(
                                                        hasShippingCost: totals.shippingCost > 0,
                                                        discount: totals.discount,
                                                        taxableAmount: totals.taxableAmount,
-                                                       total: totals.total,
+                                                       total: totalsWithDonation.total,
                                                        gst: totals.gst,
                                                },
                                        });
-				},
+                                },
 
 				// Get selected address
 				getSelectedAddress: () => {
@@ -915,31 +969,48 @@ export const useCheckoutStore = create(
                                                                 : {}),
                                                 });
 
+                                               const totalsWithDonation = appendDonationToTotals(
+                                                       totals,
+                                                       orderSummary.donationAmount
+                                               );
+
                                                set({
                                                        orderSummary: {
                                                                ...orderSummary,
                                                                shippingCost: totals.shippingCost,
                                                                hasShippingCost: totals.shippingCost > 0,
                                                                discount: totals.discount,
-                                                               total: totals.total,
+                                                               total: totalsWithDonation.total,
                                                                taxableAmount: totals.taxableAmount,
                                                                gst: totals.gst,
                                                        },
                                                });
 
-						const orderData = {
-							userId: userId,
-							customerName: customerInfo.name,
-							customerEmail: customerInfo.email,
-							customerMobile: customerInfo.mobile,
-							products: orderSummary.items,
-							subtotal: totals.subtotal,
-							shippingCost: totals.shippingCost,
-							discount: totals.discount,
-							totalAmount: totals.total,
-							paymentMethod: paymentMethod,
-							deliveryAddress: {
-								tag: selectedAddress.tag,
+                                               const donationAmount = sanitizeDonation(
+                                                       orderSummary.donationAmount
+                                               );
+
+                                               const orderData = {
+                                                        userId: userId,
+                                                        customerName: customerInfo.name,
+                                                        customerEmail: customerInfo.email,
+                                                        customerMobile: customerInfo.mobile,
+                                                        products: orderSummary.items,
+                                                        subtotal: totals.subtotal,
+                                                        shippingCost: totals.shippingCost,
+                                                        discount: totals.discount,
+                                                        totalAmount: totalsWithDonation.total,
+                                                        paymentMethod: paymentMethod,
+                                                        donationSupport:
+                                                                donationAmount > 0
+                                                                        ? {
+                                                                                        amount: donationAmount,
+                                                                                        cause: "Fibrodysplasia Ossificans Progressiva",
+                                                                                        note: "Support for patients battling FOP",
+                                                                          }
+                                                                        : null,
+                                                        deliveryAddress: {
+                                                                tag: selectedAddress.tag,
 								name: selectedAddress.name,
 								street: selectedAddress.street,
 								city: selectedAddress.city,
@@ -1134,6 +1205,7 @@ export const useCheckoutStore = create(
                                                         shippingCost: 0,
                                                         hasShippingCost: false,
                                                         discount: 0,
+                                                        donationAmount: 0,
                                                         total: 0,
                                                         taxableAmount: 0,
                                                         gst: {
@@ -1199,19 +1271,22 @@ export const useCheckoutStore = create(
 					const couponToUse =
 						checkoutType === "cart" ? cartAppliedCoupon : appliedCoupon;
 
-					return {
-						itemCount: orderSummary.items.reduce(
-							(sum, item) => sum + item.quantity,
-							0
-						),
-						uniqueItems: orderSummary.items.length,
-						...orderSummary,
-						hasPromo: !!couponToUse,
-						promoCode: couponToUse?.code,
-						paymentMethod,
-						checkoutType,
-					};
-				},
+                                                return {
+                                                        itemCount: orderSummary.items.reduce(
+                                                                (sum, item) => sum + item.quantity,
+                                                                0
+                                                        ),
+                                                        uniqueItems: orderSummary.items.length,
+                                                        ...orderSummary,
+                                                        hasPromo: !!couponToUse,
+                                                        promoCode: couponToUse?.code,
+                                                        donationAmount: sanitizeDonation(
+                                                                orderSummary.donationAmount
+                                                        ),
+                                                        paymentMethod,
+                                                        checkoutType,
+                                                };
+                                        },
 			}),
 			{
 				name: "checkout-storage",

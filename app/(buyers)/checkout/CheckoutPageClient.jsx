@@ -22,19 +22,20 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "react-hot-toast";
 import {
-	MapPin,
-	CreditCard,
-	ArrowLeft,
-	ArrowRight,
-	Loader2,
-	Tag,
-	X,
-	Plus,
-	Home,
-	Building,
-	MapPinIcon,
-	AlertTriangle,
-	CheckCircle2,
+        MapPin,
+        CreditCard,
+        ArrowLeft,
+        ArrowRight,
+        Loader2,
+        Tag,
+        X,
+        Plus,
+        Home,
+        Building,
+        MapPinIcon,
+        AlertTriangle,
+        CheckCircle2,
+        HeartHandshake,
 } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
 import { useLoggedInUser } from "@/store/authStore";
@@ -59,6 +60,8 @@ export default function CheckoutPageClient() {
         const WEIGHT_LIMIT_KG = 100;
         const weightLimitMessage =
                 "Weight more than 100kg is not deliverable. Contact contact@safetyonline.in";
+
+        const donationPresets = [10, 50, 100, 200, 500, 1000];
 
 	// Auth store
 	const user = useLoggedInUser();
@@ -94,6 +97,7 @@ export default function CheckoutPageClient() {
                 isLoading,
                 paymentLoading,
                 gstInvoice,
+                orderSummary,
         } = useCheckoutStore();
 
         const stateOptions = useMemo(() => {
@@ -123,7 +127,8 @@ export default function CheckoutPageClient() {
         const setCheckoutType = useCheckoutStore((state) => state.setCheckoutType);
         const setCustomerInfo = useCheckoutStore((state) => state.setCustomerInfo);
 	const setCurrentStep = useCheckoutStore((state) => state.setCurrentStep);
-	const setPaymentMethod = useCheckoutStore((state) => state.setPaymentMethod);
+        const setPaymentMethod = useCheckoutStore((state) => state.setPaymentMethod);
+        const setDonationAmount = useCheckoutStore((state) => state.setDonationAmount);
 	const initializeCheckout = useCheckoutStore(
 		(state) => state.initializeCheckout
 	);
@@ -1358,16 +1363,66 @@ export default function CheckoutPageClient() {
                                                                                 );
                                                                         })}
                                                                 </div>
-                                                        </div>
                                                 </div>
-                                                <Separator />
-                                        </>
+                                        </div>
+                                        <Separator />
+                                </>
 
-                                        {/* Price Breakdown */}
-                                        <div className="space-y-2">
-                                                {totalOrderWeightKg > 0 && (
-                                                        <div className="flex justify-between text-sm text-gray-600">
-                                                                <span>Total Weight</span>
+                                <div className="space-y-3 p-4 rounded-lg border bg-orange-50 border-orange-200">
+                                        <div className="flex items-center gap-2">
+                                                <HeartHandshake className="h-4 w-4 text-orange-600" />
+                                                <div>
+                                                        <p className="font-medium text-orange-800">
+                                                                Donate to support FOP patients
+                                                        </p>
+                                                        <p className="text-xs text-orange-700">
+                                                                100% of this voluntary contribution goes directly to help those living with Fibrodysplasia
+                                                                Ossificans Progressiva (FOP) and is not shared with sellers.
+                                                        </p>
+                                                </div>
+                                        </div>
+
+                                        <div className="flex flex-wrap gap-2">
+                                                {donationPresets.map((amount) => (
+                                                        <Button
+                                                                key={amount}
+                                                                variant={
+                                                                        orderSummary.donationAmount === amount
+                                                                                ? "default"
+                                                                                : "outline"
+                                                                }
+                                                                size="sm"
+                                                                onClick={() => setDonationAmount(amount)}
+                                                        >
+                                                                ₹{amount.toLocaleString()}
+                                                        </Button>
+                                                ))}
+                                        </div>
+
+                                        <div className="space-y-1">
+                                                <Label htmlFor="customDonation" className="text-sm text-orange-800">
+                                                        Or enter a custom amount (less than ₹50,000)
+                                                </Label>
+                                                <Input
+                                                        id="customDonation"
+                                                        type="number"
+                                                        min="0"
+                                                        max="49999"
+                                                        value={orderSummary.donationAmount ?? 0}
+                                                        onChange={(e) => setDonationAmount(e.target.value)}
+                                                        className="bg-white"
+                                                />
+                                                <p className="text-[11px] text-orange-700">
+                                                        Added to your payable total after taxes. Thank you for helping patients battling FOP.
+                                                </p>
+                                        </div>
+                                </div>
+
+                                {/* Price Breakdown */}
+                                <div className="space-y-2">
+                                        {totalOrderWeightKg > 0 && (
+                                                <div className="flex justify-between text-sm text-gray-600">
+                                                        <span>Total Weight</span>
                                                                 <span>{formattedTotalOrderWeight} kg</span>
                                                         </div>
                                                 )}
@@ -1405,6 +1460,14 @@ export default function CheckoutPageClient() {
                                                                         )}
                                                                 </span>
                                                                 <span>-₹{orderSummary.discount.toLocaleString()}</span>
+                                                        </div>
+                                                )}
+                                                {orderSummary.donationAmount > 0 && (
+                                                        <div className="flex justify-between text-blue-700">
+                                                                <span className="flex items-center gap-2">
+                                                                        <HeartHandshake className="h-4 w-4" /> Donation (FOP)
+                                                                </span>
+                                                                <span>₹{orderSummary.donationAmount.toLocaleString()}</span>
                                                         </div>
                                                 )}
                                                 <Separator />
@@ -1460,6 +1523,7 @@ export default function CheckoutPageClient() {
                 totalOrderWeightKg,
                 exceedsWeightLimit,
                 weightLimitMessage,
+                setDonationAmount,
         ]);
 
 	// Don't render anything if user is not authenticated
