@@ -89,15 +89,14 @@ export default function CheckoutPageClient() {
                 savedAddresses,
                 selectedAddressId,
 		newAddress,
-		isAddingNewAddress,
-		orderSummary,
-		appliedCoupon,
-		cartAppliedCoupon,
+                isAddingNewAddress,
+                orderSummary,
+                appliedCoupon,
+                cartAppliedCoupon,
                 currentStep,
                 isLoading,
                 paymentLoading,
                 gstInvoice,
-                orderSummary,
         } = useCheckoutStore();
 
         const stateOptions = useMemo(() => {
