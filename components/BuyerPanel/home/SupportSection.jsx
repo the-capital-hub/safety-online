@@ -10,11 +10,11 @@ export default function SupportSection() {
 			title: "FAST SHIPPING",
 			description: "We offer fast and reliable delivery",
 		},
-		{
-			icon: PhoneCall,
-			title: "GIVE US A CALL",
-			description: "+91 7795976568",
-		},
+                {
+                        icon: PhoneCall,
+                        title: "GIVE US A CALL",
+                        description: "+91-6360737631",
+                },
 		{
 			icon: MailCheck,
 			title: "EMAIL SUPPORT",
