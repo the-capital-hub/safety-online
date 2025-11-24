@@ -49,10 +49,10 @@ export default function Footer() {
 	};
 
 	const footerSections = {
-		support: {
-			title: "Support",
-			items: ["contact@safetyonline.in", "+91 7795976568"],
-		},
+                support: {
+                        title: "Support",
+                        items: ["contact@safetyonline.in", "+91-6360737631"],
+                },
 		account: {
 			title: "Account",
 			items: [
