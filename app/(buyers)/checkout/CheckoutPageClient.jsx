@@ -1374,12 +1374,24 @@ export default function CheckoutPageClient() {
                                                         <p className="font-medium text-orange-800">
                                                                 Donate to support FOP patients
                                                         </p>
-                                                        <p className="text-xs text-orange-700">
-                                                                100% of this voluntary contribution goes directly to help those living with Fibrodysplasia
-                                                                Ossificans Progressiva (FOP) and is not shared with sellers.
-                                                        </p>
-                                                </div>
-                                        </div>
+                                                          <p className="text-xs text-orange-700">
+                                                                  100% of this voluntary contribution goes directly to help those living with Fibrodysplasia
+                                                                  Ossificans Progressiva (FOP) and is not shared with sellers.
+                                                          </p>
+                                                          <p className="text-xs text-orange-700">
+                                                                  Learn more or donate directly at
+                                                                  <a
+                                                                          href="https://foptrust.org/"
+                                                                          target="_blank"
+                                                                          rel="noreferrer noopener"
+                                                                          className="ml-1 font-semibold underline underline-offset-2"
+                                                                  >
+                                                                          foptrust.org
+                                                                  </a>
+                                                                  .
+                                                          </p>
+                                                  </div>
+                                          </div>
 
                                         <div className="flex flex-wrap gap-2">
                                                 {donationPresets.map((amount) => (
